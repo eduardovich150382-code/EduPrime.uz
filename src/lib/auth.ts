@@ -1,11 +1,9 @@
 import NextAuth from 'next-auth';
 import Google from 'next-auth/providers/google';
 import Credentials from 'next-auth/providers/credentials';
-import { PrismaAdapter } from '@auth/prisma-adapter';
 import { db } from './db';
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  adapter: PrismaAdapter(db),
   session: {
     strategy: 'jwt',
   },
@@ -16,6 +14,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      allowDangerousEmailAccountLinking: true,
     }),
     Credentials({
       id: 'telegram',
@@ -57,7 +56,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             },
           });
         } else {
-          // Update username if changed
           if (telegramUsername && user.telegramUsername !== telegramUsername) {
             user = await db.user.update({
               where: { id: user.id },
@@ -76,24 +74,70 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user, account }) {
-      if (user) {
-        token.id = user.id;
+    async signIn({ user, account, profile }) {
+      if (account?.provider === 'google') {
+        try {
+          const email = user.email!;
+          
+          // Find or create user
+          let dbUser = await db.user.findUnique({
+            where: { email },
+          });
+
+          if (!dbUser) {
+            dbUser = await db.user.create({
+              data: {
+                email,
+                name: user.name || '',
+                image: user.image,
+                googleId: account.providerAccountId,
+                role: 'USER',
+              },
+            });
+          } else if (!dbUser.googleId) {
+            await db.user.update({
+              where: { id: dbUser.id },
+              data: { 
+                googleId: account.providerAccountId,
+                image: dbUser.image || user.image,
+              },
+            });
+          }
+          return true;
+        } catch (error) {
+          console.error('Google signIn error:', error);
+          return false;
+        }
+      }
+      return true;
+    },
+    async jwt({ token, user, account, trigger }) {
+      // First sign in
+      if (account && user) {
+        if (account.provider === 'google') {
+          // Find our DB user by email
+          const dbUser = await db.user.findUnique({
+            where: { email: user.email! },
+            select: { id: true, role: true, lang: true, telegramId: true },
+          });
+          if (dbUser) {
+            token.id = dbUser.id;
+            token.role = dbUser.role;
+            token.lang = dbUser.lang;
+            token.telegramId = dbUser.telegramId;
+          }
+        } else {
+          // Telegram credentials
+          token.id = user.id;
+        }
       }
 
-      // Fetch additional user data
-      if (token.id) {
+      // Refresh user data periodically
+      if (token.id && !token.role) {
         const dbUser = await db.user.findUnique({
           where: { id: token.id as string },
-          select: {
-            id: true,
-            role: true,
-            lang: true,
-            telegramId: true,
-            telegramUsername: true,
-          },
+          select: { id: true, role: true, lang: true, telegramId: true },
         });
-
         if (dbUser) {
           token.role = dbUser.role;
           token.lang = dbUser.lang;
@@ -112,31 +156,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
       return session;
     },
-    async signIn({ user, account }) {
-      if (account?.provider === 'google') {
-        // Link Google account to existing user or create new
-        const existingUser = await db.user.findUnique({
-          where: { email: user.email! },
-        });
-
-        if (!existingUser) {
-          await db.user.create({
-            data: {
-              email: user.email,
-              name: user.name,
-              image: user.image,
-              googleId: account.providerAccountId,
-              role: 'USER',
-            },
-          });
-        } else if (!existingUser.googleId) {
-          await db.user.update({
-            where: { id: existingUser.id },
-            data: { googleId: account.providerAccountId },
-          });
-        }
-      }
-      return true;
+    async redirect({ url, baseUrl }) {
+      // After sign in, redirect to dashboard
+      if (url.startsWith('/')) return `${baseUrl}${url}`;
+      if (url.startsWith(baseUrl)) return url;
+      return `${baseUrl}/dashboard`;
     },
   },
 });
@@ -144,20 +168,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 // Verify Telegram auth token
 async function verifyTelegramToken(telegramId: string, token: string): Promise<boolean> {
   try {
-    // Check if token exists in our system settings (temporary auth tokens)
     const storedToken = await db.systemSetting.findUnique({
       where: { key: `telegram_auth_${telegramId}` },
     });
 
     if (!storedToken) return false;
 
-    // Check if token matches and not expired (5 minutes window)
     const tokenData = JSON.parse(storedToken.value);
     const isValid = tokenData.token === token;
     const isNotExpired = Date.now() - tokenData.createdAt < 5 * 60 * 1000;
 
     if (isValid && isNotExpired) {
-      // Delete used token
       await db.systemSetting.delete({
         where: { key: `telegram_auth_${telegramId}` },
       });
