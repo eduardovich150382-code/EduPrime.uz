@@ -13,7 +13,8 @@ import TelegramBot from 'node-telegram-bot-api';
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 const ADMIN_IDS = (process.env.ADMIN_TELEGRAM_IDS || '').split(',').filter(Boolean);
-const PAYMENT_CARD = process.env.PAYMENT_CARD_NUMBER || '8600 XXXX XXXX XXXX';
+const PAYMENT_CARD = process.env.PAYMENT_CARD_NUMBER || '9860 XXXX XXXX XXXX';
+const PAYMENT_CARD_OWNER = 'Asrorov Xushbaxt';
 
 // Initialize bot
 const bot = new TelegramBot(BOT_TOKEN, { polling: true });
@@ -231,7 +232,8 @@ bot.on('callback_query', async (query) => {
       `Muddat: ${DURATION_LABELS[duration]}\n` +
       `Summa: *${amount.toLocaleString()} so'm*\n\n` +
       `💳 Karta raqami:\n` +
-      `\`${PAYMENT_CARD}\`\n\n` +
+      `\`${PAYMENT_CARD}\`\n` +
+      `👤 Karta egasi: *${PAYMENT_CARD_OWNER}*\n\n` +
       `📎 To'lov qilganingizdan keyin *chek screenshot*ini shu yerga yuboring.\n\n` +
       `⏱ Chek yuborilgandan keyin 24 soat ichida admin tasdiqlaydi.`,
       { parse_mode: 'Markdown' }
