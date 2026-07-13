@@ -1,0 +1,215 @@
+{
+  "common": {
+    "siteName": "EduPrime",
+    "login": "Kirish",
+    "register": "Ro'yxatdan o'tish",
+    "logout": "Chiqish",
+    "profile": "Profil",
+    "settings": "Sozlamalar",
+    "search": "Qidirish",
+    "loading": "Yuklanmoqda...",
+    "save": "Saqlash",
+    "cancel": "Bekor qilish",
+    "delete": "O'chirish",
+    "edit": "Tahrirlash",
+    "create": "Yaratish",
+    "back": "Orqaga",
+    "next": "Keyingi",
+    "previous": "Oldingi",
+    "submit": "Yuborish",
+    "free": "Bepul",
+    "premium": "Premium",
+    "teacher": "Ustoz"
+  },
+  "landing": {
+    "hero": {
+      "title1": "Bilimingizni",
+      "title2": "sinab ko'ring",
+      "title3": "va rivojlantiring",
+      "subtitle": "DTM, maktab, attestatsiya, SAT, GRE va Milliy sertifikat testlarini yeching. Professional ustozlardan video yechimlar oling.",
+      "cta": "Bepul boshlash",
+      "ctaSecondary": "Testlarni ko'rish"
+    },
+    "features": {
+      "title": "Nega aynan EduPrime?",
+      "subtitle": "Eng zamonaviy test platformasi — barcha imtihonlarga bir joydan tayyorlaning",
+      "latex": {
+        "title": "Matematik formulalar",
+        "description": "Barcha savollar LaTeX formatida — formulalar aniq va chiroyli ko'rinadi"
+      },
+      "video": {
+        "title": "Video yechimlar",
+        "description": "Har bir savolga professional ustozlardan batafsil video tushuntirish"
+      },
+      "ai": {
+        "title": "AI yordamchi",
+        "description": "Sun'iy intellekt yordamida testlarni tezkor import qilish va tahlil"
+      },
+      "rating": {
+        "title": "Reyting tizimi",
+        "description": "O'zbekiston bo'ylab reytingda o'z o'rningizni bilib oling"
+      },
+      "mobile": {
+        "title": "Mobil qulay",
+        "description": "Istalgan qurilmadan qulay foydalaning — telefon, planshet, kompyuter"
+      },
+      "multilang": {
+        "title": "Ko'p tilli",
+        "description": "O'zbek, rus va ingliz tillarida to'liq qo'llab-quvvatlash"
+      }
+    },
+    "testTypes": {
+      "title": "Test turlari",
+      "subtitle": "Barcha turdagi imtihonlarga tayyorlaning",
+      "dtm": {
+        "title": "DTM testlari",
+        "description": "5 fan, 30 savol, 3.5 soat — haqiqiy imtihon formati"
+      },
+      "school": {
+        "title": "Maktab testlari",
+        "description": "Barcha sinflar va fanlar uchun testlar"
+      },
+      "attestation": {
+        "title": "Attestatsiya",
+        "description": "O'qituvchilar uchun — 50 savol, 2 ball, barcha fanlar"
+      },
+      "sat": {
+        "title": "SAT",
+        "description": "Xalqaro SAT imtihoniga tayyorgarlik"
+      },
+      "gre": {
+        "title": "GRE Physics",
+        "description": "70 ta test savoli — GRE Physics formati"
+      },
+      "certificate": {
+        "title": "Milliy sertifikat",
+        "description": "35 test + 20 ochiq savol = 55 ta savol"
+      }
+    },
+    "pricing": {
+      "title": "Tariflar",
+      "subtitle": "O'zingizga mos rejani tanlang",
+      "free": {
+        "title": "Bepul",
+        "price": "0",
+        "period": "so'm",
+        "features": [
+          "Ochiq DTM testlari (cheklangan)",
+          "Ochiq maktab testlari (cheklangan)",
+          "Bepul testlar video/yozma yechimlari",
+          "Umumiy reyting",
+          "Profil va statistika"
+        ],
+        "cta": "Bepul boshlash"
+      },
+      "premium": {
+        "title": "Premium",
+        "price": "29 000",
+        "period": "so'm/oy",
+        "popular": true,
+        "features": [
+          "DTM testlari — cheksiz",
+          "Maktab testlari — cheksiz",
+          "Milliy sertifikat testlari",
+          "Video va yozma yechimlar",
+          "Batafsil tahlil",
+          "Reklama yo'q"
+        ],
+        "cta": "Sotib olish",
+        "discount6": "6 oy — 150 000 so'm",
+        "discount12": "1 yil — 270 000 so'm"
+      },
+      "ustoz": {
+        "title": "Ustoz",
+        "price": "29 000",
+        "period": "so'm/oy",
+        "features": [
+          "Attestatsiya testlari (tanlangan fanlar)",
+          "SAT testlari — cheksiz",
+          "GRE Physics — cheksiz",
+          "Milliy sertifikat testlari",
+          "Video va yozma yechimlar",
+          "Batafsil tahlil"
+        ],
+        "cta": "Sotib olish",
+        "discount6": "6 oy — 150 000 so'm",
+        "discount12": "1 yil — 270 000 so'm"
+      }
+    },
+    "howItWorks": {
+      "title": "Qanday ishlaydi?",
+      "subtitle": "3 oddiy qadamda boshlang",
+      "step1": {
+        "title": "Ro'yxatdan o'ting",
+        "description": "Telegram yoki Google orqali 30 soniyada"
+      },
+      "step2": {
+        "title": "Test tanlang",
+        "description": "O'zingizga kerakli test turini tanlang"
+      },
+      "step3": {
+        "title": "Yechib o'rganing",
+        "description": "Testni yeching, natijani ko'ring, yechimlardan o'rganing"
+      }
+    },
+    "cta": {
+      "title": "Hoziroq boshlang!",
+      "subtitle": "Minglab talabalar allaqachon EduPrime bilan tayyorlanmoqda",
+      "button": "Bepul ro'yxatdan o'tish"
+    }
+  },
+  "nav": {
+    "home": "Bosh sahifa",
+    "tests": "Testlar",
+    "dashboard": "Dashboard",
+    "rating": "Reyting",
+    "pricing": "Tariflar",
+    "teacher": "Ustoz panel",
+    "admin": "Admin panel"
+  },
+  "auth": {
+    "loginTitle": "Tizimga kirish",
+    "loginSubtitle": "Telegram yoki Google orqali kiring",
+    "telegram": "Telegram orqali kirish",
+    "google": "Google orqali kirish",
+    "or": "yoki",
+    "noAccount": "Hisobingiz yo'qmi?",
+    "hasAccount": "Hisobingiz bormi?",
+    "registerLink": "Ro'yxatdan o'ting",
+    "loginLink": "Kiring"
+  },
+  "dashboard": {
+    "welcome": "Xush kelibsiz",
+    "stats": {
+      "totalTests": "Yechilgan testlar",
+      "avgScore": "O'rtacha ball",
+      "rank": "Reyting o'rni",
+      "streak": "Streak"
+    },
+    "recentResults": "Oxirgi natijalar",
+    "quickActions": "Tez havolalar",
+    "subscription": "Tarif holati"
+  },
+  "test": {
+    "startTest": "Testni boshlash",
+    "question": "Savol",
+    "of": "dan",
+    "timeLeft": "Qolgan vaqt",
+    "finish": "Tugatish",
+    "result": "Natija",
+    "score": "Ball",
+    "correct": "To'g'ri",
+    "incorrect": "Noto'g'ri",
+    "skipped": "O'tkazilgan",
+    "viewSolution": "Yechimni ko'rish",
+    "videoSolution": "Video yechim",
+    "writtenSolution": "Yozma yechim"
+  },
+  "footer": {
+    "description": "EduPrime — O'zbekistondagi eng zamonaviy test platformasi",
+    "links": "Foydali havolalar",
+    "contact": "Bog'lanish",
+    "social": "Ijtimoiy tarmoqlar",
+    "rights": "Barcha huquqlar himoyalangan"
+  }
+}
