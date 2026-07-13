@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary-50: #f5f3ff;
+  --color-primary-100: #ede9fe;
+  --color-primary-200: #ddd6fe;
+  --color-primary-300: #c4b5fd;
+  --color-primary-400: #a78bfa;
+  --color-primary-500: #8b5cf6;
+  --color-primary-600: #7c3aed;
+  --color-primary-700: #6d28d9;
+  --color-primary-800: #5b21b6;
+  --color-primary-900: #4c1d95;
+  --color-primary-950: #2e1065;
+
+  --color-surface: #ffffff;
+  --color-background: #fafafa;
+  --color-text-primary: #1f2937;
+  --color-text-secondary: #6b7280;
+  --color-border: #e5e7eb;
+
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-text-primary font-sans antialiased;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-gradient-to-r from-primary-600 to-primary-500 text-white px-6 py-3 rounded-xl font-semibold 
+           shadow-lg shadow-primary-500/25 hover:shadow-xl hover:shadow-primary-500/30 
+           hover:from-primary-700 hover:to-primary-600 transition-all duration-300;
+  }
+
+  .btn-secondary {
+    @apply bg-white text-primary-600 border-2 border-primary-200 px-6 py-3 rounded-xl font-semibold
+           hover:bg-primary-50 hover:border-primary-300 transition-all duration-300;
+  }
+
+  .btn-ghost {
+    @apply text-text-secondary hover:text-primary-600 hover:bg-primary-50 px-4 py-2 rounded-lg 
+           transition-all duration-200;
+  }
+
+  .card {
+    @apply bg-surface rounded-2xl border border-border shadow-sm hover:shadow-md transition-shadow duration-300;
+  }
+
+  .card-elevated {
+    @apply bg-surface rounded-2xl shadow-lg border border-primary-100 hover:shadow-xl transition-shadow duration-300;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary-600 via-primary-500 to-primary-400 bg-clip-text text-transparent;
+  }
+
+  .gradient-bg {
+    @apply bg-gradient-to-br from-primary-50 via-white to-primary-100;
+  }
+}

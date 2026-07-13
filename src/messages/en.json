@@ -1,0 +1,215 @@
+{
+  "common": {
+    "siteName": "EduPrime",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "profile": "Profile",
+    "settings": "Settings",
+    "search": "Search",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "free": "Free",
+    "premium": "Premium",
+    "teacher": "Teacher"
+  },
+  "landing": {
+    "hero": {
+      "title1": "Test your",
+      "title2": "knowledge",
+      "title3": "and grow",
+      "subtitle": "Solve DTM, school, attestation, SAT, GRE and National certificate tests. Get video solutions from professional teachers.",
+      "cta": "Start for free",
+      "ctaSecondary": "View tests"
+    },
+    "features": {
+      "title": "Why EduPrime?",
+      "subtitle": "The most modern test platform — prepare for all exams in one place",
+      "latex": {
+        "title": "Math formulas",
+        "description": "All questions in LaTeX format — formulas are precise and beautiful"
+      },
+      "video": {
+        "title": "Video solutions",
+        "description": "Detailed video explanations from professional teachers for each question"
+      },
+      "ai": {
+        "title": "AI assistant",
+        "description": "Quick import and analysis of tests using artificial intelligence"
+      },
+      "rating": {
+        "title": "Rating system",
+        "description": "Find out your position in the rating across Uzbekistan"
+      },
+      "mobile": {
+        "title": "Mobile friendly",
+        "description": "Use from any device — phone, tablet, computer"
+      },
+      "multilang": {
+        "title": "Multilingual",
+        "description": "Full support for Uzbek, Russian and English languages"
+      }
+    },
+    "testTypes": {
+      "title": "Test types",
+      "subtitle": "Prepare for all types of exams",
+      "dtm": {
+        "title": "DTM tests",
+        "description": "5 subjects, 30 questions, 3.5 hours — real exam format"
+      },
+      "school": {
+        "title": "School tests",
+        "description": "Tests for all grades and subjects"
+      },
+      "attestation": {
+        "title": "Attestation",
+        "description": "For teachers — 50 questions, 2 points, all subjects"
+      },
+      "sat": {
+        "title": "SAT",
+        "description": "Preparation for international SAT exam"
+      },
+      "gre": {
+        "title": "GRE Physics",
+        "description": "70 test questions — GRE Physics format"
+      },
+      "certificate": {
+        "title": "National certificate",
+        "description": "35 test + 20 open questions = 55 questions"
+      }
+    },
+    "pricing": {
+      "title": "Pricing",
+      "subtitle": "Choose the right plan for you",
+      "free": {
+        "title": "Free",
+        "price": "0",
+        "period": "UZS",
+        "features": [
+          "Open DTM tests (limited)",
+          "Open school tests (limited)",
+          "Free video/written solutions",
+          "General rating",
+          "Profile and statistics"
+        ],
+        "cta": "Start free"
+      },
+      "premium": {
+        "title": "Premium",
+        "price": "29,000",
+        "period": "UZS/mo",
+        "popular": true,
+        "features": [
+          "DTM tests — unlimited",
+          "School tests — unlimited",
+          "National certificate tests",
+          "Video and written solutions",
+          "Detailed analysis",
+          "No ads"
+        ],
+        "cta": "Buy now",
+        "discount6": "6 months — 150,000 UZS",
+        "discount12": "1 year — 270,000 UZS"
+      },
+      "ustoz": {
+        "title": "Teacher",
+        "price": "29,000",
+        "period": "UZS/mo",
+        "features": [
+          "Attestation tests (selected subjects)",
+          "SAT tests — unlimited",
+          "GRE Physics — unlimited",
+          "National certificate tests",
+          "Video and written solutions",
+          "Detailed analysis"
+        ],
+        "cta": "Buy now",
+        "discount6": "6 months — 150,000 UZS",
+        "discount12": "1 year — 270,000 UZS"
+      }
+    },
+    "howItWorks": {
+      "title": "How it works?",
+      "subtitle": "Start in 3 simple steps",
+      "step1": {
+        "title": "Register",
+        "description": "Via Telegram or Google in 30 seconds"
+      },
+      "step2": {
+        "title": "Choose a test",
+        "description": "Select the type of test you need"
+      },
+      "step3": {
+        "title": "Solve and learn",
+        "description": "Solve the test, see results, learn from solutions"
+      }
+    },
+    "cta": {
+      "title": "Start now!",
+      "subtitle": "Thousands of students are already preparing with EduPrime",
+      "button": "Free registration"
+    }
+  },
+  "nav": {
+    "home": "Home",
+    "tests": "Tests",
+    "dashboard": "Dashboard",
+    "rating": "Rating",
+    "pricing": "Pricing",
+    "teacher": "Teacher panel",
+    "admin": "Admin panel"
+  },
+  "auth": {
+    "loginTitle": "Sign in",
+    "loginSubtitle": "Sign in with Telegram or Google",
+    "telegram": "Sign in with Telegram",
+    "google": "Sign in with Google",
+    "or": "or",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "registerLink": "Register",
+    "loginLink": "Sign in"
+  },
+  "dashboard": {
+    "welcome": "Welcome",
+    "stats": {
+      "totalTests": "Tests solved",
+      "avgScore": "Average score",
+      "rank": "Rating position",
+      "streak": "Streak"
+    },
+    "recentResults": "Recent results",
+    "quickActions": "Quick actions",
+    "subscription": "Subscription status"
+  },
+  "test": {
+    "startTest": "Start test",
+    "question": "Question",
+    "of": "of",
+    "timeLeft": "Time left",
+    "finish": "Finish",
+    "result": "Result",
+    "score": "Score",
+    "correct": "Correct",
+    "incorrect": "Incorrect",
+    "skipped": "Skipped",
+    "viewSolution": "View solution",
+    "videoSolution": "Video solution",
+    "writtenSolution": "Written solution"
+  },
+  "footer": {
+    "description": "EduPrime — the most modern test platform in Uzbekistan",
+    "links": "Useful links",
+    "contact": "Contact",
+    "social": "Social media",
+    "rights": "All rights reserved"
+  }
+}
