@@ -6,10 +6,11 @@ import TestTypesSection from '@/components/landing/TestTypesSection';
 import PricingSection from '@/components/landing/PricingSection';
 import HowItWorksSection from '@/components/landing/HowItWorksSection';
 import CTASection from '@/components/landing/CTASection';
+import SessionProvider from '@/components/providers/SessionProvider';
 
 export default function HomePage() {
   return (
-    <>
+    <SessionProvider>
       <Header />
       <main>
         <HeroSection />
@@ -20,6 +21,6 @@ export default function HomePage() {
         <CTASection />
       </main>
       <Footer />
-    </>
+    </SessionProvider>
   );
 }
