@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { useSession } from 'next-auth/react';
 import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import {
@@ -16,6 +17,9 @@ import {
 
 export default function DashboardPage() {
   const t = useTranslations('dashboard');
+  const { data: session } = useSession();
+
+  const userName = session?.user?.name || 'Foydalanuvchi';
 
   // Mock data (will be replaced with real data)
   const stats = [
@@ -46,7 +50,7 @@ export default function DashboardPage() {
         transition={{ duration: 0.4 }}
       >
         <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">
-          {t('welcome')}, <span className="gradient-text">Foydalanuvchi</span> 👋
+          {t('welcome')}, <span className="gradient-text">{userName}</span> 👋
         </h1>
         <p className="text-text-secondary mt-1">Bugungi natijalaringizni ko&apos;ring</p>
       </motion.div>
