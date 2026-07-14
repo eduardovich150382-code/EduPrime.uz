@@ -1,72 +1,68 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import QuestionDisplay from '@/components/test/QuestionDisplay';
 import TestTimer from '@/components/test/TestTimer';
 import QuestionNav from '@/components/test/QuestionNav';
-import { ChevronLeft, ChevronRight, Flag, AlertCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Flag, AlertCircle, Loader2 } from 'lucide-react';
 
-// Mock questions data
-const mockQuestions = [
-  {
-    id: '1',
-    text: 'Agar <i>f(x) = x<sup>2</sup> + 3x - 4</i> bo\'lsa, <i>f(2)</i> ning qiymatini toping.',
-    images: [],
-    options: [
-      { label: 'A', text: '6', image: null },
-      { label: 'B', text: '8', image: null },
-      { label: 'C', text: '10', image: null },
-      { label: 'D', text: '12', image: null },
-    ],
-    correctAnswer: 'A',
-    points: 1,
-  },
-  {
-    id: '2',
-    text: 'Quyidagi tenglama nechta yechimga ega: <i>x<sup>2</sup> - 5x + 6 = 0</i>',
-    images: [],
-    options: [
-      { label: 'A', text: '0 ta', image: null },
-      { label: 'B', text: '1 ta', image: null },
-      { label: 'C', text: '2 ta', image: null },
-      { label: 'D', text: '3 ta', image: null },
-      { label: 'E', text: 'Cheksiz', image: null },
-    ],
-    correctAnswer: 'C',
-    points: 1,
-  },
-  {
-    id: '3',
-    text: 'Uchburchakning ichki burchaklari yig\'indisi nechaga teng?',
-    images: [],
-    options: [
-      { label: 'A', text: '90°', image: null },
-      { label: 'B', text: '180°', image: null },
-      { label: 'C', text: '270°', image: null },
-      { label: 'D', text: '360°', image: null },
-    ],
-    correctAnswer: 'B',
-    points: 1,
-  },
-];
+interface QuestionData {
+  id: string;
+  text: string;
+  images: string[];
+  options: { label: string; text: string; image: string | null }[];
+  type: string;
+  points: number;
+  order: number;
+}
+
+interface TestData {
+  id: string;
+  titleUz: string;
+  duration: number;
+  questionCount: number;
+  questions: QuestionData[];
+  subject: { nameUz: string };
+}
 
 export default function TestSolvePage() {
   const router = useRouter();
+  const params = useParams();
+  const testId = params.id as string;
+
+  const [test, setTest] = useState<TestData | null>(null);
+  const [loading, setLoading] = useState(true);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [showFinishDialog, setShowFinishDialog] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [startTime] = useState(Date.now());
 
-  const question = mockQuestions[currentQuestion];
-  const totalQuestions = mockQuestions.length;
+  // Fetch test
+  useEffect(() => {
+    async function fetchTest() {
+      try {
+        const res = await fetch(`/api/tests/${testId}`);
+        const data = await res.json();
+        if (data.test) {
+          setTest(data.test);
+        }
+      } catch (error) {
+        console.error('Failed to fetch test:', error);
+      }
+      setLoading(false);
+    }
+    fetchTest();
+  }, [testId]);
 
   const handleAnswer = (answer: string) => {
     setAnswers((prev) => ({ ...prev, [currentQuestion]: answer }));
   };
 
   const handleNext = () => {
-    if (currentQuestion < totalQuestions - 1) {
+    if (test && currentQuestion < test.questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
     }
   };
@@ -77,11 +73,62 @@ export default function TestSolvePage() {
     }
   };
 
-  const handleFinish = useCallback(() => {
-    // In real app, submit answers to API
-    router.push('/results/1');
-  }, [router]);
+  const handleFinish = useCallback(async () => {
+    if (!test || submitting) return;
+    setSubmitting(true);
 
+    const timeSpent = Math.floor((Date.now() - startTime) / 1000);
+
+    // Prepare answers array
+    const answerArray = test.questions.map((q, i) => ({
+      questionId: q.id,
+      answer: answers[i] || '',
+    }));
+
+    try {
+      const res = await fetch(`/api/tests/${testId}/submit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ answers: answerArray, timeSpent }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.result) {
+        router.push(`/results/${data.result.id}`);
+      } else {
+        alert(data.error || 'Xatolik yuz berdi');
+        setSubmitting(false);
+      }
+    } catch (error) {
+      alert('Server xatolik');
+      setSubmitting(false);
+    }
+  }, [test, answers, testId, startTime, submitting, router]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <Loader2 size={40} className="animate-spin text-primary-600 mx-auto mb-4" />
+          <p className="text-text-secondary">Test yuklanmoqda...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!test || test.questions.length === 0) {
+    return (
+      <div className="text-center py-20">
+        <AlertCircle size={48} className="text-red-400 mx-auto mb-4" />
+        <h2 className="text-xl font-bold text-text-primary mb-2">Test topilmadi</h2>
+        <p className="text-text-secondary">Bu test mavjud emas yoki savollar hali qo&apos;shilmagan</p>
+      </div>
+    );
+  }
+
+  const question = test.questions[currentQuestion];
+  const totalQuestions = test.questions.length;
   const answeredCount = Object.keys(answers).length;
 
   return (
@@ -93,15 +140,16 @@ export default function TestSolvePage() {
         className="flex items-center justify-between mb-6 card p-4"
       >
         <div>
-          <h1 className="font-semibold text-text-primary">DTM Matematika #1</h1>
+          <h1 className="font-semibold text-text-primary">{test.titleUz}</h1>
           <p className="text-xs text-text-secondary">
             {answeredCount}/{totalQuestions} javob berilgan
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <TestTimer totalSeconds={210 * 60} onTimeUp={handleFinish} />
+          <TestTimer totalSeconds={test.duration * 60} onTimeUp={handleFinish} />
           <button
             onClick={() => setShowFinishDialog(true)}
+            disabled={submitting}
             className="btn-primary !py-2 !px-4 text-sm flex items-center gap-2"
           >
             <Flag size={14} />
@@ -130,34 +178,28 @@ export default function TestSolvePage() {
               onAnswer={handleAnswer}
             />
 
-            {/* Navigation buttons */}
+            {/* Navigation */}
             <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
               <button
                 onClick={handlePrev}
                 disabled={currentQuestion === 0}
                 className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-text-secondary hover:text-primary-600 hover:bg-primary-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
               >
-                <ChevronLeft size={18} />
-                Oldingi
+                <ChevronLeft size={18} /> Oldingi
               </button>
-
-              <span className="text-sm text-text-secondary">
-                {currentQuestion + 1} / {totalQuestions}
-              </span>
-
+              <span className="text-sm text-text-secondary">{currentQuestion + 1} / {totalQuestions}</span>
               <button
                 onClick={handleNext}
                 disabled={currentQuestion === totalQuestions - 1}
                 className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-primary-600 hover:bg-primary-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
               >
-                Keyingi
-                <ChevronRight size={18} />
+                Keyingi <ChevronRight size={18} />
               </button>
             </div>
           </motion.div>
         </div>
 
-        {/* Sidebar - Question navigation */}
+        {/* Sidebar */}
         <div className="lg:col-span-1">
           <QuestionNav
             totalQuestions={totalQuestions}
@@ -178,9 +220,7 @@ export default function TestSolvePage() {
           >
             <div className="text-center">
               <AlertCircle size={48} className="text-yellow-500 mx-auto mb-4" />
-              <h3 className="text-lg font-bold text-text-primary mb-2">
-                Testni tugatishni xohlaysizmi?
-              </h3>
+              <h3 className="text-lg font-bold text-text-primary mb-2">Testni tugatishni xohlaysizmi?</h3>
               <p className="text-sm text-text-secondary mb-6">
                 {answeredCount}/{totalQuestions} savolga javob berdingiz.
                 {answeredCount < totalQuestions && (
@@ -190,16 +230,15 @@ export default function TestSolvePage() {
                 )}
               </p>
               <div className="flex gap-3">
-                <button
-                  onClick={() => setShowFinishDialog(false)}
-                  className="flex-1 btn-secondary !py-2.5"
-                >
+                <button onClick={() => setShowFinishDialog(false)} className="flex-1 btn-secondary !py-2.5">
                   Davom etish
                 </button>
                 <button
-                  onClick={handleFinish}
-                  className="flex-1 btn-primary !py-2.5"
+                  onClick={() => { setShowFinishDialog(false); handleFinish(); }}
+                  disabled={submitting}
+                  className="flex-1 btn-primary !py-2.5 flex items-center justify-center gap-2"
                 >
+                  {submitting ? <Loader2 size={14} className="animate-spin" /> : null}
                   Tugatish
                 </button>
               </div>
