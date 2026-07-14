@@ -1,17 +1,32 @@
 import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
 import SessionProvider from '@/components/providers/SessionProvider';
+import { auth } from '@/lib/auth';
+import { redirect } from 'next/navigation';
 
-export default function TeacherLayout({
+export default async function TeacherLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await auth();
+
+  if (!session?.user) {
+    redirect('/login');
+  }
+
+  const role = (session.user as any)?.role;
+
+  // Only TEACHER and ADMIN can access
+  if (role !== 'TEACHER' && role !== 'ADMIN') {
+    redirect('/dashboard');
+  }
+
   return (
     <SessionProvider>
       <Header />
       <div className="flex pt-16">
-        <Sidebar role="TEACHER" />
+        <Sidebar role={role} />
         <main className="flex-1 ml-64 p-6 min-h-[calc(100vh-4rem)]">
           {children}
         </main>
