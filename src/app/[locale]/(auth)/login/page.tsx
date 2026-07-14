@@ -59,13 +59,15 @@ function LoginContent() {
           {/* Auth buttons */}
           <div className="space-y-4">
             {/* Telegram button */}
-            <button
-              onClick={handleTelegramLogin}
+            <a
+              href="https://t.me/EduPrimeuzbot?start=login"
+              target="_blank"
+              rel="noopener noreferrer"
               className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-xl bg-[#2AABEE] hover:bg-[#229ED9] text-white font-semibold transition-all duration-300 shadow-lg shadow-[#2AABEE]/25 hover:shadow-xl hover:shadow-[#2AABEE]/30"
             >
               <Send size={20} />
               Telegram orqali kirish
-            </button>
+            </a>
 
             {/* Divider */}
             <div className="flex items-center gap-4">
