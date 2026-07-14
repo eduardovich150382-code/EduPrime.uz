@@ -23,17 +23,13 @@ export default function DashboardPage() {
 
   // Mock data (will be replaced with real data)
   const stats = [
-    { label: t('stats.totalTests'), value: '24', icon: BookOpen, color: 'bg-blue-50 text-blue-600' },
-    { label: t('stats.avgScore'), value: '78%', icon: Target, color: 'bg-green-50 text-green-600' },
-    { label: t('stats.rank'), value: '#156', icon: Trophy, color: 'bg-yellow-50 text-yellow-600' },
-    { label: t('stats.streak'), value: '5 kun', icon: Flame, color: 'bg-red-50 text-red-600' },
+    { label: t('stats.totalTests'), value: '0', icon: BookOpen, color: 'bg-blue-50 text-blue-600' },
+    { label: t('stats.avgScore'), value: '—', icon: Target, color: 'bg-green-50 text-green-600' },
+    { label: t('stats.rank'), value: '—', icon: Trophy, color: 'bg-yellow-50 text-yellow-600' },
+    { label: t('stats.streak'), value: '0', icon: Flame, color: 'bg-red-50 text-red-600' },
   ];
 
-  const recentResults = [
-    { id: '1', test: 'DTM Matematika #12', score: 85, date: '2 soat oldin', subject: 'Matematika' },
-    { id: '2', test: 'Fizika Attestatsiya', score: 72, date: 'Kecha', subject: 'Fizika' },
-    { id: '3', test: 'Ingliz tili SAT', score: 91, date: '3 kun oldin', subject: 'Ingliz tili' },
-  ];
+  const recentResults: any[] = [];
 
   const quickActions = [
     { label: 'DTM test yechish', href: '/tests?type=dtm', icon: BookOpen },

@@ -368,7 +368,7 @@ bot.onText(/\/help/, async (msg) => {
     `/ustoz — Ustoz tarifi sotib olish\n` +
     `/stats — Statistikani ko'rish\n` +
     `/help — Shu yordam\n\n` +
-    `❓ Savollar uchun: @eduprime_support`,
+    `❓ Savollar uchun: @EduPrimeuz_Admin`,
     { parse_mode: 'Markdown' }
   );
 });

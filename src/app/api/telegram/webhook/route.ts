@@ -215,7 +215,7 @@ async function handleHelp(chatId: number, userId: number) {
     `/stats — Statistikani ko'rish\n` +
     `/help — Shu yordam` +
     adminText +
-    `\n\n❓ Savollar uchun: @eduprime_support`,
+    `\n\n❓ Savollar uchun: @EduPrimeuz_Admin`,
     {
       reply_markup: {
         inline_keyboard: [
