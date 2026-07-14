@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { encode } from 'next-auth/jwt';
+import { EncryptJWT } from 'jose';
+import hkdf from '@panva/hkdf';
 
 // This handles Telegram auth callback directly
-// Bot sends user here: /api/auth/telegram-callback?telegramId=...&token=...
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const telegramId = searchParams.get('telegramId');
@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
   const token = searchParams.get('token');
 
   const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://eduprime-uz.vercel.app';
+  const SECRET = process.env.NEXTAUTH_SECRET || 'kJd8sF2mNq9xLpR4vT7wAzCbEhGiKlOm';
 
   if (!telegramId || !token) {
     return NextResponse.redirect(`${APP_URL}/login?error=missing_params`);
@@ -29,7 +30,7 @@ export async function GET(request: NextRequest) {
 
     const tokenData = JSON.parse(storedToken.value);
     const isValid = tokenData.token === token;
-    const isNotExpired = Date.now() - tokenData.createdAt < 5 * 60 * 1000; // 5 min
+    const isNotExpired = Date.now() - tokenData.createdAt < 5 * 60 * 1000;
 
     if (!isValid || !isNotExpired) {
       return NextResponse.redirect(`${APP_URL}/login?error=expired_token`);
@@ -56,50 +57,60 @@ export async function GET(request: NextRequest) {
         },
       });
     } else {
-      // Update username/name if changed
-      if (username && user.telegramUsername !== username) {
+      if ((username && user.telegramUsername !== username) || (firstName && !user.name)) {
         user = await db.user.update({
           where: { id: user.id },
-          data: { 
-            telegramUsername: username,
+          data: {
+            telegramUsername: username || user.telegramUsername,
             name: user.name || firstName || username,
           },
         });
       }
     }
 
-    // Create JWT token manually
-    const jwtToken = await encode({
-      token: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        picture: user.image,
-        role: user.role,
-        lang: user.lang,
-        telegramId: user.telegramId,
-        sub: user.id,
-      } as any,
-      secret: process.env.NEXTAUTH_SECRET || 'development-secret',
-      salt: process.env.NODE_ENV === 'production' 
-        ? '__Secure-authjs.session-token' 
-        : 'authjs.session-token',
-    });
-
-    // Set session cookie and redirect to dashboard
-    const response = NextResponse.redirect(`${APP_URL}/dashboard`);
-    
-    // Set the NextAuth session cookie
-    const cookieName = process.env.NODE_ENV === 'production' 
-      ? '__Secure-authjs.session-token' 
+    // Create JWT using jose (same way NextAuth v5 does it internally)
+    const isProduction = APP_URL.startsWith('https');
+    const cookieName = isProduction
+      ? '__Secure-authjs.session-token'
       : 'authjs.session-token';
-    
-    response.cookies.set(cookieName, jwtToken, {
+
+    // Derive key using HKDF (same as NextAuth)
+    const enc = new TextEncoder();
+    const ikm = enc.encode(SECRET);
+    const salt = enc.encode(cookieName);
+    const info = enc.encode(`Auth.js Generated Encryption Key (${cookieName})`);
+
+    const keyMaterial = await hkdf('sha256', ikm, salt, info, 64);
+
+    // Create JWE token (same format as NextAuth v5)
+    const payload = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      picture: user.image,
+      role: user.role,
+      lang: user.lang,
+      telegramId: user.telegramId,
+      sub: user.id,
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60, // 30 days
+    };
+
+    const jweToken = await new EncryptJWT(payload)
+      .setProtectedHeader({ alg: 'dir', enc: 'A256CBC-HS512' })
+      .setIssuedAt()
+      .setExpirationTime('30d')
+      .encrypt(new Uint8Array(keyMaterial));
+
+    // Set cookie and redirect
+    const response = NextResponse.redirect(`${APP_URL}/dashboard`);
+
+    response.cookies.set(cookieName, jweToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isProduction,
       sameSite: 'lax',
       path: '/',
-      maxAge: 30 * 24 * 60 * 60, // 30 days
+      maxAge: 30 * 24 * 60 * 60,
     });
 
     return response;
