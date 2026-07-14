@@ -21,16 +21,17 @@ const DURATION_LABELS: Record<string, string> = {
 
 // Telegram API helper
 async function sendMessage(chatId: number | string, text: string, options: any = {}) {
-  await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+  const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       chat_id: chatId,
       text,
-      parse_mode: 'Markdown',
+      parse_mode: 'HTML',
       ...options,
     }),
   });
+  return res.json();
 }
 
 async function forwardMessage(chatId: number | string, fromChatId: number | string, messageId: number) {
@@ -53,11 +54,14 @@ async function answerCallbackQuery(callbackQueryId: string) {
   });
 }
 
+function isAdmin(userId: number | string): boolean {
+  return ADMIN_IDS.includes(userId.toString());
+}
+
 // Handle /start command
 async function handleStart(chatId: number, userId: number, username: string, firstName: string, param: string) {
   if (param === 'login' || param === 'buy') {
     try {
-      // Generate auth token
       const crypto = await import('crypto');
       const token = crypto.randomBytes(32).toString('hex');
 
@@ -76,12 +80,13 @@ async function handleStart(chatId: number, userId: number, username: string, fir
 
       await sendMessage(chatId,
         `Salom, ${firstName}! 👋\n\n` +
-        `EduPrime.uz ga kirish uchun quyidagi tugmani bosing:`,
+        `Pastdagi ✅ <b>Saytga kirish</b> tugmasini bosing — avtomatik kirasiz.`,
         {
           reply_markup: {
-            inline_keyboard: [[
-              { text: '🌐 Saytga kirish', url: authUrl }
-            ]]
+            inline_keyboard: [
+              [{ text: '✅ Saytga kirish', url: authUrl }],
+              [{ text: '📚 Testlar', url: `${APP_URL}/tests` }, { text: '📊 Dashboard', url: `${APP_URL}/dashboard` }],
+            ]
           }
         }
       );
@@ -92,20 +97,30 @@ async function handleStart(chatId: number, userId: number, username: string, fir
     return;
   }
 
-  // Default /start
+  // Default /start — show welcome with website button
+  const adminText = isAdmin(userId) ? '\n\n🔐 <b>Admin buyruqlar:</b>\n/admin — Admin panel\n/broadcast — Barchaga xabar\n/users — Foydalanuvchilar soni' : '';
+
   await sendMessage(chatId,
-    `🎓 *EduPrime.uz* — Test Platformasi\n\n` +
-    `Salom, ${firstName}! Xush kelibsiz!\n\n` +
+    `🎓 <b>EduPrime.uz</b> — Test Platformasi\n\n` +
+    `Salom, ${firstName}! Xush kelibsiz! 👋\n\n` +
     `📚 Bu bot orqali:\n` +
-    `• Saytga kirish (ro'yxatdan o'tish)\n` +
+    `• Saytga kirish\n` +
     `• Premium/Ustoz tarif sotib olish\n` +
     `• Yangiliklar olish\n\n` +
-    `Buyruqlar:\n` +
+    `<b>Buyruqlar:</b>\n` +
     `/login — Saytga kirish\n` +
     `/premium — Premium sotib olish\n` +
-    `/ustoz — Ustoz tarifi sotib olish\n` +
-    `/stats — Mening statistikam\n` +
-    `/help — Yordam`
+    `/ustoz — Ustoz tarifi\n` +
+    `/help — Yordam` +
+    adminText,
+    {
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '🌐 Saytga kirish', url: APP_URL }],
+          [{ text: '📚 Testlar', url: `${APP_URL}/tests` }, { text: '💰 Tariflar', url: `${APP_URL}/pricing` }],
+        ]
+      }
+    }
   );
 }
 
@@ -128,12 +143,13 @@ async function handleLogin(chatId: number, userId: number, username: string, fir
   const authUrl = `${APP_URL}/auth/telegram-callback?telegramId=${userId}&username=${username}&firstName=${encodeURIComponent(firstName)}&token=${token}`;
 
   await sendMessage(chatId,
-    `🔐 Kirish havolasi tayyor!\n\nQuyidagi tugmani bosib saytga kiring:`,
+    `🔐 Kirish havolasi tayyor!\n\nPastdagi tugmani bosib saytga kiring:`,
     {
       reply_markup: {
-        inline_keyboard: [[
-          { text: '🌐 EduPrime.uz ga kirish', url: authUrl }
-        ]]
+        inline_keyboard: [
+          [{ text: '✅ Saytga kirish', url: authUrl }],
+          [{ text: '📚 Testlar', url: `${APP_URL}/tests` }, { text: '📊 Dashboard', url: `${APP_URL}/dashboard` }],
+        ]
       }
     }
   );
@@ -142,7 +158,7 @@ async function handleLogin(chatId: number, userId: number, username: string, fir
 // Handle /premium
 async function handlePremium(chatId: number) {
   await sendMessage(chatId,
-    `💎 *Premium tarif*\n\n` +
+    `💎 <b>Premium tarif</b>\n\n` +
     `✅ DTM testlari — cheksiz\n` +
     `✅ Maktab testlari — cheksiz\n` +
     `✅ Milliy sertifikat testlari\n` +
@@ -164,7 +180,7 @@ async function handlePremium(chatId: number) {
 // Handle /ustoz
 async function handleUstoz(chatId: number) {
   await sendMessage(chatId,
-    `👨‍🏫 *Ustoz tarif*\n\n` +
+    `👨‍🏫 <b>Ustoz tarif</b>\n\n` +
     `✅ Attestatsiya testlari (tanlangan fanlar)\n` +
     `✅ SAT testlari — cheksiz\n` +
     `✅ GRE Physics — cheksiz\n` +
@@ -184,21 +200,138 @@ async function handleUstoz(chatId: number) {
 }
 
 // Handle /help
-async function handleHelp(chatId: number) {
+async function handleHelp(chatId: number, userId: number) {
+  const adminText = isAdmin(userId)
+    ? '\n\n🔐 <b>Admin buyruqlar:</b>\n/admin — Admin panel\n/broadcast [xabar] — Barchaga xabar\n/users — Foydalanuvchilar soni'
+    : '';
+
   await sendMessage(chatId,
-    `🤖 *EduPrime Bot — Yordam*\n\n` +
-    `Buyruqlar:\n` +
+    `🤖 <b>EduPrime Bot — Yordam</b>\n\n` +
+    `<b>Asosiy buyruqlar:</b>\n` +
     `/start — Botni boshlash\n` +
     `/login — Saytga kirish havolasi\n` +
     `/premium — Premium tarif sotib olish\n` +
     `/ustoz — Ustoz tarifi sotib olish\n` +
     `/stats — Statistikani ko'rish\n` +
-    `/help — Shu yordam\n\n` +
-    `❓ Savollar uchun: @eduprime_support`
+    `/help — Shu yordam` +
+    adminText +
+    `\n\n❓ Savollar uchun: @eduprime_support`,
+    {
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '🌐 Saytga kirish', url: APP_URL }],
+        ]
+      }
+    }
   );
 }
 
-// Handle callback queries (payment buttons, admin confirm/reject)
+// Handle /admin
+async function handleAdmin(chatId: number, userId: number) {
+  if (!isAdmin(userId)) {
+    await sendMessage(chatId, '❌ Bu buyruq faqat adminlar uchun.');
+    return;
+  }
+
+  const userCount = await db.user.count();
+  const pendingPayments = await db.systemSetting.findMany({
+    where: { key: { startsWith: 'pending_payment_' } },
+  });
+
+  await sendMessage(chatId,
+    `🔐 <b>Admin Panel</b>\n\n` +
+    `👥 Foydalanuvchilar: <b>${userCount}</b>\n` +
+    `💰 Kutilayotgan to'lovlar: <b>${pendingPayments.length}</b>\n\n` +
+    `<b>Admin buyruqlar:</b>\n` +
+    `/users — Foydalanuvchilar ro'yxati\n` +
+    `/broadcast [xabar] — Barchaga xabar yuborish\n\n` +
+    `Saytdagi admin panelga o'tish:`,
+    {
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '⚙️ Admin Panel (sayt)', url: `${APP_URL}/admin` }],
+          [{ text: '👥 Foydalanuvchilar', url: `${APP_URL}/admin/users` }, { text: '💰 To\'lovlar', url: `${APP_URL}/admin/payments` }],
+        ]
+      }
+    }
+  );
+}
+
+// Handle /users
+async function handleUsers(chatId: number, userId: number) {
+  if (!isAdmin(userId)) {
+    await sendMessage(chatId, '❌ Bu buyruq faqat adminlar uchun.');
+    return;
+  }
+
+  const totalUsers = await db.user.count();
+  const recentUsers = await db.user.findMany({
+    take: 5,
+    orderBy: { createdAt: 'desc' },
+    select: { name: true, email: true, telegramUsername: true, createdAt: true },
+  });
+
+  let userList = recentUsers.map((u, i) =>
+    `${i + 1}. ${u.name || 'Nomsiz'} ${u.telegramUsername ? `(@${u.telegramUsername})` : u.email || ''}`
+  ).join('\n');
+
+  await sendMessage(chatId,
+    `👥 <b>Foydalanuvchilar</b>\n\n` +
+    `Jami: <b>${totalUsers}</b> ta\n\n` +
+    `<b>Oxirgi 5 ta:</b>\n${userList}`,
+    {
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '👥 Barchasini ko\'rish (sayt)', url: `${APP_URL}/admin/users` }],
+        ]
+      }
+    }
+  );
+}
+
+// Handle /broadcast
+async function handleBroadcast(chatId: number, userId: number, messageText: string) {
+  if (!isAdmin(userId)) {
+    await sendMessage(chatId, '❌ Bu buyruq faqat adminlar uchun.');
+    return;
+  }
+
+  if (!messageText.trim()) {
+    await sendMessage(chatId, '⚠️ Xabar matnini kiriting:\n/broadcast Salom, yangi testlar qo\'shildi!');
+    return;
+  }
+
+  // Get all users with telegram IDs
+  const users = await db.user.findMany({
+    where: { telegramId: { not: null } },
+    select: { telegramId: true },
+  });
+
+  let sent = 0;
+  let failed = 0;
+
+  for (const user of users) {
+    if (user.telegramId) {
+      try {
+        await sendMessage(parseInt(user.telegramId),
+          `📢 <b>EduPrime.uz yangiligi</b>\n\n${messageText}`,
+          {
+            reply_markup: {
+              inline_keyboard: [[{ text: '🌐 Saytga o\'tish', url: APP_URL }]]
+            }
+          }
+        );
+        sent++;
+      } catch {
+        failed++;
+      }
+    }
+  }
+
+  await sendMessage(chatId, `📢 Xabar yuborildi!\n\n✅ Yuborildi: ${sent}\n❌ Xatolik: ${failed}`);
+}
+
+// Handle callback queries
 async function handleCallbackQuery(callbackQuery: any) {
   const chatId = callbackQuery.message.chat.id;
   const userId = callbackQuery.from.id;
@@ -210,8 +343,8 @@ async function handleCallbackQuery(callbackQuery: any) {
   // Payment selection
   if (data.startsWith('pay_')) {
     const parts = data.replace('pay_', '').split('_');
-    const plan = parts[0]; // premium or teacher
-    const durationKey = parts[1]; // 1month, 6months, 1year
+    const plan = parts[0];
+    const durationKey = parts[1];
 
     const durationMap: Record<string, string> = {
       '1month': '1_month',
@@ -222,7 +355,6 @@ async function handleCallbackQuery(callbackQuery: any) {
     const amount = PRICES[duration];
     const planName = plan === 'premium' ? '💎 Premium' : '👨‍🏫 Ustoz';
 
-    // Save pending payment in DB
     await db.systemSetting.upsert({
       where: { key: `pending_payment_${userId}` },
       update: {
@@ -235,14 +367,14 @@ async function handleCallbackQuery(callbackQuery: any) {
     });
 
     await sendMessage(chatId,
-      `📋 *To'lov ma'lumotlari:*\n\n` +
+      `📋 <b>To'lov ma'lumotlari:</b>\n\n` +
       `Tarif: ${planName}\n` +
       `Muddat: ${DURATION_LABELS[duration]}\n` +
-      `Summa: *${amount.toLocaleString()} so'm*\n\n` +
+      `Summa: <b>${amount.toLocaleString()} so'm</b>\n\n` +
       `💳 Karta raqami:\n` +
-      `\`${PAYMENT_CARD}\`\n` +
-      `👤 Karta egasi: *${PAYMENT_CARD_OWNER}*\n\n` +
-      `📎 To'lov qilganingizdan keyin *chek screenshot*ini shu yerga yuboring.\n\n` +
+      `<code>${PAYMENT_CARD}</code>\n` +
+      `👤 Karta egasi: <b>${PAYMENT_CARD_OWNER}</b>\n\n` +
+      `📎 To'lov qilganingizdan keyin <b>chek screenshot</b>ini shu yerga yuboring.\n\n` +
       `⏱ Chek yuborilgandan keyin 24 soat ichida admin tasdiqlaydi.`
     );
   }
@@ -257,22 +389,18 @@ async function handleCallbackQuery(callbackQuery: any) {
     if (paymentData) {
       const payment = JSON.parse(paymentData.value);
 
-      // Notify user
       await sendMessage(parseInt(targetUserId),
-        `🎉 *Tabriklaymiz!*\n\n` +
+        `🎉 <b>Tabriklaymiz!</b>\n\n` +
         `Sizning ${payment.plan === 'premium' ? 'Premium' : 'Ustoz'} tarifingiz aktivlashtirildi!\n` +
         `Muddat: ${DURATION_LABELS[payment.duration]}\n\n` +
         `🌐 Saytga kiring va barcha testlardan foydalaning!`,
         {
           reply_markup: {
-            inline_keyboard: [[
-              { text: '🌐 Saytga kirish', url: APP_URL }
-            ]]
+            inline_keyboard: [[{ text: '🌐 Saytga kirish', url: APP_URL }]]
           }
         }
       );
 
-      // Clean up
       await db.systemSetting.delete({ where: { key: `pending_payment_${targetUserId}` } });
       await sendMessage(chatId, `✅ @${payment.username} uchun tarif aktivlashtirildi.`);
     }
@@ -289,9 +417,7 @@ async function handleCallbackQuery(callbackQuery: any) {
       const payment = JSON.parse(paymentData.value);
 
       await sendMessage(parseInt(targetUserId),
-        `❌ Sizning to'lovingiz rad etildi.\n\n` +
-        `Sabab: Chek tasdiqlash imkoni bo'lmadi.\n` +
-        `Iltimos, qayta to'lov qiling yoki admin bilan bog'laning.`
+        `❌ Sizning to'lovingiz rad etildi.\n\nSabab: Chek tasdiqlash imkoni bo'lmadi.\nIltimos, qayta to'lov qiling yoki admin bilan bog'laning.`
       );
 
       await db.systemSetting.delete({ where: { key: `pending_payment_${targetUserId}` } });
@@ -306,7 +432,6 @@ async function handlePhoto(message: any) {
   const userId = message.from.id;
   const username = message.from.username || '';
 
-  // Check if user has pending payment
   const paymentData = await db.systemSetting.findUnique({
     where: { key: `pending_payment_${userId}` },
   });
@@ -319,13 +444,12 @@ async function handlePhoto(message: any) {
   const payment = JSON.parse(paymentData.value);
   const planName = payment.plan === 'premium' ? '💎 Premium' : '👨‍🏫 Ustoz';
 
-  // Forward to admins
   for (const adminId of ADMIN_IDS) {
     try {
       await forwardMessage(parseInt(adminId), chatId, message.message_id);
 
       await sendMessage(parseInt(adminId),
-        `📋 *Yangi to'lov cheki*\n\n` +
+        `📋 <b>Yangi to'lov cheki</b>\n\n` +
         `👤 Foydalanuvchi: @${username} (${userId})\n` +
         `📦 Tarif: ${planName}\n` +
         `⏱ Muddat: ${DURATION_LABELS[payment.duration]}\n` +
@@ -346,9 +470,7 @@ async function handlePhoto(message: any) {
   }
 
   await sendMessage(chatId,
-    `✅ Chekingiz qabul qilindi!\n\n` +
-    `Admin tekshirmoqda. 24 soat ichida natija bildiriladi.\n` +
-    `Sabr qiling... ⏳`
+    `✅ Chekingiz qabul qilindi!\n\nAdmin tekshirmoqda. 24 soat ichida natija bildiriladi.\nSabr qiling... ⏳`
   );
 }
 
@@ -357,7 +479,6 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    // Handle text messages (commands)
     if (body.message?.text) {
       const msg = body.message;
       const chatId = msg.chat.id;
@@ -376,22 +497,30 @@ export async function POST(request: NextRequest) {
       } else if (text === '/ustoz') {
         await handleUstoz(chatId);
       } else if (text === '/help') {
-        await handleHelp(chatId);
+        await handleHelp(chatId, userId);
       } else if (text === '/stats') {
-        await sendMessage(chatId, `📊 *Statistikangiz*\n\nSaytda ko'rish uchun:`, {
+        await sendMessage(chatId, `📊 <b>Statistikangiz</b>\n\nSaytda ko'rish uchun:`, {
           reply_markup: {
-            inline_keyboard: [[{ text: '📊 Dashboard', url: `${APP_URL}/dashboard` }]]
+            inline_keyboard: [
+              [{ text: '📊 Dashboard', url: `${APP_URL}/dashboard` }],
+              [{ text: '🏆 Reyting', url: `${APP_URL}/rating` }],
+            ]
           }
         });
+      } else if (text === '/admin') {
+        await handleAdmin(chatId, userId);
+      } else if (text === '/users') {
+        await handleUsers(chatId, userId);
+      } else if (text.startsWith('/broadcast ')) {
+        const broadcastMsg = text.replace('/broadcast ', '').trim();
+        await handleBroadcast(chatId, userId, broadcastMsg);
       }
     }
 
-    // Handle photos (payment receipts)
     if (body.message?.photo) {
       await handlePhoto(body.message);
     }
 
-    // Handle callback queries
     if (body.callback_query) {
       await handleCallbackQuery(body.callback_query);
     }
@@ -399,11 +528,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error('Webhook error:', error);
-    return NextResponse.json({ ok: true }); // Always return 200 to Telegram
+    return NextResponse.json({ ok: true });
   }
 }
 
-// GET — for setting up webhook
 export async function GET() {
   const webhookUrl = `${APP_URL}/api/telegram/webhook`;
 
