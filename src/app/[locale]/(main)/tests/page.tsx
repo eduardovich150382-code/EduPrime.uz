@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useState } from 'react';
 import {
   GraduationCap, School, Award, Globe2, Atom, FileCheck,
-  BookOpen, Search, Plus,
+  BookOpen, Search,
 } from 'lucide-react';
 
 const categories = [
@@ -88,15 +88,9 @@ export default function TestsPage() {
           Testlar hali qo&apos;shilmagan
         </h2>
         <p className="text-text-secondary max-w-md mx-auto mb-6">
-          Ustozlar test qo&apos;shgandan keyin bu yerda ko&apos;rinadi. 
-          Agar siz ustoz bo&apos;lsangiz — Ustoz paneldan test yaratishingiz mumkin.
+          Tez orada testlar qo&apos;shiladi. Yangi testlar haqida bildirishnoma olish uchun 
+          Telegram botimizga a&apos;zo bo&apos;ling: @EduPrimeuzbot
         </p>
-        <div className="flex items-center justify-center gap-3">
-          <a href="/teacher/tests/create" className="btn-primary inline-flex items-center gap-2">
-            <Plus size={16} />
-            Test yaratish (Ustoz)
-          </a>
-        </div>
       </motion.div>
     </div>
   );
