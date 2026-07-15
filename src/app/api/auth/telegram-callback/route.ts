@@ -1,12 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { EncryptJWT } from 'jose';
-import { hkdf } from '@panva/hkdf';
+import * as jose from 'jose';
 
-// Derive encryption key the same way NextAuth v5 does internally
-async function getDerivedEncryptionKey(secret: string, cookieName: string) {
-  const info = `Auth.js Generated Encryption Key (${cookieName})`;
-  return await hkdf('sha256', secret, cookieName, info, 64);
+// Derive encryption key the same way NextAuth v5 / Auth.js does internally
+async function getDerivedEncryptionKey(secret: string, salt: string) {
+  const encoder = new TextEncoder();
+  const info = `Auth.js Generated Encryption Key (${salt})`;
+  
+  // Import the secret as a key
+  const baseKey = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secret),
+    { name: 'HKDF' },
+    false,
+    ['deriveBits']
+  );
+  
+  // Derive 512 bits (64 bytes) using HKDF
+  const derivedBits = await crypto.subtle.deriveBits(
+    {
+      name: 'HKDF',
+      hash: 'SHA-256',
+      salt: encoder.encode(salt),
+      info: encoder.encode(info),
+    },
+    baseKey,
+    512
+  );
+  
+  return new Uint8Array(derivedBits);
 }
 
 // This handles Telegram auth callback directly
@@ -30,12 +52,13 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Verify token
+    // Verify token from database
     const storedToken = await db.systemSetting.findUnique({
       where: { key: `telegram_auth_${telegramId}` },
     });
 
     if (!storedToken) {
+      console.error('[Telegram Callback] Token not found for telegramId:', telegramId);
       return NextResponse.redirect(`${APP_URL}/login?error=invalid_token`);
     }
 
@@ -44,6 +67,7 @@ export async function GET(request: NextRequest) {
     const isNotExpired = Date.now() - tokenData.createdAt < 5 * 60 * 1000;
 
     if (!isValid || !isNotExpired) {
+      console.error('[Telegram Callback] Token invalid or expired');
       return NextResponse.redirect(`${APP_URL}/login?error=expired_token`);
     }
 
@@ -79,13 +103,13 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Create JWT cookie (same way NextAuth v5 does it internally)
+    // Create session cookie (same way NextAuth v5 / Auth.js does internally)
     const isProduction = APP_URL.startsWith('https');
     const cookieName = isProduction
       ? '__Secure-authjs.session-token'
       : 'authjs.session-token';
 
-    // Derive key using HKDF (same as NextAuth v5)
+    // Derive encryption key using Web Crypto HKDF (same as Auth.js)
     const keyMaterial = await getDerivedEncryptionKey(SECRET, cookieName);
 
     // Create JWE token (same format as NextAuth v5)
@@ -102,13 +126,13 @@ export async function GET(request: NextRequest) {
       exp: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60, // 30 days
     };
 
-    const jweToken = await new EncryptJWT(payload)
+    const jweToken = await new jose.EncryptJWT(payload)
       .setProtectedHeader({ alg: 'dir', enc: 'A256CBC-HS512' })
       .setIssuedAt()
       .setExpirationTime('30d')
-      .encrypt(new Uint8Array(keyMaterial));
+      .encrypt(keyMaterial);
 
-    // Set cookie and redirect
+    // Set cookie and redirect to dashboard
     const response = NextResponse.redirect(`${APP_URL}/dashboard`);
 
     response.cookies.set(cookieName, jweToken, {
@@ -116,7 +140,7 @@ export async function GET(request: NextRequest) {
       secure: isProduction,
       sameSite: 'lax',
       path: '/',
-      maxAge: 30 * 24 * 60 * 60,
+      maxAge: 30 * 24 * 60 * 60, // 30 days
     });
 
     return response;
@@ -125,3 +149,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${APP_URL}/login?error=server_error`);
   }
 }
+
+// Force Node.js runtime for Prisma compatibility
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
