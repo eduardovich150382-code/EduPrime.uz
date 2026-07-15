@@ -9,12 +9,28 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const category = searchParams.get('category');
     const subject = searchParams.get('subject');
+    const type = searchParams.get('type');
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
 
     const where: any = { isPublished: true };
     if (category) where.categoryId = category;
     if (subject) where.subjectId = subject;
+
+    // Filter by TestCategory type (DTM, SCHOOL, ATTESTATION, SAT, GRE, CERTIFICATE)
+    if (type) {
+      const matchingCategories = await db.testCategory.findMany({
+        where: { type: type as any },
+        select: { id: true },
+      });
+      const categoryIds = matchingCategories.map(c => c.id);
+      if (categoryIds.length > 0) {
+        where.categoryId = { in: categoryIds };
+      } else {
+        // No matching category, return empty
+        return NextResponse.json({ tests: [], total: 0, page, limit });
+      }
+    }
 
     const tests = await db.test.findMany({
       where,
@@ -49,7 +65,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { titleUz, titleRu, titleEn, subjectId, duration, isFree, price, difficulty, questions, videoSolution } = body;
+    const { titleUz, titleRu, titleEn, subjectId, duration, isFree, price, difficulty, questions, videoSolution, coverImage } = body;
 
     if (!titleUz || !subjectId || !duration) {
       return NextResponse.json({ error: 'titleUz, subjectId, duration required' }, { status: 400 });
@@ -85,6 +101,7 @@ export async function POST(request: NextRequest) {
         difficulty: difficulty || 3,
         questionCount: questions?.length || 0,
         isPublished: false,
+        coverImage: coverImage || null,
         videoSolution: videoSolution || null,
         questions: questions?.length ? {
           create: questions.map((q: any, index: number) => ({

@@ -175,6 +175,7 @@ model Test {
   questionCount   Int
   format          QuestionType @default(MULTIPLE_CHOICE)
   difficulty      Int          @default(1) // 1-5
+  coverImage      String?      // Cover image URL
   videoSolution   String?      // URL
   writtenSolution String?      // LaTeX text
   isPublished     Boolean      @default(false)

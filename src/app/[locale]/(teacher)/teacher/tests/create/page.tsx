@@ -55,6 +55,7 @@ export default function CreateTestPage() {
     price: 0,
     difficulty: 3,
     videoSolution: '',
+    coverImage: '',
   });
   const [questions, setQuestions] = useState<QuestionForm[]>([{ ...emptyQuestion }]);
   const [currentStep, setCurrentStep] = useState<'info' | 'questions' | 'ai-import'>('info');
@@ -352,6 +353,42 @@ export default function CreateTestPage() {
             />
             <p className="text-xs text-text-secondary mt-1">
               Bu video test natijasi sahifasida &quot;Umumiy videoyechim&quot; sifatida ko&apos;rsatiladi
+            </p>
+          </div>
+
+          {/* Cover image upload */}
+          <div>
+            <label className="text-sm font-medium text-text-primary block mb-2">
+              Test bosh rasmi (ixtiyoriy)
+            </label>
+            <div className="flex items-center gap-4">
+              <ImageUploadButton
+                endpoint="questionImage"
+                label="Bosh rasm yuklash"
+                onUpload={(url) => setTestInfo({ ...testInfo, coverImage: url })}
+              />
+              {testInfo.coverImage && (
+                <span className="text-xs text-green-600 font-medium">Rasm yuklandi</span>
+              )}
+            </div>
+            {testInfo.coverImage && (
+              <div className="mt-3 relative inline-block">
+                <img
+                  src={testInfo.coverImage}
+                  alt="Test bosh rasmi"
+                  className="h-32 w-auto object-cover rounded-xl border border-border"
+                />
+                <button
+                  type="button"
+                  onClick={() => setTestInfo({ ...testInfo, coverImage: '' })}
+                  className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                >
+                  &times;
+                </button>
+              </div>
+            )}
+            <p className="text-xs text-text-secondary mt-2">
+              Agar rasm yuklanmasa, test chiroyli rang gradientida ko&apos;rsatiladi
             </p>
           </div>
         </motion.div>
