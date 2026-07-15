@@ -4,6 +4,7 @@ import Credentials from 'next-auth/providers/credentials';
 import { db } from './db';
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  trustHost: true,
   session: {
     strategy: 'jwt',
   },
@@ -15,6 +16,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       allowDangerousEmailAccountLinking: true,
+      authorization: {
+        params: {
+          prompt: 'consent',
+          access_type: 'offline',
+          response_type: 'code',
+        },
+      },
     }),
     Credentials({
       id: 'telegram',
@@ -81,11 +89,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           
           if (!email) {
             console.error('Google signIn error: No email received from Google');
-            return '/login?error=google_no_email';
+            return false;
           }
           
           // Find or create user
-          let dbUser = await db.user.findUnique({
+          let dbUser = await db.user.findFirst({
             where: { email },
           });
 
@@ -111,8 +119,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return true;
         } catch (error) {
           console.error('Google signIn callback error:', error);
-          // Return a URL with error info instead of false (which shows generic AccessDenied)
-          return '/login?error=google_auth_failed';
+          return false;
         }
       }
       return true;
@@ -163,9 +170,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return session;
     },
     async redirect({ url, baseUrl }) {
-      // After sign in, redirect to dashboard
+      // Handle locale-prefixed URLs
       if (url.startsWith('/')) return `${baseUrl}${url}`;
       if (url.startsWith(baseUrl)) return url;
+      // Default redirect to dashboard
       return `${baseUrl}/dashboard`;
     },
   },
