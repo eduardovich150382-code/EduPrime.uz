@@ -2,7 +2,7 @@
   "id": "FEAT-002",
   "type": "feat",
   "description": "Dashboard real data: stats (solved tests, average score, rating position, streak), recent results, working 'View All' link, and properly filtered quick action links for DTM/Maktab/Reyting",
-  "status": "in_progress",
+  "status": "completed",
   "steps": [
     "Create a new API route at src/app/api/dashboard/stats/route.ts that returns real user stats: (1) totalTests from TestResult count for user, (2) avgScore from TestResult average percentage, (3) rank from rating position (count users with higher total score + 1), (4) streak (count consecutive days with at least one test result, going backwards from today). Use the auth() function and db from @/lib/db.",
     "Update src/app/[locale]/(main)/dashboard/page.tsx to: (1) Fetch real stats from /api/dashboard/stats on mount. (2) Fetch recent results from /api/results (already exists, returns results with test info). (3) Show loading states while fetching. (4) Display the recent results (last 5) with test name, date, and score percentage. (5) Make the 'Barchasi' link go to /tests (which shows all results).",
@@ -25,5 +25,5 @@
     "Run npm run build and confirm no TypeScript errors"
   ],
   "blocked_reason": null,
-  "findings": ""
+  "findings": "All three parts implemented successfully. API route uses groupBy and aggregate queries for stats. Dashboard fetches real data on mount with loading state. Tests page uses Suspense wrapper pattern for useSearchParams in Next.js 15. Build passes cleanly."
 }
