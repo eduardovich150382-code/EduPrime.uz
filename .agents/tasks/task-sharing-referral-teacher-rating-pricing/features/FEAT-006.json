@@ -1,0 +1,20 @@
+{
+  "id": "FEAT-006",
+  "type": "fix",
+  "description": "Fix v2 review issues: Add authentication to referral POST endpoint, and create Payment + Subscription records when admin confirms Telegram payment.",
+  "status": "completed",
+  "steps": [
+    "1. Add auth() session check to POST /api/referral and verify session.user.id === newUserId, returning 401/403 otherwise.",
+    "2. In Telegram webhook confirm_ handler, look up user by telegramId, create Payment record (CONFIRMED status), and create Subscription record with calculated endDate."
+  ],
+  "acceptance_criteria": [
+    "POST /api/referral requires authentication and verifies caller is the newUserId",
+    "Telegram confirm_ callback creates a Payment record with status CONFIRMED",
+    "Telegram confirm_ callback creates a Subscription record with correct plan, duration, start/end dates",
+    "Subscription is linked to Payment via paymentId",
+    "npx next build passes"
+  ],
+  "verification": ["cd /projects/sandbox/EduPrime.uz && npx next build"],
+  "blocked_reason": null,
+  "findings": "Both fixes implemented and build passes. The referral POST now requires session auth and verifies the caller matches newUserId. The Telegram webhook confirm handler now finds the user by telegramId, creates a Payment record with CONFIRMED status, then creates a linked Subscription with the appropriate endDate calculated from the duration (1 month, 6 months, or 1 year)."
+}
