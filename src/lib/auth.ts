@@ -77,7 +77,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async signIn({ user, account, profile }) {
       if (account?.provider === 'google') {
         try {
-          const email = user.email!;
+          const email = user.email;
+          
+          if (!email) {
+            console.error('Google signIn error: No email received from Google');
+            return '/login?error=google_no_email';
+          }
           
           // Find or create user
           let dbUser = await db.user.findUnique({
@@ -105,8 +110,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           }
           return true;
         } catch (error) {
-          console.error('Google signIn error:', error);
-          return false;
+          console.error('Google signIn callback error:', error);
+          // Return a URL with error info instead of false (which shows generic AccessDenied)
+          return '/login?error=google_auth_failed';
         }
       }
       return true;

@@ -42,8 +42,8 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Return the auth URL
-    const authUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auth/telegram-callback?telegramId=${telegramId}&username=${username || ''}&firstName=${encodeURIComponent(firstName || '')}&token=${token}`;
+    // Return the auth URL (use /api/auth/telegram-callback for server-side session creation)
+    const authUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/telegram-callback?telegramId=${telegramId}&username=${username || ''}&firstName=${encodeURIComponent(firstName || '')}&token=${token}`;
 
     return NextResponse.json({ authUrl, token });
   } catch (error) {

@@ -12,6 +12,7 @@ import { useEffect } from 'react';
 function LoginContent() {
   const t = useTranslations('auth');
   const searchParams = useSearchParams();
+  const error = searchParams.get('error');
 
   // Capture referral code from URL and store in localStorage
   useEffect(() => {
@@ -20,6 +21,26 @@ function LoginContent() {
       localStorage.setItem('referralCode', refCode);
     }
   }, [searchParams]);
+
+  const getErrorMessage = (errorCode: string | null): string | null => {
+    if (!errorCode) return null;
+    switch (errorCode) {
+      case 'server_error':
+        return 'Server xatosi yuz berdi. Iltimos, qayta urinib ko\'ring.';
+      case 'AccessDenied':
+        return 'Kirish rad etildi. Google hisobingiz cheklanishi mumkin yoki ruxsat berilmagan.';
+      case 'google_no_email':
+        return 'Google hisobingizdan email olinmadi. Boshqa hisob bilan urinib ko\'ring.';
+      case 'google_auth_failed':
+        return 'Google avtorizatsiya xatosi. Iltimos, qayta urinib ko\'ring.';
+      case 'OAuthAccountNotLinked':
+        return 'Bu email boshqa kirish usuli bilan bog\'langan. Avvalgi usul bilan kiring.';
+      default:
+        return 'Xatolik yuz berdi. Iltimos, qayta urinib ko\'ring.';
+    }
+  };
+
+  const errorMessage = getErrorMessage(error);
 
   const handleGoogleLogin = () => {
     signIn('google', { callbackUrl: '/dashboard' });
@@ -66,6 +87,13 @@ function LoginContent() {
               Telegram yoki Google orqali kiring — yangi bo&apos;lsangiz avtomatik ro&apos;yxatga olinasiz
             </p>
           </div>
+
+          {/* Error message */}
+          {errorMessage && (
+            <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200">
+              <p className="text-sm text-red-700 font-medium">{errorMessage}</p>
+            </div>
+          )}
 
           {/* Auth buttons */}
           <div className="space-y-4">
