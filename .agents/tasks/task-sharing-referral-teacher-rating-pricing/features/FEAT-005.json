@@ -2,7 +2,7 @@
   "id": "FEAT-005",
   "type": "fix",
   "description": "Fix review issues: referral link dead end (capture ?ref= param on login page), revenue calculation (show test attempts instead of fake revenue), referral code collision (retry loop), and reward detection inconsistency (standardize on paymentId: null).",
-  "status": "in_progress",
+  "status": "completed",
   "steps": [
     "1. Fix login page to capture ?ref= param from URL, store in localStorage. After successful sign-in, the referral code is consumed by calling POST /api/referral.",
     "2. Fix referral code generation to add a retry loop (up to 3 tries) on unique constraint violation.",
@@ -19,5 +19,5 @@
   ],
   "verification": ["cd /projects/sandbox/EduPrime.uz && npx next build"],
   "blocked_reason": null,
-  "findings": null
+  "findings": "Build passes successfully. All four review issues fixed: (1) Login page captures ?ref= in localStorage, ReferralHandler component in main layout consumes it after auth by calling POST /api/referral. (2) generateUniqueReferralCode retries up to 3 times then falls back to longer random string. (3) Teacher stats returns paidTestAttempts count instead of price*results. (4) GET /api/referral now uses paymentId: null + isActive: true for reward detection, matching check-reward endpoint."
 }
