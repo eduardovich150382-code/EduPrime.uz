@@ -21,13 +21,10 @@ export async function GET() {
     });
 
     if (!teacher) {
-      console.log('[Teacher Tests] No teacher record found for userId:', session.user.id);
       return NextResponse.json({ tests: [] });
     }
 
-    console.log('[Teacher Tests] Found teacher:', teacher.id, 'for userId:', session.user.id);
-
-    // Get all tests by this teacher — simplified query first
+    // Get all tests by this teacher
     const tests = await db.test.findMany({
       where: { teacherId: teacher.id },
       include: {
@@ -35,8 +32,6 @@ export async function GET() {
       },
       orderBy: { createdAt: 'desc' },
     });
-
-    console.log('[Teacher Tests] Found', tests.length, 'tests for teacher:', teacher.id);
 
     // Get result counts separately to avoid potential issues
     const testsWithStats = await Promise.all(
@@ -57,7 +52,7 @@ export async function GET() {
             avgScore = Math.round(avgResult._avg.percentage || 0);
           }
         } catch (e) {
-          console.error('[Teacher Tests] Error getting stats for test:', test.id, e);
+          // Silently handle stats errors - test will still be returned with zero counts
         }
 
         return {

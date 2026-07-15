@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 
+const ALLOWED_IMAGE_PREFIXES = [
+  'https://utfs.io/',
+  'https://lh3.googleusercontent.com/',
+  'https://res.cloudinary.com/',
+];
+
+function isValidImageUrl(url: string): boolean {
+  return ALLOWED_IMAGE_PREFIXES.some((prefix) => url.startsWith(prefix));
+}
+
 // GET /api/profile — get current user profile
 export async function GET() {
   try {
@@ -53,7 +63,14 @@ export async function PATCH(request: NextRequest) {
       updateData.name = name.trim();
     }
     if (typeof image === 'string' && image.trim().length > 0) {
-      updateData.image = image.trim();
+      const trimmedImage = image.trim();
+      if (!isValidImageUrl(trimmedImage)) {
+        return NextResponse.json(
+          { error: 'Invalid image URL. Only UploadThing, Google, and Cloudinary URLs are allowed.' },
+          { status: 400 }
+        );
+      }
+      updateData.image = trimmedImage;
     }
 
     if (Object.keys(updateData).length === 0) {

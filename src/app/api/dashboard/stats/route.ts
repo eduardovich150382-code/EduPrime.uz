@@ -23,23 +23,25 @@ export async function GET() {
     });
     const avgScore = Math.round(avgResult._avg.percentage || 0);
 
-    // Rank: count users with higher total score + 1
+    // Rank: count users with higher total score + 1 (efficient single query)
     const userTotalScore = await db.testResult.aggregate({
       where: { userId },
       _sum: { score: true },
     });
     const myScore = userTotalScore._sum.score || 0;
 
-    // Get all users' total scores to determine rank
-    const allUserScores = await db.testResult.groupBy({
-      by: ['userId'],
-      _sum: { score: true },
-    });
-
-    const usersWithHigherScore = allUserScores.filter(
-      (u) => (u._sum.score || 0) > myScore
-    ).length;
-    const rank = totalTests > 0 ? usersWithHigherScore + 1 : 0;
+    let rank = 0;
+    if (totalTests > 0) {
+      const rankResult = await db.$queryRaw<[{ count: bigint }]>`
+        SELECT COUNT(*) as count FROM (
+          SELECT "userId", SUM("score") as total_score
+          FROM "TestResult"
+          GROUP BY "userId"
+          HAVING SUM("score") > ${myScore}
+        ) as higher_scores
+      `;
+      rank = Number(rankResult[0].count) + 1;
+    }
 
     // Streak: count consecutive days with at least one test result
     let streak = 0;
