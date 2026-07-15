@@ -5,6 +5,8 @@ import { db } from './db';
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+  debug: process.env.NODE_ENV === 'development',
   session: {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
@@ -17,7 +19,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      allowDangerousEmailAccountLinking: true,
     }),
     Credentials({
       id: 'telegram',
@@ -38,100 +39,118 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const firstName = credentials.firstName as string;
         const authToken = credentials.authToken as string;
 
-        // Verify the token from our Telegram bot
-        const isValid = await verifyTelegramToken(telegramId, authToken);
-        if (!isValid) {
+        try {
+          // Verify the token from our Telegram bot
+          const isValid = await verifyTelegramToken(telegramId, authToken);
+          if (!isValid) {
+            return null;
+          }
+
+          // Find or create user
+          let user = await db.user.findUnique({
+            where: { telegramId },
+          });
+
+          if (!user) {
+            user = await db.user.create({
+              data: {
+                telegramId,
+                telegramUsername,
+                name: firstName || telegramUsername || 'Telegram User',
+                role: 'USER',
+              },
+            });
+          } else {
+            if (telegramUsername && user.telegramUsername !== telegramUsername) {
+              user = await db.user.update({
+                where: { id: user.id },
+                data: { telegramUsername },
+              });
+            }
+          }
+
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            image: user.image,
+          };
+        } catch (error) {
+          console.error('[Auth] Telegram authorize error:', error);
           return null;
         }
-
-        // Find or create user
-        let user = await db.user.findUnique({
-          where: { telegramId },
-        });
-
-        if (!user) {
-          user = await db.user.create({
-            data: {
-              telegramId,
-              telegramUsername,
-              name: firstName || telegramUsername || 'Telegram User',
-              role: 'USER',
-            },
-          });
-        } else {
-          if (telegramUsername && user.telegramUsername !== telegramUsername) {
-            user = await db.user.update({
-              where: { id: user.id },
-              data: { telegramUsername },
-            });
-          }
-        }
-
-        return {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          image: user.image,
-        };
       },
     }),
   ],
   callbacks: {
-    async signIn({ user, account }) {
-      // Always allow sign-in — user creation/linking happens in jwt callback
-      // This prevents AccessDenied errors when DB operations fail
+    async signIn() {
+      // Always allow sign-in for all providers
       return true;
     },
-    async jwt({ token, user, account }) {
-      // First sign in — create/link user in DB
+    async jwt({ token, user, account, profile }) {
       if (account && user) {
+        // Store provider info in token on first sign-in
+        token.provider = account.provider;
+        token.providerAccountId = account.providerAccountId;
+
         if (account.provider === 'google') {
-          try {
-            const email = user.email;
-            if (email) {
-              // Find or create user in DB
-              let dbUser = await db.user.findUnique({
-                where: { email },
-              });
-
-              if (!dbUser) {
-                dbUser = await db.user.create({
-                  data: {
-                    email,
-                    name: user.name || '',
-                    image: user.image,
-                    googleId: account.providerAccountId,
-                    role: 'USER',
-                  },
-                });
-              } else if (!dbUser.googleId) {
-                dbUser = await db.user.update({
-                  where: { id: dbUser.id },
-                  data: {
-                    googleId: account.providerAccountId,
-                    image: dbUser.image || user.image,
-                  },
-                });
-              }
-
-              token.id = dbUser.id;
-              token.role = dbUser.role;
-              token.lang = dbUser.lang;
-              token.telegramId = dbUser.telegramId;
-            }
-          } catch (error) {
-            console.error('[Auth] JWT callback - Google user creation error:', error);
-            // Still allow sign-in with limited token data
-            token.id = user.id;
-          }
-        } else {
-          // Telegram credentials
+          // Store Google user info directly in token
+          // DB sync will happen lazily in session callback
+          token.email = user.email;
+          token.name = user.name;
+          token.picture = user.image;
+          token.googleId = account.providerAccountId;
+          // Mark that we need to sync with DB
+          token.needsDbSync = true;
+        } else if (account.provider === 'telegram') {
+          // Telegram user already created in authorize()
           token.id = user.id;
+          token.name = user.name;
+          token.email = user.email;
+          token.picture = user.image;
         }
       }
 
-      // Refresh user data if role is missing
-      if (token.id && !token.role) {
+      // Lazy DB sync for Google users
+      if (token.needsDbSync && token.email) {
+        try {
+          let dbUser = await db.user.findUnique({
+            where: { email: token.email as string },
+          });
+
+          if (!dbUser) {
+            dbUser = await db.user.create({
+              data: {
+                email: token.email as string,
+                name: (token.name as string) || '',
+                image: (token.picture as string) || null,
+                googleId: token.googleId as string,
+                role: 'USER',
+              },
+            });
+          } else if (!dbUser.googleId) {
+            dbUser = await db.user.update({
+              where: { id: dbUser.id },
+              data: {
+                googleId: token.googleId as string,
+                image: dbUser.image || (token.picture as string) || null,
+              },
+            });
+          }
+
+          token.id = dbUser.id;
+          token.role = dbUser.role;
+          token.lang = dbUser.lang;
+          token.telegramId = dbUser.telegramId;
+          token.needsDbSync = false;
+        } catch (error) {
+          console.error('[Auth] JWT DB sync error:', error);
+          // Don't block sign-in, will retry on next request
+        }
+      }
+
+      // Refresh user role if missing (for returning users)
+      if (token.id && !token.role && !token.needsDbSync) {
         try {
           const dbUser = await db.user.findUnique({
             where: { id: token.id as string },
@@ -143,7 +162,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             token.telegramId = dbUser.telegramId;
           }
         } catch (error) {
-          console.error('[Auth] JWT callback - user refresh error:', error);
+          console.error('[Auth] JWT user refresh error:', error);
         }
       }
 
@@ -151,18 +170,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string;
-        (session.user as any).role = token.role;
-        (session.user as any).lang = token.lang;
+        if (token.id) {
+          session.user.id = token.id as string;
+        }
+        (session.user as any).role = token.role || 'USER';
+        (session.user as any).lang = token.lang || 'uz';
         (session.user as any).telegramId = token.telegramId;
       }
       return session;
     },
     async redirect({ url, baseUrl }) {
-      // Handle locale-prefixed URLs
       if (url.startsWith('/')) return `${baseUrl}${url}`;
       if (url.startsWith(baseUrl)) return url;
-      // Default redirect to dashboard
       return `${baseUrl}/dashboard`;
     },
   },
