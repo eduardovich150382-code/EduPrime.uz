@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { EncryptJWT } from 'jose';
-import hkdf from '@panva/hkdf';
+import { hkdf } from '@panva/hkdf';
+
+// Derive encryption key the same way NextAuth v5 does internally
+async function getDerivedEncryptionKey(secret: string, cookieName: string) {
+  const info = `Auth.js Generated Encryption Key (${cookieName})`;
+  return await hkdf('sha256', secret, cookieName, info, 64);
+}
 
 // This handles Telegram auth callback directly
 export async function GET(request: NextRequest) {
@@ -12,7 +18,12 @@ export async function GET(request: NextRequest) {
   const token = searchParams.get('token');
 
   const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://eduprime-uz.vercel.app';
-  const SECRET = process.env.NEXTAUTH_SECRET || 'kJd8sF2mNq9xLpR4vT7wAzCbEhGiKlOm';
+  const SECRET = process.env.NEXTAUTH_SECRET;
+
+  if (!SECRET) {
+    console.error('[Telegram Callback] NEXTAUTH_SECRET is not set');
+    return NextResponse.redirect(`${APP_URL}/login?error=server_error`);
+  }
 
   if (!telegramId || !token) {
     return NextResponse.redirect(`${APP_URL}/login?error=missing_params`);
@@ -68,19 +79,14 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Create JWT using jose (same way NextAuth v5 does it internally)
+    // Create JWT cookie (same way NextAuth v5 does it internally)
     const isProduction = APP_URL.startsWith('https');
     const cookieName = isProduction
       ? '__Secure-authjs.session-token'
       : 'authjs.session-token';
 
-    // Derive key using HKDF (same as NextAuth)
-    const enc = new TextEncoder();
-    const ikm = enc.encode(SECRET);
-    const salt = enc.encode(cookieName);
-    const info = enc.encode(`Auth.js Generated Encryption Key (${cookieName})`);
-
-    const keyMaterial = await hkdf('sha256', ikm, salt, info, 64);
+    // Derive key using HKDF (same as NextAuth v5)
+    const keyMaterial = await getDerivedEncryptionKey(SECRET, cookieName);
 
     // Create JWE token (same format as NextAuth v5)
     const payload = {
@@ -115,7 +121,7 @@ export async function GET(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('Telegram callback error:', error);
+    console.error('[Telegram Callback] Error:', error);
     return NextResponse.redirect(`${APP_URL}/login?error=server_error`);
   }
 }
