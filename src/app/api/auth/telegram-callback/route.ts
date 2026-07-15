@@ -18,10 +18,10 @@ export async function GET(request: NextRequest) {
   const token = searchParams.get('token');
 
   const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://eduprime-uz.vercel.app';
-  const SECRET = process.env.NEXTAUTH_SECRET;
+  const SECRET = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
 
   if (!SECRET) {
-    console.error('[Telegram Callback] NEXTAUTH_SECRET is not set');
+    console.error('[Telegram Callback] AUTH_SECRET/NEXTAUTH_SECRET is not set');
     return NextResponse.redirect(`${APP_URL}/login?error=server_error`);
   }
 
