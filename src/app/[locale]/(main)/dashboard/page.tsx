@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useSession } from 'next-auth/react';
 import { motion } from 'framer-motion';
@@ -13,27 +14,89 @@ import {
   Clock,
   TrendingUp,
   Crown,
+  Loader2,
 } from 'lucide-react';
+
+interface RecentResult {
+  id: string;
+  testTitle: string;
+  percentage: number;
+  completedAt: string;
+}
+
+interface DashboardStats {
+  totalTests: number;
+  avgScore: number;
+  rank: number;
+  streak: number;
+  recentResults: RecentResult[];
+}
+
+function formatDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  const months = [
+    'Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun',
+    'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr',
+  ];
+  return `${date.getDate()}-${months[date.getMonth()]}`;
+}
 
 export default function DashboardPage() {
   const t = useTranslations('dashboard');
   const { data: session } = useSession();
+  const [statsData, setStatsData] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const userName = session?.user?.name || 'Foydalanuvchi';
 
-  // Mock data (will be replaced with real data)
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const res = await fetch('/api/dashboard/stats');
+        if (res.ok) {
+          const data = await res.json();
+          setStatsData(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch dashboard stats:', error);
+      }
+      setLoading(false);
+    }
+    fetchStats();
+  }, []);
+
   const stats = [
-    { label: t('stats.totalTests'), value: '0', icon: BookOpen, color: 'bg-blue-50 text-blue-600' },
-    { label: t('stats.avgScore'), value: '—', icon: Target, color: 'bg-green-50 text-green-600' },
-    { label: t('stats.rank'), value: '—', icon: Trophy, color: 'bg-yellow-50 text-yellow-600' },
-    { label: t('stats.streak'), value: '0', icon: Flame, color: 'bg-red-50 text-red-600' },
+    {
+      label: t('stats.totalTests'),
+      value: loading ? '...' : String(statsData?.totalTests || 0),
+      icon: BookOpen,
+      color: 'bg-blue-50 text-blue-600',
+    },
+    {
+      label: t('stats.avgScore'),
+      value: loading ? '...' : statsData?.avgScore ? `${statsData.avgScore}%` : '—',
+      icon: Target,
+      color: 'bg-green-50 text-green-600',
+    },
+    {
+      label: t('stats.rank'),
+      value: loading ? '...' : statsData?.rank ? `#${statsData.rank}` : '—',
+      icon: Trophy,
+      color: 'bg-yellow-50 text-yellow-600',
+    },
+    {
+      label: t('stats.streak'),
+      value: loading ? '...' : `${statsData?.streak || 0} kun`,
+      icon: Flame,
+      color: 'bg-red-50 text-red-600',
+    },
   ];
 
-  const recentResults: any[] = [];
+  const recentResults = statsData?.recentResults || [];
 
   const quickActions = [
-    { label: 'DTM test yechish', href: '/tests?type=dtm', icon: BookOpen },
-    { label: 'Maktab testi', href: '/tests?type=school', icon: BookOpen },
+    { label: 'DTM test yechish', href: '/tests?type=DTM', icon: BookOpen },
+    { label: 'Maktab testi', href: '/tests?type=SCHOOL', icon: BookOpen },
     { label: 'Reyting ko\'rish', href: '/rating', icon: Trophy },
   ];
 
@@ -83,38 +146,53 @@ export default function DashboardPage() {
         >
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-semibold text-text-primary">{t('recentResults')}</h2>
-            <Link href="/results" className="text-sm text-primary-600 hover:text-primary-700 flex items-center gap-1">
+            <Link href="/tests" className="text-sm text-primary-600 hover:text-primary-700 flex items-center gap-1">
               Barchasi <ArrowRight size={14} />
             </Link>
           </div>
 
-          <div className="space-y-3">
-            {recentResults.map((result) => (
-              <div
-                key={result.id}
-                className="flex items-center justify-between p-4 rounded-xl bg-background hover:bg-primary-50/50 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center">
-                    <BookOpen size={18} className="text-primary-600" />
+          {loading ? (
+            <div className="text-center py-8">
+              <Loader2 size={24} className="animate-spin text-primary-600 mx-auto mb-2" />
+              <p className="text-text-secondary text-sm">Yuklanmoqda...</p>
+            </div>
+          ) : recentResults.length > 0 ? (
+            <div className="space-y-3">
+              {recentResults.map((result) => (
+                <Link
+                  key={result.id}
+                  href={`/results/${result.id}`}
+                  className="flex items-center justify-between p-4 rounded-xl bg-background hover:bg-primary-50/50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center">
+                      <BookOpen size={18} className="text-primary-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-text-primary text-sm">{result.testTitle}</p>
+                      <p className="text-xs text-text-secondary flex items-center gap-1">
+                        <Clock size={12} /> {formatDate(result.completedAt)}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium text-text-primary text-sm">{result.test}</p>
-                    <p className="text-xs text-text-secondary flex items-center gap-1">
-                      <Clock size={12} /> {result.date}
-                    </p>
+                  <div className="text-right">
+                    <span className={`text-lg font-bold ${
+                      result.percentage >= 80 ? 'text-green-600' : result.percentage >= 60 ? 'text-yellow-600' : 'text-red-600'
+                    }`}>
+                      {result.percentage}%
+                    </span>
                   </div>
-                </div>
-                <div className="text-right">
-                  <span className={`text-lg font-bold ${
-                    result.score >= 80 ? 'text-green-600' : result.score >= 60 ? 'text-yellow-600' : 'text-red-600'
-                  }`}>
-                    {result.score}%
-                  </span>
-                </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <BookOpen size={28} className="text-gray-400" />
               </div>
-            ))}
-          </div>
+              <p className="text-text-secondary text-sm">Hali test yechilmagan</p>
+            </div>
+          )}
         </motion.div>
 
         {/* Right column */}

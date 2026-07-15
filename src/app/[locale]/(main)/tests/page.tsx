@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { Suspense, useEffect, useState, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import {
@@ -17,6 +18,15 @@ const categories = [
   { id: 'gre', label: 'GRE', icon: Atom, type: 'GRE' },
   { id: 'certificate', label: 'Sertifikat', icon: FileCheck, type: 'CERTIFICATE' },
 ];
+
+const typeToCategory: Record<string, string> = {
+  DTM: 'dtm',
+  SCHOOL: 'school',
+  ATTESTATION: 'attestation',
+  SAT: 'sat',
+  GRE: 'gre',
+  CERTIFICATE: 'certificate',
+};
 
 const cardGradients = [
   'from-blue-500 to-purple-600',
@@ -62,11 +72,20 @@ function DifficultyBars({ level }: { level: number }) {
   );
 }
 
-export default function TestsPage() {
+function TestsPageContent() {
+  const searchParams = useSearchParams();
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [tests, setTests] = useState<TestItem[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Read type from URL search params on mount
+  useEffect(() => {
+    const typeParam = searchParams.get('type');
+    if (typeParam && typeToCategory[typeParam]) {
+      setActiveCategory(typeToCategory[typeParam]);
+    }
+  }, [searchParams]);
 
   const fetchTests = useCallback(async (type?: string) => {
     setLoading(true);
@@ -216,5 +235,20 @@ export default function TestsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function TestsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="max-w-7xl mx-auto text-center py-12">
+          <Loader2 size={32} className="animate-spin text-primary-600 mx-auto mb-2" />
+          <p className="text-text-secondary text-sm">Yuklanmoqda...</p>
+        </div>
+      }
+    >
+      <TestsPageContent />
+    </Suspense>
   );
 }
