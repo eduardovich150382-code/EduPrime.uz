@@ -92,12 +92,13 @@ export default function AdminDashboard() {
           <p className="text-sm text-text-secondary">Bot orqali /admin, /broadcast, /users buyruqlari</p>
         </div>
 
-        <div className="card p-6 border-dashed border-2 flex items-center justify-center text-center">
-          <div>
-            <Settings size={24} className="text-text-secondary mx-auto mb-2" />
-            <p className="text-sm text-text-secondary">Qo&apos;shimcha sozlamalar tez orada...</p>
+        <Link href="/admin/settings" className="card p-6 hover:border-primary-200 group">
+          <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+            <Settings size={24} className="text-gray-600" />
           </div>
-        </div>
+          <h3 className="font-semibold text-text-primary mb-1">Sozlamalar</h3>
+          <p className="text-sm text-text-secondary">To&apos;lov kartalari, narxlar, e&apos;lonlar</p>
+        </Link>
       </motion.div>
 
       {/* Admin info */}
