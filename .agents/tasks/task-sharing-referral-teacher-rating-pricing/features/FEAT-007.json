@@ -2,7 +2,7 @@
   "id": "FEAT-007",
   "type": "fix",
   "description": "Fix two bugs: 1) AI Import uses non-existent model gemini-3.5-flash (change to gemini-2.0-flash), 2) Referral page not displaying properly.",
-  "status": "in_progress",
+  "status": "completed",
   "steps": [
     "1. Replace all 3 occurrences of 'gemini-3.5-flash' with 'gemini-2.0-flash' in src/lib/gemini.ts.",
     "2. Investigate and fix referral page display issue (framer-motion dependency, routing, or other cause).",
@@ -15,5 +15,5 @@
   ],
   "verification": ["cd /projects/sandbox/EduPrime.uz && npx next build"],
   "blocked_reason": null,
-  "findings": null
+  "findings": "Bug 1 (AI Import): The model name gemini-3.5-flash does not exist in Google's API. Changed to gemini-2.0-flash in all 3 functions (importTestFromText, importTestFromImage, importTestFromFile). Bug 2 (Referral page): The page builds and compiles correctly. The display issue was caused by two factors: (1) Sidebar active link detection incorrectly highlighted the Dashboard link instead of the Referral link when on /dashboard/referral, making it seem like navigation didn't work; (2) The error state when the API returned non-ok was minimal and hard to notice. Fixed both. Also improved error handling to not parse response body when status is not ok, and added a reload button for better UX."
 }
