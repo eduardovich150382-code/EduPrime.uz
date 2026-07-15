@@ -51,6 +51,9 @@ export default function Sidebar({ role }: SidebarProps) {
     ...(role === 'ADMIN' ? adminLinks : []),
   ];
 
+  // Collect all link hrefs to properly determine active state
+  const allHrefs = links.map((l) => l.href);
+
   return (
     <aside
       className={cn(
@@ -61,7 +64,14 @@ export default function Sidebar({ role }: SidebarProps) {
       {/* Navigation */}
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {links.map((link) => {
-          const isActive = pathname === link.href || pathname.startsWith(link.href + '/');
+          // Exact match or starts with link.href + '/', but not if a more specific link exists
+          const isExact = pathname === link.href;
+          const isPrefix = pathname.startsWith(link.href + '/');
+          // Check if there's a more specific link that matches
+          const hasMoreSpecific = allHrefs.some(
+            (h) => h !== link.href && h.startsWith(link.href + '/') && (pathname === h || pathname.startsWith(h + '/'))
+          );
+          const isActive = isExact || (isPrefix && !hasMoreSpecific);
           return (
             <Link
               key={link.href}

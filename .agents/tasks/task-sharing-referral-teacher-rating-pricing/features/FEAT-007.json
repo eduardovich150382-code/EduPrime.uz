@@ -1,0 +1,19 @@
+{
+  "id": "FEAT-007",
+  "type": "fix",
+  "description": "Fix two bugs: 1) AI Import uses non-existent model gemini-3.5-flash (change to gemini-2.0-flash), 2) Referral page not displaying properly.",
+  "status": "in_progress",
+  "steps": [
+    "1. Replace all 3 occurrences of 'gemini-3.5-flash' with 'gemini-2.0-flash' in src/lib/gemini.ts.",
+    "2. Investigate and fix referral page display issue (framer-motion dependency, routing, or other cause).",
+    "3. Verify with npx next build."
+  ],
+  "acceptance_criteria": [
+    "gemini.ts uses 'gemini-2.0-flash' model name in all 3 places",
+    "Referral page renders correctly without errors",
+    "npx next build passes"
+  ],
+  "verification": ["cd /projects/sandbox/EduPrime.uz && npx next build"],
+  "blocked_reason": null,
+  "findings": null
+}

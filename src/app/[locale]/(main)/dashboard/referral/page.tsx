@@ -10,7 +10,6 @@ import {
   Crown,
   Share2,
   Loader2,
-  ExternalLink,
 } from 'lucide-react';
 
 interface ReferralData {
@@ -32,9 +31,11 @@ export default function ReferralPage() {
     async function fetchReferralData() {
       try {
         const res = await fetch('/api/referral');
-        const json = await res.json();
         if (res.ok) {
+          const json = await res.json();
           setData(json);
+        } else {
+          console.error('Referral API returned:', res.status);
         }
       } catch (err) {
         console.error('Failed to fetch referral data:', err);
@@ -113,8 +114,16 @@ export default function ReferralPage() {
 
   if (!data) {
     return (
-      <div className="text-center py-20">
-        <p className="text-text-secondary">Ma&apos;lumotlarni yuklashda xatolik</p>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+        <Gift size={48} className="text-text-secondary mb-4 opacity-50" />
+        <p className="text-text-secondary text-lg mb-2">Ma&apos;lumotlarni yuklashda xatolik</p>
+        <p className="text-text-secondary text-sm mb-4">Sahifani yangilang yoki qaytadan urinib ko&apos;ring</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="px-4 py-2 rounded-xl bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition-colors"
+        >
+          Qayta yuklash
+        </button>
       </div>
     );
   }
