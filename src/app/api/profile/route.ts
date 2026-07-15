@@ -6,9 +6,20 @@ const ALLOWED_IMAGE_PREFIXES = [
   'https://utfs.io/',
   'https://lh3.googleusercontent.com/',
   'https://res.cloudinary.com/',
+  '/avatars/',
 ];
 
 function isValidImageUrl(url: string): boolean {
+  // Allow predefined avatar paths
+  if (url.startsWith('/avatars/') && url.endsWith('.svg')) {
+    const validAvatars = [
+      '/avatars/boy-1.svg', '/avatars/boy-2.svg', '/avatars/boy-3.svg', '/avatars/boy-4.svg',
+      '/avatars/girl-1.svg', '/avatars/girl-2.svg', '/avatars/girl-3.svg', '/avatars/girl-4.svg',
+      '/avatars/man-1.svg', '/avatars/man-2.svg', '/avatars/man-3.svg', '/avatars/man-4.svg',
+      '/avatars/woman-1.svg', '/avatars/woman-2.svg', '/avatars/woman-3.svg', '/avatars/woman-4.svg',
+    ];
+    return validAvatars.includes(url);
+  }
   return ALLOWED_IMAGE_PREFIXES.some((prefix) => url.startsWith(prefix));
 }
 

@@ -13,11 +13,9 @@ import {
   Edit,
   Check,
   X,
-  Camera,
   Shield,
   Link as LinkIcon,
 } from 'lucide-react';
-import { UploadButton } from '@/lib/uploadthing';
 
 interface UserProfile {
   id: string;
@@ -31,6 +29,45 @@ interface UserProfile {
   lang: string;
   createdAt: string;
 }
+
+const AVATAR_CATEGORIES = [
+  {
+    label: "O'g'il bolalar",
+    avatars: [
+      '/avatars/boy-1.svg',
+      '/avatars/boy-2.svg',
+      '/avatars/boy-3.svg',
+      '/avatars/boy-4.svg',
+    ],
+  },
+  {
+    label: 'Qiz bolalar',
+    avatars: [
+      '/avatars/girl-1.svg',
+      '/avatars/girl-2.svg',
+      '/avatars/girl-3.svg',
+      '/avatars/girl-4.svg',
+    ],
+  },
+  {
+    label: 'Erkaklar',
+    avatars: [
+      '/avatars/man-1.svg',
+      '/avatars/man-2.svg',
+      '/avatars/man-3.svg',
+      '/avatars/man-4.svg',
+    ],
+  },
+  {
+    label: 'Ayollar',
+    avatars: [
+      '/avatars/woman-1.svg',
+      '/avatars/woman-2.svg',
+      '/avatars/woman-3.svg',
+      '/avatars/woman-4.svg',
+    ],
+  },
+];
 
 function formatDate(dateStr: string): string {
   const months = [
@@ -73,7 +110,8 @@ export default function ProfilePage() {
   const [editingName, setEditingName] = useState(false);
   const [newName, setNewName] = useState('');
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+  const [savingAvatar, setSavingAvatar] = useState(false);
 
   const fetchProfile = useCallback(async () => {
     try {
@@ -118,25 +156,29 @@ export default function ProfilePage() {
     }
   };
 
-  const handleImageUpdate = async (imageUrl: string) => {
+  const handleAvatarSelect = async (avatarUrl: string) => {
+    setSavingAvatar(true);
     try {
       const res = await fetch('/api/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: imageUrl }),
+        body: JSON.stringify({ image: avatarUrl }),
       });
       if (res.ok) {
         const data = await res.json();
         setProfile(data.user);
+        setShowAvatarPicker(false);
       }
     } catch (error) {
       console.error('Failed to update avatar:', error);
+    } finally {
+      setSavingAvatar(false);
     }
   };
 
   if (loading) {
     return (
-      <div className="max-w-2xl mx-auto space-y-6">
+      <div className="max-w-2xl mx-auto space-y-6 px-4 sm:px-0">
         <div className="animate-pulse space-y-6">
           <div className="h-8 bg-gray-200 rounded w-32" />
           <div className="h-64 bg-gray-200 rounded-2xl" />
@@ -148,7 +190,7 @@ export default function ProfilePage() {
 
   if (!session?.user || !profile) {
     return (
-      <div className="max-w-2xl mx-auto text-center py-12">
+      <div className="max-w-2xl mx-auto text-center py-12 px-4 sm:px-0">
         <User size={48} className="mx-auto text-gray-400 mb-4" />
         <p className="text-text-secondary">Profilni ko&apos;rish uchun tizimga kiring</p>
       </div>
@@ -156,7 +198,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6 px-4 sm:px-0">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -171,7 +213,7 @@ export default function ProfilePage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="card-elevated p-8"
+        className="card-elevated p-6 sm:p-8"
       >
         <div className="flex flex-col items-center">
           <div className="relative mb-4">
@@ -179,54 +221,72 @@ export default function ProfilePage() {
               <img
                 src={profile.image}
                 alt={profile.name || ''}
-                className="w-28 h-28 rounded-full object-cover border-4 border-primary-100"
+                className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border-4 border-primary-100"
               />
             ) : (
-              <div className="w-28 h-28 rounded-full bg-primary-100 flex items-center justify-center border-4 border-primary-50">
-                <User size={48} className="text-primary-600" />
-              </div>
-            )}
-            {uploading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full">
-                <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-primary-100 flex items-center justify-center border-4 border-primary-50">
+                <User size={40} className="text-primary-600" />
               </div>
             )}
           </div>
 
-          <div className="flex flex-col items-center gap-2">
-            <UploadButton
-              endpoint="avatar"
-              onUploadBegin={() => setUploading(true)}
-              onClientUploadComplete={(res) => {
-                setUploading(false);
-                if (res && res[0]) {
-                  handleImageUpdate(res[0].url);
-                }
-              }}
-              onUploadError={(error) => {
-                setUploading(false);
-                console.error('Upload error:', error);
-              }}
-              appearance={{
-                button:
-                  'inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-50 text-primary-600 text-sm font-medium hover:bg-primary-100 transition-colors ut-uploading:bg-primary-100',
-                allowedContent: 'hidden',
-              }}
-              content={{
-                button({ ready }) {
-                  if (ready) return (
-                    <span className="flex items-center gap-2">
-                      <Camera size={16} />
-                      Rasmni o&apos;zgartirish
-                    </span>
-                  );
-                  return 'Yuklanmoqda...';
-                },
-              }}
-            />
-            <p className="text-xs text-text-secondary">Maksimum 1MB, rasm formati</p>
-          </div>
+          <button
+            onClick={() => setShowAvatarPicker(!showAvatarPicker)}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-50 text-primary-600 text-sm font-medium hover:bg-primary-100 transition-colors"
+          >
+            <Edit size={16} />
+            Avatarni tanlash
+          </button>
         </div>
+
+        {/* Avatar Picker */}
+        {showAvatarPicker && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mt-6 border-t border-border pt-6"
+          >
+            {savingAvatar && (
+              <div className="flex items-center justify-center py-4">
+                <div className="w-6 h-6 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
+            {!savingAvatar && (
+              <div className="space-y-5">
+                {AVATAR_CATEGORIES.map((category) => (
+                  <div key={category.label}>
+                    <p className="text-sm font-medium text-text-secondary mb-3">{category.label}</p>
+                    <div className="grid grid-cols-4 gap-3">
+                      {category.avatars.map((avatar) => (
+                        <button
+                          key={avatar}
+                          onClick={() => handleAvatarSelect(avatar)}
+                          className={`relative p-1.5 rounded-xl border-2 transition-all duration-200 hover:scale-105 ${
+                            profile.image === avatar
+                              ? 'border-primary-500 bg-primary-50 shadow-md'
+                              : 'border-transparent hover:border-primary-200 hover:bg-primary-50/50'
+                          }`}
+                        >
+                          <img
+                            src={avatar}
+                            alt=""
+                            className="w-full aspect-square rounded-lg"
+                          />
+                          {profile.image === avatar && (
+                            <div className="absolute -top-1 -right-1 w-5 h-5 bg-primary-500 rounded-full flex items-center justify-center">
+                              <Check size={12} className="text-white" />
+                            </div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        )}
       </motion.div>
 
       {/* Personal Info Section */}
@@ -234,16 +294,16 @@ export default function ProfilePage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="card-elevated p-6"
+        className="card-elevated p-4 sm:p-6"
       >
         <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
           <Shield size={20} className="text-primary-600" />
           Shaxsiy ma&apos;lumotlar
         </h3>
 
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {/* Name field */}
-          <div className="flex items-center justify-between p-4 rounded-xl bg-background">
+          <div className="flex items-center justify-between p-3 sm:p-4 rounded-xl bg-background">
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <User size={18} className="text-text-secondary shrink-0" />
               <div className="flex-1 min-w-0">
@@ -295,12 +355,12 @@ export default function ProfilePage() {
           </div>
 
           {/* Email field */}
-          <div className="flex items-center justify-between p-4 rounded-xl bg-background">
-            <div className="flex items-center gap-3">
-              <Mail size={18} className="text-text-secondary" />
-              <div>
+          <div className="flex items-center justify-between p-3 sm:p-4 rounded-xl bg-background">
+            <div className="flex items-center gap-3 min-w-0">
+              <Mail size={18} className="text-text-secondary shrink-0" />
+              <div className="min-w-0">
                 <p className="text-xs text-text-secondary">Email</p>
-                <p className="text-sm font-medium text-text-primary">
+                <p className="text-sm font-medium text-text-primary truncate">
                   {profile.email || 'Kiritilmagan'}
                 </p>
               </div>
@@ -308,7 +368,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Role badge */}
-          <div className="flex items-center justify-between p-4 rounded-xl bg-background">
+          <div className="flex items-center justify-between p-3 sm:p-4 rounded-xl bg-background">
             <div className="flex items-center gap-3">
               <Crown size={18} className="text-text-secondary" />
               <div>
@@ -323,7 +383,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Registration date */}
-          <div className="flex items-center justify-between p-4 rounded-xl bg-background">
+          <div className="flex items-center justify-between p-3 sm:p-4 rounded-xl bg-background">
             <div className="flex items-center gap-3">
               <Calendar size={18} className="text-text-secondary" />
               <div>
@@ -336,7 +396,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Language */}
-          <div className="flex items-center justify-between p-4 rounded-xl bg-background">
+          <div className="flex items-center justify-between p-3 sm:p-4 rounded-xl bg-background">
             <div className="flex items-center gap-3">
               <Globe size={18} className="text-text-secondary" />
               <div>
@@ -359,19 +419,19 @@ export default function ProfilePage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="card-elevated p-6"
+        className="card-elevated p-4 sm:p-6"
       >
         <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
           <LinkIcon size={20} className="text-primary-600" />
           Ulangan akkauntlar
         </h3>
 
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {/* Google Account */}
-          <div className="flex items-center justify-between p-4 rounded-xl bg-background">
-            <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between p-3 sm:p-4 rounded-xl bg-background gap-2">
+            <div className="flex items-center gap-3 min-w-0">
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
                   profile.googleId ? 'bg-green-100' : 'bg-gray-100'
                 }`}
               >
@@ -399,12 +459,12 @@ export default function ProfilePage() {
                   />
                 </svg>
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm font-medium text-text-primary">Google</p>
                 {profile.googleId ? (
-                  <p className="text-xs text-green-600 flex items-center gap-1">
-                    <Check size={12} />
-                    {profile.email || 'Ulangan'}
+                  <p className="text-xs text-green-600 flex items-center gap-1 truncate">
+                    <Check size={12} className="shrink-0" />
+                    <span className="truncate">{profile.email || 'Ulangan'}</span>
                   </p>
                 ) : (
                   <p className="text-xs text-gray-400">Ulanmagan</p>
@@ -412,12 +472,12 @@ export default function ProfilePage() {
               </div>
             </div>
             {!profile.googleId && (
-              <p className="text-xs text-text-secondary max-w-[160px] text-right">
+              <p className="text-xs text-text-secondary max-w-[140px] sm:max-w-[160px] text-right shrink-0">
                 Google orqali kirganingizda avtomatik ulanadi
               </p>
             )}
             {profile.googleId && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-green-50 text-green-600 text-xs font-medium">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-green-50 text-green-600 text-xs font-medium shrink-0">
                 <Check size={12} />
                 Ulangan
               </span>
@@ -425,10 +485,10 @@ export default function ProfilePage() {
           </div>
 
           {/* Telegram Account */}
-          <div className="flex items-center justify-between p-4 rounded-xl bg-background">
-            <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between p-3 sm:p-4 rounded-xl bg-background gap-2">
+            <div className="flex items-center gap-3 min-w-0">
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
                   profile.telegramId ? 'bg-green-100' : 'bg-gray-100'
                 }`}
               >
@@ -437,12 +497,12 @@ export default function ProfilePage() {
                   className={profile.telegramId ? 'text-green-600' : 'text-gray-400'}
                 />
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm font-medium text-text-primary">Telegram</p>
                 {profile.telegramId ? (
-                  <p className="text-xs text-green-600 flex items-center gap-1">
-                    <Check size={12} />
-                    @{profile.telegramUsername || profile.telegramId}
+                  <p className="text-xs text-green-600 flex items-center gap-1 truncate">
+                    <Check size={12} className="shrink-0" />
+                    <span className="truncate">@{profile.telegramUsername || profile.telegramId}</span>
                   </p>
                 ) : (
                   <p className="text-xs text-gray-400">Ulanmagan</p>
@@ -450,12 +510,12 @@ export default function ProfilePage() {
               </div>
             </div>
             {!profile.telegramId && (
-              <p className="text-xs text-text-secondary max-w-[180px] text-right">
+              <p className="text-xs text-text-secondary max-w-[140px] sm:max-w-[180px] text-right shrink-0">
                 Telegram botga /start yozing: @EduPrimeuzbot
               </p>
             )}
             {profile.telegramId && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-green-50 text-green-600 text-xs font-medium">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-green-50 text-green-600 text-xs font-medium shrink-0">
                 <Check size={12} />
                 Ulangan
               </span>
