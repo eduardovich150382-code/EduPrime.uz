@@ -9,7 +9,7 @@ import SecureYouTubePlayer from '@/components/ui/SecureYouTubePlayer';
 import {
   CheckCircle, XCircle, SkipForward, Clock, Trophy,
   Video, FileText, ArrowLeft, Share2, RotateCcw,
-  Loader2, AlertCircle, ChevronDown, ChevronUp, Play,
+  Loader2, AlertCircle, Play,
   X, Copy, ExternalLink,
 } from 'lucide-react';
 
@@ -63,7 +63,6 @@ export default function ResultPage() {
   const [result, setResult] = useState<ResultData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [expandedQuestion, setExpandedQuestion] = useState<string | null>(null);
   const [showExplanation, setShowExplanation] = useState<Record<string, boolean>>({});
   const [showVideo, setShowVideo] = useState<Record<string, boolean>>({});
   const [showGeneralVideo, setShowGeneralVideo] = useState(false);
@@ -402,7 +401,6 @@ export default function ResultPage() {
             const userAnswer = answerRecord?.answer || '';
             const isCorrect = answerRecord?.isCorrect || false;
             const isSkipped = !userAnswer;
-            const isExpanded = expandedQuestion === question.id;
 
             return (
               <div
@@ -415,11 +413,8 @@ export default function ResultPage() {
                     : 'border-red-200 bg-red-50/30'
                 }`}
               >
-                {/* Question header - clickable */}
-                <button
-                  onClick={() => setExpandedQuestion(isExpanded ? null : question.id)}
-                  className="w-full flex items-center gap-4 p-4 text-left hover:bg-white/50 transition-colors"
-                >
+                {/* Question header */}
+                <div className="flex items-center gap-4 p-4">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                     isCorrect ? 'bg-green-100 text-green-700' : isSkipped ? 'bg-gray-100 text-gray-700' : 'bg-red-100 text-red-700'
                   }`}>
@@ -458,153 +453,146 @@ export default function ResultPage() {
                         <Video size={14} className="text-purple-600" />
                       </span>
                     )}
-                    {isExpanded ? <ChevronUp size={16} className="text-text-secondary" /> : <ChevronDown size={16} className="text-text-secondary" />}
                   </div>
-                </button>
+                </div>
 
-                {/* Expanded content */}
-                {isExpanded && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    className="border-t border-inherit px-4 pb-4"
-                  >
-                    {/* Question images */}
-                    {question.images && question.images.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-3">
-                        {question.images.map((img, imgIdx) => (
-                          <img
-                            key={imgIdx}
-                            src={img}
-                            alt={`Savol rasmi ${imgIdx + 1}`}
-                            className="max-h-48 w-auto object-contain rounded-lg border border-border"
-                          />
-                        ))}
-                      </div>
-                    )}
-
-                    {/* All options */}
-                    <div className="space-y-2 mt-4">
-                      {(question.options as QuestionOption[]).map((option) => {
-                        const isUserChoice = option.label === userAnswer;
-                        const isCorrectOption = option.label === question.correctAnswer;
-                        const isWrongChoice = isUserChoice && !isCorrectOption;
-
-                        return (
-                          <div
-                            key={option.label}
-                            className={`flex items-start gap-3 p-3 rounded-xl border-2 transition-all ${
-                              isCorrectOption
-                                ? 'border-green-400 bg-green-50'
-                                : isWrongChoice
-                                ? 'border-red-400 bg-red-50'
-                                : 'border-gray-100 bg-white'
-                            }`}
-                          >
-                            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 border-2 ${
-                              isCorrectOption
-                                ? 'border-green-500 bg-green-500 text-white'
-                                : isWrongChoice
-                                ? 'border-red-500 bg-red-500 text-white'
-                                : 'border-gray-200 text-gray-500'
-                            }`}>
-                              {option.label}
-                            </div>
-                            <div className="flex-1 min-w-0 pt-0.5">
-                              <LatexRenderer content={option.text} className="text-sm text-text-primary" />
-                              {option.image && (
-                                <img
-                                  src={option.image}
-                                  alt={`Variant ${option.label}`}
-                                  className="mt-2 max-h-32 w-auto object-contain rounded-lg border border-border"
-                                />
-                              )}
-                            </div>
-                            {isCorrectOption && (
-                              <CheckCircle size={16} className="text-green-600 flex-shrink-0 mt-1" />
-                            )}
-                            {isWrongChoice && (
-                              <XCircle size={16} className="text-red-600 flex-shrink-0 mt-1" />
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    {/* Solution buttons */}
-                    <div className="flex items-center gap-3 mt-4">
-                      {question.explanation && (
-                        <button
-                          onClick={() => toggleExplanation(question.id)}
-                          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                            showExplanation[question.id]
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200'
-                          }`}
-                        >
-                          <FileText size={16} />
-                          Yozma yechim
-                        </button>
-                      )}
-                      {question.videoUrl && (
-                        <button
-                          onClick={() => toggleVideo(question.id)}
-                          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                            showVideo[question.id]
-                              ? 'bg-purple-600 text-white'
-                              : 'bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200'
-                          }`}
-                        >
-                          <Video size={16} />
-                          Videoyechim
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Written solution content */}
-                    {showExplanation[question.id] && question.explanation && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="mt-4 p-4 rounded-xl bg-blue-50 border border-blue-200"
-                      >
-                        <h4 className="text-sm font-semibold text-blue-800 mb-2 flex items-center gap-2">
-                          <FileText size={14} /> Yozma yechim
-                        </h4>
-                        <div className="text-sm text-text-primary leading-relaxed">
-                          <LatexRenderer content={question.explanation} />
-                        </div>
-                        {question.explanationImages && question.explanationImages.length > 0 && (
-                          <div className="flex flex-wrap gap-2 mt-3">
-                            {question.explanationImages.map((img, imgIdx) => (
-                              <img
-                                key={imgIdx}
-                                src={img}
-                                alt={`Yechim rasmi ${imgIdx + 1}`}
-                                className="max-h-48 w-auto object-contain rounded-lg border border-blue-100"
-                              />
-                            ))}
-                          </div>
-                        )}
-                      </motion.div>
-                    )}
-
-                    {/* Video solution content */}
-                    {showVideo[question.id] && question.videoUrl && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="mt-4"
-                      >
-                        <SecureYouTubePlayer
-                          videoUrl={question.videoUrl}
-                          title={`${i + 1}-savol videoyechim`}
-                          onClose={() => toggleVideo(question.id)}
+                {/* Always visible content */}
+                <div className="border-t border-inherit px-4 pb-4">
+                  {/* Question images */}
+                  {question.images && question.images.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {question.images.map((img, imgIdx) => (
+                        <img
+                          key={imgIdx}
+                          src={img}
+                          alt={`Savol rasmi ${imgIdx + 1}`}
+                          className="max-h-48 w-auto object-contain rounded-lg border border-border"
                         />
-                      </motion.div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* All options - always visible */}
+                  <div className="space-y-2 mt-4">
+                    {(question.options as QuestionOption[]).map((option) => {
+                      const isUserChoice = option.label === userAnswer;
+                      const isCorrectOption = option.label === question.correctAnswer;
+                      const isWrongChoice = isUserChoice && !isCorrectOption;
+
+                      return (
+                        <div
+                          key={option.label}
+                          className={`flex items-start gap-3 p-3 rounded-xl border-2 transition-all ${
+                            isCorrectOption
+                              ? 'border-green-400 bg-green-50'
+                              : isWrongChoice
+                              ? 'border-red-400 bg-red-50'
+                              : 'border-gray-100 bg-white'
+                          }`}
+                        >
+                          <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 border-2 ${
+                            isCorrectOption
+                              ? 'border-green-500 bg-green-500 text-white'
+                              : isWrongChoice
+                              ? 'border-red-500 bg-red-500 text-white'
+                              : 'border-gray-200 text-gray-500'
+                          }`}>
+                            {option.label}
+                          </div>
+                          <div className="flex-1 min-w-0 pt-0.5">
+                            <LatexRenderer content={option.text} className="text-sm text-text-primary" />
+                            {option.image && (
+                              <img
+                                src={option.image}
+                                alt={`Variant ${option.label}`}
+                                className="mt-2 max-h-32 w-auto object-contain rounded-lg border border-border"
+                              />
+                            )}
+                          </div>
+                          {isCorrectOption && (
+                            <CheckCircle size={16} className="text-green-600 flex-shrink-0 mt-1" />
+                          )}
+                          {isWrongChoice && (
+                            <XCircle size={16} className="text-red-600 flex-shrink-0 mt-1" />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Solution buttons */}
+                  <div className="flex items-center gap-3 mt-4">
+                    {question.explanation && (
+                      <button
+                        onClick={() => toggleExplanation(question.id)}
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                          showExplanation[question.id]
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200'
+                        }`}
+                      >
+                        <FileText size={16} />
+                        Yozma yechim
+                      </button>
                     )}
-                  </motion.div>
-                )}
+                    {question.videoUrl && (
+                      <button
+                        onClick={() => toggleVideo(question.id)}
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                          showVideo[question.id]
+                            ? 'bg-purple-600 text-white'
+                            : 'bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200'
+                        }`}
+                      >
+                        <Video size={16} />
+                        Videoyechim
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Written solution content - only after clicking */}
+                  {showExplanation[question.id] && question.explanation && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-4 p-4 rounded-xl bg-blue-50 border border-blue-200"
+                    >
+                      <h4 className="text-sm font-semibold text-blue-800 mb-2 flex items-center gap-2">
+                        <FileText size={14} /> Yozma yechim
+                      </h4>
+                      <div className="text-sm text-text-primary leading-relaxed">
+                        <LatexRenderer content={question.explanation} />
+                      </div>
+                      {question.explanationImages && question.explanationImages.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          {question.explanationImages.map((img, imgIdx) => (
+                            <img
+                              key={imgIdx}
+                              src={img}
+                              alt={`Yechim rasmi ${imgIdx + 1}`}
+                              className="max-h-48 w-auto object-contain rounded-lg border border-blue-100"
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+
+                  {/* Video solution content - only after clicking */}
+                  {showVideo[question.id] && question.videoUrl && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-4"
+                    >
+                      <SecureYouTubePlayer
+                        videoUrl={question.videoUrl}
+                        title={`${i + 1}-savol videoyechim`}
+                        onClose={() => toggleVideo(question.id)}
+                      />
+                    </motion.div>
+                  )}
+                </div>
               </div>
             );
           })}

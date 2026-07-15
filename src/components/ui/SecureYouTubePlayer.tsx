@@ -13,13 +13,19 @@ interface SecureYouTubePlayerProps {
  * Xavfsiz YouTube player - youtube-nocookie.com orqali
  * Faqat play/pause, 10s olga/orqaga va fullscreen
  * Reklama, boshqa video taklifi, YouTube ga o'tish yo'q
+ * 
+ * Agar YouTube IFrame API 3 soniyada yuklanmasa, 
+ * native controls bilan fallback iframe ko'rsatiladi.
  */
 export default function SecureYouTubePlayer({ videoUrl, title, onClose }: SecureYouTubePlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [apiReady, setApiReady] = useState(false);
+  const [useFallback, setUseFallback] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const playerRef = useRef<any>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Extract YouTube video ID from various URL formats
   const getVideoId = (url: string): string | null => {
@@ -37,43 +43,93 @@ export default function SecureYouTubePlayer({ videoUrl, title, onClose }: Secure
 
   const videoId = getVideoId(videoUrl);
 
-  // YouTube IFrame API
+  // YouTube IFrame API with fallback timeout
   useEffect(() => {
     if (!videoId) return;
 
-    // Load YouTube IFrame API if not already loaded
-    if (!(window as any).YT) {
-      const tag = document.createElement('script');
-      tag.src = 'https://www.youtube.com/iframe_api';
-      const firstScriptTag = document.getElementsByTagName('script')[0];
-      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
-    }
+    // If already in fallback mode, don't try API
+    if (useFallback) return;
+
+    let cancelled = false;
 
     const initPlayer = () => {
+      if (cancelled) return;
       if ((window as any).YT && (window as any).YT.Player) {
-        playerRef.current = new (window as any).YT.Player(`yt-player-${videoId}`, {
-          events: {
-            onStateChange: (event: any) => {
-              setIsPlaying(event.data === 1);
+        // Clear timeout since API loaded
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+          timeoutRef.current = null;
+        }
+
+        try {
+          playerRef.current = new (window as any).YT.Player(`yt-player-${videoId}`, {
+            events: {
+              onReady: () => {
+                if (!cancelled) {
+                  setApiReady(true);
+                }
+              },
+              onStateChange: (event: any) => {
+                if (!cancelled) {
+                  setIsPlaying(event.data === 1);
+                }
+              },
             },
-          },
-        });
+          });
+        } catch (err) {
+          console.warn('YouTube player init failed, using fallback:', err);
+          if (!cancelled) {
+            setUseFallback(true);
+          }
+        }
       }
     };
 
-    if ((window as any).YT && (window as any).YT.Player) {
-      // Small delay to ensure iframe is rendered
-      setTimeout(initPlayer, 500);
-    } else {
-      (window as any).onYouTubeIframeAPIReady = initPlayer;
+    // Set a 3-second timeout for API load
+    timeoutRef.current = setTimeout(() => {
+      if (!cancelled && !apiReady) {
+        console.warn('YouTube IFrame API did not load in 3 seconds, using fallback');
+        setUseFallback(true);
+      }
+    }, 3000);
+
+    // Load YouTube IFrame API if not already loaded
+    if (!(window as any).YT) {
+      const existingScript = document.querySelector('script[src="https://www.youtube.com/iframe_api"]');
+      if (!existingScript) {
+        const tag = document.createElement('script');
+        tag.src = 'https://www.youtube.com/iframe_api';
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+      }
+
+      // Set up the global callback
+      const prevCallback = (window as any).onYouTubeIframeAPIReady;
+      (window as any).onYouTubeIframeAPIReady = () => {
+        if (prevCallback) prevCallback();
+        // Give iframe time to render
+        setTimeout(initPlayer, 300);
+      };
+    } else if ((window as any).YT.Player) {
+      // API already loaded, wait for iframe to render then init
+      setTimeout(initPlayer, 300);
     }
 
     return () => {
+      cancelled = true;
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
       if (playerRef.current?.destroy) {
-        playerRef.current.destroy();
+        try {
+          playerRef.current.destroy();
+        } catch {
+          // Ignore destroy errors
+        }
       }
     };
-  }, [videoId]);
+  }, [videoId, useFallback]);
 
   const togglePlay = useCallback(() => {
     if (!playerRef.current) return;
@@ -123,7 +179,45 @@ export default function SecureYouTubePlayer({ videoUrl, title, onClose }: Secure
     );
   }
 
-  const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?enablejsapi=1&modestbranding=1&rel=0&controls=0&showinfo=0&disablekb=0&fs=0&iv_load_policy=3&cc_load_policy=0`;
+  // Fallback mode: show iframe with native YouTube controls
+  if (useFallback) {
+    const fallbackUrl = `https://www.youtube-nocookie.com/embed/${videoId}?modestbranding=1&rel=0&controls=1&showinfo=0&iv_load_policy=3&cc_load_policy=0`;
+
+    return (
+      <div
+        ref={containerRef}
+        className={`relative bg-black rounded-xl overflow-hidden ${isFullscreen ? 'w-screen h-screen' : 'w-full aspect-video'}`}
+      >
+        {/* Title bar */}
+        {title && (
+          <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/70 to-transparent p-3">
+            <div className="flex items-center justify-between">
+              <span className="text-white text-sm font-medium truncate">{title}</span>
+              {onClose && (
+                <button
+                  onClick={onClose}
+                  className="p-1 rounded-full hover:bg-white/20 transition-colors"
+                >
+                  <X size={18} className="text-white" />
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* YouTube iframe with native controls */}
+        <iframe
+          src={fallbackUrl}
+          className="w-full h-full"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+          allowFullScreen
+          referrerPolicy="no-referrer"
+        />
+      </div>
+    );
+  }
+
+  const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?enablejsapi=1&modestbranding=1&rel=0&controls=0&showinfo=0&disablekb=0&fs=0&iv_load_policy=3&cc_load_policy=0&origin=${typeof window !== 'undefined' ? window.location.origin : ''}`;
 
   return (
     <div
