@@ -206,7 +206,7 @@ async function handleLogin(chatId: number, userId: number, username: string, fir
     },
   });
 
-  const authUrl = `${APP_URL}/auth/telegram-callback?telegramId=${userId}&username=${username}&firstName=${encodeURIComponent(firstName)}&token=${token}`;
+  const authUrl = `${APP_URL}/api/auth/telegram-callback?telegramId=${userId}&username=${username}&firstName=${encodeURIComponent(firstName)}&token=${token}`;
 
   await sendMessage(chatId,
     `🔐 Kirish havolasi tayyor!\n\nPastdagi tugmani bosib saytga kiring:`,
