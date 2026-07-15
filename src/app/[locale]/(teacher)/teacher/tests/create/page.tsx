@@ -9,6 +9,7 @@ import {
   ArrowLeft, Plus, Trash2, Image, Upload, Bot,
   Save, FileUp, CheckCircle, Loader2, Send,
 } from 'lucide-react';
+import ImageUploadButton, { ImagePreviewList } from '@/components/ui/ImageUploadButton';
 
 interface QuestionForm {
   text: string;
@@ -53,6 +54,7 @@ export default function CreateTestPage() {
     isFree: false,
     price: 0,
     difficulty: 3,
+    videoSolution: '',
   });
   const [questions, setQuestions] = useState<QuestionForm[]>([{ ...emptyQuestion }]);
   const [currentStep, setCurrentStep] = useState<'info' | 'questions' | 'ai-import'>('info');
@@ -335,6 +337,23 @@ export default function CreateTestPage() {
           <p className="text-xs text-text-secondary bg-green-50 p-3 rounded-lg border border-green-100">
             💡 Bepul test belgilasangiz — barcha foydalanuvchilar bu testni va uning yechimlarini bepul ko&apos;ra oladi
           </p>
+
+          {/* General video solution */}
+          <div>
+            <label className="text-sm font-medium text-text-primary block mb-2">
+              Umumiy videoyechim URL (ixtiyoriy)
+            </label>
+            <input
+              type="url"
+              value={testInfo.videoSolution}
+              onChange={(e) => setTestInfo({ ...testInfo, videoSolution: e.target.value })}
+              placeholder="https://youtube.com/watch?v=... (barcha savollar uchun bitta umumiy video)"
+              className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all text-sm"
+            />
+            <p className="text-xs text-text-secondary mt-1">
+              Bu video test natijasi sahifasida &quot;Umumiy videoyechim&quot; sifatida ko&apos;rsatiladi
+            </p>
+          </div>
         </motion.div>
       )}
 
@@ -378,9 +397,23 @@ export default function CreateTestPage() {
 
             {/* Question text */}
             <div>
-              <label className="text-sm font-medium text-text-primary block mb-2">
-                Savol matni * <span className="text-xs text-text-secondary">(LaTeX: $formula$)</span>
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium text-text-primary">
+                  Savol matni * <span className="text-xs text-text-secondary">(LaTeX: $formula$)</span>
+                </label>
+                <ImageUploadButton
+                  endpoint="questionImage"
+                  label="Rasm qo'shish"
+                  onUpload={(url) => {
+                    const updated = [...questions];
+                    updated[activeQuestion] = {
+                      ...updated[activeQuestion],
+                      images: [...updated[activeQuestion].images, url],
+                    };
+                    setQuestions(updated);
+                  }}
+                />
+              </div>
               <textarea
                 value={questions[activeQuestion]?.text || ''}
                 onChange={(e) => {
@@ -391,6 +424,18 @@ export default function CreateTestPage() {
                 placeholder="Savolni kiriting..."
                 rows={3}
                 className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all resize-none font-mono text-sm"
+              />
+              {/* Question images preview */}
+              <ImagePreviewList
+                images={questions[activeQuestion]?.images || []}
+                onRemove={(index) => {
+                  const updated = [...questions];
+                  updated[activeQuestion] = {
+                    ...updated[activeQuestion],
+                    images: updated[activeQuestion].images.filter((_, i) => i !== index),
+                  };
+                  setQuestions(updated);
+                }}
               />
               {questions[activeQuestion]?.text && (
                 <div className="mt-2 p-3 rounded-lg bg-blue-50 border border-blue-100">
@@ -405,37 +450,73 @@ export default function CreateTestPage() {
               <label className="text-sm font-medium text-text-primary block mb-3">Javob variantlari *</label>
               <div className="space-y-3">
                 {questions[activeQuestion]?.options.map((opt, optIndex) => (
-                  <div key={optIndex} className="flex items-start gap-3">
-                    <button
-                      onClick={() => {
-                        const updated = [...questions];
-                        updated[activeQuestion] = { ...updated[activeQuestion], correctAnswer: opt.label };
-                        setQuestions(updated);
-                      }}
-                      className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 border-2 text-xs font-bold mt-2 transition-all ${
-                        questions[activeQuestion]?.correctAnswer === opt.label
-                          ? 'border-green-500 bg-green-500 text-white'
-                          : 'border-border text-text-secondary hover:border-primary-300'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                    <input
-                      type="text"
-                      value={opt.text}
-                      onChange={(e) => {
-                        const updated = [...questions];
-                        updated[activeQuestion].options[optIndex].text = e.target.value;
-                        setQuestions(updated);
-                      }}
-                      placeholder={`${opt.label} variantini kiriting`}
-                      className="flex-1 px-4 py-2.5 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all text-sm"
-                    />
-                    {optIndex === 4 && (
-                      <button onClick={() => removeOption(activeQuestion, optIndex)} className="p-2 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 mt-0.5">
-                        <Trash2 size={14} />
+                  <div key={optIndex} className="space-y-1">
+                    <div className="flex items-start gap-3">
+                      <button
+                        onClick={() => {
+                          const updated = [...questions];
+                          updated[activeQuestion] = { ...updated[activeQuestion], correctAnswer: opt.label };
+                          setQuestions(updated);
+                        }}
+                        className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 border-2 text-xs font-bold mt-2 transition-all ${
+                          questions[activeQuestion]?.correctAnswer === opt.label
+                            ? 'border-green-500 bg-green-500 text-white'
+                            : 'border-border text-text-secondary hover:border-primary-300'
+                        }`}
+                      >
+                        {opt.label}
                       </button>
-                    )}
+                      <div className="flex-1 space-y-1">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={opt.text}
+                            onChange={(e) => {
+                              const updated = [...questions];
+                              updated[activeQuestion].options[optIndex].text = e.target.value;
+                              setQuestions(updated);
+                            }}
+                            placeholder={`${opt.label} variantini kiriting`}
+                            className="flex-1 px-4 py-2.5 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all text-sm"
+                          />
+                          <ImageUploadButton
+                            endpoint="optionImage"
+                            label="Rasm"
+                            onUpload={(url) => {
+                              const updated = [...questions];
+                              updated[activeQuestion].options[optIndex].image = url;
+                              setQuestions(updated);
+                            }}
+                          />
+                          {optIndex === 4 && (
+                            <button onClick={() => removeOption(activeQuestion, optIndex)} className="p-2 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50">
+                              <Trash2 size={14} />
+                            </button>
+                          )}
+                        </div>
+                        {/* Option image preview */}
+                        {opt.image && (
+                          <div className="relative inline-block ml-1">
+                            <img
+                              src={opt.image}
+                              alt={`${opt.label} rasmi`}
+                              className="h-12 w-auto object-contain rounded-lg border border-border"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const updated = [...questions];
+                                updated[activeQuestion].options[optIndex].image = null;
+                                setQuestions(updated);
+                              }}
+                              className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[8px]"
+                            >
+                              &times;
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 ))}
                 {questions[activeQuestion]?.options.length < 5 && (
@@ -451,7 +532,21 @@ export default function CreateTestPage() {
 
             {/* Explanation */}
             <div>
-              <label className="text-sm font-medium text-text-primary block mb-2">Yozma yechim (ixtiyoriy)</label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium text-text-primary">Yozma yechim (ixtiyoriy)</label>
+                <ImageUploadButton
+                  endpoint="solutionImage"
+                  label="Yechim rasmi"
+                  onUpload={(url) => {
+                    const updated = [...questions];
+                    updated[activeQuestion] = {
+                      ...updated[activeQuestion],
+                      explanationImages: [...updated[activeQuestion].explanationImages, url],
+                    };
+                    setQuestions(updated);
+                  }}
+                />
+              </div>
               <textarea
                 value={questions[activeQuestion]?.explanation || ''}
                 onChange={(e) => {
@@ -462,6 +557,18 @@ export default function CreateTestPage() {
                 placeholder="Yechimni kiriting..."
                 rows={2}
                 className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all resize-none text-sm"
+              />
+              {/* Explanation images preview */}
+              <ImagePreviewList
+                images={questions[activeQuestion]?.explanationImages || []}
+                onRemove={(index) => {
+                  const updated = [...questions];
+                  updated[activeQuestion] = {
+                    ...updated[activeQuestion],
+                    explanationImages: updated[activeQuestion].explanationImages.filter((_, i) => i !== index),
+                  };
+                  setQuestions(updated);
+                }}
               />
             </div>
 

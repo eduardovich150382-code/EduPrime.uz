@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { titleUz, titleRu, titleEn, subjectId, duration, isFree, price, difficulty, questions } = body;
+    const { titleUz, titleRu, titleEn, subjectId, duration, isFree, price, difficulty, questions, videoSolution } = body;
 
     if (!titleUz || !subjectId || !duration) {
       return NextResponse.json({ error: 'titleUz, subjectId, duration required' }, { status: 400 });
@@ -85,6 +85,7 @@ export async function POST(request: NextRequest) {
         difficulty: difficulty || 3,
         questionCount: questions?.length || 0,
         isPublished: false,
+        videoSolution: videoSolution || null,
         questions: questions?.length ? {
           create: questions.map((q: any, index: number) => ({
             text: q.text,
