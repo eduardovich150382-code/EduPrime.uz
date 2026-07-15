@@ -455,6 +455,61 @@ async function handleCallbackQuery(callbackQuery: any) {
     if (paymentData) {
       const payment = JSON.parse(paymentData.value);
 
+      // Find the user by telegramId to get their DB userId
+      const targetUser = await db.user.findFirst({
+        where: { telegramId: targetUserId },
+        select: { id: true },
+      });
+
+      if (targetUser) {
+        // Map plan string to SubscriptionPlan enum
+        const planEnum = payment.plan === 'premium' ? 'PREMIUM' : 'TEACHER_PLAN';
+
+        // Map duration string to SubscriptionDuration enum
+        const durationMap: Record<string, string> = {
+          '1_month': 'ONE_MONTH',
+          '6_months': 'SIX_MONTHS',
+          '1_year': 'ONE_YEAR',
+        };
+        const durationEnum = durationMap[payment.duration] || 'ONE_MONTH';
+
+        // Calculate end date based on duration
+        const startDate = new Date();
+        const endDate = new Date(startDate);
+        if (payment.duration === '1_month') {
+          endDate.setMonth(endDate.getMonth() + 1);
+        } else if (payment.duration === '6_months') {
+          endDate.setMonth(endDate.getMonth() + 6);
+        } else if (payment.duration === '1_year') {
+          endDate.setFullYear(endDate.getFullYear() + 1);
+        }
+
+        // Create Payment record
+        const paymentRecord = await db.payment.create({
+          data: {
+            userId: targetUser.id,
+            plan: planEnum as any,
+            duration: durationEnum as any,
+            amount: payment.amount,
+            status: 'CONFIRMED',
+            confirmedAt: new Date(),
+          },
+        });
+
+        // Create Subscription record
+        await db.subscription.create({
+          data: {
+            userId: targetUser.id,
+            plan: planEnum as any,
+            duration: durationEnum as any,
+            startDate,
+            endDate,
+            isActive: true,
+            paymentId: paymentRecord.id,
+          },
+        });
+      }
+
       await sendMessage(parseInt(targetUserId),
         `🎉 <b>Tabriklaymiz!</b>\n\n` +
         `Sizning ${payment.plan === 'premium' ? 'Premium' : 'Ustoz'} tarifingiz aktivlashtirildi!\n` +

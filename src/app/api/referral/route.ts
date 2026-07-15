@@ -99,11 +99,21 @@ export async function GET(request: NextRequest) {
 // POST /api/referral - register a referral (called during signup)
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     const { referralCode, newUserId } = body;
 
     if (!referralCode || !newUserId) {
       return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
+    }
+
+    // Verify the caller is the newUserId
+    if (session.user.id !== newUserId) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     // Find the referrer by code
