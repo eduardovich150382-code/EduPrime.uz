@@ -118,7 +118,8 @@ function TestsPageContent() {
   });
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-full overflow-x-hidden">
+      <div className="max-w-7xl mx-auto space-y-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -139,19 +140,19 @@ function TestsPageContent() {
         />
       </div>
 
-      {/* Category tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+      {/* Category tabs - grid on mobile, flex on desktop */}
+      <div className="grid grid-cols-3 gap-2 md:flex md:flex-wrap md:gap-2">
         {categories.map((cat) => (
           <button
             key={cat.id}
             onClick={() => setActiveCategory(cat.id)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${
+            className={`flex items-center justify-center gap-1 md:gap-2 text-xs md:text-sm px-2 py-1.5 md:px-4 md:py-2 rounded-xl font-medium whitespace-nowrap transition-all ${
               activeCategory === cat.id
                 ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/25'
                 : 'bg-white border border-border text-text-secondary hover:border-primary-200 hover:text-primary-600'
             }`}
           >
-            <cat.icon size={16} />
+            <cat.icon size={14} className="md:w-4 md:h-4 shrink-0" />
             {cat.label}
           </button>
         ))}
@@ -164,7 +165,7 @@ function TestsPageContent() {
           <p className="text-text-secondary text-sm">Testlar yuklanmoqda...</p>
         </div>
       ) : filteredTests.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {filteredTests.map((test, index) => (
             <Link key={test.id} href={`/tests/${test.id}/solve`}>
               <div className="card hover:border-primary-200 group cursor-pointer h-full overflow-hidden">
@@ -234,6 +235,7 @@ function TestsPageContent() {
           </p>
         </div>
       )}
+    </div>
     </div>
   );
 }
