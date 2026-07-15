@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { ZoomIn } from 'lucide-react';
+import LatexRenderer from '@/components/ui/LatexRenderer';
 import type { QuestionOption } from '@/types';
 
 interface QuestionDisplayProps {
@@ -40,9 +41,9 @@ export default function QuestionDisplay({
           </span>
         </div>
 
-        {/* LaTeX rendered text - in production this will use KaTeX */}
-        <div className="text-lg text-text-primary leading-relaxed prose prose-sm max-w-none">
-          <p dangerouslySetInnerHTML={{ __html: text }} />
+        {/* LaTeX rendered text */}
+        <div className="text-lg text-text-primary leading-relaxed">
+          <LatexRenderer content={text} />
         </div>
 
         {/* Question images */}
@@ -103,7 +104,7 @@ export default function QuestionDisplay({
               {/* Option content */}
               <div className="flex-1 pt-1">
                 {/* Text (LaTeX rendered) */}
-                <span className="text-text-primary" dangerouslySetInnerHTML={{ __html: option.text }} />
+                <LatexRenderer content={option.text} className="text-text-primary" />
 
                 {/* Option image */}
                 {option.image && (

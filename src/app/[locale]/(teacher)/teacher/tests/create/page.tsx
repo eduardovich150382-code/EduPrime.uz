@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import { useRouter } from 'next/navigation';
+import LatexRenderer from '@/components/ui/LatexRenderer';
 import {
   ArrowLeft, Plus, Trash2, Image, Upload, Bot,
   Save, FileUp, CheckCircle, Loader2, Send,
@@ -391,6 +392,12 @@ export default function CreateTestPage() {
                 rows={3}
                 className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all resize-none font-mono text-sm"
               />
+              {questions[activeQuestion]?.text && (
+                <div className="mt-2 p-3 rounded-lg bg-blue-50 border border-blue-100">
+                  <p className="text-xs text-blue-600 mb-1 font-medium">Ko&apos;rinishi:</p>
+                  <LatexRenderer content={questions[activeQuestion].text} className="text-sm text-text-primary" />
+                </div>
+              )}
             </div>
 
             {/* Options */}
