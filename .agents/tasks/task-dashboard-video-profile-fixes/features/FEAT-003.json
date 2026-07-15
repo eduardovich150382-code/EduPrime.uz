@@ -2,7 +2,7 @@
   "id": "FEAT-003",
   "type": "feat",
   "description": "Profile page: avatar upload, name editing, telegram/email linking, and display of connected accounts (Google/Telegram)",
-  "status": "pending",
+  "status": "completed",
   "steps": [
     "Create a new API route at src/app/api/profile/route.ts with: GET - returns full user profile (name, email, image, telegramId, telegramUsername, googleId, createdAt, role). PATCH - updates user profile fields (name, image). Use auth() for authentication and db from @/lib/db.",
     "Create a new API route at src/app/api/profile/link-telegram/route.ts with POST - links a Telegram account to the current Google user. Accepts telegramId and verifies a token similar to the auth flow (or uses a simpler linking flow where user enters their Telegram username and confirms via bot).",
@@ -23,5 +23,5 @@
     "Run npm run build and confirm no TypeScript errors"
   ],
   "blocked_reason": null,
-  "findings": ""
+  "findings": "Profile page fully rewritten with avatar upload (UploadThing), name editing, connected accounts display (Google/Telegram). API route created at /api/profile with GET and PATCH endpoints. Used existing UploadButton from @/lib/uploadthing which was already configured. Build passes cleanly."
 }
