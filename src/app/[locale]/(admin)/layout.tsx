@@ -1,5 +1,5 @@
 import Header from '@/components/layout/Header';
-import Sidebar from '@/components/layout/Sidebar';
+import AdminLayoutClient from '@/components/layout/AdminLayoutClient';
 import SessionProvider from '@/components/providers/SessionProvider';
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
@@ -25,12 +25,9 @@ export default async function AdminLayout({
   return (
     <SessionProvider>
       <Header />
-      <div className="flex pt-16">
-        <Sidebar role={role} />
-        <main className="flex-1 ml-64 p-6 min-h-[calc(100vh-4rem)]">
-          {children}
-        </main>
-      </div>
+      <AdminLayoutClient role={role}>
+        {children}
+      </AdminLayoutClient>
     </SessionProvider>
   );
 }

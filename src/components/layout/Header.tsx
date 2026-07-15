@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
 import { Menu, X, LogOut, User } from 'lucide-react';
@@ -12,8 +12,26 @@ export default function Header() {
   const { data: session, status } = useSession();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   const isLoggedIn = status === 'authenticated' && session?.user;
+
+  // Click outside to close user dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false);
+      }
+    }
+
+    if (showUserMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showUserMenu]);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-primary-100/50">
@@ -50,8 +68,8 @@ export default function Header() {
             <LanguageSwitcher />
 
             {isLoggedIn ? (
-              /* User is logged in — show avatar and name */
-              <div className="relative">
+              /* User is logged in - show avatar and name */
+              <div className="relative" ref={userMenuRef}>
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
                   className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-primary-50 transition-colors"
@@ -102,7 +120,7 @@ export default function Header() {
                 )}
               </div>
             ) : (
-              /* User is NOT logged in — show login buttons */
+              /* User is NOT logged in - show login buttons */
               <>
                 <Link href="/login" className="btn-secondary text-sm !px-4 !py-2">
                   {t('common.login')}

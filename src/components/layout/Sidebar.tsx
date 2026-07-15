@@ -15,7 +15,6 @@ import {
   GraduationCap,
   Shield,
   Gift,
-  Menu,
   X,
 } from 'lucide-react';
 import { signOut } from 'next-auth/react';
@@ -23,18 +22,19 @@ import { useState, useEffect } from 'react';
 
 interface SidebarProps {
   role: string;
+  mobileOpen: boolean;
+  setMobileOpen: (open: boolean) => void;
 }
 
-export default function Sidebar({ role }: SidebarProps) {
+export default function Sidebar({ role, mobileOpen, setMobileOpen }: SidebarProps) {
   const t = useTranslations('nav');
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
 
   // Close mobile sidebar on route change
   useEffect(() => {
     setMobileOpen(false);
-  }, [pathname]);
+  }, [pathname, setMobileOpen]);
 
   // Prevent scroll when mobile menu is open
   useEffect(() => {
@@ -126,15 +126,6 @@ export default function Sidebar({ role }: SidebarProps) {
 
   return (
     <>
-      {/* Mobile toggle button */}
-      <button
-        onClick={() => setMobileOpen(true)}
-        className="md:hidden fixed bottom-4 left-4 z-50 w-12 h-12 bg-primary-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-primary-700 transition-colors"
-        aria-label="Menyuni ochish"
-      >
-        <Menu size={22} />
-      </button>
-
       {/* Mobile overlay */}
       {mobileOpen && (
         <div

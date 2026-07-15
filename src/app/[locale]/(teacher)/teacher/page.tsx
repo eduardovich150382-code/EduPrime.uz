@@ -106,15 +106,15 @@ export default function TeacherDashboard() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
       >
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">
             Ustoz paneli
           </h1>
-          <p className="text-text-secondary mt-1">Testlaringizni boshqaring va natijalarni kuzating</p>
+          <p className="text-text-secondary mt-1 text-sm sm:text-base">Testlaringizni boshqaring va natijalarni kuzating</p>
         </div>
-        <Link href="/teacher/tests/create" className="btn-primary flex items-center gap-2">
+        <Link href="/teacher/tests/create" className="btn-primary flex items-center gap-2 self-start sm:self-auto">
           <Plus size={18} />
           Yangi test
         </Link>
