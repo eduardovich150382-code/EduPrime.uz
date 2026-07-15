@@ -1,5 +1,5 @@
 import Header from '@/components/layout/Header';
-import Sidebar from '@/components/layout/Sidebar';
+import MainLayoutClient from '@/components/layout/MainLayoutClient';
 import SessionProvider from '@/components/providers/SessionProvider';
 import ReferralHandler from '@/components/providers/ReferralHandler';
 import { auth } from '@/lib/auth';
@@ -22,12 +22,9 @@ export default async function MainLayout({
     <SessionProvider>
       <ReferralHandler />
       <Header />
-      <div className="flex pt-16">
-        <Sidebar role={role} />
-        <main className="flex-1 ml-64 p-6 min-h-[calc(100vh-4rem)]">
-          {children}
-        </main>
-      </div>
+      <MainLayoutClient role={role}>
+        {children}
+      </MainLayoutClient>
     </SessionProvider>
   );
 }

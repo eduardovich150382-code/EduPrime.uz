@@ -137,20 +137,20 @@ export default function TestSolvePage() {
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between mb-6 card p-4"
+        className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 card p-3 sm:p-4 gap-3 sm:gap-0"
       >
         <div>
-          <h1 className="font-semibold text-text-primary">{test.titleUz}</h1>
+          <h1 className="font-semibold text-text-primary text-sm sm:text-base">{test.titleUz}</h1>
           <p className="text-xs text-text-secondary">
             {answeredCount}/{totalQuestions} javob berilgan
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end">
           <TestTimer totalSeconds={test.duration * 60} onTimeUp={handleFinish} />
           <button
             onClick={() => setShowFinishDialog(true)}
             disabled={submitting}
-            className="btn-primary !py-2 !px-4 text-sm flex items-center gap-2"
+            className="btn-primary !py-2 !px-3 sm:!px-4 text-sm flex items-center gap-2"
           >
             <Flag size={14} />
             Tugatish
@@ -158,15 +158,15 @@ export default function TestSolvePage() {
         </div>
       </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
         {/* Main content */}
-        <div className="lg:col-span-3">
+        <div className="lg:col-span-3 order-2 lg:order-1">
           <motion.div
             key={currentQuestion}
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3 }}
-            className="card p-6"
+            className="card p-4 sm:p-6"
           >
             <QuestionDisplay
               questionNumber={currentQuestion + 1}
@@ -200,7 +200,7 @@ export default function TestSolvePage() {
         </div>
 
         {/* Sidebar */}
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 order-1 lg:order-2">
           <QuestionNav
             totalQuestions={totalQuestions}
             currentQuestion={currentQuestion}
