@@ -14,6 +14,7 @@ import {
   ChevronRight,
   GraduationCap,
   Shield,
+  Gift,
 } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import { useState } from 'react';
@@ -32,6 +33,7 @@ export default function Sidebar({ role }: SidebarProps) {
     { href: '/tests', icon: BookOpen, label: t('tests') },
     { href: '/rating', icon: Trophy, label: t('rating') },
     { href: '/pricing', icon: CreditCard, label: t('pricing') },
+    { href: '/dashboard/referral', icon: Gift, label: 'Referral' },
     { href: '/profile', icon: User, label: 'Profil' },
   ];
 

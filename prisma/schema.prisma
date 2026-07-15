@@ -26,6 +26,8 @@ model User {
   googleId          String?  @unique
   role              UserRole @default(USER)
   lang              String   @default("uz")
+  referralCode      String?  @unique
+  referredBy        String?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -38,6 +40,18 @@ model User {
   testResults       TestResult[]
   payments          Payment[]
   confirmedPayments Payment[]    @relation("ConfirmedBy")
+  referralsMade     Referral[]   @relation("ReferralsMade")
+  referralsReceived Referral[]   @relation("ReferralsReceived")
+}
+
+model Referral {
+  id             String   @id @default(cuid())
+  referrerId     String
+  referredUserId String
+  createdAt      DateTime @default(now())
+
+  referrer     User @relation("ReferralsMade", fields: [referrerId], references: [id], onDelete: Cascade)
+  referredUser User @relation("ReferralsReceived", fields: [referredUserId], references: [id], onDelete: Cascade)
 }
 
 model Account {

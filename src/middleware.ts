@@ -21,7 +21,7 @@ const teacherPaths = ['/teacher'];
 const adminPaths = ['/admin'];
 
 // Public paths (no auth needed)
-const publicPaths = ['/', '/login', '/auth'];
+const publicPaths = ['/', '/login', '/auth', '/share'];
 
 function isProtectedPath(pathname: string): boolean {
   // Remove locale prefix if exists
