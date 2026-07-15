@@ -73,18 +73,20 @@ export async function PUT(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    const updateData: any = {};
+    if (body.titleUz !== undefined) updateData.titleUz = body.titleUz;
+    if (body.titleRu !== undefined) updateData.titleRu = body.titleRu;
+    if (body.titleEn !== undefined) updateData.titleEn = body.titleEn;
+    if (body.duration !== undefined) updateData.duration = body.duration;
+    if (body.isFree !== undefined) updateData.isFree = body.isFree;
+    if (body.price !== undefined) updateData.price = body.price;
+    if (body.difficulty !== undefined) updateData.difficulty = body.difficulty;
+    if (body.isPublished !== undefined) updateData.isPublished = body.isPublished;
+    if (body.coverImage !== undefined) updateData.coverImage = body.coverImage;
+
     const updated = await db.test.update({
       where: { id },
-      data: {
-        titleUz: body.titleUz,
-        titleRu: body.titleRu,
-        titleEn: body.titleEn,
-        duration: body.duration,
-        isFree: body.isFree,
-        price: body.price,
-        difficulty: body.difficulty,
-        isPublished: body.isPublished,
-      },
+      data: updateData,
     });
 
     return NextResponse.json({ test: updated });

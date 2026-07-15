@@ -6,9 +6,20 @@ import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import { Send, ArrowLeft, Sparkles } from 'lucide-react';
 import SessionProvider from '@/components/providers/SessionProvider';
+import { useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
 
 function LoginContent() {
   const t = useTranslations('auth');
+  const searchParams = useSearchParams();
+
+  // Capture referral code from URL and store in localStorage
+  useEffect(() => {
+    const refCode = searchParams.get('ref');
+    if (refCode) {
+      localStorage.setItem('referralCode', refCode);
+    }
+  }, [searchParams]);
 
   const handleGoogleLogin = () => {
     signIn('google', { callbackUrl: '/dashboard' });

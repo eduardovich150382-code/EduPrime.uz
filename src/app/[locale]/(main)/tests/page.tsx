@@ -1,21 +1,32 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import {
   GraduationCap, School, Award, Globe2, Atom, FileCheck,
-  BookOpen, Search, Clock, Star, Lock, Loader2,
+  BookOpen, Search, Clock, Lock, Loader2,
 } from 'lucide-react';
 
 const categories = [
-  { id: 'all', label: 'Barchasi', icon: BookOpen },
-  { id: 'dtm', label: 'DTM', icon: GraduationCap },
-  { id: 'school', label: 'Maktab', icon: School },
-  { id: 'attestation', label: 'Attestatsiya', icon: Award },
-  { id: 'sat', label: 'SAT', icon: Globe2 },
-  { id: 'gre', label: 'GRE', icon: Atom },
-  { id: 'certificate', label: 'Sertifikat', icon: FileCheck },
+  { id: 'all', label: 'Barchasi', icon: BookOpen, type: '' },
+  { id: 'dtm', label: 'DTM', icon: GraduationCap, type: 'DTM' },
+  { id: 'school', label: 'Maktab', icon: School, type: 'SCHOOL' },
+  { id: 'attestation', label: 'Attestatsiya', icon: Award, type: 'ATTESTATION' },
+  { id: 'sat', label: 'SAT', icon: Globe2, type: 'SAT' },
+  { id: 'gre', label: 'GRE', icon: Atom, type: 'GRE' },
+  { id: 'certificate', label: 'Sertifikat', icon: FileCheck, type: 'CERTIFICATE' },
+];
+
+const cardGradients = [
+  'from-blue-500 to-purple-600',
+  'from-green-500 to-teal-600',
+  'from-orange-500 to-red-600',
+  'from-pink-500 to-rose-600',
+  'from-indigo-500 to-blue-600',
+  'from-emerald-500 to-cyan-600',
+  'from-violet-500 to-purple-600',
+  'from-amber-500 to-orange-600',
 ];
 
 interface TestItem {
@@ -25,7 +36,30 @@ interface TestItem {
   duration: number;
   questionCount: number;
   difficulty: number;
+  coverImage: string | null;
   subject: { nameUz: string; icon: string | null };
+}
+
+// Signal bars difficulty indicator component
+function DifficultyBars({ level }: { level: number }) {
+  return (
+    <span className="flex items-end gap-0.5" title={`Qiyinlik: ${level}/5`}>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <span
+          key={i}
+          className={`rounded-sm ${
+            i < level
+              ? 'bg-primary-600'
+              : 'bg-gray-200'
+          }`}
+          style={{
+            width: '3px',
+            height: `${6 + i * 3}px`,
+          }}
+        />
+      ))}
+    </span>
+  );
 }
 
 export default function TestsPage() {
@@ -34,10 +68,15 @@ export default function TestsPage() {
   const [tests, setTests] = useState<TestItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchTests = async () => {
+  const fetchTests = useCallback(async (type?: string) => {
     setLoading(true);
     try {
-      const res = await fetch('/api/tests');
+      const params = new URLSearchParams();
+      if (type) {
+        params.set('type', type);
+      }
+      const url = `/api/tests${params.toString() ? '?' + params.toString() : ''}`;
+      const res = await fetch(url);
       const data = await res.json();
       if (data.tests) {
         setTests(data.tests);
@@ -46,11 +85,12 @@ export default function TestsPage() {
       console.error('Failed to fetch tests:', error);
     }
     setLoading(false);
-  };
+  }, []);
 
   useEffect(() => {
-    fetchTests();
-  }, []);
+    const category = categories.find(c => c.id === activeCategory);
+    fetchTests(category?.type || undefined);
+  }, [activeCategory, fetchTests]);
 
   const filteredTests = tests.filter((test) => {
     const matchesSearch = test.titleUz.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -106,35 +146,56 @@ export default function TestsPage() {
         </div>
       ) : filteredTests.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredTests.map((test) => (
+          {filteredTests.map((test, index) => (
             <Link key={test.id} href={`/tests/${test.id}/solve`}>
-              <div className="card p-5 hover:border-primary-200 group cursor-pointer h-full">
-                <div className="flex items-start justify-between mb-3">
-                  <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
-                    test.isFree ? 'bg-green-100 text-green-700' : 'bg-primary-100 text-primary-700'
+              <div className="card hover:border-primary-200 group cursor-pointer h-full overflow-hidden">
+                {/* Cover image or gradient */}
+                <div className={`h-32 w-full relative ${
+                  !test.coverImage ? `bg-gradient-to-br ${cardGradients[index % cardGradients.length]}` : ''
+                }`}>
+                  {test.coverImage ? (
+                    <img
+                      src={test.coverImage}
+                      alt={test.titleUz}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <BookOpen size={36} className="text-white/50" />
+                    </div>
+                  )}
+                  {/* Badge overlay */}
+                  <span className={`absolute top-3 left-3 text-xs font-medium px-2.5 py-1 rounded-full ${
+                    test.isFree ? 'bg-green-100 text-green-700' : 'bg-white/90 text-primary-700'
                   }`}>
                     {test.isFree ? 'Bepul' : 'Premium'}
                   </span>
-                  {!test.isFree && <Lock size={14} className="text-text-secondary" />}
+                  {!test.isFree && (
+                    <span className="absolute top-3 right-3">
+                      <Lock size={14} className="text-white/80" />
+                    </span>
+                  )}
                 </div>
-                <h3 className="font-semibold text-text-primary mb-2 group-hover:text-primary-600 transition-colors">
-                  {test.titleUz}
-                </h3>
-                <p className="text-sm text-text-secondary mb-4">
-                  {test.subject.icon} {test.subject.nameUz}
-                </p>
-                <div className="flex items-center gap-4 text-xs text-text-secondary">
-                  <span className="flex items-center gap-1">
-                    <BookOpen size={12} /> {test.questionCount} savol
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Clock size={12} /> {test.duration} min
-                  </span>
-                  <span className="flex items-center gap-1">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} size={10} className={i < test.difficulty ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'} />
-                    ))}
-                  </span>
+
+                <div className="p-5">
+                  <h3 className="font-semibold text-text-primary mb-2 group-hover:text-primary-600 transition-colors line-clamp-2">
+                    {test.titleUz}
+                  </h3>
+                  <p className="text-sm text-text-secondary mb-4">
+                    {test.subject.icon} {test.subject.nameUz}
+                  </p>
+                  <div className="flex items-center gap-4 text-xs text-text-secondary">
+                    <span className="flex items-center gap-1">
+                      <BookOpen size={12} /> {test.questionCount} savol
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock size={12} /> {test.duration} min
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <DifficultyBars level={test.difficulty} />
+                      <span className="text-[10px]">Qiyinlik</span>
+                    </span>
+                  </div>
                 </div>
               </div>
             </Link>

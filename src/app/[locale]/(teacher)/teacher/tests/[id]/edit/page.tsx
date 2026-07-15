@@ -3,15 +3,16 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import LatexRenderer from '@/components/ui/LatexRenderer';
 import {
-  ArrowLeft, Plus, Trash2, Image, Upload, Bot,
-  Save, FileUp, CheckCircle, Loader2, Send,
+  ArrowLeft, Plus, Trash2, Save, Loader2, Send,
+  FileUp, CheckCircle, Bot,
 } from 'lucide-react';
 import ImageUploadButton, { ImagePreviewList } from '@/components/ui/ImageUploadButton';
 
 interface QuestionForm {
+  id?: string;
   text: string;
   images: string[];
   options: { label: string; text: string; image: string | null }[];
@@ -43,10 +44,14 @@ const emptyQuestion: QuestionForm = {
   videoUrl: '',
 };
 
-export default function CreateTestPage() {
+export default function EditTestPage() {
   const router = useRouter();
+  const params = useParams();
+  const testId = params.id as string;
+
   const [subjects, setSubjects] = useState<SubjectItem[]>([]);
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [testInfo, setTestInfo] = useState({
     titleUz: '',
     subjectId: '',
@@ -56,23 +61,63 @@ export default function CreateTestPage() {
     difficulty: 3,
     videoSolution: '',
     coverImage: '',
+    isPublished: false,
   });
   const [questions, setQuestions] = useState<QuestionForm[]>([{ ...emptyQuestion }]);
-  const [currentStep, setCurrentStep] = useState<'info' | 'questions' | 'ai-import'>('info');
+  const [currentStep, setCurrentStep] = useState<'info' | 'questions'>('info');
   const [activeQuestion, setActiveQuestion] = useState(0);
-  const [aiText, setAiText] = useState('');
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiResult, setAiResult] = useState<any>(null);
 
-  // Fetch subjects
+  // Fetch subjects and test data
   useEffect(() => {
-    fetch('/api/subjects')
-      .then(r => r.json())
-      .then(data => {
-        if (data.subjects) setSubjects(data.subjects);
-      })
-      .catch(console.error);
-  }, []);
+    Promise.all([
+      fetch('/api/subjects').then(r => r.json()),
+      fetch(`/api/teacher/tests/${testId}`).then(r => r.json()),
+    ]).then(([subjectsData, testData]) => {
+      if (subjectsData.subjects) setSubjects(subjectsData.subjects);
+      if (testData.test) {
+        const test = testData.test;
+        setTestInfo({
+          titleUz: test.titleUz || '',
+          subjectId: test.subjectId || '',
+          duration: test.duration || 60,
+          isFree: test.isFree || false,
+          price: test.price || 0,
+          difficulty: test.difficulty || 3,
+          videoSolution: test.videoSolution || '',
+          coverImage: test.coverImage || '',
+          isPublished: test.isPublished || false,
+        });
+        if (test.questions && test.questions.length > 0) {
+          const loadedQuestions: QuestionForm[] = test.questions.map((q: any) => ({
+            id: q.id,
+            text: q.text || '',
+            images: q.images || [],
+            options: q.options && Array.isArray(q.options) && q.options.length > 0
+              ? q.options.map((o: any) => ({
+                  label: o.label || '',
+                  text: o.text || '',
+                  image: o.image || null,
+                }))
+              : [
+                  { label: 'A', text: '', image: null },
+                  { label: 'B', text: '', image: null },
+                  { label: 'C', text: '', image: null },
+                  { label: 'D', text: '', image: null },
+                ],
+            correctAnswer: q.correctAnswer || '',
+            explanation: q.explanation || '',
+            explanationImages: q.explanationImages || [],
+            videoUrl: q.videoUrl || '',
+          }));
+          setQuestions(loadedQuestions);
+        }
+      }
+      setLoading(false);
+    }).catch((error) => {
+      console.error('Error loading test:', error);
+      setLoading(false);
+    });
+  }, [testId]);
 
   const addOption = (qIndex: number) => {
     const q = questions[qIndex];
@@ -119,12 +164,35 @@ export default function CreateTestPage() {
 
     setSaving(true);
     try {
-      const res = await fetch('/api/tests', {
-        method: 'POST',
+      // Update test info
+      const res = await fetch(`/api/tests/${testId}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...testInfo,
-          questions: validQuestions.map(q => ({
+          titleUz: testInfo.titleUz,
+          duration: testInfo.duration,
+          isFree: testInfo.isFree,
+          price: testInfo.isFree ? 0 : testInfo.price,
+          difficulty: testInfo.difficulty,
+          coverImage: testInfo.coverImage || null,
+          isPublished: publish,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || "Xatolik yuz berdi");
+        setSaving(false);
+        return;
+      }
+
+      // Update questions via dedicated endpoint
+      const questionsRes = await fetch(`/api/teacher/tests/${testId}/questions`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          questions: validQuestions.map((q, index) => ({
+            id: q.id || undefined,
             text: q.text,
             images: q.images,
             options: q.options.filter(o => o.text),
@@ -134,25 +202,17 @@ export default function CreateTestPage() {
             videoUrl: q.videoUrl || null,
             type: 'MULTIPLE_CHOICE',
             points: 1,
+            order: index,
           })),
         }),
       });
 
-      const data = await res.json();
-
-      if (res.ok) {
-        // Publish if requested
-        if (publish && data.test?.id) {
-          await fetch(`/api/tests/${data.test.id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ isPublished: true }),
-          });
-        }
-        alert(publish ? "Test yaratildi va nashr qilindi! ✅" : "Test saqlandi (qoralama)!");
-        router.push('/teacher');
+      if (questionsRes.ok) {
+        alert(publish ? "Test yangilandi va nashr qilindi!" : "Test yangilandi (qoralama)!");
+        router.push('/teacher/tests');
       } else {
-        alert(data.error || "Xatolik yuz berdi");
+        const qData = await questionsRes.json();
+        alert(qData.error || "Savollarni saqlashda xatolik");
       }
     } catch (error) {
       alert("Server xatolik. Qayta urinib ko'ring.");
@@ -160,48 +220,13 @@ export default function CreateTestPage() {
     setSaving(false);
   };
 
-  // AI IMPORT
-  const handleAiImport = async () => {
-    if (!aiText.trim()) {
-      alert("Matn kiriting!");
-      return;
-    }
-    setAiLoading(true);
-    setAiResult(null);
-    try {
-      const res = await fetch('/api/ai/import', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'text', content: aiText }),
-      });
-      const data = await res.json();
-      setAiResult(data);
-
-      // Import questions
-      if (data.questions?.length > 0) {
-        const imported: QuestionForm[] = data.questions.map((q: any) => ({
-          text: q.text || '',
-          images: q.images || [],
-          options: q.options || [
-            { label: 'A', text: '', image: null },
-            { label: 'B', text: '', image: null },
-            { label: 'C', text: '', image: null },
-            { label: 'D', text: '', image: null },
-          ],
-          correctAnswer: q.correctAnswer || '',
-          explanation: q.explanation || '',
-          explanationImages: [],
-          videoUrl: '',
-        }));
-        setQuestions(imported);
-        setActiveQuestion(0);
-        setCurrentStep('questions');
-      }
-    } catch (error) {
-      alert("AI xatolik. Qayta urinib ko'ring.");
-    }
-    setAiLoading(false);
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 size={32} className="animate-spin text-primary-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -212,12 +237,12 @@ export default function CreateTestPage() {
         className="flex items-center justify-between"
       >
         <div className="flex items-center gap-4">
-          <Link href="/teacher" className="p-2 rounded-lg hover:bg-primary-50 transition-colors">
+          <Link href="/teacher/tests" className="p-2 rounded-lg hover:bg-primary-50 transition-colors">
             <ArrowLeft size={20} className="text-text-secondary" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-text-primary">Yangi test yaratish</h1>
-            <p className="text-sm text-text-secondary">Savollarni qo&apos;lda kiriting yoki AI bilan import qiling</p>
+            <h1 className="text-2xl font-bold text-text-primary">Testni tahrirlash</h1>
+            <p className="text-sm text-text-secondary">Savollarni va ma&apos;lumotlarni yangilang</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -227,7 +252,7 @@ export default function CreateTestPage() {
             className="btn-secondary flex items-center gap-2 !py-2 !px-4 text-sm"
           >
             {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-            Qoralama
+            Saqlash
           </button>
           <button
             onClick={() => handleSave(true)}
@@ -245,7 +270,6 @@ export default function CreateTestPage() {
         {[
           { id: 'info' as const, label: "Test ma'lumotlari", icon: FileUp },
           { id: 'questions' as const, label: `Savollar (${questions.length})`, icon: Plus },
-          { id: 'ai-import' as const, label: 'AI Import', icon: Bot },
         ].map((step) => (
           <button
             key={step.id}
@@ -335,26 +359,6 @@ export default function CreateTestPage() {
               </div>
             )}
           </div>
-          <p className="text-xs text-text-secondary bg-green-50 p-3 rounded-lg border border-green-100">
-            💡 Bepul test belgilasangiz — barcha foydalanuvchilar bu testni va uning yechimlarini bepul ko&apos;ra oladi
-          </p>
-
-          {/* General video solution */}
-          <div>
-            <label className="text-sm font-medium text-text-primary block mb-2">
-              Umumiy videoyechim URL (ixtiyoriy)
-            </label>
-            <input
-              type="url"
-              value={testInfo.videoSolution}
-              onChange={(e) => setTestInfo({ ...testInfo, videoSolution: e.target.value })}
-              placeholder="https://youtube.com/watch?v=... (barcha savollar uchun bitta umumiy video)"
-              className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all text-sm"
-            />
-            <p className="text-xs text-text-secondary mt-1">
-              Bu video test natijasi sahifasida &quot;Umumiy videoyechim&quot; sifatida ko&apos;rsatiladi
-            </p>
-          </div>
 
           {/* Cover image upload */}
           <div>
@@ -387,9 +391,6 @@ export default function CreateTestPage() {
                 </button>
               </div>
             )}
-            <p className="text-xs text-text-secondary mt-2">
-              Agar rasm yuklanmasa, test chiroyli rang gradientida ko&apos;rsatiladi
-            </p>
           </div>
         </motion.div>
       )}
@@ -462,7 +463,6 @@ export default function CreateTestPage() {
                 rows={3}
                 className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all resize-none font-mono text-sm"
               />
-              {/* Question images preview */}
               <ImagePreviewList
                 images={questions[activeQuestion]?.images || []}
                 onRemove={(index) => {
@@ -531,7 +531,6 @@ export default function CreateTestPage() {
                             </button>
                           )}
                         </div>
-                        {/* Option image preview */}
                         {opt.image && (
                           <div className="relative inline-block ml-1">
                             <img
@@ -595,7 +594,6 @@ export default function CreateTestPage() {
                 rows={2}
                 className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all resize-none text-sm"
               />
-              {/* Explanation images preview */}
               <ImagePreviewList
                 images={questions[activeQuestion]?.explanationImages || []}
                 onRemove={(index) => {
@@ -625,55 +623,6 @@ export default function CreateTestPage() {
               />
             </div>
           </div>
-        </motion.div>
-      )}
-
-      {/* STEP: AI IMPORT */}
-      {currentStep === 'ai-import' && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="card p-6 space-y-6">
-          <div className="text-center mb-4">
-            <Bot size={32} className="text-primary-600 mx-auto mb-2" />
-            <h2 className="text-lg font-bold text-text-primary">AI bilan import qilish</h2>
-            <p className="text-sm text-text-secondary">Test matnini kiriting — AI savollarni avtomatik ajratib beradi</p>
-          </div>
-
-          <textarea
-            value={aiText}
-            onChange={(e) => setAiText(e.target.value)}
-            placeholder={`Test matnini shu yerga kiriting yoki paste qiling...\n\nMasalan:\n1. 2+2=?\nA) 3\nB) 4\nC) 5\nD) 6\nJavob: B\n\n2. Uchburchak ichki burchaklari yig'indisi?\nA) 90°\nB) 180°\nC) 270°\nD) 360°\nJavob: B`}
-            rows={12}
-            className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all resize-none font-mono text-sm"
-          />
-
-          <div className="flex items-center justify-between">
-            <p className="text-xs text-text-secondary">
-              💡 AI (Gemini Flash) bepul. Formulalarni LaTeX ga o&apos;giradi.
-            </p>
-            <button
-              onClick={handleAiImport}
-              disabled={aiLoading || !aiText.trim()}
-              className="btn-primary flex items-center gap-2 disabled:opacity-50"
-            >
-              {aiLoading ? <Loader2 size={16} className="animate-spin" /> : <Bot size={16} />}
-              {aiLoading ? 'Tahlil qilinmoqda...' : 'AI bilan import'}
-            </button>
-          </div>
-
-          {aiResult && (
-            <div className="p-4 rounded-xl bg-green-50 border border-green-200">
-              <p className="text-sm text-green-700 font-medium">
-                ✅ {aiResult.totalFound || aiResult.questions?.length || 0} ta savol topildi va import qilindi!
-              </p>
-              {aiResult.warnings?.length > 0 && (
-                <p className="text-xs text-yellow-700 mt-1">
-                  ⚠️ {aiResult.warnings.join(', ')}
-                </p>
-              )}
-              <p className="text-xs text-green-600 mt-2">
-                &quot;Savollar&quot; tabiga o&apos;tib tekshiring va tasdiqlang.
-              </p>
-            </div>
-          )}
         </motion.div>
       )}
     </div>

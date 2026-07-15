@@ -1,0 +1,28 @@
+{
+  "id": "FEAT-004",
+  "type": "feat",
+  "description": "Results page improvements: Fix video solution player, show all question answer options open by default in analysis, show written solution only after clicking button. Rating page: fetch and display real user ratings. Pricing page: direct to Telegram bot with specific plan info.",
+  "status": "completed",
+  "steps": [
+    "1. Update src/app/[locale]/(main)/results/[id]/page.tsx - Question analysis: Remove the expandedQuestion toggle behavior. Instead show all questions with their options always visible (expanded by default). Keep the question header styling (correct/incorrect/skipped) but remove the click-to-expand. Options should always be shown.",
+    "2. Update results page: Keep 'Yozma yechim' button behavior - explanation should only show after clicking the button (this already works correctly, just confirm).",
+    "3. Fix 'Umumiy videoyechim' - the SecureYouTubePlayer component. Check if the issue is that the YouTube IFrame API doesn't load properly. The fix: ensure the iframe src has enablejsapi=1 and the player initialization waits for both the API to load and the iframe to render. Add a fallback: if API doesn't load in 3 seconds, show the iframe with native controls.",
+    "4. Create API route /api/rating/route.ts: GET returns top users ranked by total score across all tests. Include: user name, total tests taken, average percentage, total score. Support query param ?limit=50.",
+    "5. Update src/app/[locale]/(main)/rating/page.tsx: Replace empty state with real rating data from /api/rating. Show top users in a leaderboard table with rank, avatar, name, tests count, average score, total points. Highlight current user's position.",
+    "6. Update src/app/[locale]/(main)/pricing/page.tsx: Change handleBuy function to deep-link to Telegram bot with specific plan info. Use URL format: https://t.me/EduPrimeuzbot?start=buy_premium_1month (or buy_teacher_1month etc). Each plan button should link to specific duration.",
+    "7. Update src/app/api/telegram/webhook/route.ts: Handle /start with buy_premium_1month, buy_premium_6months, buy_premium_1year, buy_teacher_1month, buy_teacher_6months, buy_teacher_1year parameters. If user hasn't started bot before, show welcome first then payment info. If already known, directly show payment details for that plan.",
+    "8. Add duration selector to pricing page: for premium and ustoz plans, show 1 month / 6 months / 1 year options with prices, then the 'Sotib olish' button uses the selected duration in the bot link."
+  ],
+  "acceptance_criteria": [
+    "Results page shows all questions with options expanded by default",
+    "Written solution only shows after clicking 'Yozma yechim' button",
+    "Video solution player works (YouTube iframe loads and plays)",
+    "Rating page shows real user leaderboard from database",
+    "Pricing 'Sotib olish' button links to bot with specific plan param",
+    "Bot handles plan-specific start commands and shows payment info",
+    "npx next build passes"
+  ],
+  "verification": ["cd /projects/sandbox/EduPrime.uz && npx next build"],
+  "blocked_reason": null,
+  "findings": "All changes build successfully. Results page no longer uses expandedQuestion state - questions show options always. SecureYouTubePlayer adds 3s timeout fallback with native controls. Rating API uses Prisma groupBy on TestResult. Pricing uses duration selector state and constructs deep links like buy_premium_1month. Telegram webhook handles plan-specific start params by checking/creating user in DB then showing payment info."
+}

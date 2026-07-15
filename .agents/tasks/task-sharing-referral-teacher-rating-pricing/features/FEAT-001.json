@@ -1,0 +1,30 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "Referral system: database schema, API, referral page in dashboard, and sharing with social networks (Telegram, Instagram, Facebook). Fix 404 error on shared links by making result pages accessible via referral links. Add motivational text to share messages. Implement referral reward: 5 friends = 5 days free Premium.",
+  "status": "completed",
+  "steps": [
+    "1. Update prisma/schema.prisma: Add 'referralCode String? @unique' and 'referredBy String?' fields to User model. Add a new Referral model: id, referrerId (User), referredUserId (User), createdAt. Run prisma generate (NOT db push).",
+    "2. Create API route /api/referral/route.ts: GET returns user's referral code (generate if not exists, format: user's name slug + random 6 chars), referral count, and reward status. POST accepts referralCode in body to register a referral when a new user signs up.",
+    "3. Create API route /api/share/result/[id]/route.ts: GET returns public result data (test title, percentage, user name) WITHOUT requiring auth - this fixes the 404 error. The page should be a public shareable page at /share/[resultId].",
+    "4. Create a new page src/app/[locale]/(main)/share/[id]/page.tsx - a PUBLIC result view page that shows: test name, score percentage, motivational text, and a CTA to register/try the test. This page should NOT require authentication (move it outside (main) route group or handle in middleware).",
+    "5. Actually create the share page at src/app/[locale]/share/[id]/page.tsx (outside route groups) since it must be public. Update middleware.ts to allow /share paths as public.",
+    "6. Create src/app/[locale]/(main)/dashboard/referral/page.tsx - Referral page in dashboard showing: user's referral link (with copy button), share buttons for Telegram/Instagram/Facebook, number of invited friends, progress bar to 5 friends, reward status text.",
+    "7. Update src/components/layout/Sidebar.tsx: Add 'Referral' link (/dashboard/referral) with Gift icon.",
+    "8. Update the share/results page (src/app/[locale]/(main)/results/[id]/page.tsx): Replace the simple handleShare function with a social sharing modal showing Telegram, Instagram, Facebook share buttons. The share text should include: referral link, motivational text like 'Men [test_name] testidan [percentage]% natija oldim! Siz ham o'zingizni sinab ko'ring va o'rganing!', and platform info.",
+    "9. Update src/lib/auth.ts: When a new user registers, check if there's a referral code in cookies/params and create the referral record. Also check if referrer now has 5+ referrals and grant 5-day premium.",
+    "10. Create /api/referral/check-reward/route.ts: POST endpoint that checks if a user has 5+ referrals and grants 5-day premium subscription if not already granted."
+  ],
+  "acceptance_criteria": [
+    "Prisma schema has referralCode and referredBy on User, plus Referral model",
+    "Share button on results page shows Telegram, Instagram, Facebook options",
+    "Shared link goes to /share/[id] which is accessible without login (no 404)",
+    "Share text includes motivational message with test name and score",
+    "Dashboard has Referral page showing referral link and friend count",
+    "Referral link includes user's unique referral code",
+    "npx next build passes"
+  ],
+  "verification": ["cd /projects/sandbox/EduPrime.uz && npx next build"],
+  "blocked_reason": null,
+  "findings": "Build passes. userId from session.user.id is typed as string|undefined in NextAuth - must cast to string with 'as string' after auth check. Share page placed at src/app/[locale]/share/[id]/page.tsx (outside route groups) - correctly renders without (main) layout/sidebar. Middleware updated to allow /share as public path. Prisma generate runs successfully with new Referral model and User fields."
+}

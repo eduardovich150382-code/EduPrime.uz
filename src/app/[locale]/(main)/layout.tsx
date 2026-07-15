@@ -1,6 +1,7 @@
 import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
 import SessionProvider from '@/components/providers/SessionProvider';
+import ReferralHandler from '@/components/providers/ReferralHandler';
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 
@@ -19,6 +20,7 @@ export default async function MainLayout({
 
   return (
     <SessionProvider>
+      <ReferralHandler />
       <Header />
       <div className="flex pt-16">
         <Sidebar role={role} />

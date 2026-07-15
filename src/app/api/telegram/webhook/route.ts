@@ -60,6 +60,72 @@ function isAdmin(userId: number | string): boolean {
 
 // Handle /start command
 async function handleStart(chatId: number, userId: number, username: string, firstName: string, param: string) {
+  // Handle plan-specific buy params: buy_premium_1month, buy_teacher_6months, etc.
+  if (param.startsWith('buy_')) {
+    const parts = param.replace('buy_', '').split('_');
+    // parts could be like ['premium', '1month'] or ['teacher', '6months']
+    const plan = parts[0]; // premium or teacher
+    const durationKey = parts.slice(1).join('_'); // 1month, 6months, 1year
+
+    const durationMap: Record<string, string> = {
+      '1month': '1_month',
+      '6months': '6_months',
+      '1year': '1_year',
+    };
+    const duration = durationMap[durationKey] || '1_month';
+    const amount = PRICES[duration];
+    const planName = plan === 'premium' ? '💎 Premium' : '👨‍🏫 Ustoz';
+
+    // Check if user exists in DB, if not register them
+    let dbUser = await db.user.findFirst({
+      where: { telegramId: userId.toString() },
+    });
+
+    if (!dbUser) {
+      // Register user first
+      dbUser = await db.user.create({
+        data: {
+          telegramId: userId.toString(),
+          telegramUsername: username || undefined,
+          name: firstName || username || 'Telegram User',
+          role: 'USER',
+        },
+      });
+
+      // Send welcome message first
+      await sendMessage(chatId,
+        `🎓 <b>EduPrime.uz</b>ga xush kelibsiz, ${firstName}! 👋\n\n` +
+        `Siz muvaffaqiyatli ro'yxatdan o'tdingiz. Endi to'lov ma'lumotlarini ko'rishingiz mumkin.`
+      );
+    }
+
+    // Store pending payment
+    await db.systemSetting.upsert({
+      where: { key: `pending_payment_${userId}` },
+      update: {
+        value: JSON.stringify({ userId, username, plan, duration, amount, timestamp: Date.now() }),
+      },
+      create: {
+        key: `pending_payment_${userId}`,
+        value: JSON.stringify({ userId, username, plan, duration, amount, timestamp: Date.now() }),
+      },
+    });
+
+    // Show payment details
+    await sendMessage(chatId,
+      `📋 <b>To'lov ma'lumotlari:</b>\n\n` +
+      `Tarif: ${planName}\n` +
+      `Muddat: ${DURATION_LABELS[duration]}\n` +
+      `Summa: <b>${amount.toLocaleString()} so'm</b>\n\n` +
+      `💳 Karta raqami:\n` +
+      `<code>${PAYMENT_CARD}</code>\n` +
+      `👤 Karta egasi: <b>${PAYMENT_CARD_OWNER}</b>\n\n` +
+      `📎 To'lov qilganingizdan keyin <b>chek screenshot</b>ini shu yerga yuboring.\n\n` +
+      `⏱ Chek yuborilgandan keyin 24 soat ichida admin tasdiqlaydi.`
+    );
+    return;
+  }
+
   if (param === 'login' || param === 'buy') {
     try {
       const crypto = await import('crypto');
@@ -388,6 +454,61 @@ async function handleCallbackQuery(callbackQuery: any) {
 
     if (paymentData) {
       const payment = JSON.parse(paymentData.value);
+
+      // Find the user by telegramId to get their DB userId
+      const targetUser = await db.user.findFirst({
+        where: { telegramId: targetUserId },
+        select: { id: true },
+      });
+
+      if (targetUser) {
+        // Map plan string to SubscriptionPlan enum
+        const planEnum = payment.plan === 'premium' ? 'PREMIUM' : 'TEACHER_PLAN';
+
+        // Map duration string to SubscriptionDuration enum
+        const durationMap: Record<string, string> = {
+          '1_month': 'ONE_MONTH',
+          '6_months': 'SIX_MONTHS',
+          '1_year': 'ONE_YEAR',
+        };
+        const durationEnum = durationMap[payment.duration] || 'ONE_MONTH';
+
+        // Calculate end date based on duration
+        const startDate = new Date();
+        const endDate = new Date(startDate);
+        if (payment.duration === '1_month') {
+          endDate.setMonth(endDate.getMonth() + 1);
+        } else if (payment.duration === '6_months') {
+          endDate.setMonth(endDate.getMonth() + 6);
+        } else if (payment.duration === '1_year') {
+          endDate.setFullYear(endDate.getFullYear() + 1);
+        }
+
+        // Create Payment record
+        const paymentRecord = await db.payment.create({
+          data: {
+            userId: targetUser.id,
+            plan: planEnum as any,
+            duration: durationEnum as any,
+            amount: payment.amount,
+            status: 'CONFIRMED',
+            confirmedAt: new Date(),
+          },
+        });
+
+        // Create Subscription record
+        await db.subscription.create({
+          data: {
+            userId: targetUser.id,
+            plan: planEnum as any,
+            duration: durationEnum as any,
+            startDate,
+            endDate,
+            isActive: true,
+            paymentId: paymentRecord.id,
+          },
+        });
+      }
 
       await sendMessage(parseInt(targetUserId),
         `🎉 <b>Tabriklaymiz!</b>\n\n` +
