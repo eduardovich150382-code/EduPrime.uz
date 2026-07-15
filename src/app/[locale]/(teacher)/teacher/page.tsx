@@ -12,7 +12,7 @@ interface StatsData {
   totalTests: number;
   totalViews: number;
   totalStudents: number;
-  totalRevenue: number;
+  paidTestAttempts: number;
 }
 
 interface TestItem {
@@ -92,8 +92,8 @@ export default function TeacherDashboard() {
       href: '/teacher/tests',
     },
     {
-      label: 'Daromad',
-      value: stats ? formatNumber(stats.totalRevenue) : '...',
+      label: 'Pullik urinishlar',
+      value: stats ? formatNumber(stats.paidTestAttempts) : '...',
       icon: DollarSign,
       color: 'bg-yellow-50 text-yellow-600',
       href: '/teacher/tests',

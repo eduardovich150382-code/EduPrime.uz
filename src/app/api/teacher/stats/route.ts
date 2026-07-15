@@ -25,7 +25,7 @@ export async function GET() {
         totalTests: 0,
         totalViews: 0,
         totalStudents: 0,
-        totalRevenue: 0,
+        paidTestAttempts: 0,
       });
     }
 
@@ -47,27 +47,27 @@ export async function GET() {
     });
     const totalStudents = uniqueStudents.length;
 
-    // Total revenue (sum of test price * number of results for paid tests)
+    // Total revenue: approximate based on paid test attempts
+    // Note: This shows the number of paid test attempts, not confirmed payments
     const paidTests = await db.test.findMany({
       where: { teacherId: teacher.id, isFree: false },
-      select: { id: true, price: true },
+      select: { id: true },
     });
 
-    let totalRevenue = 0;
+    let paidTestAttempts = 0;
     if (paidTests.length > 0) {
-      for (const test of paidTests) {
-        const resultCount = await db.testResult.count({
-          where: { testId: test.id },
-        });
-        totalRevenue += test.price * resultCount;
-      }
+      paidTestAttempts = await db.testResult.count({
+        where: {
+          testId: { in: paidTests.map((t) => t.id) },
+        },
+      });
     }
 
     return NextResponse.json({
       totalTests,
       totalViews,
       totalStudents,
-      totalRevenue,
+      paidTestAttempts,
     });
   } catch (error) {
     console.error('GET /api/teacher/stats error:', error);

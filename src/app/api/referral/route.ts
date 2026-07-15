@@ -11,6 +11,27 @@ function generateReferralCode(name: string | null): string {
   return `${slug}-${random}`;
 }
 
+async function generateUniqueReferralCode(name: string | null): Promise<string> {
+  const maxRetries = 3;
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const code = generateReferralCode(name);
+    const existing = await db.user.findUnique({
+      where: { referralCode: code },
+      select: { id: true },
+    });
+    if (!existing) {
+      return code;
+    }
+  }
+  // Fallback: use longer random string to minimize collision chance
+  const slug = (name || 'user')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+    .slice(0, 8);
+  const random = Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 6);
+  return `${slug}-${random}`;
+}
+
 // GET /api/referral - get user's referral info
 export async function GET(request: NextRequest) {
   try {
@@ -32,7 +53,7 @@ export async function GET(request: NextRequest) {
 
     // Generate referral code if not exists
     if (!user.referralCode) {
-      const referralCode = generateReferralCode(user.name);
+      const referralCode = await generateUniqueReferralCode(user.name);
       user = await db.user.update({
         where: { id: userId },
         data: { referralCode },
@@ -48,16 +69,16 @@ export async function GET(request: NextRequest) {
     // Check reward status
     const hasReward = referralCount >= 5;
     
-    // Check if reward subscription already granted
+    // Check if reward subscription already granted (referral reward has no payment)
     let rewardGranted = false;
     if (hasReward) {
       const rewardSubscription = await db.subscription.findFirst({
         where: {
           userId,
           plan: 'PREMIUM',
-          duration: 'ONE_MONTH', // We use ONE_MONTH as closest, but it's actually 5 days
+          isActive: true,
+          paymentId: null, // Referral reward has no payment
         },
-        orderBy: { createdAt: 'desc' },
       });
       rewardGranted = !!rewardSubscription;
     }
