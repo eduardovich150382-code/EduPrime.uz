@@ -1,0 +1,7 @@
+{
+  "task_id": "task-dashboard-video-profile-fixes",
+  "task_description": "Fix YouTube video player error 153 on results page, make dashboard show real stats/results with working navigation links, and add full profile management (avatar, name editing, account linking)",
+  "status": "in_progress",
+  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003"],
+  "blocked_reason": null
+}
