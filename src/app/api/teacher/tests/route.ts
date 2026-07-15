@@ -21,29 +21,43 @@ export async function GET() {
     });
 
     if (!teacher) {
+      console.log('[Teacher Tests] No teacher record found for userId:', session.user.id);
       return NextResponse.json({ tests: [] });
     }
 
-    // Get all tests by this teacher with result counts
+    console.log('[Teacher Tests] Found teacher:', teacher.id, 'for userId:', session.user.id);
+
+    // Get all tests by this teacher — simplified query first
     const tests = await db.test.findMany({
       where: { teacherId: teacher.id },
       include: {
         subject: { select: { nameUz: true, icon: true } },
-        _count: { select: { results: true } },
       },
       orderBy: { createdAt: 'desc' },
     });
 
-    // Calculate average scores for each test
+    console.log('[Teacher Tests] Found', tests.length, 'tests for teacher:', teacher.id);
+
+    // Get result counts separately to avoid potential issues
     const testsWithStats = await Promise.all(
       tests.map(async (test) => {
+        let studentCount = 0;
         let avgScore = 0;
-        if (test._count.results > 0) {
-          const avgResult = await db.testResult.aggregate({
+
+        try {
+          studentCount = await db.testResult.count({
             where: { testId: test.id },
-            _avg: { percentage: true },
           });
-          avgScore = Math.round(avgResult._avg.percentage || 0);
+
+          if (studentCount > 0) {
+            const avgResult = await db.testResult.aggregate({
+              where: { testId: test.id },
+              _avg: { percentage: true },
+            });
+            avgScore = Math.round(avgResult._avg.percentage || 0);
+          }
+        } catch (e) {
+          console.error('[Teacher Tests] Error getting stats for test:', test.id, e);
         }
 
         return {
@@ -58,7 +72,7 @@ export async function GET() {
           questionCount: test.questionCount,
           coverImage: test.coverImage,
           createdAt: test.createdAt,
-          studentCount: test._count.results,
+          studentCount,
           avgScore,
         };
       })
@@ -66,7 +80,7 @@ export async function GET() {
 
     return NextResponse.json({ tests: testsWithStats });
   } catch (error) {
-    console.error('GET /api/teacher/tests error:', error);
+    console.error('[Teacher Tests] GET error:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
