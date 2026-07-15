@@ -104,7 +104,7 @@ function getRoleBadgeClasses(role: string): string {
 }
 
 export default function ProfilePage() {
-  const { data: session } = useSession();
+  const { data: session, update } = useSession();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [editingName, setEditingName] = useState(false);
@@ -148,6 +148,8 @@ export default function ProfilePage() {
         const data = await res.json();
         setProfile(data.user);
         setEditingName(false);
+        // Update the client session so Header and Dashboard reflect new name
+        await update({ name: data.user.name });
       }
     } catch (error) {
       console.error('Failed to save name:', error);
@@ -168,6 +170,8 @@ export default function ProfilePage() {
         const data = await res.json();
         setProfile(data.user);
         setShowAvatarPicker(false);
+        // Update the client session so Header reflects new avatar
+        await update({ image: data.user.image });
       }
     } catch (error) {
       console.error('Failed to update avatar:', error);
@@ -257,7 +261,7 @@ export default function ProfilePage() {
                 {AVATAR_CATEGORIES.map((category) => (
                   <div key={category.label}>
                     <p className="text-sm font-medium text-text-secondary mb-3">{category.label}</p>
-                    <div className="grid grid-cols-4 gap-3">
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                       {category.avatars.map((avatar) => (
                         <button
                           key={avatar}

@@ -87,7 +87,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       // Always allow sign-in for all providers
       return true;
     },
-    async jwt({ token, user, account, profile }) {
+    async jwt({ token, user, account, profile, trigger, session: updateData }) {
+      // Handle session updates from client (e.g., name/image change in profile)
+      if (trigger === 'update' && updateData) {
+        if (updateData.name) {
+          token.name = updateData.name;
+        }
+        if (updateData.image) {
+          token.picture = updateData.image;
+        }
+        return token;
+      }
+
       if (account && user) {
         // Store provider info in token on first sign-in
         token.provider = account.provider;
@@ -172,6 +183,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (session.user) {
         if (token.id) {
           session.user.id = token.id as string;
+        }
+        if (token.name) {
+          session.user.name = token.name as string;
+        }
+        if (token.picture) {
+          session.user.image = token.picture as string;
         }
         (session.user as any).role = token.role || 'USER';
         (session.user as any).lang = token.lang || 'uz';

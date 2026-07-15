@@ -140,7 +140,7 @@ function TestsPageContent() {
       </div>
 
       {/* Category tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-2">
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
         {categories.map((cat) => (
           <button
             key={cat.id}

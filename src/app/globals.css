@@ -60,4 +60,13 @@
   .gradient-bg {
     @apply bg-gradient-to-br from-primary-50 via-white to-primary-100;
   }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }

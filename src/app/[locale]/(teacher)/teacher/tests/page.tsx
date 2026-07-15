@@ -100,20 +100,20 @@ export default function TeacherTestsPage() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
       >
         <div className="flex items-center gap-4">
           <Link href="/teacher" className="p-2 rounded-lg hover:bg-primary-50 transition-colors">
             <ArrowLeft size={20} className="text-text-secondary" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-text-primary">Mening testlarim</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-text-primary">Mening testlarim</h1>
             <p className="text-sm text-text-secondary">
               Barcha testlaringizni boshqaring
             </p>
           </div>
         </div>
-        <Link href="/teacher/tests/create" className="btn-primary flex items-center gap-2">
+        <Link href="/teacher/tests/create" className="btn-primary flex items-center gap-2 self-start sm:self-auto ml-14 sm:ml-0">
           <Plus size={18} />
           Yangi test
         </Link>
@@ -199,7 +199,7 @@ export default function TeacherTestsPage() {
               transition={{ delay: 0.05 * index }}
               className="card p-4 hover:shadow-md transition-shadow"
             >
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="flex items-center gap-4 flex-1 min-w-0">
                   <div className="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center flex-shrink-0">
                     <FileText size={20} className="text-primary-600" />
@@ -215,7 +215,7 @@ export default function TeacherTestsPage() {
                         {test.isPublished ? 'Nashr' : 'Qoralama'}
                       </span>
                     </div>
-                    <div className="flex items-center gap-4 mt-1 text-xs text-text-secondary">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-xs text-text-secondary">
                       <span className="flex items-center gap-1">
                         {test.subject.icon} {test.subject.nameUz}
                       </span>
@@ -233,7 +233,7 @@ export default function TeacherTestsPage() {
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-2 flex-shrink-0 ml-4">
+                <div className="flex items-center gap-2 flex-shrink-0 ml-16 sm:ml-4">
                   <button
                     onClick={() => handleTogglePublish(test.id, test.isPublished)}
                     disabled={toggling === test.id}
