@@ -41,7 +41,7 @@ QOIDALAR:
  */
 export async function importTestFromText(text: string): Promise<AIImportResult> {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash' });
 
     const result = await model.generateContent([
       IMPORT_PROMPT,
@@ -77,7 +77,7 @@ export async function importTestFromText(text: string): Promise<AIImportResult> 
  */
 export async function importTestFromImage(imageBase64: string, mimeType: string): Promise<AIImportResult> {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash' });
 
     const result = await model.generateContent([
       IMPORT_PROMPT,
@@ -131,7 +131,7 @@ export async function importTestFromFile(fileUrl: string, fileName: string): Pro
     else if (ext === 'jpg' || ext === 'jpeg') mimeType = 'image/jpeg';
     else if (ext === 'txt') mimeType = 'text/plain';
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash' });
 
     const result = await model.generateContent([
       IMPORT_PROMPT,
