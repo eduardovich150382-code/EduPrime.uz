@@ -60,19 +60,35 @@ function isAdmin(userId: number | string): boolean {
   return ADMIN_IDS.includes(userId.toString());
 }
 
-// Check if user is subscribed to the channel
+// IMPORTANT: Bot must be an administrator in the @EduPrimeuz channel for getChatMember to work
 async function checkChannelSubscription(userId: number): Promise<boolean> {
   try {
     const res = await fetch(
-      `https://api.telegram.org/bot${BOT_TOKEN}/getChatMember?chat_id=${encodeURIComponent(CHANNEL_USERNAME)}&user_id=${userId}`
+      `https://api.telegram.org/bot${BOT_TOKEN}/getChatMember`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: CHANNEL_USERNAME,
+          user_id: userId,
+        }),
+      }
     );
     const data = await res.json();
+    console.log(`[Subscription Check] userId=${userId}, response:`, JSON.stringify(data));
     if (data.ok && data.result) {
       const status = data.result.status;
-      return status === 'member' || status === 'administrator' || status === 'creator';
+      return (
+        status === 'member' ||
+        status === 'administrator' ||
+        status === 'creator' ||
+        status === 'restricted'
+      );
     }
+    console.warn(`[Subscription Check] Failed for userId=${userId}:`, data.description || 'unknown error');
     return false;
-  } catch {
+  } catch (error) {
+    console.error(`[Subscription Check] Exception for userId=${userId}:`, error);
     return false;
   }
 }
