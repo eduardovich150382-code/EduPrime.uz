@@ -51,6 +51,7 @@ export default function CreateTestPage() {
   const [saving, setSaving] = useState(false);
   const [testInfo, setTestInfo] = useState({
     titleUz: '',
+    categoryType: '',
     subjectId: '',
     duration: 60,
     isFree: false,
@@ -75,6 +76,22 @@ export default function CreateTestPage() {
       })
       .catch(console.error);
   }, []);
+
+  // Category type options
+  const categoryTypeOptions = [
+    { label: 'DTM', value: 'DTM' },
+    { label: 'Maktab', value: 'SCHOOL' },
+    { label: 'Attestatsiya', value: 'ATTESTATION' },
+    { label: 'SAT', value: 'SAT' },
+    { label: 'GRE', value: 'GRE' },
+    { label: 'Milliy sertifikat', value: 'CERTIFICATE' },
+    { label: 'Prezident maktabi', value: 'PRESIDENT_SCHOOL' },
+  ];
+
+  // Filter subjects by selected category type
+  const filteredSubjects = testInfo.categoryType
+    ? subjects.filter(s => s.category.type === testInfo.categoryType)
+    : subjects;
 
   const addOption = (qIndex: number) => {
     const q = questions[qIndex];
@@ -106,6 +123,11 @@ export default function CreateTestPage() {
 
   // SAVE TEST
   const handleSave = async (publish: boolean) => {
+    if (!testInfo.categoryType) {
+      alert("Kategoriya turini tanlash majburiy!");
+      setCurrentStep('info');
+      return;
+    }
     if (!testInfo.titleUz || !testInfo.subjectId) {
       alert("Test nomi va fan tanlash majburiy!");
       setCurrentStep('info');
@@ -121,11 +143,14 @@ export default function CreateTestPage() {
 
     setSaving(true);
     try {
+      // Exclude categoryType from the request body - it's only used for client-side filtering
+      const { categoryType, ...testData } = testInfo;
+
       const res = await fetch('/api/tests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...testInfo,
+          ...testData,
           questions: validQuestions.map(q => ({
             text: q.text,
             images: q.images,
@@ -280,6 +305,21 @@ export default function CreateTestPage() {
               />
             </div>
             <div>
+              <label className="text-sm font-medium text-text-primary block mb-2">Kategoriya turi *</label>
+              <select
+                value={testInfo.categoryType}
+                onChange={(e) => setTestInfo({ ...testInfo, categoryType: e.target.value, subjectId: '' })}
+                className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all"
+              >
+                <option value="">Kategoriya turini tanlang...</option>
+                {categoryTypeOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
               <label className="text-sm font-medium text-text-primary block mb-2">Fan *</label>
               <select
                 value={testInfo.subjectId}
@@ -287,7 +327,7 @@ export default function CreateTestPage() {
                 className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all"
               >
                 <option value="">Fan tanlang...</option>
-                {subjects.map((s) => (
+                {filteredSubjects.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.icon} {s.nameUz} ({s.category.nameUz})
                   </option>

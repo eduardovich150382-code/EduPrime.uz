@@ -117,6 +117,7 @@ enum TestType {
   SAT
   GRE
   CERTIFICATE
+  PRESIDENT_SCHOOL
 }
 
 enum PlanType {

@@ -132,8 +132,8 @@ export async function GET(request: NextRequest) {
       .setExpirationTime('30d')
       .encrypt(keyMaterial);
 
-    // Set cookie and redirect to dashboard
-    const response = NextResponse.redirect(`${APP_URL}/dashboard`);
+    // Set cookie and redirect to tests page
+    const response = NextResponse.redirect(`${APP_URL}/tests`);
 
     response.cookies.set(cookieName, jweToken, {
       httpOnly: true,
