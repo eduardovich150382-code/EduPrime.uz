@@ -143,11 +143,14 @@ export default function CreateTestPage() {
 
     setSaving(true);
     try {
+      // Exclude categoryType from the request body - it's only used for client-side filtering
+      const { categoryType, ...testData } = testInfo;
+
       const res = await fetch('/api/tests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...testInfo,
+          ...testData,
           questions: validQuestions.map(q => ({
             text: q.text,
             images: q.images,

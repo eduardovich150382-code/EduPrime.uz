@@ -299,8 +299,14 @@ function TestsPageContent() {
   const handleSubjectClick = useCallback((subject: SubjectItem) => {
     setSelectedSubject(subject);
     setViewMode('tests');
-    fetchTestsBySubject(subject.id);
-  }, [fetchTestsBySubject]);
+    // For hardcoded SAT subjects (fake IDs like 'sat-math', 'sat-reading'),
+    // fetch all SAT tests by type instead of by non-existent subject ID
+    if (subject.id.startsWith('sat-')) {
+      fetchTestsByType('SAT');
+    } else {
+      fetchTestsBySubject(subject.id);
+    }
+  }, [fetchTestsBySubject, fetchTestsByType]);
 
   // Handle back navigation
   const handleBackToSubjects = useCallback(() => {
