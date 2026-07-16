@@ -10,9 +10,17 @@ interface BackButtonProps {
 export default function BackButton({ className = '' }: BackButtonProps) {
   const router = useRouter();
 
+  const handleBack = () => {
+    if (window.history.length <= 1) {
+      router.push('/dashboard');
+    } else {
+      router.back();
+    }
+  };
+
   return (
     <button
-      onClick={() => router.back()}
+      onClick={handleBack}
       className={`inline-flex items-center gap-2 text-sm text-text-secondary hover:text-primary-600 transition-colors ${className}`}
     >
       <ArrowLeft size={16} />

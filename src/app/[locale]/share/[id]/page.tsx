@@ -116,7 +116,7 @@ export default function ShareResultPage() {
               className="inline-flex items-center gap-2 text-sm text-text-secondary hover:text-primary-600 transition-colors"
             >
               <ArrowLeft size={16} />
-              <span>Ortga qaytish</span>
+              <span>Bosh sahifaga</span>
             </a>
             <div className="flex items-center gap-2">
               <GraduationCap size={24} className="text-primary-600" />
