@@ -184,12 +184,7 @@ export default function CreateTestPage() {
         const imported: QuestionForm[] = data.questions.map((q: any) => ({
           text: q.text || '',
           images: q.images || [],
-          options: q.type === 'OPEN_ENDED' ? [
-            { label: 'A', text: '', image: null },
-            { label: 'B', text: '', image: null },
-            { label: 'C', text: '', image: null },
-            { label: 'D', text: '', image: null },
-          ] : (q.options || [
+          options: q.type === 'OPEN_ENDED' ? [] : (q.options || [
             { label: 'A', text: '', image: null },
             { label: 'B', text: '', image: null },
             { label: 'C', text: '', image: null },
@@ -518,7 +513,7 @@ export default function CreateTestPage() {
                   <button
                     onClick={() => {
                       const updated = [...questions];
-                      updated[activeQuestion] = { ...updated[activeQuestion], type: 'OPEN_ENDED', correctAnswer: updated[activeQuestion].correctAnswer };
+                      updated[activeQuestion] = { ...updated[activeQuestion], type: 'OPEN_ENDED', correctAnswer: '' };
                       setQuestions(updated);
                     }}
                     className={`px-4 py-2 text-sm font-medium transition-all ${
@@ -555,7 +550,7 @@ export default function CreateTestPage() {
                     className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all text-sm"
                   />
                   <p className="text-xs text-text-secondary mt-2">
-                    Foydalanuvchi javobini tekshirishda katta-kichik harf farq qilmaydi
+                    Javobni talaba yozishi kerak bo&apos;lgan shaklda kiriting. Katta-kichik harf farq qilmaydi, lekin formatga e&apos;tibor bering (masalan: 3.14, emas 3,14).
                   </p>
                 </div>
               ) : (
