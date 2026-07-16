@@ -11,6 +11,7 @@ import {
   Share2,
   Loader2,
 } from 'lucide-react';
+import BackButton from '@/components/ui/BackButton';
 
 interface ReferralData {
   referralCode: string;
@@ -132,6 +133,7 @@ export default function ReferralPage() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
+      <BackButton className="mb-2" />
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}

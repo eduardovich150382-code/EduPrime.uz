@@ -6,6 +6,7 @@ import {
   Shield, Search, User, Lock, Unlock, Check, X,
   Loader2, RefreshCw,
 } from 'lucide-react';
+import BackButton from '@/components/ui/BackButton';
 
 interface CategoryData {
   id: string;
@@ -199,6 +200,7 @@ export default function PermissionsPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
+      <BackButton className="mb-2" />
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}

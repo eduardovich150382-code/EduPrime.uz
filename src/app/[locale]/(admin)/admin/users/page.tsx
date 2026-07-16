@@ -6,6 +6,7 @@ import {
   Users, Search, Shield, GraduationCap, User, Crown,
   Mail, MessageCircle, Loader2, RefreshCw,
 } from 'lucide-react';
+import BackButton from '@/components/ui/BackButton';
 
 interface UserData {
   id: string;
@@ -79,6 +80,7 @@ export default function AdminUsersPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
+      <BackButton className="mb-2" />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

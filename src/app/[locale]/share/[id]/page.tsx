@@ -13,6 +13,7 @@ import {
   AlertCircle,
   GraduationCap,
   Star,
+  ArrowLeft,
 } from 'lucide-react';
 
 interface SharedResult {
@@ -109,9 +110,18 @@ export default function ShareResultPage() {
       {/* Header */}
       <div className="bg-white border-b border-border">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <GraduationCap size={24} className="text-primary-600" />
-            <span className="font-bold text-lg text-primary-700">EduPrime.uz</span>
+          <div className="flex items-center gap-4">
+            <a
+              href="/"
+              className="inline-flex items-center gap-2 text-sm text-text-secondary hover:text-primary-600 transition-colors"
+            >
+              <ArrowLeft size={16} />
+              <span>Ortga qaytish</span>
+            </a>
+            <div className="flex items-center gap-2">
+              <GraduationCap size={24} className="text-primary-600" />
+              <span className="font-bold text-lg text-primary-700">EduPrime.uz</span>
+            </div>
           </div>
           <a
             href="/login"

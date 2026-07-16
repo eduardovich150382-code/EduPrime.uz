@@ -16,6 +16,7 @@ import {
   Shield,
   Link as LinkIcon,
 } from 'lucide-react';
+import BackButton from '@/components/ui/BackButton';
 
 interface UserProfile {
   id: string;
@@ -203,6 +204,7 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 px-4 sm:px-0">
+      <BackButton className="mb-2" />
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
