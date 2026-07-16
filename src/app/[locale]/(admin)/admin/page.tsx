@@ -84,6 +84,14 @@ export default function AdminDashboard() {
           <p className="text-sm text-text-secondary">Testlar yaratish, tahrirlash, boshqarish</p>
         </Link>
 
+        <Link href="/admin/notifications" className="card p-6 hover:border-primary-200 group">
+          <div className="w-12 h-12 rounded-xl bg-pink-50 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+            <Send size={24} className="text-pink-600" />
+          </div>
+          <h3 className="font-semibold text-text-primary mb-1">Xabar yuborish</h3>
+          <p className="text-sm text-text-secondary">Barcha foydalanuvchilarga bildirishnoma</p>
+        </Link>
+
         <div className="card p-6 hover:border-primary-200 group cursor-pointer" onClick={() => window.open('https://t.me/EduPrimeuzbot', '_blank')}>
           <div className="w-12 h-12 rounded-xl bg-cyan-50 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
             <Bot size={24} className="text-cyan-600" />
