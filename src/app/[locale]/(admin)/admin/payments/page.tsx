@@ -6,6 +6,7 @@ import {
   CreditCard, CheckCircle, XCircle, Clock, User, Search,
   Loader2, RefreshCw, Image as ImageIcon, Filter,
 } from 'lucide-react';
+import BackButton from '@/components/ui/BackButton';
 
 interface PaymentData {
   id: string;
@@ -119,6 +120,7 @@ export default function AdminPaymentsPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
+      <BackButton className="mb-2" />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

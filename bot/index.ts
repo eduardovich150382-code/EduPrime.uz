@@ -15,9 +15,39 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 const ADMIN_IDS = (process.env.ADMIN_TELEGRAM_IDS || '').split(',').filter(Boolean);
 const PAYMENT_CARD = process.env.PAYMENT_CARD_NUMBER || '9860 XXXX XXXX XXXX';
 const PAYMENT_CARD_OWNER = 'Asrorov Xushbaxt';
+const CHANNEL_USERNAME = '@EduPrimeuz';
+const CHANNEL_LINK = 'https://t.me/EduPrimeuz';
 
 // Initialize bot
 const bot = new TelegramBot(BOT_TOKEN, { polling: true });
+
+// ===================== SUBSCRIPTION CHECK =====================
+
+async function checkChannelSubscription(userId: number): Promise<boolean> {
+  try {
+    const member = await bot.getChatMember(CHANNEL_USERNAME, userId);
+    return ['member', 'administrator', 'creator'].includes(member.status);
+  } catch {
+    return false;
+  }
+}
+
+async function sendSubscriptionPrompt(chatId: number): Promise<void> {
+  await bot.sendMessage(chatId,
+    `📢 *EduPrime.uz rasmiy kanaliga obuna bo'ling!*\n\n` +
+    `Botdan foydalanish uchun avval rasmiy kanalimizga obuna bo'lishingiz kerak.\n\n` +
+    `👇 Quyidagi tugmani bosib kanalga obuna bo'ling, so'ng "Obuna bo'ldim" tugmasini bosing:`,
+    {
+      parse_mode: 'Markdown',
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '📢 Kanalga obuna bo\'lish', url: CHANNEL_LINK }],
+          [{ text: '✅ Obuna bo\'ldim — Tasdiqlash', callback_data: 'check_subscription' }],
+        ]
+      }
+    }
+  );
+}
 
 // ===================== STATE =====================
 interface PaymentRequest {
@@ -54,6 +84,13 @@ bot.onText(/\/start(.*)/, async (msg, match) => {
   const username = msg.from!.username || '';
   const firstName = msg.from!.first_name || '';
   const param = match?.[1]?.trim();
+
+  // Check channel subscription first
+  const isSubscribed = await checkChannelSubscription(userId);
+  if (!isSubscribed) {
+    await sendSubscriptionPrompt(chatId);
+    return;
+  }
 
   if (param === 'login') {
     // Generate auth token and send login link
@@ -117,6 +154,13 @@ bot.onText(/\/login/, async (msg) => {
   const username = msg.from!.username || '';
   const firstName = msg.from!.first_name || '';
 
+  // Check channel subscription first
+  const isSubscribed = await checkChannelSubscription(userId);
+  if (!isSubscribed) {
+    await sendSubscriptionPrompt(chatId);
+    return;
+  }
+
   try {
     const response = await fetch(`${APP_URL}/api/auth/telegram`, {
       method: 'POST',
@@ -152,6 +196,14 @@ bot.onText(/\/login/, async (msg) => {
 // /premium — Premium tarif
 bot.onText(/\/premium/, async (msg) => {
   const chatId = msg.chat.id;
+  const userId = msg.from!.id;
+
+  // Check channel subscription first
+  const isSubscribed = await checkChannelSubscription(userId);
+  if (!isSubscribed) {
+    await sendSubscriptionPrompt(chatId);
+    return;
+  }
 
   await bot.sendMessage(chatId,
     `💎 *Premium tarif*\n\n` +
@@ -177,6 +229,14 @@ bot.onText(/\/premium/, async (msg) => {
 // /ustoz — Ustoz tarif
 bot.onText(/\/ustoz/, async (msg) => {
   const chatId = msg.chat.id;
+  const userId = msg.from!.id;
+
+  // Check channel subscription first
+  const isSubscribed = await checkChannelSubscription(userId);
+  if (!isSubscribed) {
+    await sendSubscriptionPrompt(chatId);
+    return;
+  }
 
   await bot.sendMessage(chatId,
     `👨‍🏫 *Ustoz tarif*\n\n` +
@@ -207,6 +267,50 @@ bot.on('callback_query', async (query) => {
   const data = query.data || '';
 
   await bot.answerCallbackQuery(query.id);
+
+  // Handle subscription check
+  if (data === 'check_subscription') {
+    const isSubscribed = await checkChannelSubscription(query.from.id);
+    if (isSubscribed) {
+      const firstName = query.from.first_name || '';
+      await bot.sendMessage(chatId,
+        `🎉 *Tabriklaymiz!* Siz kanalga obuna bo'ldingiz.\n\n` +
+        `Bot funksiyalaridan foydalanishingiz mumkin.`,
+        { parse_mode: 'Markdown' }
+      );
+
+      // Send the normal /start welcome message
+      await bot.sendMessage(chatId,
+        `🎓 *EduPrime.uz* — Test Platformasi\n\n` +
+        `Salom, ${firstName}! Xush kelibsiz!\n\n` +
+        `📚 Bu bot orqali:\n` +
+        `• Saytga kirish (ro'yxatdan o'tish)\n` +
+        `• Premium/Ustoz tarif sotib olish\n` +
+        `• Yangiliklar olish\n\n` +
+        `Buyruqlar:\n` +
+        `/login — Saytga kirish\n` +
+        `/premium — Premium sotib olish\n` +
+        `/ustoz — Ustoz tarifi sotib olish\n` +
+        `/stats — Mening statistikam\n` +
+        `/help — Yordam`,
+        { parse_mode: 'Markdown' }
+      );
+    } else {
+      await bot.sendMessage(chatId,
+        `❌ Siz hali kanalga obuna bo'magansiz.\n\n` +
+        `Iltimos, avval kanalga obuna bo'ling!`,
+        {
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: '📢 Kanalga obuna bo\'lish', url: CHANNEL_LINK }],
+              [{ text: '✅ Obuna bo\'ldim — Tasdiqlash', callback_data: 'check_subscription' }],
+            ]
+          }
+        }
+      );
+    }
+    return;
+  }
 
   if (data.startsWith('pay_')) {
     const parts = data.replace('pay_', '').split('_');
@@ -290,6 +394,14 @@ bot.on('photo', async (msg) => {
   const chatId = msg.chat.id;
   const userId = msg.from!.id;
   const username = msg.from!.username || '';
+
+  // Check channel subscription first
+  const isSubscribed = await checkChannelSubscription(userId);
+  if (!isSubscribed) {
+    await sendSubscriptionPrompt(chatId);
+    return;
+  }
+
   const payment = pendingPayments.get(userId);
 
   if (!payment) {
@@ -342,6 +454,15 @@ bot.on('photo', async (msg) => {
 // /stats — User stats
 bot.onText(/\/stats/, async (msg) => {
   const chatId = msg.chat.id;
+  const userId = msg.from!.id;
+
+  // Check channel subscription first
+  const isSubscribed = await checkChannelSubscription(userId);
+  if (!isSubscribed) {
+    await sendSubscriptionPrompt(chatId);
+    return;
+  }
+
   await bot.sendMessage(chatId,
     `📊 *Sizning statistikangiz*\n\n` +
     `Saytda ko'rish uchun:\n`,
@@ -359,6 +480,15 @@ bot.onText(/\/stats/, async (msg) => {
 // /help
 bot.onText(/\/help/, async (msg) => {
   const chatId = msg.chat.id;
+  const userId = msg.from!.id;
+
+  // Check channel subscription first
+  const isSubscribed = await checkChannelSubscription(userId);
+  if (!isSubscribed) {
+    await sendSubscriptionPrompt(chatId);
+    return;
+  }
+
   await bot.sendMessage(chatId,
     `🤖 *EduPrime Bot — Yordam*\n\n` +
     `Buyruqlar:\n` +

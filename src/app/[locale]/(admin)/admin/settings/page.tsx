@@ -6,6 +6,7 @@ import {
   Settings, Save, CreditCard, MessageCircle, DollarSign,
   Megaphone, Loader2, Check, AlertCircle,
 } from 'lucide-react';
+import BackButton from '@/components/ui/BackButton';
 
 interface SettingsForm {
   payment_card_number: string;
@@ -98,6 +99,7 @@ export default function AdminSettingsPage() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
+      <BackButton className="mb-2" />
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}

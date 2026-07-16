@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
 import { Check, Crown, GraduationCap, Sparkles, Send } from 'lucide-react';
+import BackButton from '@/components/ui/BackButton';
 
 type DurationKey = '1month' | '6months' | '1year';
 
@@ -54,6 +55,7 @@ export default function PricingPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
+      <BackButton className="mb-2" />
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}

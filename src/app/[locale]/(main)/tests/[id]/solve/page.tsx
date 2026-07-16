@@ -6,6 +6,7 @@ import { useRouter, useParams } from 'next/navigation';
 import QuestionDisplay from '@/components/test/QuestionDisplay';
 import TestTimer from '@/components/test/TestTimer';
 import QuestionNav from '@/components/test/QuestionNav';
+import BackButton from '@/components/ui/BackButton';
 import { ChevronLeft, ChevronRight, Flag, AlertCircle, Loader2 } from 'lucide-react';
 
 interface QuestionData {
@@ -133,6 +134,7 @@ export default function TestSolvePage() {
 
   return (
     <div className="max-w-7xl mx-auto">
+      <BackButton className="mb-4" />
       {/* Top bar */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
