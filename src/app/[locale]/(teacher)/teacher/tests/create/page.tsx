@@ -19,6 +19,7 @@ interface QuestionForm {
   explanation: string;
   explanationImages: string[];
   videoUrl: string;
+  type: 'MULTIPLE_CHOICE' | 'OPEN_ENDED';
 }
 
 interface SubjectItem {
@@ -41,6 +42,7 @@ const emptyQuestion: QuestionForm = {
   explanation: '',
   explanationImages: [],
   videoUrl: '',
+  type: 'MULTIPLE_CHOICE',
 };
 
 export default function CreateTestPage() {
@@ -127,12 +129,12 @@ export default function CreateTestPage() {
           questions: validQuestions.map(q => ({
             text: q.text,
             images: q.images,
-            options: q.options.filter(o => o.text),
+            options: q.type === 'OPEN_ENDED' ? [] : q.options.filter(o => o.text),
             correctAnswer: q.correctAnswer,
             explanation: q.explanation || null,
             explanationImages: q.explanationImages,
             videoUrl: q.videoUrl || null,
-            type: 'MULTIPLE_CHOICE',
+            type: q.type,
             points: 1,
           })),
         }),
@@ -182,16 +184,22 @@ export default function CreateTestPage() {
         const imported: QuestionForm[] = data.questions.map((q: any) => ({
           text: q.text || '',
           images: q.images || [],
-          options: q.options || [
+          options: q.type === 'OPEN_ENDED' ? [
             { label: 'A', text: '', image: null },
             { label: 'B', text: '', image: null },
             { label: 'C', text: '', image: null },
             { label: 'D', text: '', image: null },
-          ],
+          ] : (q.options || [
+            { label: 'A', text: '', image: null },
+            { label: 'B', text: '', image: null },
+            { label: 'C', text: '', image: null },
+            { label: 'D', text: '', image: null },
+          ]),
           correctAnswer: q.correctAnswer || '',
           explanation: q.explanation || '',
           explanationImages: [],
           videoUrl: '',
+          type: q.type === 'OPEN_ENDED' ? 'OPEN_ENDED' : 'MULTIPLE_CHOICE',
         }));
         setQuestions(imported);
         setActiveQuestion(0);
@@ -411,7 +419,12 @@ export default function CreateTestPage() {
                   i === activeQuestion ? 'bg-primary-100 text-primary-700 font-medium' : 'hover:bg-gray-50 text-text-secondary'
                 }`}
               >
-                <span>{i + 1}-savol</span>
+                <span className="flex items-center gap-1.5">
+                  {i + 1}-savol
+                  {q.type === 'OPEN_ENDED' && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">Ochiq</span>
+                  )}
+                </span>
                 {q.text && q.correctAnswer && <CheckCircle size={12} className="text-green-500" />}
               </button>
             ))}
@@ -484,6 +497,70 @@ export default function CreateTestPage() {
 
             {/* Options */}
             <div>
+              {/* Question type toggle */}
+              <div className="mb-4">
+                <label className="text-sm font-medium text-text-primary block mb-2">Savol turi</label>
+                <div className="inline-flex rounded-xl border border-border overflow-hidden">
+                  <button
+                    onClick={() => {
+                      const updated = [...questions];
+                      updated[activeQuestion] = { ...updated[activeQuestion], type: 'MULTIPLE_CHOICE' };
+                      setQuestions(updated);
+                    }}
+                    className={`px-4 py-2 text-sm font-medium transition-all ${
+                      questions[activeQuestion]?.type !== 'OPEN_ENDED'
+                        ? 'bg-primary-600 text-white'
+                        : 'bg-white text-text-secondary hover:bg-gray-50'
+                    }`}
+                  >
+                    Variantli
+                  </button>
+                  <button
+                    onClick={() => {
+                      const updated = [...questions];
+                      updated[activeQuestion] = { ...updated[activeQuestion], type: 'OPEN_ENDED', correctAnswer: updated[activeQuestion].correctAnswer };
+                      setQuestions(updated);
+                    }}
+                    className={`px-4 py-2 text-sm font-medium transition-all ${
+                      questions[activeQuestion]?.type === 'OPEN_ENDED'
+                        ? 'bg-primary-600 text-white'
+                        : 'bg-white text-text-secondary hover:bg-gray-50'
+                    }`}
+                  >
+                    Ochiq
+                  </button>
+                </div>
+                <p className="text-xs text-text-secondary mt-1">
+                  {questions[activeQuestion]?.type === 'OPEN_ENDED'
+                    ? "Ochiq savol — foydalanuvchi javobni qo'lda kiritadi (masalan: son, formula natijasi)"
+                    : "Variantli savol — foydalanuvchi A, B, C, D variantlardan tanlaydi"}
+                </p>
+              </div>
+
+              {/* OPEN_ENDED: text input for correct answer */}
+              {questions[activeQuestion]?.type === 'OPEN_ENDED' ? (
+                <div>
+                  <label className="text-sm font-medium text-text-primary block mb-2">
+                    To&apos;g&apos;ri javob (matn) *
+                  </label>
+                  <input
+                    type="text"
+                    value={questions[activeQuestion]?.correctAnswer || ''}
+                    onChange={(e) => {
+                      const updated = [...questions];
+                      updated[activeQuestion] = { ...updated[activeQuestion], correctAnswer: e.target.value };
+                      setQuestions(updated);
+                    }}
+                    placeholder="Javobni kiriting (masalan: 42, 3.14)"
+                    className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all text-sm"
+                  />
+                  <p className="text-xs text-text-secondary mt-2">
+                    Foydalanuvchi javobini tekshirishda katta-kichik harf farq qilmaydi
+                  </p>
+                </div>
+              ) : (
+              /* MULTIPLE_CHOICE: options */
+              <div>
               <label className="text-sm font-medium text-text-primary block mb-3">Javob variantlari *</label>
               <div className="space-y-3">
                 {questions[activeQuestion]?.options.map((opt, optIndex) => (
@@ -565,6 +642,8 @@ export default function CreateTestPage() {
               <p className="text-xs text-text-secondary mt-2 ml-11">
                 Yashil doira = to&apos;g&apos;ri javob. Belgilash uchun harf tugmasini bosing.
               </p>
+              </div>
+              )}
             </div>
 
             {/* Explanation */}

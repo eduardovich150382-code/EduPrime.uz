@@ -157,6 +157,7 @@ export interface AIImportedQuestion {
   correctAnswer: string;
   explanation?: string;
   images?: string[];
+  type?: QuestionType;
   confidence: number; // 0-1 how confident AI is
 }
 

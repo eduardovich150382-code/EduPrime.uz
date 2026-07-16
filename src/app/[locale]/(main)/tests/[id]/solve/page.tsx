@@ -178,6 +178,7 @@ export default function TestSolvePage() {
               options={question.options}
               selectedAnswer={answers[currentQuestion] || null}
               onAnswer={handleAnswer}
+              questionType={question.type}
             />
 
             {/* Navigation */}
