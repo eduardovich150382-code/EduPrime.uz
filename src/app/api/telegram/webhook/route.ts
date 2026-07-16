@@ -6,6 +6,8 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || '';
 const ADMIN_IDS = (process.env.ADMIN_TELEGRAM_IDS || '').split(',').filter(Boolean);
 const PAYMENT_CARD = process.env.PAYMENT_CARD_NUMBER || '9860 XXXX XXXX XXXX';
 const PAYMENT_CARD_OWNER = 'Asrorov Xushbaxt';
+const CHANNEL_USERNAME = '@EduPrimeuz';
+const CHANNEL_LINK = 'https://t.me/EduPrimeuz';
 
 const PRICES: Record<string, number> = {
   '1_month': 29000,
@@ -56,6 +58,41 @@ async function answerCallbackQuery(callbackQueryId: string) {
 
 function isAdmin(userId: number | string): boolean {
   return ADMIN_IDS.includes(userId.toString());
+}
+
+// Check if user is subscribed to the channel
+async function checkChannelSubscription(userId: number): Promise<boolean> {
+  try {
+    const res = await fetch(
+      `https://api.telegram.org/bot${BOT_TOKEN}/getChatMember?chat_id=${CHANNEL_USERNAME}&user_id=${userId}`
+    );
+    const data = await res.json();
+    if (data.ok && data.result) {
+      const status = data.result.status;
+      return ['member', 'administrator', 'creator'].includes(status);
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+// Send subscription prompt to user
+async function sendSubscriptionPrompt(chatId: number) {
+  await sendMessage(chatId,
+    `📢 <b>Kanalga obuna bo'ling!</b>\n\n` +
+    `Bot funksiyalaridan foydalanish uchun avval kanalimizga obuna bo'ling:\n\n` +
+    `👉 ${CHANNEL_LINK}\n\n` +
+    `Obuna bo'lganingizdan keyin "✅ Obuna bo'ldim" tugmasini bosing.`,
+    {
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '📢 Kanalga obuna bo\'lish', url: CHANNEL_LINK }],
+          [{ text: '✅ Obuna bo\'ldim — Tasdiqlash', callback_data: 'check_subscription' }],
+        ]
+      }
+    }
+  );
 }
 
 // Handle /start command
@@ -406,6 +443,46 @@ async function handleCallbackQuery(callbackQuery: any) {
 
   await answerCallbackQuery(callbackQuery.id);
 
+  // Handle subscription check callback
+  if (data === 'check_subscription') {
+    const isSubscribed = await checkChannelSubscription(userId);
+    if (isSubscribed) {
+      const firstName = callbackQuery.from.first_name || '';
+      await sendMessage(chatId,
+        `🎉 <b>Tabriklaymiz!</b>\n\n` +
+        `Siz kanalga obuna bo'ldingiz. Bot funksiyalaridan foydalanishingiz mumkin.\n\n` +
+        `<b>Buyruqlar:</b>\n` +
+        `/start — Botni boshlash\n` +
+        `/login — Saytga kirish\n` +
+        `/premium — Premium sotib olish\n` +
+        `/ustoz — Ustoz tarifi\n` +
+        `/help — Yordam`,
+        {
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: '🌐 Saytga kirish', url: APP_URL }],
+              [{ text: '📚 Testlar', url: `${APP_URL}/tests` }, { text: '💰 Tariflar', url: `${APP_URL}/pricing` }],
+            ]
+          }
+        }
+      );
+    } else {
+      await sendMessage(chatId,
+        `❌ Siz hali kanalga obuna bo'magansiz.\n\n` +
+        `Iltimos, avval kanalga obuna bo'ling va keyin qayta tekshiring.`,
+        {
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: '📢 Kanalga obuna bo\'lish', url: CHANNEL_LINK }],
+              [{ text: '✅ Obuna bo\'ldim — Tasdiqlash', callback_data: 'check_subscription' }],
+            ]
+          }
+        }
+      );
+    }
+    return;
+  }
+
   // Payment selection
   if (data.startsWith('pay_')) {
     const parts = data.replace('pay_', '').split('_');
@@ -608,6 +685,17 @@ export async function POST(request: NextRequest) {
       const firstName = msg.from.first_name || '';
       const text = msg.text;
 
+      // Admin commands bypass subscription check
+      const isAdminCommand = text === '/admin' || text === '/users' || text.startsWith('/broadcast ');
+
+      if (!isAdminCommand && !isAdmin(userId)) {
+        const isSubscribed = await checkChannelSubscription(userId);
+        if (!isSubscribed) {
+          await sendSubscriptionPrompt(chatId);
+          return NextResponse.json({ ok: true });
+        }
+      }
+
       if (text.startsWith('/start')) {
         const param = text.replace('/start', '').trim();
         await handleStart(chatId, userId, username, firstName, param);
@@ -639,6 +727,19 @@ export async function POST(request: NextRequest) {
     }
 
     if (body.message?.photo) {
+      const msg = body.message;
+      const chatId = msg.chat.id;
+      const userId = msg.from.id;
+
+      // Check subscription before processing photos
+      if (!isAdmin(userId)) {
+        const isSubscribed = await checkChannelSubscription(userId);
+        if (!isSubscribed) {
+          await sendSubscriptionPrompt(chatId);
+          return NextResponse.json({ ok: true });
+        }
+      }
+
       await handlePhoto(body.message);
     }
 

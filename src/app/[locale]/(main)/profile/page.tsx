@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { motion } from 'framer-motion';
 import {
   User,
@@ -15,6 +15,8 @@ import {
   X,
   Shield,
   Link as LinkIcon,
+  Trash2,
+  AlertTriangle,
 } from 'lucide-react';
 import BackButton from '@/components/ui/BackButton';
 
@@ -113,6 +115,8 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [savingAvatar, setSavingAvatar] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchProfile = useCallback(async () => {
     try {
@@ -178,6 +182,22 @@ export default function ProfilePage() {
       console.error('Failed to update avatar:', error);
     } finally {
       setSavingAvatar(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true);
+    try {
+      const res = await fetch('/api/profile', {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        await signOut({ callbackUrl: '/' });
+      }
+    } catch (error) {
+      console.error('Failed to delete account:', error);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -529,6 +549,79 @@ export default function ProfilePage() {
           </div>
         </div>
       </motion.div>
+
+      {/* Danger Zone - Delete Account */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="card-elevated p-4 sm:p-6 border border-red-200"
+      >
+        <h3 className="text-lg font-semibold text-red-600 mb-2 flex items-center gap-2">
+          <AlertTriangle size={20} className="text-red-500" />
+          Xavfli zona
+        </h3>
+        <p className="text-sm text-text-secondary mb-4">
+          Akkauntni o&apos;chirganingizdan keyin barcha ma&apos;lumotlaringiz qaytarib bo&apos;lmas tarzda o&apos;chiriladi.
+        </p>
+        <button
+          onClick={() => setShowDeleteModal(true)}
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-50 text-red-600 text-sm font-medium hover:bg-red-100 transition-colors border border-red-200"
+        >
+          <Trash2 size={16} />
+          Akkauntni o&apos;chirish
+        </button>
+      </motion.div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => !deleting && setShowDeleteModal(false)}
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="relative bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl"
+          >
+            <div className="flex flex-col items-center text-center">
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-4">
+                <AlertTriangle size={24} className="text-red-600" />
+              </div>
+              <h3 className="text-lg font-bold text-text-primary mb-2">
+                Akkauntni o&apos;chirish
+              </h3>
+              <p className="text-sm text-text-secondary mb-6">
+                Haqiqatan ham akkauntingizni o&apos;chirmoqchimisiz? Bu amalni ortga qaytarib bo&apos;lmaydi. Barcha ma&apos;lumotlaringiz butunlay o&apos;chiriladi.
+              </p>
+              <div className="flex gap-3 w-full">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  disabled={deleting}
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-gray-100 text-text-primary text-sm font-medium hover:bg-gray-200 transition-colors disabled:opacity-50"
+                >
+                  Bekor qilish
+                </button>
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={deleting}
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
+                >
+                  {deleting ? (
+                    <span className="inline-flex items-center gap-2">
+                      <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      O&apos;chirilmoqda...
+                    </span>
+                  ) : (
+                    "Ha, o'chirish"
+                  )}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }
