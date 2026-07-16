@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
+import { notifyViaTelegram } from '@/lib/telegram-notify';
 
 // GET /api/tests — barcha testlarni olish (published + isFree yoki user ruxsati)
 export async function GET(request: NextRequest) {
@@ -65,7 +66,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { titleUz, titleRu, titleEn, subjectId, duration, isFree, price, difficulty, questions, videoSolution, coverImage } = body;
+    const { titleUz, titleRu, titleEn, subjectId, duration, isFree, price, difficulty, questions, videoSolution, coverImage, isPublished } = body;
 
     if (!titleUz || !subjectId || !duration) {
       return NextResponse.json({ error: 'titleUz, subjectId, duration required' }, { status: 400 });
@@ -100,7 +101,7 @@ export async function POST(request: NextRequest) {
         price: isFree ? 0 : (price || 0),
         difficulty: difficulty || 3,
         questionCount: questions?.length || 0,
-        isPublished: false,
+        isPublished: isPublished || false,
         coverImage: coverImage || null,
         videoSolution: videoSolution || null,
         questions: questions?.length ? {
@@ -124,9 +125,48 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // If test is published immediately, notify all users
+    if (isPublished) {
+      notifyNewTest(test.titleUz, test.id).catch(() => {});
+    }
+
     return NextResponse.json({ test }, { status: 201 });
   } catch (error) {
     console.error('POST /api/tests error:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
+  }
+}
+
+// Helper: notify all users about a new published test
+async function notifyNewTest(testTitle: string, testId: string) {
+  try {
+    const users = await db.user.findMany({
+      select: { id: true, telegramId: true },
+    });
+
+    // Create in-app notifications for all users
+    await db.notification.createMany({
+      data: users.map((user) => ({
+        userId: user.id,
+        title: 'Yangi test qo\'shildi!',
+        message: `"${testTitle}" testi qo'shildi. Hoziroq yechib ko'ring!`,
+        type: 'info',
+        link: `/tests`,
+      })),
+    });
+
+    // Send Telegram notifications (fire-and-forget)
+    for (const user of users) {
+      if (user.telegramId) {
+        notifyViaTelegram(
+          user.telegramId,
+          'Yangi test qo\'shildi!',
+          `"${testTitle}" testi qo'shildi. Hoziroq yechib ko'ring!`,
+          '/tests'
+        ).catch(() => {});
+      }
+    }
+  } catch (error) {
+    console.error('notifyNewTest error:', error);
   }
 }

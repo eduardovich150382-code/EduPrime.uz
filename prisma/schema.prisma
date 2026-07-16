@@ -28,6 +28,7 @@ model User {
   lang              String   @default("uz")
   referralCode      String?  @unique
   referredBy        String?
+  lastActiveAt      DateTime?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -42,6 +43,7 @@ model User {
   confirmedPayments Payment[]    @relation("ConfirmedBy")
   referralsMade     Referral[]   @relation("ReferralsMade")
   referralsReceived Referral[]   @relation("ReferralsReceived")
+  notifications     Notification[]
 }
 
 model Referral {
@@ -289,6 +291,21 @@ model Payment {
   user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   confirmedBy User?         @relation("ConfirmedBy", fields: [confirmedById], references: [id])
   subscription Subscription?
+}
+
+// ===================== NOTIFICATIONS =====================
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  type      String   @default("info")
+  isRead    Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 // ===================== SYSTEM SETTINGS =====================

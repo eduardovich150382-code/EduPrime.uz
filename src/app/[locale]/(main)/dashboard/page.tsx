@@ -16,6 +16,7 @@ import {
   Crown,
   Loader2,
 } from 'lucide-react';
+import PremiumCTA from '@/components/ui/PremiumCTA';
 
 interface RecentResult {
   id: string;
@@ -222,31 +223,8 @@ export default function DashboardPage() {
             </div>
           </motion.div>
 
-          {/* Subscription status */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.4 }}
-            className="card p-6"
-          >
-            <h2 className="text-lg font-semibold text-text-primary mb-4">{t('subscription')}</h2>
-            <div className="p-4 rounded-xl bg-gradient-to-r from-primary-50 to-primary-100 border border-primary-200">
-              <div className="flex items-center gap-2 mb-2">
-                <Crown size={18} className="text-primary-600" />
-                <span className="font-semibold text-primary-700">Bepul reja</span>
-              </div>
-              <p className="text-xs text-text-secondary mb-3">
-                Premium ga o&apos;ting — barcha testlarga cheksiz ruxsat oling
-              </p>
-              <Link
-                href="/pricing"
-                className="inline-flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700"
-              >
-                <TrendingUp size={14} />
-                Premium ga o&apos;tish
-              </Link>
-            </div>
-          </motion.div>
+          {/* Subscription status - Premium CTA */}
+          <PremiumCTA variant="full" />
         </div>
       </div>
     </div>

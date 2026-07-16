@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import LatexRenderer from '@/components/ui/LatexRenderer';
 import SecureYouTubePlayer from '@/components/ui/SecureYouTubePlayer';
+import PremiumCTA from '@/components/ui/PremiumCTA';
 import {
   CheckCircle, XCircle, SkipForward, Clock, Trophy,
   Video, FileText, ArrowLeft, Share2, RotateCcw,
@@ -359,6 +360,9 @@ export default function ResultPage() {
           </motion.div>
         </div>
       )}
+
+      {/* Premium CTA */}
+      <PremiumCTA variant="full" />
 
       {/* Questions review */}
       <motion.div
