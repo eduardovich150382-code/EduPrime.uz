@@ -31,6 +31,7 @@ interface QuestionData {
   videoUrl: string | null;
   points: number;
   order: number;
+  type?: string;
 }
 
 interface ResultData {
@@ -478,7 +479,51 @@ export default function ResultPage() {
 
                   {/* All options - always visible */}
                   <div className="space-y-2 mt-4">
-                    {(question.options as QuestionOption[]).map((option) => {
+                    {question.type === 'OPEN_ENDED' ? (
+                      /* OPEN_ENDED: show text-based answer comparison */
+                      <div className="space-y-3">
+                        <div className={`flex items-start gap-3 p-3 rounded-xl border-2 transition-all ${
+                          isCorrect
+                            ? 'border-green-400 bg-green-50'
+                            : isSkipped
+                            ? 'border-gray-200 bg-gray-50'
+                            : 'border-red-400 bg-red-50'
+                        }`}>
+                          <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 border-2 ${
+                            isCorrect
+                              ? 'border-green-500 bg-green-500 text-white'
+                              : isSkipped
+                              ? 'border-gray-300 bg-gray-200 text-gray-500'
+                              : 'border-red-500 bg-red-500 text-white'
+                          }`}>
+                            {isCorrect ? <CheckCircle size={14} /> : isSkipped ? '?' : <XCircle size={14} />}
+                          </div>
+                          <div className="flex-1 min-w-0 pt-0.5">
+                            <p className="text-xs text-text-secondary mb-1">Sizning javobingiz:</p>
+                            <p className={`text-sm font-medium ${
+                              isCorrect ? 'text-green-700' : isSkipped ? 'text-gray-500' : 'text-red-700'
+                            }`}>
+                              {isSkipped ? 'Javob berilmagan' : userAnswer}
+                            </p>
+                          </div>
+                          {isCorrect && <CheckCircle size={16} className="text-green-600 flex-shrink-0 mt-1" />}
+                          {!isCorrect && !isSkipped && <XCircle size={16} className="text-red-600 flex-shrink-0 mt-1" />}
+                        </div>
+                        {!isCorrect && (
+                          <div className="flex items-start gap-3 p-3 rounded-xl border-2 border-green-400 bg-green-50">
+                            <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 border-2 border-green-500 bg-green-500 text-white">
+                              <CheckCircle size={14} />
+                            </div>
+                            <div className="flex-1 min-w-0 pt-0.5">
+                              <p className="text-xs text-text-secondary mb-1">To&apos;g&apos;ri javob:</p>
+                              <p className="text-sm font-medium text-green-700">{question.correctAnswer}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      /* MULTIPLE_CHOICE: show options as before */
+                    (question.options as QuestionOption[]).map((option) => {
                       const isUserChoice = option.label === userAnswer;
                       const isCorrectOption = option.label === question.correctAnswer;
                       const isWrongChoice = isUserChoice && !isCorrectOption;
@@ -521,7 +566,8 @@ export default function ResultPage() {
                           )}
                         </div>
                       );
-                    })}
+                    })
+                    )}
                   </div>
 
                   {/* Solution buttons */}

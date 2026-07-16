@@ -16,6 +16,7 @@ interface QuestionDisplayProps {
   onAnswer: (answer: string) => void;
   isReview?: boolean;
   correctAnswer?: string;
+  questionType?: string;
 }
 
 export default function QuestionDisplay({
@@ -28,6 +29,7 @@ export default function QuestionDisplay({
   onAnswer,
   isReview = false,
   correctAnswer,
+  questionType,
 }: QuestionDisplayProps) {
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
 
@@ -39,6 +41,11 @@ export default function QuestionDisplay({
           <span className="text-sm font-medium text-primary-600 bg-primary-50 px-3 py-1 rounded-full">
             {questionNumber}-savol ({totalQuestions} dan)
           </span>
+          {questionType === 'OPEN_ENDED' && (
+            <span className="text-xs font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">
+              Ochiq savol
+            </span>
+          )}
         </div>
 
         {/* LaTeX rendered text */}
@@ -69,7 +76,34 @@ export default function QuestionDisplay({
         )}
       </div>
 
-      {/* Options */}
+      {/* OPEN_ENDED: Text input */}
+      {questionType === 'OPEN_ENDED' ? (
+        <div className="space-y-3">
+          <label className="text-sm font-medium text-text-secondary block">
+            Javobingizni yozing:
+          </label>
+          <input
+            type="text"
+            value={selectedAnswer || ''}
+            onChange={(e) => onAnswer(e.target.value)}
+            disabled={isReview}
+            placeholder="Javobingizni yozing..."
+            className={cn(
+              'w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 text-base focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 outline-none',
+              !isReview && 'border-border hover:border-primary-300',
+              isReview && selectedAnswer?.trim().toLowerCase() === correctAnswer?.trim().toLowerCase() && 'border-green-500 bg-green-50',
+              isReview && selectedAnswer?.trim().toLowerCase() !== correctAnswer?.trim().toLowerCase() && 'border-red-500 bg-red-50',
+              isReview && 'cursor-not-allowed'
+            )}
+          />
+          {isReview && correctAnswer && selectedAnswer?.trim().toLowerCase() !== correctAnswer?.trim().toLowerCase() && (
+            <p className="text-sm text-green-600 font-medium">
+              To&apos;g&apos;ri javob: {correctAnswer}
+            </p>
+          )}
+        </div>
+      ) : (
+      /* MULTIPLE_CHOICE: Options */
       <div className="space-y-3">
         {options.map((option) => {
           const isSelected = selectedAnswer === option.label;
@@ -127,6 +161,7 @@ export default function QuestionDisplay({
           );
         })}
       </div>
+      )}
 
       {/* Zoom modal */}
       {zoomedImage && (

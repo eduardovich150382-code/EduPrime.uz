@@ -28,7 +28,7 @@ export async function POST(
       include: {
         questions: {
           orderBy: { order: 'asc' },
-          select: { id: true, correctAnswer: true, points: true },
+          select: { id: true, correctAnswer: true, points: true, type: true },
         },
       },
     });
@@ -43,7 +43,16 @@ export async function POST(
     const answerResults = test.questions.map((question) => {
       maxScore += question.points;
       const userAnswer = answers.find((a: any) => a.questionId === question.id);
-      const isCorrect = userAnswer?.answer === question.correctAnswer;
+
+      // For OPEN_ENDED: case-insensitive trimmed comparison
+      // For MULTIPLE_CHOICE: exact match
+      let isCorrect = false;
+      if (question.type === 'OPEN_ENDED') {
+        isCorrect = (userAnswer?.answer || '').trim().toLowerCase() === (question.correctAnswer || '').trim().toLowerCase();
+      } else {
+        isCorrect = userAnswer?.answer === question.correctAnswer;
+      }
+
       if (isCorrect) score += question.points;
 
       return {

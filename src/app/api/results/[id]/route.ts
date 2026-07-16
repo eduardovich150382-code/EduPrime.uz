@@ -33,6 +33,7 @@ export async function GET(
                 videoUrl: true,
                 points: true,
                 order: true,
+                type: true,
               },
             },
             subject: { select: { nameUz: true, nameRu: true, nameEn: true } },

@@ -11,6 +11,7 @@ Berilgan matndan/fayldan test savollarini ajratib ol va quyidagi JSON formatda q
   "questions": [
     {
       "text": "Savol matni (LaTeX formatda, formulalar $...$ ichida)",
+      "type": "MULTIPLE_CHOICE",
       "options": [
         {"label": "A", "text": "Variant matni (LaTeX)", "image": null},
         {"label": "B", "text": "Variant matni", "image": null},
@@ -20,9 +21,17 @@ Berilgan matndan/fayldan test savollarini ajratib ol va quyidagi JSON formatda q
       "correctAnswer": "A",
       "explanation": "Yechim (LaTeX formatda, ixtiyoriy)",
       "confidence": 0.95
+    },
+    {
+      "text": "$2^{10}$ ning qiymati qancha?",
+      "type": "OPEN_ENDED",
+      "options": [],
+      "correctAnswer": "1024",
+      "explanation": "$2^{10} = 1024$",
+      "confidence": 0.99
     }
   ],
-  "totalFound": 1,
+  "totalFound": 2,
   "warnings": []
 }
 
@@ -34,7 +43,11 @@ QOIDALAR:
 5. Agar to'g'ri javob noma'lum bo'lsa, "correctAnswer": "" qo'y
 6. confidence — sen qanchalik ishonchli ekanligingni ko'rsat (0-1)
 7. Agar matn sifati past yoki tushunarsiz bo'lsa, warnings ga yoz
-8. FAQAT JSON format qaytar, boshqa hech narsa yozma`;
+8. FAQAT JSON format qaytar, boshqa hech narsa yozma
+9. "type" maydoni: "MULTIPLE_CHOICE" (variantli savol) yoki "OPEN_ENDED" (ochiq savol)
+10. Agar savolda variantlar bo'lmasa va javob son, formula natijasi yoki qisqa matn bo'lsa — bu OPEN_ENDED savol. options bo'sh massiv [], correctAnswer esa to'g'ri javob matni bo'lsin
+11. SAT, milliy sertifikat kabi testlarda ochiq savollar ko'p uchraydi (masalan: "Javobni kiriting", "Natijani yozing")
+12. Agar savolda A), B), C), D) variantlar berilgan bo'lsa — bu MULTIPLE_CHOICE`;
 
 /**
  * Matndan testlarni AI yordamida import qilish

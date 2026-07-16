@@ -21,7 +21,7 @@ export default function QuestionNav({
       <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-5 gap-2">
         {Array.from({ length: totalQuestions }).map((_, i) => {
           const isActive = i === currentQuestion;
-          const isAnswered = answers[i] !== undefined;
+          const isAnswered = answers[i] !== undefined && answers[i] !== '';
 
           return (
             <button
