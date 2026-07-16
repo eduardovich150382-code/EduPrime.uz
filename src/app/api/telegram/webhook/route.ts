@@ -6,6 +6,8 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || '';
 const ADMIN_IDS = (process.env.ADMIN_TELEGRAM_IDS || '').split(',').filter(Boolean);
 const PAYMENT_CARD = process.env.PAYMENT_CARD_NUMBER || '9860 XXXX XXXX XXXX';
 const PAYMENT_CARD_OWNER = 'Asrorov Xushbaxt';
+const CHANNEL_USERNAME = '@EduPrimeuz';
+const CHANNEL_LINK = 'https://t.me/EduPrimeuz';
 
 const PRICES: Record<string, number> = {
   '1_month': 29000,
@@ -56,6 +58,40 @@ async function answerCallbackQuery(callbackQueryId: string) {
 
 function isAdmin(userId: number | string): boolean {
   return ADMIN_IDS.includes(userId.toString());
+}
+
+// Check if user is subscribed to the channel
+async function checkChannelSubscription(userId: number): Promise<boolean> {
+  try {
+    const res = await fetch(
+      `https://api.telegram.org/bot${BOT_TOKEN}/getChatMember?chat_id=${encodeURIComponent(CHANNEL_USERNAME)}&user_id=${userId}`
+    );
+    const data = await res.json();
+    if (data.ok && data.result) {
+      const status = data.result.status;
+      return status === 'member' || status === 'administrator' || status === 'creator';
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+// Send subscription prompt to user
+async function sendSubscriptionPrompt(chatId: number) {
+  await sendMessage(chatId,
+    `📢 <b>Kanalga obuna bo'ling!</b>\n\n` +
+    `Botdan foydalanish uchun avval <b>@EduPrimeuz</b> kanaliga obuna bo'lishingiz kerak.\n\n` +
+    `✅ Obuna bo'lgandan keyin "Obuna bo'ldim" tugmasini bosing.`,
+    {
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: "📢 Kanalga obuna bo'lish", url: CHANNEL_LINK }],
+          [{ text: "✅ Obuna bo'ldim — Tasdiqlash", callback_data: 'check_subscription' }],
+        ]
+      }
+    }
+  );
 }
 
 // Handle /start command
@@ -402,9 +438,58 @@ async function handleCallbackQuery(callbackQuery: any) {
   const chatId = callbackQuery.message.chat.id;
   const userId = callbackQuery.from.id;
   const username = callbackQuery.from.username || '';
+  const firstName = callbackQuery.from.first_name || '';
   const data = callbackQuery.data || '';
 
   await answerCallbackQuery(callbackQuery.id);
+
+  // Handle subscription check callback
+  if (data === 'check_subscription') {
+    const isSubscribed = await checkChannelSubscription(userId);
+    if (isSubscribed) {
+      await sendMessage(chatId,
+        `✅ <b>Obuna tasdiqlandi!</b>\n\nRahmat! Endi botdan to'liq foydalanishingiz mumkin. 🎉`
+      );
+      // Send start/welcome message
+      const adminText = isAdmin(userId) ? '\n\n🔐 <b>Admin buyruqlar:</b>\n/admin — Admin panel\n/broadcast — Barchaga xabar\n/users — Foydalanuvchilar soni' : '';
+      await sendMessage(chatId,
+        `🎓 <b>EduPrime.uz</b> — Test Platformasi\n\n` +
+        `Salom, ${firstName}! Xush kelibsiz! 👋\n\n` +
+        `📚 Bu bot orqali:\n` +
+        `• Saytga kirish\n` +
+        `• Premium/Ustoz tarif sotib olish\n` +
+        `• Yangiliklar olish\n\n` +
+        `<b>Buyruqlar:</b>\n` +
+        `/login — Saytga kirish\n` +
+        `/premium — Premium sotib olish\n` +
+        `/ustoz — Ustoz tarifi\n` +
+        `/help — Yordam` +
+        adminText,
+        {
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: '🌐 Saytga kirish', url: APP_URL }],
+              [{ text: '📚 Testlar', url: `${APP_URL}/tests` }, { text: '💰 Tariflar', url: `${APP_URL}/pricing` }],
+            ]
+          }
+        }
+      );
+    } else {
+      await sendMessage(chatId,
+        `❌ <b>Obuna topilmadi!</b>\n\n` +
+        `Iltimos, avval <b>@EduPrimeuz</b> kanaliga obuna bo'ling, keyin qayta tekshiring.`,
+        {
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: "📢 Kanalga obuna bo'lish", url: CHANNEL_LINK }],
+              [{ text: "✅ Obuna bo'ldim — Tasdiqlash", callback_data: 'check_subscription' }],
+            ]
+          }
+        }
+      );
+    }
+    return;
+  }
 
   // Payment selection
   if (data.startsWith('pay_')) {
@@ -608,6 +693,18 @@ export async function POST(request: NextRequest) {
       const firstName = msg.from.first_name || '';
       const text = msg.text;
 
+      // Admin commands are never blocked
+      const isAdminCommand = text === '/admin' || text === '/users' || text.startsWith('/broadcast ');
+
+      // Check subscription for non-admin users and non-admin commands
+      if (!isAdminCommand && !isAdmin(userId)) {
+        const isSubscribed = await checkChannelSubscription(userId);
+        if (!isSubscribed) {
+          await sendSubscriptionPrompt(chatId);
+          return NextResponse.json({ ok: true });
+        }
+      }
+
       if (text.startsWith('/start')) {
         const param = text.replace('/start', '').trim();
         await handleStart(chatId, userId, username, firstName, param);
@@ -639,6 +736,19 @@ export async function POST(request: NextRequest) {
     }
 
     if (body.message?.photo) {
+      const msg = body.message;
+      const userId = msg.from.id;
+      const chatId = msg.chat.id;
+
+      // Check subscription before processing photos
+      if (!isAdmin(userId)) {
+        const isSubscribed = await checkChannelSubscription(userId);
+        if (!isSubscribed) {
+          await sendSubscriptionPrompt(chatId);
+          return NextResponse.json({ ok: true });
+        }
+      }
+
       await handlePhoto(body.message);
     }
 
