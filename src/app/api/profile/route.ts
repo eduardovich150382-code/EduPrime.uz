@@ -111,3 +111,22 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
+
+// DELETE /api/profile — delete current user account
+export async function DELETE() {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    await db.user.delete({
+      where: { id: session.user.id },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('DELETE /api/profile error:', error);
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+  }
+}
