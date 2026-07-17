@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import {
   BookOpen, Plus, Eye, Users, DollarSign,
-  ArrowRight, FileText, Loader2, Pencil, Trash2,
+  ArrowRight, FileText, Loader2, Pencil, Trash2, Copy,
 } from 'lucide-react';
 
 interface StatsData {
@@ -61,6 +61,27 @@ export default function TeacherDashboard() {
       alert("Server xatolik");
     }
     setDeleting(null);
+  };
+
+  const [duplicating, setDuplicating] = useState<string | null>(null);
+
+  const handleDuplicate = async (testId: string) => {
+    setDuplicating(testId);
+    try {
+      const res = await fetch(`/api/teacher/tests/${testId}/duplicate`, { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.test) {
+          setTests([data.test, ...tests]);
+          if (stats) setStats({ ...stats, totalTests: stats.totalTests + 1 });
+        }
+      } else {
+        alert("Nusxalashda xatolik yuz berdi");
+      }
+    } catch {
+      alert("Server xatolik");
+    }
+    setDuplicating(null);
   };
 
   const formatNumber = (num: number) => {
@@ -198,6 +219,14 @@ export default function TeacherDashboard() {
                   </div>
                 </div>
                 <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+                  <button
+                    onClick={() => handleDuplicate(test.id)}
+                    disabled={duplicating === test.id}
+                    className="p-2 rounded-lg text-text-secondary hover:text-primary-600 hover:bg-primary-50 transition-colors"
+                    title="Nusxalash"
+                  >
+                    {duplicating === test.id ? <Loader2 size={14} className="animate-spin" /> : <Copy size={14} />}
+                  </button>
                   <Link href={`/teacher/tests/${test.id}/edit`} className="p-2 rounded-lg text-primary-600 hover:bg-primary-50 transition-colors">
                     <Pencil size={14} />
                   </Link>

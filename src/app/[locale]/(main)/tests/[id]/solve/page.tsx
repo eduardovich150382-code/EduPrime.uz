@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter, useParams } from 'next/navigation';
 import QuestionDisplay from '@/components/test/QuestionDisplay';
 import TestTimer from '@/components/test/TestTimer';
 import QuestionNav from '@/components/test/QuestionNav';
 import BackButton from '@/components/ui/BackButton';
-import { ChevronLeft, ChevronRight, Flag, AlertCircle, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Flag, AlertCircle, Loader2, Keyboard, Maximize, Bookmark } from 'lucide-react';
 
 interface QuestionData {
   id: string;
@@ -42,6 +42,114 @@ export default function TestSolvePage() {
   const [startTime] = useState(Date.now());
   const [tabSwitchCount, setTabSwitchCount] = useState(0);
   const [showTabWarning, setShowTabWarning] = useState(false);
+  const [flaggedQuestions, setFlaggedQuestions] = useState<Set<number>>(new Set());
+  const [autoNext, setAutoNext] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Auto-save to localStorage
+  useEffect(() => {
+    if (!test) return;
+    const key = `test_progress_${testId}`;
+    const saved = localStorage.getItem(key);
+    if (saved && Object.keys(answers).length === 0) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.answers) setAnswers(parsed.answers);
+        if (parsed.currentQuestion !== undefined) setCurrentQuestion(parsed.currentQuestion);
+        if (parsed.flagged) setFlaggedQuestions(new Set(parsed.flagged));
+      } catch {}
+    }
+  }, [test, testId]);
+
+  useEffect(() => {
+    if (!test) return;
+    const key = `test_progress_${testId}`;
+    const data = {
+      answers,
+      currentQuestion,
+      flagged: Array.from(flaggedQuestions),
+      timestamp: Date.now(),
+    };
+    localStorage.setItem(key, JSON.stringify(data));
+  }, [answers, currentQuestion, flaggedQuestions, testId, test]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!test) return;
+      // Ignore if typing in input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      
+      const totalQ = test.questions.length;
+      switch (e.key) {
+        case 'ArrowRight':
+          e.preventDefault();
+          if (currentQuestion < totalQ - 1) setCurrentQuestion(currentQuestion + 1);
+          break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          if (currentQuestion > 0) setCurrentQuestion(currentQuestion - 1);
+          break;
+        case 'a': case 'A':
+          e.preventDefault();
+          handleAnswer('A');
+          break;
+        case 'b': case 'B':
+          e.preventDefault();
+          handleAnswer('B');
+          break;
+        case 'c': case 'C':
+          e.preventDefault();
+          handleAnswer('C');
+          break;
+        case 'd': case 'D':
+          e.preventDefault();
+          handleAnswer('D');
+          break;
+        case 'e': case 'E':
+          e.preventDefault();
+          handleAnswer('E');
+          break;
+        case 'f': case 'F':
+          e.preventDefault();
+          toggleFlag(currentQuestion);
+          break;
+        case '?':
+          setShowShortcuts(prev => !prev);
+          break;
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [test, currentQuestion]);
+
+  // Fullscreen
+  const toggleFullscreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+      containerRef.current?.requestFullscreen?.();
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen?.();
+      setIsFullscreen(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const handler = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handler);
+    return () => document.removeEventListener('fullscreenchange', handler);
+  }, []);
+
+  const toggleFlag = (index: number) => {
+    setFlaggedQuestions(prev => {
+      const next = new Set(prev);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
+  };
 
   // Anti-cheating: detect tab/window switch
   useEffect(() => {
@@ -84,6 +192,10 @@ export default function TestSolvePage() {
 
   const handleAnswer = (answer: string) => {
     setAnswers((prev) => ({ ...prev, [currentQuestion]: answer }));
+    // Auto-next: go to next question after selecting answer
+    if (autoNext && test && currentQuestion < test.questions.length - 1) {
+      setTimeout(() => setCurrentQuestion(currentQuestion + 1), 300);
+    }
   };
 
   const handleNext = () => {
@@ -120,6 +232,8 @@ export default function TestSolvePage() {
       const data = await res.json();
 
       if (res.ok && data.result) {
+        // Clear saved progress
+        localStorage.removeItem(`test_progress_${testId}`);
         router.push(`/results/${data.result.id}`);
       } else {
         alert(data.error || 'Xatolik yuz berdi');
@@ -157,7 +271,7 @@ export default function TestSolvePage() {
   const answeredCount = Object.keys(answers).length;
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto" ref={containerRef}>
       <BackButton className="mb-4" />
       {/* Top bar */}
       <motion.div
@@ -174,6 +288,20 @@ export default function TestSolvePage() {
         <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end">
           <TestTimer totalSeconds={test.duration * 60} onTimeUp={handleFinish} />
           <button
+            onClick={toggleFullscreen}
+            className="p-2 rounded-lg hover:bg-primary-50 text-text-secondary hover:text-primary-600 transition-colors hidden sm:flex"
+            title="Fullscreen (F11)"
+          >
+            <Maximize size={16} />
+          </button>
+          <button
+            onClick={() => setShowShortcuts(!showShortcuts)}
+            className="p-2 rounded-lg hover:bg-primary-50 text-text-secondary hover:text-primary-600 transition-colors hidden sm:flex"
+            title="Klaviatura yorliqlari (?)"
+          >
+            <Keyboard size={16} />
+          </button>
+          <button
             onClick={() => setShowFinishDialog(true)}
             disabled={submitting}
             className="btn-primary !py-2 !px-3 sm:!px-4 text-sm flex items-center gap-2"
@@ -183,6 +311,48 @@ export default function TestSolvePage() {
           </button>
         </div>
       </motion.div>
+
+      {/* Progress bar */}
+      <div className="w-full h-1.5 bg-gray-100 rounded-full mb-4 sm:mb-6 overflow-hidden">
+        <motion.div
+          className="h-full bg-gradient-to-r from-primary-500 to-primary-600 rounded-full"
+          initial={{ width: 0 }}
+          animate={{ width: `${(answeredCount / totalQuestions) * 100}%` }}
+          transition={{ duration: 0.3 }}
+        />
+      </div>
+
+      {/* Keyboard shortcuts modal */}
+      {showShortcuts && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="card p-4 mb-4 text-sm"
+        >
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="font-semibold text-text-primary">Klaviatura yorliqlari</h4>
+            <button onClick={() => setShowShortcuts(false)} className="text-text-secondary hover:text-text-primary">&times;</button>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs text-text-secondary">
+            <span><kbd className="px-1.5 py-0.5 bg-gray-100 rounded font-mono">A-E</kbd> Javob tanlash</span>
+            <span><kbd className="px-1.5 py-0.5 bg-gray-100 rounded font-mono">&larr; &rarr;</kbd> Navigatsiya</span>
+            <span><kbd className="px-1.5 py-0.5 bg-gray-100 rounded font-mono">F</kbd> Belgilash</span>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Auto-next toggle */}
+      <div className="flex items-center justify-end gap-3 mb-4">
+        <label className="flex items-center gap-2 text-xs text-text-secondary cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={autoNext}
+            onChange={(e) => setAutoNext(e.target.checked)}
+            className="w-3.5 h-3.5 rounded border-border text-primary-600 focus:ring-primary-500"
+          />
+          Javobdan keyin keyingiga o&apos;tish
+        </label>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
         {/* Main content */}
@@ -214,7 +384,21 @@ export default function TestSolvePage() {
               >
                 <ChevronLeft size={18} /> Oldingi
               </button>
-              <span className="text-sm text-text-secondary">{currentQuestion + 1} / {totalQuestions}</span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => toggleFlag(currentQuestion)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                    flaggedQuestions.has(currentQuestion)
+                      ? 'bg-yellow-100 text-yellow-700 border border-yellow-200'
+                      : 'text-text-secondary hover:bg-yellow-50 hover:text-yellow-600'
+                  }`}
+                  title="Belgilash (F)"
+                >
+                  <Bookmark size={14} fill={flaggedQuestions.has(currentQuestion) ? 'currentColor' : 'none'} />
+                  {flaggedQuestions.has(currentQuestion) ? 'Belgilangan' : 'Belgilash'}
+                </button>
+                <span className="text-sm text-text-secondary">{currentQuestion + 1} / {totalQuestions}</span>
+              </div>
               <button
                 onClick={handleNext}
                 disabled={currentQuestion === totalQuestions - 1}
@@ -233,6 +417,7 @@ export default function TestSolvePage() {
             currentQuestion={currentQuestion}
             answers={answers}
             onNavigate={setCurrentQuestion}
+            flaggedQuestions={flaggedQuestions}
           />
         </div>
       </div>

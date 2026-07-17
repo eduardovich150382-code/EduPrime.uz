@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import { useRouter } from 'next/navigation';
 import LatexRenderer from '@/components/ui/LatexRenderer';
 import {
   ArrowLeft, Plus, Trash2, Image, Upload, Bot,
-  Save, FileUp, CheckCircle, Loader2, Send,
+  Save, FileUp, CheckCircle, Loader2, Send, Eye, Clock,
 } from 'lucide-react';
 import ImageUploadButton, { ImagePreviewList } from '@/components/ui/ImageUploadButton';
 
@@ -61,11 +61,47 @@ export default function CreateTestPage() {
     coverImage: '',
   });
   const [questions, setQuestions] = useState<QuestionForm[]>([{ ...emptyQuestion }]);
-  const [currentStep, setCurrentStep] = useState<'info' | 'questions' | 'ai-import'>('info');
+  const [currentStep, setCurrentStep] = useState<'info' | 'questions' | 'ai-import' | 'preview'>('info');
   const [activeQuestion, setActiveQuestion] = useState(0);
   const [aiText, setAiText] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [aiResult, setAiResult] = useState<any>(null);
+  const [lastSaved, setLastSaved] = useState<string | null>(null);
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Auto-save to localStorage every 30 seconds
+  useEffect(() => {
+    const saveToLocal = () => {
+      const data = { testInfo, questions, timestamp: Date.now() };
+      localStorage.setItem('teacher_test_draft', JSON.stringify(data));
+      setLastSaved(new Date().toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' }));
+    };
+
+    autoSaveTimerRef.current = setInterval(saveToLocal, 30000);
+    return () => {
+      if (autoSaveTimerRef.current) clearInterval(autoSaveTimerRef.current);
+    };
+  }, [testInfo, questions]);
+
+  // Restore from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('teacher_test_draft');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        // Only restore if less than 24 hours old
+        if (parsed.timestamp && Date.now() - parsed.timestamp < 86400000) {
+          if (parsed.testInfo && !testInfo.titleUz) {
+            setTestInfo(parsed.testInfo);
+          }
+          if (parsed.questions && parsed.questions.length > 0 && questions.length === 1 && !questions[0].text) {
+            setQuestions(parsed.questions);
+          }
+          setLastSaved('Avvalgi qoralama tiklandi');
+        }
+      } catch {}
+    }
+  }, []);
 
   // Fetch subjects
   useEffect(() => {
@@ -176,6 +212,8 @@ export default function CreateTestPage() {
             body: JSON.stringify({ isPublished: true }),
           });
         }
+        // Clear auto-saved draft
+        localStorage.removeItem('teacher_test_draft');
         alert(publish ? "Test yaratildi va nashr qilindi! ✅" : "Test saqlandi (qoralama)!");
         router.push('/teacher');
       } else {
@@ -269,11 +307,12 @@ export default function CreateTestPage() {
       </motion.div>
 
       {/* Step tabs */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
         {[
           { id: 'info' as const, label: "Test ma'lumotlari", icon: FileUp },
           { id: 'questions' as const, label: `Savollar (${questions.length})`, icon: Plus },
           { id: 'ai-import' as const, label: 'AI Import', icon: Bot },
+          { id: 'preview' as const, label: "Ko'rib chiqish", icon: Eye },
         ].map((step) => (
           <button
             key={step.id}
@@ -288,6 +327,13 @@ export default function CreateTestPage() {
             {step.label}
           </button>
         ))}
+        {/* Auto-save indicator */}
+        {lastSaved && (
+          <span className="flex items-center gap-1.5 text-xs text-text-secondary ml-auto self-center">
+            <Clock size={12} />
+            {lastSaved}
+          </span>
+        )}
       </div>
 
       {/* STEP: INFO */}
@@ -615,7 +661,7 @@ export default function CreateTestPage() {
                       >
                         {opt.label}
                       </button>
-                      <div className="flex-1 space-y-1">
+                        <div className="flex-1 space-y-1">
                         <div className="flex items-center gap-2">
                           <input
                             type="text"
@@ -643,6 +689,12 @@ export default function CreateTestPage() {
                             </button>
                           )}
                         </div>
+                        {/* LaTeX preview for option */}
+                        {opt.text && opt.text.includes('$') && (
+                          <div className="ml-1 px-2 py-1 rounded bg-blue-50 text-xs">
+                            <LatexRenderer content={opt.text} className="text-text-primary" />
+                          </div>
+                        )}
                         {/* Option image preview */}
                         {opt.image && (
                           <div className="relative inline-block ml-1">
@@ -788,6 +840,92 @@ export default function CreateTestPage() {
               </p>
             </div>
           )}
+        </motion.div>
+      )}
+
+      {/* STEP: PREVIEW */}
+      {currentStep === 'preview' && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+          <div className="card p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-bold text-text-primary">Test ko&apos;rinishi</h2>
+              <span className="text-sm text-text-secondary">
+                {questions.filter(q => q.text && q.correctAnswer).length} ta savol
+              </span>
+            </div>
+
+            {/* Test info preview */}
+            <div className="p-4 rounded-xl bg-primary-50 border border-primary-100 mb-6">
+              <h3 className="font-semibold text-text-primary text-lg">{testInfo.titleUz || 'Test nomi kiritilmagan'}</h3>
+              <div className="flex items-center gap-4 mt-2 text-sm text-text-secondary">
+                <span>{testInfo.duration} daqiqa</span>
+                <span>Qiyinlik: {testInfo.difficulty}/5</span>
+                <span>{testInfo.isFree ? 'Bepul' : `${testInfo.price} so'm`}</span>
+              </div>
+            </div>
+
+            {/* Questions preview */}
+            <div className="space-y-4">
+              {questions.filter(q => q.text).map((q, i) => (
+                <div key={i} className="p-4 rounded-xl border border-border">
+                  <div className="flex items-start gap-3">
+                    <span className="text-sm font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full">
+                      {i + 1}
+                    </span>
+                    <div className="flex-1">
+                      <div className="text-sm text-text-primary mb-3">
+                        <LatexRenderer content={q.text} />
+                      </div>
+                      {q.type === 'OPEN_ENDED' ? (
+                        <div className="p-3 rounded-lg bg-gray-50 border border-border">
+                          <p className="text-xs text-text-secondary mb-1">Javob:</p>
+                          <p className="text-sm font-medium text-green-700">{q.correctAnswer}</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {q.options.filter(o => o.text).map((opt) => (
+                            <div
+                              key={opt.label}
+                              className={`flex items-start gap-2 p-2.5 rounded-lg text-sm ${
+                                opt.label === q.correctAnswer
+                                  ? 'bg-green-50 border border-green-200'
+                                  : 'bg-gray-50 border border-gray-100'
+                              }`}
+                            >
+                              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
+                                opt.label === q.correctAnswer
+                                  ? 'bg-green-500 text-white'
+                                  : 'bg-gray-200 text-gray-600'
+                              }`}>
+                                {opt.label}
+                              </span>
+                              <span className="flex-1 pt-0.5">
+                                <LatexRenderer content={opt.text} />
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {q.explanation && (
+                        <div className="mt-3 p-3 rounded-lg bg-blue-50 border border-blue-100">
+                          <p className="text-xs text-blue-600 font-medium mb-1">Yechim:</p>
+                          <div className="text-xs text-text-primary">
+                            <LatexRenderer content={q.explanation} />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {questions.filter(q => q.text).length === 0 && (
+              <div className="text-center py-8 text-text-secondary">
+                <p>Hali savollar kiritilmagan. &quot;Savollar&quot; tabiga o&apos;ting.</p>
+              </div>
+            )}
+          </div>
         </motion.div>
       )}
     </div>
