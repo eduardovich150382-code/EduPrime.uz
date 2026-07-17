@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
+import { shuffleTest } from '@/lib/shuffle';
 
 // GET /api/tests/[id] — bitta testni olish
 export async function GET(
@@ -37,7 +38,21 @@ export async function GET(
       return NextResponse.json({ error: 'Test not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ test });
+    // Shuffle questions and options for authenticated users (anti-cheating)
+    const session = await auth();
+    const userId = session?.user?.id;
+
+    let questions = test.questions;
+    if (userId) {
+      questions = shuffleTest(test.questions, userId, id);
+    }
+
+    return NextResponse.json({
+      test: {
+        ...test,
+        questions,
+      },
+    });
   } catch (error) {
     console.error('GET /api/tests/[id] error:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });

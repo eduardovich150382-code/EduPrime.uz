@@ -50,17 +50,13 @@ async function sendSubscriptionPrompt(chatId: number): Promise<void> {
 }
 
 // ===================== STATE =====================
-interface PaymentRequest {
-  userId: number;
-  username: string;
-  plan: 'premium' | 'teacher';
-  duration: '1_month' | '6_months' | '1_year';
-  amount: number;
-  subjects?: string[];
-  timestamp: number;
-}
+// Payment state is now persisted via API — no more in-memory Map
+// pendingPayments Map removed — using /api/telegram/payments instead
 
-const pendingPayments = new Map<number, PaymentRequest>();
+const API_HEADERS = {
+  'Content-Type': 'application/json',
+  'x-bot-secret': BOT_TOKEN,
+};
 
 // ===================== PRICING =====================
 const PRICES = {
@@ -318,15 +314,21 @@ bot.on('callback_query', async (query) => {
     const duration = parts.slice(1).join('_') as keyof typeof PRICES;
     const amount = PRICES[duration];
 
-    // Save payment request
-    pendingPayments.set(userId, {
-      userId,
-      username,
-      plan,
-      duration,
-      amount,
-      timestamp: Date.now(),
-    });
+    // Save payment request to database via API
+    try {
+      await fetch(`${APP_URL}/api/telegram/payments`, {
+        method: 'POST',
+        headers: API_HEADERS,
+        body: JSON.stringify({
+          telegramId: userId,
+          plan,
+          duration,
+          amount,
+        }),
+      });
+    } catch (error) {
+      console.error('Failed to save payment to DB:', error);
+    }
 
     const planName = plan === 'premium' ? '💎 Premium' : '👨‍🏫 Ustoz';
 
@@ -347,44 +349,74 @@ bot.on('callback_query', async (query) => {
   // Admin confirms payment
   if (data.startsWith('confirm_')) {
     const targetUserId = parseInt(data.replace('confirm_', ''));
-    const payment = pendingPayments.get(targetUserId);
 
-    if (payment) {
-      // Notify user
-      await bot.sendMessage(targetUserId,
-        `🎉 *Tabriklaymiz!*\n\n` +
-        `Sizning ${payment.plan === 'premium' ? 'Premium' : 'Ustoz'} tarifingiz aktivlashtirildi!\n` +
-        `Muddat: ${DURATION_LABELS[payment.duration]}\n\n` +
-        `🌐 Saytga kiring va barcha testlardan foydalaning!`,
-        {
-          parse_mode: 'Markdown',
-          reply_markup: {
-            inline_keyboard: [[
-              { text: '🌐 Saytga kirish', url: APP_URL }
-            ]]
+    try {
+      const res = await fetch(`${APP_URL}/api/telegram/payments`, {
+        method: 'PATCH',
+        headers: API_HEADERS,
+        body: JSON.stringify({
+          telegramId: targetUserId,
+          action: 'confirm',
+          adminTelegramId: userId,
+        }),
+      });
+
+      const result = await res.json();
+
+      if (res.ok) {
+        // Notify user
+        await bot.sendMessage(targetUserId,
+          `🎉 *Tabriklaymiz!*\n\n` +
+          `Sizning tarifingiz aktivlashtirildi!\n\n` +
+          `🌐 Saytga kiring va barcha testlardan foydalaning!`,
+          {
+            parse_mode: 'Markdown',
+            reply_markup: {
+              inline_keyboard: [[
+                { text: '🌐 Saytga kirish', url: APP_URL }
+              ]]
+            }
           }
-        }
-      );
-
-      // TODO: Update database via API
-      pendingPayments.delete(targetUserId);
-      await bot.sendMessage(chatId, `✅ @${payment.username} uchun tarif aktivlashtirildi.`);
+        );
+        await bot.sendMessage(chatId, `✅ Foydalanuvchi uchun tarif aktivlashtirildi.`);
+      } else {
+        await bot.sendMessage(chatId, `❌ Xatolik: ${result.error || 'Noma\'lum xatolik'}`);
+      }
+    } catch (error) {
+      console.error('Confirm payment error:', error);
+      await bot.sendMessage(chatId, '❌ Server xatolik. Qayta urinib ko\'ring.');
     }
   }
 
   // Admin rejects payment
   if (data.startsWith('reject_')) {
     const targetUserId = parseInt(data.replace('reject_', ''));
-    const payment = pendingPayments.get(targetUserId);
 
-    if (payment) {
-      await bot.sendMessage(targetUserId,
-        `❌ Sizning to'lovingiz rad etildi.\n\n` +
-        `Sabab: Chek tasdiqlash imkoni bo'lmadi.\n` +
-        `Iltimos, qayta to'lov qiling yoki admin bilan bog'laning.`
-      );
-      pendingPayments.delete(targetUserId);
-      await bot.sendMessage(chatId, `❌ @${payment.username} to'lovi rad etildi.`);
+    try {
+      const res = await fetch(`${APP_URL}/api/telegram/payments`, {
+        method: 'PATCH',
+        headers: API_HEADERS,
+        body: JSON.stringify({
+          telegramId: targetUserId,
+          action: 'reject',
+          adminTelegramId: userId,
+        }),
+      });
+
+      if (res.ok) {
+        await bot.sendMessage(targetUserId,
+          `❌ Sizning to'lovingiz rad etildi.\n\n` +
+          `Sabab: Chek tasdiqlash imkoni bo'lmadi.\n` +
+          `Iltimos, qayta to'lov qiling yoki admin bilan bog'laning.`
+        );
+        await bot.sendMessage(chatId, `❌ To'lov rad etildi.`);
+      } else {
+        const result = await res.json();
+        await bot.sendMessage(chatId, `❌ Xatolik: ${result.error || 'Noma\'lum xatolik'}`);
+      }
+    } catch (error) {
+      console.error('Reject payment error:', error);
+      await bot.sendMessage(chatId, '❌ Server xatolik. Qayta urinib ko\'ring.');
     }
   }
 });
@@ -402,7 +434,17 @@ bot.on('photo', async (msg) => {
     return;
   }
 
-  const payment = pendingPayments.get(userId);
+  // Check if user has a pending payment via API
+  let payment: any = null;
+  try {
+    const res = await fetch(`${APP_URL}/api/telegram/payments?telegramId=${userId}`, {
+      headers: API_HEADERS,
+    });
+    const data = await res.json();
+    payment = data.payment;
+  } catch (error) {
+    console.error('Failed to check pending payment:', error);
+  }
 
   if (!payment) {
     await bot.sendMessage(chatId, 
@@ -411,7 +453,11 @@ bot.on('photo', async (msg) => {
     return;
   }
 
-  const planName = payment.plan === 'premium' ? '💎 Premium' : '👨‍🏫 Ustoz';
+  const planName = payment.plan === 'PREMIUM' ? '💎 Premium' : '👨‍🏫 Ustoz';
+  const durationLabel = DURATION_LABELS[
+    payment.duration === 'ONE_MONTH' ? '1_month' :
+    payment.duration === 'SIX_MONTHS' ? '6_months' : '1_year'
+  ];
 
   // Forward to admins
   for (const adminId of ADMIN_IDS) {
@@ -424,7 +470,7 @@ bot.on('photo', async (msg) => {
         `📋 *Yangi to'lov cheki*\n\n` +
         `👤 Foydalanuvchi: @${username} (${userId})\n` +
         `📦 Tarif: ${planName}\n` +
-        `⏱ Muddat: ${DURATION_LABELS[payment.duration]}\n` +
+        `⏱ Muddat: ${durationLabel}\n` +
         `💰 Summa: ${payment.amount.toLocaleString()} so'm\n\n` +
         `Tasdiqlaysizmi?`,
         {

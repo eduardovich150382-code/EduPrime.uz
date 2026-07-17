@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import { Trophy, TrendingUp, Users, Loader2, Medal } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 
@@ -126,7 +127,7 @@ export default function RatingPage() {
                 <div className="relative inline-block mb-2">
                   <div className="w-16 h-16 rounded-full bg-gray-200 overflow-hidden border-3 border-gray-400 mx-auto">
                     {top3[1].image ? (
-                      <img src={top3[1].image} alt={top3[1].name} className="w-full h-full object-cover" />
+                      <Image src={top3[1].image} alt={top3[1].name} width={64} height={64} className="w-full h-full object-cover" unoptimized />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-lg font-bold text-gray-600">
                         {top3[1].name.charAt(0).toUpperCase()}
@@ -149,7 +150,7 @@ export default function RatingPage() {
                 <div className="relative inline-block mb-2">
                   <div className="w-20 h-20 rounded-full bg-yellow-100 overflow-hidden border-3 border-yellow-500 mx-auto ring-4 ring-yellow-200">
                     {top3[0].image ? (
-                      <img src={top3[0].image} alt={top3[0].name} className="w-full h-full object-cover" />
+                      <Image src={top3[0].image} alt={top3[0].name} width={80} height={80} className="w-full h-full object-cover" unoptimized />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-yellow-700">
                         {top3[0].name.charAt(0).toUpperCase()}
@@ -175,7 +176,7 @@ export default function RatingPage() {
                 <div className="relative inline-block mb-2">
                   <div className="w-16 h-16 rounded-full bg-orange-100 overflow-hidden border-3 border-orange-400 mx-auto">
                     {top3[2].image ? (
-                      <img src={top3[2].image} alt={top3[2].name} className="w-full h-full object-cover" />
+                      <Image src={top3[2].image} alt={top3[2].name} width={64} height={64} className="w-full h-full object-cover" unoptimized />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-lg font-bold text-orange-600">
                         {top3[2].name.charAt(0).toUpperCase()}
@@ -209,7 +210,7 @@ export default function RatingPage() {
             </div>
             <div className="w-10 h-10 rounded-full bg-primary-200 overflow-hidden flex-shrink-0">
               {currentUserEntry.image ? (
-                <img src={currentUserEntry.image} alt={currentUserEntry.name} className="w-full h-full object-cover" />
+                <Image src={currentUserEntry.image} alt={currentUserEntry.name} width={40} height={40} className="w-full h-full object-cover" unoptimized />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-sm font-bold text-primary-700">
                   {currentUserEntry.name.charAt(0).toUpperCase()}
@@ -254,7 +255,7 @@ export default function RatingPage() {
                   </div>
                   <div className="w-9 h-9 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
                     {user.image ? (
-                      <img src={user.image} alt={user.name} className="w-full h-full object-cover" />
+                      <Image src={user.image} alt={user.name} width={36} height={36} className="w-full h-full object-cover" unoptimized />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-sm font-bold text-gray-500">
                         {user.name.charAt(0).toUpperCase()}

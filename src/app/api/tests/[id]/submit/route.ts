@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
+import { sanitizeText, sanitizeInt } from '@/lib/sanitize';
 
 // POST /api/tests/[id]/submit — test javoblarini yuborish va natija olish
 export async function POST(
@@ -22,6 +23,14 @@ export async function POST(
       return NextResponse.json({ error: 'answers array required' }, { status: 400 });
     }
 
+    // Sanitize answers
+    const sanitizedAnswers = answers.slice(0, 200).map((a: any) => ({
+      questionId: typeof a.questionId === 'string' ? a.questionId.trim().slice(0, 30) : '',
+      answer: sanitizeText(a.answer, 500),
+    }));
+
+    const sanitizedTimeSpent = sanitizeInt(timeSpent, 0, 86400) || 0; // Max 24 hours
+
     // Get test with correct answers
     const test = await db.test.findUnique({
       where: { id },
@@ -42,7 +51,7 @@ export async function POST(
     let maxScore = 0;
     const answerResults = test.questions.map((question) => {
       maxScore += question.points;
-      const userAnswer = answers.find((a: any) => a.questionId === question.id);
+      const userAnswer = sanitizedAnswers.find((a: any) => a.questionId === question.id);
 
       // For OPEN_ENDED: case-insensitive trimmed comparison
       // For MULTIPLE_CHOICE: exact match
@@ -75,7 +84,7 @@ export async function POST(
         maxScore,
         percentage,
         answers: answerResults as any,
-        timeSpent: timeSpent || 0,
+        timeSpent: sanitizedTimeSpent,
       },
     });
 
