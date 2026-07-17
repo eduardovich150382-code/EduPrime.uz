@@ -40,6 +40,30 @@ export default function TestSolvePage() {
   const [showFinishDialog, setShowFinishDialog] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [startTime] = useState(Date.now());
+  const [tabSwitchCount, setTabSwitchCount] = useState(0);
+  const [showTabWarning, setShowTabWarning] = useState(false);
+
+  // Anti-cheating: detect tab/window switch
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && test) {
+        setTabSwitchCount((prev) => {
+          const newCount = prev + 1;
+          if (newCount >= 3) {
+            // After 3 tab switches, show persistent warning
+            setShowTabWarning(true);
+          }
+          return newCount;
+        });
+        setShowTabWarning(true);
+        // Auto-hide warning after 3 seconds
+        setTimeout(() => setShowTabWarning(false), 4000);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [test]);
 
   // Fetch test
   useEffect(() => {
@@ -212,6 +236,23 @@ export default function TestSolvePage() {
           />
         </div>
       </div>
+
+      {/* Tab switch warning */}
+      {showTabWarning && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-yellow-500 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-3 max-w-sm"
+        >
+          <AlertCircle size={20} className="flex-shrink-0" />
+          <div>
+            <p className="text-sm font-semibold">Ogohlantirish!</p>
+            <p className="text-xs opacity-90">
+              Boshqa tab/ilovaga o&apos;tish aniqlandi ({tabSwitchCount} marta). Test davomida sahifani tark etmang.
+            </p>
+          </div>
+        </motion.div>
+      )}
 
       {/* Finish dialog */}
       {showFinishDialog && (

@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import {
   User,
   Mail,
@@ -242,10 +243,13 @@ export default function ProfilePage() {
         <div className="flex flex-col items-center">
           <div className="relative mb-4">
             {profile.image ? (
-              <img
+              <Image
                 src={profile.image}
                 alt={profile.name || ''}
+                width={112}
+                height={112}
                 className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border-4 border-primary-100"
+                unoptimized={profile.image.startsWith('http')}
               />
             ) : (
               <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-primary-100 flex items-center justify-center border-4 border-primary-50">
@@ -292,9 +296,11 @@ export default function ProfilePage() {
                               : 'border-transparent hover:border-primary-200 hover:bg-primary-50/50'
                           }`}
                         >
-                          <img
+                          <Image
                             src={avatar}
                             alt=""
+                            width={80}
+                            height={80}
                             className="w-full aspect-square rounded-lg"
                           />
                           {profile.image === avatar && (

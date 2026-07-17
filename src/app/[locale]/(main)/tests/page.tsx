@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from '@/i18n/routing';
+import Image from 'next/image';
 import {
   GraduationCap, School, Award, Globe2, Atom, FileCheck,
   BookOpen, Search, Clock, Lock, Loader2, Building2,
@@ -481,10 +482,13 @@ function TestsPageContent() {
                             }`}
                           >
                             {test.coverImage ? (
-                              <img
+                              <Image
                                 src={test.coverImage}
                                 alt={test.titleUz}
-                                className="w-full h-full object-cover"
+                                fill
+                                className="object-cover"
+                                sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
+                                unoptimized
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">

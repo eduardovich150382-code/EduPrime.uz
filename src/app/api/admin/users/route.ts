@@ -1,24 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { auth } from '@/lib/auth';
+import { requireAdmin } from '@/lib/api-auth';
+import { sanitizeText, sanitizePagination } from '@/lib/sanitize';
 
 // GET /api/admin/users — barcha foydalanuvchilar (ADMIN only)
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const role = (session.user as any)?.role;
-    if (role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    const { error } = await requireAdmin();
+    if (error) return error;
 
     const searchParams = request.nextUrl.searchParams;
-    const search = searchParams.get('search') || '';
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const search = sanitizeText(searchParams.get('search') || '', 100);
+    const { page, limit } = sanitizePagination(
+      searchParams.get('page'),
+      searchParams.get('limit')
+    );
 
     const where: any = {};
     if (search) {

@@ -1,23 +1,16 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { auth } from '@/lib/auth';
+import { requireTeacher } from '@/lib/api-auth';
 
 // GET /api/teacher/stats — ustoz statistikasini olish
 export async function GET() {
   try {
-    const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const role = (session.user as any)?.role;
-    if (role !== 'TEACHER' && role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    const { user, error } = await requireTeacher();
+    if (error) return error;
 
     // Find teacher record
     const teacher = await db.teacher.findUnique({
-      where: { userId: session.user.id as string },
+      where: { userId: user.id },
     });
 
     if (!teacher) {

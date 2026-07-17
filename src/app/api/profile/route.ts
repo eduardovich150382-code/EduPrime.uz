@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { auth } from '@/lib/auth';
+import { requireAuth, applyRateLimit } from '@/lib/api-auth';
+import { sanitizeName } from '@/lib/sanitize';
 
 const ALLOWED_IMAGE_PREFIXES = [
   'https://utfs.io/',
@@ -26,13 +27,11 @@ function isValidImageUrl(url: string): boolean {
 // GET /api/profile — get current user profile
 export async function GET() {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const { user, error } = await requireAuth();
+    if (error) return error;
 
-    const user = await db.user.findUnique({
-      where: { id: session.user.id },
+    const dbUser = await db.user.findUnique({
+      where: { id: user.id },
       select: {
         id: true,
         name: true,
@@ -47,11 +46,11 @@ export async function GET() {
       },
     });
 
-    if (!user) {
+    if (!dbUser) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ user });
+    return NextResponse.json({ user: dbUser });
   } catch (error) {
     console.error('GET /api/profile error:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
@@ -61,17 +60,22 @@ export async function GET() {
 // PATCH /api/profile — update user profile (name, image)
 export async function PATCH(request: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const { user, error } = await requireAuth();
+    if (error) return error;
+
+    // Rate limit: 10 profile updates per minute
+    const rateLimitError = applyRateLimit(user.id, 10, 60000);
+    if (rateLimitError) return rateLimitError;
 
     const body = await request.json();
     const { name, image } = body;
 
     const updateData: { name?: string; image?: string } = {};
     if (typeof name === 'string' && name.trim().length > 0) {
-      updateData.name = name.trim();
+      const sanitizedName = sanitizeName(name, 100);
+      if (sanitizedName.length > 0) {
+        updateData.name = sanitizedName;
+      }
     }
     if (typeof image === 'string' && image.trim().length > 0) {
       const trimmedImage = image.trim();
@@ -88,8 +92,8 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 });
     }
 
-    const user = await db.user.update({
-      where: { id: session.user.id },
+    const updatedUser = await db.user.update({
+      where: { id: user.id },
       data: updateData,
       select: {
         id: true,
@@ -105,7 +109,7 @@ export async function PATCH(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ user });
+    return NextResponse.json({ user: updatedUser });
   } catch (error) {
     console.error('PATCH /api/profile error:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
@@ -115,13 +119,11 @@ export async function PATCH(request: NextRequest) {
 // DELETE /api/profile — delete current user account
 export async function DELETE() {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const { user, error } = await requireAuth();
+    if (error) return error;
 
     await db.user.delete({
-      where: { id: session.user.id },
+      where: { id: user.id },
     });
 
     return NextResponse.json({ success: true });

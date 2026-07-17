@@ -5,14 +5,42 @@ import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
 import '../globals.css';
 
-export const metadata: Metadata = {
-  title: {
-    default: 'EduPrime.uz — Test Platformasi',
-    template: '%s | EduPrime.uz',
-  },
-  description: "O'zbekistondagi eng zamonaviy test platformasi — DTM, maktab, attestatsiya, SAT, GRE va Milliy sertifikat testlari",
-  keywords: ['test', 'DTM', 'imtihon', 'attestatsiya', 'SAT', 'GRE', 'EduPrime', 'Uzbekistan'],
-};
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://eduprime.uz';
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+
+  const localeMap: Record<string, string> = {
+    uz: 'uz_UZ',
+    ru: 'ru_RU',
+    en: 'en_US',
+  };
+
+  return {
+    title: {
+      default: 'EduPrime.uz — O\'zbekiston Test Platformasi',
+      template: '%s | EduPrime.uz',
+    },
+    description: "O'zbekistondagi eng zamonaviy test platformasi — DTM, maktab, attestatsiya, SAT, GRE va Milliy sertifikat testlari. Video va yozma yechimlar.",
+    keywords: ['test', 'DTM', 'imtihon', 'attestatsiya', 'SAT', 'GRE', 'EduPrime', 'Uzbekistan', 'online test', 'bilim', 'maktab'],
+    alternates: {
+      canonical: locale === 'uz' ? BASE_URL : `${BASE_URL}/${locale}`,
+      languages: {
+        'uz': BASE_URL,
+        'ru': `${BASE_URL}/ru`,
+        'en': `${BASE_URL}/en`,
+        'x-default': BASE_URL,
+      },
+    },
+    openGraph: {
+      type: 'website',
+      locale: localeMap[locale] || 'uz_UZ',
+      alternateLocale: Object.values(localeMap).filter(l => l !== (localeMap[locale] || 'uz_UZ')),
+      siteName: 'EduPrime.uz',
+      url: locale === 'uz' ? BASE_URL : `${BASE_URL}/${locale}`,
+    },
+  };
+}
 
 export default async function LocaleLayout({
   children,
