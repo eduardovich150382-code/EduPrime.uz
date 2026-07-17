@@ -7,6 +7,7 @@ interface QuestionNavProps {
   currentQuestion: number;
   answers: Record<number, string>;
   onNavigate: (index: number) => void;
+  flaggedQuestions?: Set<number>;
 }
 
 export default function QuestionNav({
@@ -14,6 +15,7 @@ export default function QuestionNav({
   currentQuestion,
   answers,
   onNavigate,
+  flaggedQuestions = new Set(),
 }: QuestionNavProps) {
   return (
     <div className="card p-4">
@@ -22,24 +24,28 @@ export default function QuestionNav({
         {Array.from({ length: totalQuestions }).map((_, i) => {
           const isActive = i === currentQuestion;
           const isAnswered = answers[i] !== undefined && answers[i] !== '';
+          const isFlagged = flaggedQuestions.has(i);
 
           return (
             <button
               key={i}
               onClick={() => onNavigate(i)}
               className={cn(
-                'w-9 h-9 rounded-lg text-xs font-semibold transition-all duration-200',
+                'w-9 h-9 rounded-lg text-xs font-semibold transition-all duration-200 relative',
                 isActive && 'bg-primary-600 text-white shadow-md shadow-primary-500/30 scale-110',
                 !isActive && isAnswered && 'bg-green-100 text-green-700 border border-green-200',
                 !isActive && !isAnswered && 'bg-gray-100 text-text-secondary hover:bg-primary-50 hover:text-primary-600'
               )}
             >
               {i + 1}
+              {isFlagged && (
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full border border-white" />
+              )}
             </button>
           );
         })}
       </div>
-      <div className="flex items-center gap-4 mt-4 text-xs text-text-secondary">
+      <div className="flex items-center gap-4 mt-4 text-xs text-text-secondary flex-wrap">
         <div className="flex items-center gap-1.5">
           <div className="w-3 h-3 rounded bg-green-100 border border-green-200" />
           <span>Javob berilgan</span>
@@ -51,6 +57,12 @@ export default function QuestionNav({
         <div className="flex items-center gap-1.5">
           <div className="w-3 h-3 rounded bg-gray-100" />
           <span>Javobsiz</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded bg-white border border-gray-200 relative">
+            <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-yellow-400 rounded-full" />
+          </div>
+          <span>Belgilangan</span>
         </div>
       </div>
     </div>

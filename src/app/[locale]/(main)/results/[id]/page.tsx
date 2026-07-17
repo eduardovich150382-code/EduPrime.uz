@@ -11,7 +11,7 @@ import {
   CheckCircle, XCircle, SkipForward, Clock, Trophy,
   Video, FileText, ArrowLeft, Share2, RotateCcw,
   Loader2, AlertCircle, Play,
-  X, Copy, ExternalLink,
+  X, Copy, ExternalLink, Filter, Bookmark, BarChart3,
 } from 'lucide-react';
 
 interface QuestionOption {
@@ -70,6 +70,9 @@ export default function ResultPage() {
   const [showGeneralVideo, setShowGeneralVideo] = useState(false);
   const [shareSuccess, setShareSuccess] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [questionFilter, setQuestionFilter] = useState<'all' | 'incorrect' | 'skipped'>('all');
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [showTimeAnalysis, setShowTimeAnalysis] = useState(false);
 
   // Fetch result data
   useEffect(() => {
@@ -79,6 +82,11 @@ export default function ResultPage() {
         const data = await res.json();
         if (res.ok && data.result) {
           setResult(data.result);
+          // Trigger confetti for high scores
+          if (data.result.percentage >= 80) {
+            setShowConfetti(true);
+            setTimeout(() => setShowConfetti(false), 4000);
+          }
         } else {
           setError(data.error || 'Natija topilmadi');
         }
@@ -287,7 +295,55 @@ export default function ResultPage() {
             {shareSuccess ? 'Nusxalandi!' : 'Ulashish'}
           </button>
         </div>
+
+        {/* Motivational message */}
+        <div className={`mt-6 p-4 rounded-xl border ${
+          result.percentage >= 90 ? 'bg-green-50 border-green-200' :
+          result.percentage >= 70 ? 'bg-blue-50 border-blue-200' :
+          result.percentage >= 50 ? 'bg-yellow-50 border-yellow-200' :
+          'bg-red-50 border-red-200'
+        }`}>
+          <p className={`text-sm font-medium text-center ${
+            result.percentage >= 90 ? 'text-green-700' :
+            result.percentage >= 70 ? 'text-blue-700' :
+            result.percentage >= 50 ? 'text-yellow-700' :
+            'text-red-700'
+          }`}>
+            {result.percentage >= 90 ? '🏆 Ajoyib natija! Siz ushbu mavzuni mukammal bilasiz!' :
+             result.percentage >= 70 ? '👏 Yaxshi natija! Bir oz mashq qilsangiz, a\'lochiga chiqasiz!' :
+             result.percentage >= 50 ? '💪 Yomon emas! Xatolarni tahlil qiling va qayta urinib ko\'ring.' :
+             '📚 Ko\'proq mashq kerak. Yechimlarni diqqat bilan o\'rganing va qayta ishlang.'}
+          </p>
+        </div>
       </motion.div>
+
+      {/* Confetti effect */}
+      {showConfetti && (
+        <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
+          {Array.from({ length: 50 }).map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-3 h-3 rounded-sm"
+              style={{
+                left: `${Math.random() * 100}%`,
+                backgroundColor: ['#7c3aed', '#22c55e', '#eab308', '#ef4444', '#3b82f6', '#ec4899'][i % 6],
+              }}
+              initial={{ y: -20, opacity: 1, rotate: 0 }}
+              animate={{
+                y: typeof window !== 'undefined' ? window.innerHeight + 20 : 800,
+                opacity: 0,
+                rotate: Math.random() * 720 - 360,
+                x: Math.random() * 200 - 100,
+              }}
+              transition={{
+                duration: 2 + Math.random() * 2,
+                delay: Math.random() * 0.5,
+                ease: 'easeOut',
+              }}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Share Modal */}
       {showShareModal && (
@@ -372,7 +428,84 @@ export default function ResultPage() {
         transition={{ duration: 0.5, delay: 0.2 }}
         className="card p-6"
       >
-        <h2 className="text-lg font-bold text-text-primary mb-4">Savollar tahlili</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold text-text-primary">Savollar tahlili</h2>
+          <button
+            onClick={() => setShowTimeAnalysis(!showTimeAnalysis)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              showTimeAnalysis ? 'bg-primary-100 text-primary-700' : 'text-text-secondary hover:bg-gray-100'
+            }`}
+          >
+            <BarChart3 size={14} />
+            Vaqt tahlili
+          </button>
+        </div>
+
+        {/* Time analysis per question */}
+        {showTimeAnalysis && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            className="mb-6 p-4 rounded-xl bg-blue-50 border border-blue-200"
+          >
+            <h4 className="text-sm font-semibold text-blue-800 mb-3 flex items-center gap-2">
+              <Clock size={14} />
+              Har savolga sarflangan vaqt
+            </h4>
+            <div className="space-y-2">
+              {result.answers.map((ans, i) => {
+                const timeSpent = ans.timeSpent || 0;
+                const maxTime = Math.max(...result.answers.map(a => a.timeSpent || 0), 1);
+                const percentage = (timeSpent / maxTime) * 100;
+                return (
+                  <div key={i} className="flex items-center gap-3 text-xs">
+                    <span className="w-6 text-right text-text-secondary font-mono">{i + 1}</span>
+                    <div className="flex-1 h-4 bg-blue-100 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${
+                          ans.isCorrect ? 'bg-green-400' : ans.answer ? 'bg-red-400' : 'bg-gray-300'
+                        }`}
+                        style={{ width: `${Math.max(percentage, 3)}%` }}
+                      />
+                    </div>
+                    <span className="w-12 text-text-secondary font-mono">
+                      {timeSpent > 60 ? `${Math.floor(timeSpent / 60)}:${(timeSpent % 60).toString().padStart(2, '0')}` : `${timeSpent}s`}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex items-center gap-4 mt-3 text-xs text-text-secondary">
+              <span className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-full bg-green-400" /> To&apos;g&apos;ri</span>
+              <span className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-full bg-red-400" /> Noto&apos;g&apos;ri</span>
+              <span className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-full bg-gray-300" /> Javobsiz</span>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Filter tabs */}
+        <div className="flex items-center gap-2 mb-4 flex-wrap">
+          <Filter size={14} className="text-text-secondary" />
+          {([
+            { key: 'all' as const, label: `Barchasi (${result.test.questions.length})` },
+            { key: 'incorrect' as const, label: `Noto'g'ri (${incorrectCount})` },
+            { key: 'skipped' as const, label: `Javobsiz (${skippedCount})` },
+          ]).map((f) => (
+            <button
+              key={f.key}
+              onClick={() => setQuestionFilter(f.key)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                questionFilter === f.key
+                  ? f.key === 'incorrect' ? 'bg-red-100 text-red-700' :
+                    f.key === 'skipped' ? 'bg-gray-200 text-gray-700' :
+                    'bg-primary-100 text-primary-700'
+                  : 'bg-gray-100 text-text-secondary hover:bg-gray-200'
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
 
         {/* General video solution button */}
         {result.test.videoSolution && (
@@ -401,7 +534,17 @@ export default function ResultPage() {
         )}
 
         <div className="space-y-4">
-          {result.test.questions.map((question, i) => {
+          {result.test.questions
+            .map((question, i) => ({ question, i }))
+            .filter(({ question }) => {
+              const answerRecord = result.answers.find(a => a.questionId === question.id);
+              const userAnswer = answerRecord?.answer || '';
+              const isCorrect = answerRecord?.isCorrect || false;
+              if (questionFilter === 'incorrect') return !isCorrect && !!userAnswer;
+              if (questionFilter === 'skipped') return !userAnswer;
+              return true;
+            })
+            .map(({ question, i }) => {
             const answerRecord = result.answers.find(a => a.questionId === question.id);
             const userAnswer = answerRecord?.answer || '';
             const isCorrect = answerRecord?.isCorrect || false;

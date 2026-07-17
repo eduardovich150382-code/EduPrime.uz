@@ -9,7 +9,8 @@ import Image from 'next/image';
 import {
   GraduationCap, School, Award, Globe2, Atom, FileCheck,
   BookOpen, Search, Clock, Lock, Loader2, Building2,
-  ArrowLeft, ChevronRight,
+  ArrowLeft, ChevronRight, TrendingUp, Sparkles, CheckCircle,
+  SortAsc, Filter,
 } from 'lucide-react';
 
 // ===================== TYPES =====================
@@ -32,9 +33,12 @@ interface TestItem {
   difficulty: number;
   coverImage: string | null;
   subject: { nameUz: string; icon: string | null };
+  createdAt?: string;
+  _userResult?: { percentage: number } | null;
 }
 
 type ViewMode = 'categories' | 'subjects' | 'tests';
+type SortMode = 'newest' | 'easiest' | 'hardest' | 'popular';
 
 // ===================== CATEGORIES =====================
 
@@ -193,6 +197,44 @@ function BackButton({ onClick, label }: { onClick: () => void; label: string }) 
   );
 }
 
+function TestCardSkeleton() {
+  return (
+    <div className="card overflow-hidden animate-pulse">
+      <div className="h-32 w-full bg-gray-200" />
+      <div className="p-5 space-y-3">
+        <div className="h-4 bg-gray-200 rounded w-3/4" />
+        <div className="h-3 bg-gray-100 rounded w-1/2" />
+        <div className="flex gap-4 mt-4">
+          <div className="h-3 bg-gray-100 rounded w-16" />
+          <div className="h-3 bg-gray-100 rounded w-16" />
+          <div className="h-3 bg-gray-100 rounded w-16" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SubjectCardSkeleton() {
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 border-l-4 border-l-gray-200 p-5 animate-pulse">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl bg-gray-200" />
+        <div className="flex-1">
+          <div className="h-4 bg-gray-200 rounded w-2/3" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function isNewTest(createdAt?: string): boolean {
+  if (!createdAt) return false;
+  const created = new Date(createdAt);
+  const now = new Date();
+  const diffDays = (now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24);
+  return diffDays <= 7;
+}
+
 // ===================== MAIN CONTENT =====================
 
 function TestsPageContent() {
@@ -208,6 +250,20 @@ function TestsPageContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [loadingSubjects, setLoadingSubjects] = useState(false);
   const [loadingTests, setLoadingTests] = useState(false);
+  const [sortMode, setSortMode] = useState<SortMode>('newest');
+  const [recentResults, setRecentResults] = useState<{testId: string; percentage: number}[]>([]);
+
+  // Fetch recent results for "solved" badges
+  useEffect(() => {
+    fetch('/api/results?limit=100&brief=true')
+      .then(r => r.json())
+      .then(data => {
+        if (data.results) {
+          setRecentResults(data.results.map((r: any) => ({ testId: r.testId, percentage: r.percentage })));
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Read type from URL search params on mount
   useEffect(() => {
@@ -351,6 +407,22 @@ function TestsPageContent() {
     return matchesSearch;
   });
 
+  // Sort tests
+  const sortedTests = [...filteredTests].sort((a, b) => {
+    switch (sortMode) {
+      case 'easiest': return a.difficulty - b.difficulty;
+      case 'hardest': return b.difficulty - a.difficulty;
+      case 'popular': return b.questionCount - a.questionCount;
+      case 'newest':
+      default: return 0; // Keep server order (newest first)
+    }
+  });
+
+  // Helper: get user's best result for a test
+  const getUserResult = (testId: string) => {
+    return recentResults.find(r => r.testId === testId);
+  };
+
   const currentCategory = categories.find(c => c.id === activeCategory);
 
   return (
@@ -410,9 +482,8 @@ function TestsPageContent() {
               transition={{ duration: 0.2 }}
             >
               {loadingSubjects ? (
-                <div className="text-center py-12">
-                  <Loader2 size={32} className="animate-spin text-primary-600 mx-auto mb-2" />
-                  <p className="text-text-secondary text-sm">Fanlar yuklanmoqda...</p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+                  {Array.from({ length: 8 }).map((_, i) => <SubjectCardSkeleton key={i} />)}
                 </div>
               ) : filteredSubjects.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -459,13 +530,38 @@ function TestsPageContent() {
               )}
 
               {loadingTests ? (
-                <div className="text-center py-12">
-                  <Loader2 size={32} className="animate-spin text-primary-600 mx-auto mb-2" />
-                  <p className="text-text-secondary text-sm">Testlar yuklanmoqda...</p>
-                </div>
-              ) : filteredTests.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                  {filteredTests.map((test, index) => (
+                  {Array.from({ length: 6 }).map((_, i) => <TestCardSkeleton key={i} />)}
+                </div>
+              ) : sortedTests.length > 0 ? (
+                <>
+                  {/* Sort bar */}
+                  <div className="flex items-center gap-2 mb-4 flex-wrap">
+                    <SortAsc size={14} className="text-text-secondary" />
+                    {([
+                      { key: 'newest' as SortMode, label: 'Yangi' },
+                      { key: 'easiest' as SortMode, label: 'Oson' },
+                      { key: 'hardest' as SortMode, label: 'Qiyin' },
+                      { key: 'popular' as SortMode, label: 'Mashhur' },
+                    ]).map((s) => (
+                      <button
+                        key={s.key}
+                        onClick={() => setSortMode(s.key)}
+                        className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+                          sortMode === s.key
+                            ? 'bg-primary-100 text-primary-700'
+                            : 'bg-gray-100 text-text-secondary hover:bg-gray-200'
+                        }`}
+                      >
+                        {s.label}
+                      </button>
+                    ))}
+                    <span className="text-xs text-text-secondary ml-auto">{sortedTests.length} ta test</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {sortedTests.map((test, index) => {
+                    const userResult = getUserResult(test.id);
+                    return (
                     <Link key={test.id} href={`/tests/${test.id}/solve`}>
                       <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -495,17 +591,31 @@ function TestsPageContent() {
                                 <BookOpen size={36} className="text-white/50" />
                               </div>
                             )}
-                            {/* Badge overlay */}
-                            <span
-                              className={`absolute top-3 left-3 text-xs font-medium px-2.5 py-1 rounded-full ${
-                                test.isFree
-                                  ? 'bg-green-100 text-green-700'
-                                  : 'bg-white/90 text-primary-700'
-                              }`}
-                            >
-                              {test.isFree ? 'Bepul' : 'Premium'}
-                            </span>
-                            {!test.isFree && (
+                            {/* Badge overlays */}
+                            <div className="absolute top-3 left-3 flex items-center gap-1.5">
+                              <span
+                                className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+                                  test.isFree
+                                    ? 'bg-green-100 text-green-700'
+                                    : 'bg-white/90 text-primary-700'
+                                }`}
+                              >
+                                {test.isFree ? 'Bepul' : 'Premium'}
+                              </span>
+                              {isNewTest(test.createdAt) && (
+                                <span className="text-xs font-medium px-2 py-1 rounded-full bg-yellow-100 text-yellow-700 flex items-center gap-0.5">
+                                  <Sparkles size={10} /> Yangi
+                                </span>
+                              )}
+                            </div>
+                            {/* User result badge */}
+                            {userResult && (
+                              <span className="absolute bottom-3 right-3 text-xs font-bold px-2.5 py-1 rounded-full bg-white/95 shadow-sm flex items-center gap-1">
+                                <CheckCircle size={12} className="text-green-600" />
+                                <span className={userResult.percentage >= 70 ? 'text-green-700' : 'text-yellow-700'}>{userResult.percentage}%</span>
+                              </span>
+                            )}
+                            {!test.isFree && !userResult && (
                               <span className="absolute top-3 right-3">
                                 <Lock size={14} className="text-white/80" />
                               </span>
@@ -535,8 +645,10 @@ function TestsPageContent() {
                         </div>
                       </motion.div>
                     </Link>
-                  ))}
+                  );
+                  })}
                 </div>
+                </>
               ) : (
                 <div className="card-elevated p-12 text-center">
                   <div className="w-20 h-20 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
@@ -545,10 +657,19 @@ function TestsPageContent() {
                   <h2 className="text-xl font-bold text-text-primary mb-2">
                     Testlar hali qo&apos;shilmagan
                   </h2>
-                  <p className="text-text-secondary max-w-md mx-auto">
+                  <p className="text-text-secondary max-w-md mx-auto mb-6">
                     Tez orada testlar qo&apos;shiladi. Yangi testlar haqida bildirishnoma olish uchun
-                    Telegram botimizga a&apos;zo bo&apos;ling: @EduPrimeuzbot
+                    Telegram kanalimizga qo&apos;shiling.
                   </p>
+                  <a
+                    href="https://t.me/EduPrimeuz"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-primary inline-flex items-center gap-2"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+                    Kanalga qo&apos;shilish
+                  </a>
                 </div>
               )}
             </motion.div>
