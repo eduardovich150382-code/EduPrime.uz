@@ -27,6 +27,7 @@ export async function POST(
     const sanitizedAnswers = answers.slice(0, 200).map((a: any) => ({
       questionId: typeof a.questionId === 'string' ? a.questionId.trim().slice(0, 30) : '',
       answer: sanitizeText(a.answer, 500),
+      timeSpent: typeof a.timeSpent === 'number' ? Math.max(0, Math.min(a.timeSpent, 86400)) : 0,
     }));
 
     const sanitizedTimeSpent = sanitizeInt(timeSpent, 0, 86400) || 0; // Max 24 hours
