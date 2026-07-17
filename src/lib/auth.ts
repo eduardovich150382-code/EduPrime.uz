@@ -9,7 +9,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   debug: process.env.NODE_ENV === 'development',
   session: {
     strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+    maxAge: 24 * 60 * 60, // 24 hours — foydalanuvchi har 24 soatda qayta login qiladi
   },
   pages: {
     signIn: '/login',

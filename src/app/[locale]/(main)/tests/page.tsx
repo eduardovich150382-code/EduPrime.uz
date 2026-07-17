@@ -28,6 +28,8 @@ interface TestItem {
   id: string;
   titleUz: string;
   isFree: boolean;
+  accessType?: string;
+  price?: number;
   duration: number;
   questionCount: number;
   difficulty: number;
@@ -46,9 +48,9 @@ const categories = [
   { id: 'dtm', label: 'DTM', icon: GraduationCap, type: 'DTM', hasSubjects: true },
   { id: 'school', label: 'Maktab', icon: School, type: 'SCHOOL', hasSubjects: true },
   { id: 'attestation', label: 'Attestatsiya', icon: Award, type: 'ATTESTATION', hasSubjects: true },
-  { id: 'president_school', label: 'Prezident maktabi', icon: Building2, type: 'PRESIDENT_SCHOOL', hasSubjects: false },
+  { id: 'president_school', label: 'Prezident maktabi', icon: Building2, type: 'PRESIDENT_SCHOOL', hasSubjects: true },
   { id: 'sat', label: 'SAT', icon: Globe2, type: 'SAT', hasSubjects: true },
-  { id: 'gre', label: 'GRE', icon: Atom, type: 'GRE', hasSubjects: false },
+  { id: 'gre', label: 'GRE', icon: Atom, type: 'GRE', hasSubjects: true },
   { id: 'certificate', label: 'Milliy sertifikat', icon: FileCheck, type: 'CERTIFICATE', hasSubjects: true },
 ];
 
@@ -86,25 +88,7 @@ const subjectAccentColors = [
   'border-l-cyan-500',
 ];
 
-// SAT hardcoded subjects (fallback when no subjects exist in DB)
-const satHardcodedSubjects: SubjectItem[] = [
-  {
-    id: 'sat-math',
-    nameUz: 'SAT Math',
-    nameRu: 'SAT Math',
-    nameEn: 'SAT Math',
-    icon: null,
-    category: { nameUz: 'SAT', type: 'SAT' },
-  },
-  {
-    id: 'sat-reading',
-    nameUz: 'SAT Reading & Writing',
-    nameRu: 'SAT Reading & Writing',
-    nameEn: 'SAT Reading & Writing',
-    icon: null,
-    category: { nameUz: 'SAT', type: 'SAT' },
-  },
-];
+// SAT subjects are now stored in database via seed script
 
 // ===================== COMPONENTS =====================
 
@@ -173,7 +157,7 @@ function SubjectCard({
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-text-primary group-hover:text-primary-600 transition-colors truncate">
+          <h3 className="font-semibold text-text-primary group-hover:text-primary-600 transition-colors">
             {subject.nameUz}
           </h3>
         </div>
@@ -287,18 +271,10 @@ function TestsPageContent() {
       const res = await fetch(`/api/subjects?type=${type}`);
       const data = await res.json();
       if (data.subjects) {
-        // For SAT, if no subjects in DB, use hardcoded ones
-        if (type === 'SAT' && data.subjects.length === 0) {
-          setSubjects(satHardcodedSubjects);
-        } else {
-          setSubjects(data.subjects);
-        }
+        setSubjects(data.subjects);
       }
     } catch (error) {
       console.error('Failed to fetch subjects:', error);
-      if (type === 'SAT') {
-        setSubjects(satHardcodedSubjects);
-      }
     }
     setLoadingSubjects(false);
   }, []);
@@ -356,14 +332,8 @@ function TestsPageContent() {
   const handleSubjectClick = useCallback((subject: SubjectItem) => {
     setSelectedSubject(subject);
     setViewMode('tests');
-    // For hardcoded SAT subjects (fake IDs like 'sat-math', 'sat-reading'),
-    // fetch all SAT tests by type instead of by non-existent subject ID
-    if (subject.id.startsWith('sat-')) {
-      fetchTestsByType('SAT');
-    } else {
-      fetchTestsBySubject(subject.id);
-    }
-  }, [fetchTestsBySubject, fetchTestsByType]);
+    fetchTestsBySubject(subject.id);
+  }, [fetchTestsBySubject]);
 
   // Handle back navigation
   const handleBackToSubjects = useCallback(() => {
@@ -453,19 +423,19 @@ function TestsPageContent() {
         </div>
 
         {/* Category tabs */}
-        <div className="grid grid-cols-3 gap-2 md:flex md:flex-wrap md:gap-2">
+        <div className="flex flex-wrap gap-2">
           {categories.map((cat) => (
             <button
               key={cat.id}
               onClick={() => handleCategoryChange(cat.id)}
-              className={`flex items-center justify-center gap-1 md:gap-2 text-xs md:text-sm px-2 py-1.5 md:px-4 md:py-2 rounded-xl font-medium whitespace-nowrap transition-all ${
+              className={`flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm px-3 py-2 sm:px-4 sm:py-2 rounded-xl font-medium whitespace-nowrap transition-all ${
                 activeCategory === cat.id
                   ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/25'
                   : 'bg-white border border-border text-text-secondary hover:border-primary-200 hover:text-primary-600'
               }`}
             >
-              <cat.icon size={14} className="md:w-4 md:h-4 shrink-0" />
-              <span className="truncate">{cat.label}</span>
+              <cat.icon size={14} className="sm:w-4 sm:h-4 shrink-0" />
+              <span>{cat.label}</span>
             </button>
           ))}
         </div>
@@ -486,7 +456,7 @@ function TestsPageContent() {
                   {Array.from({ length: 8 }).map((_, i) => <SubjectCardSkeleton key={i} />)}
                 </div>
               ) : filteredSubjects.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                   {filteredSubjects.map((subject, index) => (
                     <SubjectCard
                       key={subject.id}
@@ -595,12 +565,25 @@ function TestsPageContent() {
                             <div className="absolute top-3 left-3 flex items-center gap-1.5">
                               <span
                                 className={`text-xs font-medium px-2.5 py-1 rounded-full ${
-                                  test.isFree
+                                  test.isFree || test.accessType === 'free'
                                     ? 'bg-green-100 text-green-700'
+                                    : test.accessType === 'premium'
+                                    ? 'bg-purple-100 text-purple-700'
+                                    : test.accessType === 'teacher'
+                                    ? 'bg-blue-100 text-blue-700'
+                                    : test.accessType === 'premium_teacher'
+                                    ? 'bg-indigo-100 text-indigo-700'
+                                    : test.accessType === 'paid'
+                                    ? 'bg-orange-100 text-orange-700'
                                     : 'bg-white/90 text-primary-700'
                                 }`}
                               >
-                                {test.isFree ? 'Bepul' : 'Premium'}
+                                {test.isFree || test.accessType === 'free' ? 'Bepul'
+                                  : test.accessType === 'premium' ? 'Premium'
+                                  : test.accessType === 'teacher' ? 'Ustoz'
+                                  : test.accessType === 'premium_teacher' ? 'Premium+Ustoz'
+                                  : test.accessType === 'paid' ? `${(test.price || 0).toLocaleString()} so'm`
+                                  : 'Premium'}
                               </span>
                               {isNewTest(test.createdAt) && (
                                 <span className="text-xs font-medium px-2 py-1 rounded-full bg-yellow-100 text-yellow-700 flex items-center gap-0.5">
@@ -626,10 +609,10 @@ function TestsPageContent() {
                             <h3 className="font-semibold text-text-primary mb-2 group-hover:text-primary-600 transition-colors line-clamp-2">
                               {test.titleUz}
                             </h3>
-                            <p className="text-sm text-text-secondary mb-4">
+                            <p className="text-sm text-text-secondary mb-3">
                               {test.subject.icon} {test.subject.nameUz}
                             </p>
-                            <div className="flex items-center gap-4 text-xs text-text-secondary">
+                            <div className="flex items-center gap-4 text-xs text-text-secondary mb-3">
                               <span className="flex items-center gap-1">
                                 <BookOpen size={12} /> {test.questionCount} savol
                               </span>
@@ -641,6 +624,33 @@ function TestsPageContent() {
                                 <span className="text-[10px]">Qiyinlik</span>
                               </span>
                             </div>
+                            {/* Access action buttons */}
+                            {!test.isFree && test.accessType !== 'free' && !userResult && (
+                              <div className="pt-2 border-t border-border">
+                                {test.accessType === 'paid' ? (
+                                  <a
+                                    href={`https://t.me/EduPrimeuzbot?start=buy_test_${test.id}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg bg-orange-100 text-orange-700 text-xs font-semibold hover:bg-orange-200 transition-colors"
+                                  >
+                                    <Lock size={12} /> Sotib olish — {(test.price || 0).toLocaleString()} so&apos;m
+                                  </a>
+                                ) : (
+                                  <Link
+                                    href="/pricing"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg bg-primary-100 text-primary-700 text-xs font-semibold hover:bg-primary-200 transition-colors"
+                                  >
+                                    <Lock size={12} />
+                                    {test.accessType === 'premium' ? 'Premium tarifga o\'tish' :
+                                     test.accessType === 'teacher' ? 'Ustoz tarifga o\'tish' :
+                                     'Tarifga o\'tish'}
+                                  </Link>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </motion.div>
