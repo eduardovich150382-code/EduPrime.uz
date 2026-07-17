@@ -1,7 +1,6 @@
 import createMiddleware from 'next-intl/middleware';
 import { NextRequest, NextResponse } from 'next/server';
 import { routing } from './i18n/routing';
-import { jwtVerify } from 'jose';
 
 const intlMiddleware = createMiddleware(routing);
 
@@ -17,10 +16,6 @@ const protectedPaths = [
   '/admin',
 ];
 
-// Role-based paths
-const teacherPaths = ['/teacher'];
-const adminPaths = ['/admin'];
-
 // Public paths (no auth needed)
 const publicPaths = ['/', '/login', '/auth', '/share'];
 
@@ -33,43 +28,16 @@ function isProtectedPath(pathname: string): boolean {
   return protectedPaths.some(path => cleanPath.startsWith(path));
 }
 
-function isTeacherPath(pathname: string): boolean {
-  const cleanPath = getCleanPath(pathname);
-  return teacherPaths.some(path => cleanPath.startsWith(path));
-}
-
-function isAdminPath(pathname: string): boolean {
-  const cleanPath = getCleanPath(pathname);
-  return adminPaths.some(path => cleanPath.startsWith(path));
-}
-
 /**
- * Decode JWT token to extract user role.
- * Uses jose library for Edge Runtime compatibility.
+ * Check if user has a session cookie.
+ * Note: Full JWT verification and role-based access is handled
+ * in layout.tsx files (server-side) using auth() from NextAuth.
+ * This middleware only checks cookie presence for redirect logic.
  */
-async function getTokenPayload(request: NextRequest): Promise<{ role?: string; id?: string } | null> {
+function isAuthenticated(request: NextRequest): boolean {
   const sessionCookie = request.cookies.get('__Secure-authjs.session-token') ||
     request.cookies.get('authjs.session-token');
-
-  if (!sessionCookie?.value) return null;
-
-  const secret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
-  if (!secret) return null;
-
-  try {
-    const encodedSecret = new TextEncoder().encode(secret);
-    const { payload } = await jwtVerify(sessionCookie.value, encodedSecret, {
-      algorithms: ['HS256'],
-    });
-
-    return {
-      role: payload.role as string | undefined,
-      id: payload.id as string | undefined,
-    };
-  } catch {
-    // Token is invalid or expired
-    return null;
-  }
+  return !!sessionCookie?.value;
 }
 
 export default async function middleware(request: NextRequest) {
@@ -80,45 +48,22 @@ export default async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // For public paths, just apply i18n
   const cleanPath = getCleanPath(pathname);
-  if (!isProtectedPath(pathname)) {
-    // If authenticated user goes to /login, redirect to dashboard
-    const sessionCookie = request.cookies.get('__Secure-authjs.session-token') ||
-      request.cookies.get('authjs.session-token');
-    if (sessionCookie?.value && cleanPath.startsWith('/login')) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
-    }
-    return intlMiddleware(request);
+  const authenticated = isAuthenticated(request);
+
+  // If authenticated user goes to /login, redirect to dashboard
+  if (authenticated && cleanPath.startsWith('/login')) {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
-  // === PROTECTED ROUTES ===
-
-  // Verify JWT token
-  const tokenPayload = await getTokenPayload(request);
-
-  if (!tokenPayload) {
-    // Not authenticated or invalid token — redirect to login
+  // If NOT authenticated and trying to access protected path, redirect to login
+  if (!authenticated && isProtectedPath(pathname)) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('callbackUrl', pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  const userRole = tokenPayload.role || 'USER';
-
-  // === ROLE-BASED ACCESS CONTROL ===
-
-  // Admin paths — only ADMIN role
-  if (isAdminPath(pathname) && userRole !== 'ADMIN') {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
-  }
-
-  // Teacher paths — only TEACHER or ADMIN roles
-  if (isTeacherPath(pathname) && userRole !== 'TEACHER' && userRole !== 'ADMIN') {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
-  }
-
-  // Apply i18n middleware for valid requests
+  // Apply i18n middleware for all other requests
   return intlMiddleware(request);
 }
 
