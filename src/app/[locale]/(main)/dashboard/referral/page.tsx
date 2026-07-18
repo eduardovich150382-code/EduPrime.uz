@@ -129,7 +129,7 @@ export default function ReferralPage() {
     );
   }
 
-  const progress = Math.min((data.referralCount / 5) * 100, 100);
+  const progress = Math.min((data.referralCount / 3) * 100, 100);
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -228,7 +228,7 @@ export default function ReferralPage() {
         {/* Count */}
         <div className="flex items-center justify-between mb-4">
           <span className="text-3xl font-bold text-primary-600">{data.referralCount}</span>
-          <span className="text-text-secondary text-sm">/ 5 do&apos;st</span>
+          <span className="text-text-secondary text-sm">/ 3 do&apos;st</span>
         </div>
 
         {/* Progress bar */}
@@ -273,7 +273,7 @@ export default function ReferralPage() {
               <span className="font-semibold text-primary-700">Mukofot</span>
             </div>
             <p className="text-sm text-text-secondary">
-              5 ta do&apos;stingizni taklif qiling va <strong>5 kunlik Premium tarif bepul</strong> oling!
+              3 ta do&apos;stingizni taklif qiling va <strong>5 kunlik Premium tarif bepul</strong> oling!
               Sizga yana <strong>{data.remainingToReward}</strong> ta do&apos;st taklif qilish kerak.
             </p>
           </div>
@@ -319,7 +319,7 @@ export default function ReferralPage() {
             </div>
             <div>
               <p className="font-medium text-text-primary">Mukofot oling</p>
-              <p className="text-sm text-text-secondary">5 ta do&apos;st = 5 kunlik bepul Premium tarif</p>
+              <p className="text-sm text-text-secondary">3 ta do&apos;st = 5 kunlik bepul Premium tarif</p>
             </div>
           </div>
         </div>

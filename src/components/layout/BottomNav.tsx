@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import { Link } from '@/i18n/routing';
-import { Menu, LayoutDashboard, User } from 'lucide-react';
+import { Menu, LayoutDashboard, User, BookOpen } from 'lucide-react';
 
 interface BottomNavProps {
   onMenuClick: () => void;
@@ -17,6 +17,7 @@ export default function BottomNav({ onMenuClick }: BottomNavProps) {
 
   // Determine active state
   const isDashboard = pathname.endsWith('/dashboard') || pathname.includes('/dashboard/');
+  const isTests = pathname.endsWith('/tests') || (pathname.includes('/tests') && !pathname.includes('/solve'));
   const isProfile = pathname.endsWith('/profile');
 
   return (
@@ -34,7 +35,7 @@ export default function BottomNav({ onMenuClick }: BottomNavProps) {
         {/* Dashboard */}
         <Link
           href="/dashboard"
-          className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${
+          className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors relative ${
             isDashboard ? 'text-primary-600' : 'text-text-secondary hover:text-primary-600'
           }`}
         >
@@ -47,10 +48,26 @@ export default function BottomNav({ onMenuClick }: BottomNavProps) {
           )}
         </Link>
 
+        {/* Tests */}
+        <Link
+          href="/tests"
+          className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors relative ${
+            isTests ? 'text-primary-600' : 'text-text-secondary hover:text-primary-600'
+          }`}
+        >
+          <BookOpen size={22} />
+          <span className={`text-[10px] font-medium ${isTests ? 'text-primary-600' : ''}`}>
+            Testlar
+          </span>
+          {isTests && (
+            <span className="absolute bottom-1 w-6 h-0.5 rounded-full bg-primary-600" />
+          )}
+        </Link>
+
         {/* Profile */}
         <Link
           href="/profile"
-          className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${
+          className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors relative ${
             isProfile ? 'text-primary-600' : 'text-text-secondary hover:text-primary-600'
           }`}
         >

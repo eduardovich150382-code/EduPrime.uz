@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Sidebar from './Sidebar';
 import BottomNav from './BottomNav';
@@ -13,12 +13,20 @@ interface MainLayoutClientProps {
 export default function MainLayoutClient({ role, children }: MainLayoutClientProps) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [bannerVisible, setBannerVisible] = useState(false);
+
+  // Check if premium banner is visible (for padding)
+  useEffect(() => {
+    const dismissed = sessionStorage.getItem('premium_banner_dismissed');
+    // Banner shows only for free users who haven't dismissed it
+    setBannerVisible(dismissed !== 'true');
+  }, []);
 
   // Hide sidebar when user is solving a test
   const isTestSolving = /\/tests\/[^/]+\/solve/.test(pathname);
 
   return (
-    <div className="flex pt-16">
+    <div className={`flex ${bannerVisible ? 'pt-[104px]' : 'pt-16'}`}>
       {!isTestSolving && (
         <Sidebar
           role={role}
