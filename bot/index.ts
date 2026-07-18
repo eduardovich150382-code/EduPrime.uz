@@ -88,6 +88,53 @@ bot.onText(/\/start(.*)/, async (msg, match) => {
     return;
   }
 
+  // Handle buy_test_TESTID — pullik test sotib olish
+  if (param && param.startsWith('buy_test_')) {
+    const testId = param.replace('buy_test_', '');
+    try {
+      // Fetch test info from API
+      const response = await fetch(`${APP_URL}/api/tests/${testId}`, {
+        headers: API_HEADERS,
+      });
+      const data = await response.json();
+
+      if (data.test) {
+        const test = data.test;
+        const price = test.price || 0;
+
+        // Create payment record via API
+        await fetch(`${APP_URL}/api/telegram/payments`, {
+          method: 'POST',
+          headers: API_HEADERS,
+          body: JSON.stringify({
+            telegramId: userId,
+            plan: 'premium', // Using premium as placeholder for individual test
+            duration: '1_month',
+            amount: price,
+            testId: testId, // Store test ID for individual purchase
+          }),
+        });
+
+        await bot.sendMessage(chatId,
+          `🛒 *Test sotib olish*\n\n` +
+          `📝 Test: *${test.titleUz}*\n` +
+          `💰 Narx: *${price.toLocaleString()} so'm*\n\n` +
+          `💳 Karta raqami:\n` +
+          `\`${PAYMENT_CARD}\`\n` +
+          `👤 Karta egasi: *${PAYMENT_CARD_OWNER}*\n\n` +
+          `📎 To'lov qilganingizdan keyin *chek screenshot*ini shu yerga yuboring.\n\n` +
+          `⏱ Admin 24 soat ichida tasdiqlaydi va test sizga ochiladi.`,
+          { parse_mode: 'Markdown' }
+        );
+      } else {
+        await bot.sendMessage(chatId, '❌ Test topilmadi. Iltimos, qayta urinib ko\'ring.');
+      }
+    } catch (error) {
+      await bot.sendMessage(chatId, '❌ Xatolik yuz berdi. Qayta urinib ko\'ring.');
+    }
+    return;
+  }
+
   if (param === 'login') {
     // Generate auth token and send login link
     try {

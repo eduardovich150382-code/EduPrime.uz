@@ -35,6 +35,7 @@ export default function TestSolvePage() {
 
   const [test, setTest] = useState<TestData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [accessDenied, setAccessDenied] = useState<{ accessType: string; price?: number; testTitle?: string } | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [showFinishDialog, setShowFinishDialog] = useState(false);
@@ -177,6 +178,21 @@ export default function TestSolvePage() {
   useEffect(() => {
     async function fetchTest() {
       try {
+        // First check access
+        const accessRes = await fetch(`/api/subscription/check-access?testId=${testId}`);
+        const accessData = await accessRes.json();
+
+        if (accessRes.ok && accessData.hasAccess === false) {
+          setAccessDenied({
+            accessType: accessData.accessType,
+            price: accessData.price,
+            testTitle: accessData.testTitle,
+          });
+          setLoading(false);
+          return;
+        }
+
+        // If access granted, fetch test
         const res = await fetch(`/api/tests/${testId}`);
         const data = await res.json();
         if (data.test) {
@@ -257,6 +273,41 @@ export default function TestSolvePage() {
   }
 
   if (!test || test.questions.length === 0) {
+    // Access denied — show lock screen
+    if (accessDenied) {
+      return (
+        <div className="max-w-md mx-auto text-center py-16">
+          <div className="w-20 h-20 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <AlertCircle size={36} className="text-primary-600" />
+          </div>
+          <h2 className="text-xl font-bold text-text-primary mb-2">Test yopiq</h2>
+          <p className="text-text-secondary mb-6">
+            {accessDenied.testTitle && <span className="font-medium">&ldquo;{accessDenied.testTitle}&rdquo;</span>}
+            {' '}testiga kirish uchun
+            {accessDenied.accessType === 'premium' && ' Premium tarif'}
+            {accessDenied.accessType === 'teacher' && ' Ustoz tarif'}
+            {accessDenied.accessType === 'premium_teacher' && ' Premium yoki Ustoz tarif'}
+            {accessDenied.accessType === 'paid' && ` ${(accessDenied.price || 0).toLocaleString()} so'm to'lash`}
+            {' '}kerak.
+          </p>
+          {accessDenied.accessType === 'paid' ? (
+            <a
+              href={`https://t.me/EduPrimeuzbot?start=buy_test_${testId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-primary inline-flex items-center gap-2"
+            >
+              Sotib olish — {(accessDenied.price || 0).toLocaleString()} so&apos;m
+            </a>
+          ) : (
+            <a href="/pricing" className="btn-primary inline-flex items-center gap-2">
+              Tariflar sahifasi
+            </a>
+          )}
+        </div>
+      );
+    }
+
     return (
       <div className="text-center py-20">
         <AlertCircle size={48} className="text-red-400 mx-auto mb-4" />
