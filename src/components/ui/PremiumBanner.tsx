@@ -5,27 +5,48 @@ import { Crown, X, ArrowRight } from 'lucide-react';
 import { Link } from '@/i18n/routing';
 
 interface PremiumBannerProps {
-  userPlan?: string; // 'FREE' | 'PREMIUM' | 'TEACHER_PLAN'
+  userPlan?: string; // 'ADMIN' means hide completely
 }
 
 /**
- * Premium banner — Header pastida sticky ko'rinadi.
- * Faqat bepul tarif foydalanuvchilarga ko'rsatiladi.
- * ✕ bosilganda shu sessiya davomida yashirinadi.
- * Keyingi login'da yana ko'rinadi (sessionStorage ishlatiladi).
+ * Premium banner — Header pastida sticky.
+ * ADMIN dan boshqa HAMMAGA ko'rsatiladi (USER va TEACHER role).
+ * Agar aktiv subscription bo'lsa — ko'rsatilmaydi.
+ * ✕ bosilganda shu sessiya uchun yashirinadi.
  */
 export default function PremiumBanner({ userPlan }: PremiumBannerProps) {
-  const [dismissed, setDismissed] = useState(true); // Start hidden to avoid flash
+  const [dismissed, setDismissed] = useState(true);
+  const [hasSubscription, setHasSubscription] = useState(false);
 
   useEffect(() => {
-    // Only show for free users
-    if (userPlan && userPlan !== 'FREE' && userPlan !== 'USER') {
+    // Admin never sees banner
+    if (userPlan === 'ADMIN') {
       setDismissed(true);
       return;
     }
+
     // Check if dismissed this session
     const wasDismissed = sessionStorage.getItem('premium_banner_dismissed');
-    setDismissed(wasDismissed === 'true');
+    if (wasDismissed === 'true') {
+      setDismissed(true);
+      return;
+    }
+
+    // Check real subscription status
+    fetch('/api/subscription/status')
+      .then(r => r.json())
+      .then(data => {
+        if (data.plan && data.plan !== 'FREE') {
+          setHasSubscription(true);
+          setDismissed(true);
+        } else {
+          setDismissed(false);
+        }
+      })
+      .catch(() => {
+        // If API fails, show banner anyway
+        setDismissed(false);
+      });
   }, [userPlan]);
 
   const handleDismiss = () => {

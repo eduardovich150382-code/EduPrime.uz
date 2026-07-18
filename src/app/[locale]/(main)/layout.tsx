@@ -3,6 +3,7 @@ import MainLayoutClient from '@/components/layout/MainLayoutClient';
 import SessionProvider from '@/components/providers/SessionProvider';
 import ReferralHandler from '@/components/providers/ReferralHandler';
 import PremiumBanner from '@/components/ui/PremiumBanner';
+import SubscriptionExpiryBanner from '@/components/ui/SubscriptionExpiryBanner';
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 
@@ -19,15 +20,16 @@ export default async function MainLayout({
 
   const role = (session.user as any)?.role || 'USER';
 
-  // Determine user plan for banner visibility
-  // FREE users (role=USER without active subscription) see the banner
-  const userPlan = role === 'ADMIN' ? 'ADMIN' : role === 'TEACHER' ? 'TEACHER_PLAN' : 'FREE';
+  // Banner only hidden for ADMIN — everyone else sees it until they have active subscription
+  // Actual subscription check happens client-side in PremiumBanner component
+  const userPlan = role === 'ADMIN' ? 'ADMIN' : 'FREE';
 
   return (
     <SessionProvider>
       <ReferralHandler />
       <Header />
       <PremiumBanner userPlan={userPlan} />
+      <SubscriptionExpiryBanner />
       <MainLayoutClient role={role}>
         {children}
       </MainLayoutClient>
