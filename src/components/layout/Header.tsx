@@ -7,6 +7,7 @@ import { Menu, X, LogOut, User, Bell, Crown } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 import LanguageSwitcher from './LanguageSwitcher';
 import PremiumCTA from '@/components/ui/PremiumCTA';
+import ThemeToggle from '@/components/ui/ThemeToggle';
 
 export default function Header() {
   const t = useTranslations();
@@ -59,8 +60,28 @@ export default function Header() {
     };
   }, [showUserMenu]);
 
+  // Click outside to close mobile menu
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    function handleOutsideClick(event: MouseEvent) {
+      if (isMenuOpen && mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    }
+    if (isMenuOpen) {
+      // Small delay to avoid closing immediately on the button click
+      const timer = setTimeout(() => {
+        document.addEventListener('mousedown', handleOutsideClick);
+      }, 10);
+      return () => {
+        clearTimeout(timer);
+        document.removeEventListener('mousedown', handleOutsideClick);
+      };
+    }
+  }, [isMenuOpen]);
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-primary-100/50">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-[#1e1e2e]/90 backdrop-blur-lg border-b border-primary-100/50 dark:border-[#313244]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -91,6 +112,7 @@ export default function Header() {
 
           {/* Right side */}
           <div className="hidden md:flex items-center gap-3">
+            <ThemeToggle />
             <LanguageSwitcher />
 
             {isLoggedIn ? (
@@ -229,7 +251,7 @@ export default function Header() {
 
         {/* Mobile menu */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-border">
+          <div ref={mobileMenuRef} className="md:hidden py-4 border-t border-border dark:border-[#313244]">
             <nav className="flex flex-col gap-2">
               <Link href="/" className="btn-ghost text-sm" onClick={() => setIsMenuOpen(false)}>
                 {t('nav.home')}

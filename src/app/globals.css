@@ -26,6 +26,15 @@
   body {
     @apply bg-background text-text-primary font-sans antialiased;
   }
+
+  /* Dark mode overrides via .dark class on <html> */
+  .dark {
+    --color-surface: #1e1e2e;
+    --color-background: #11111b;
+    --color-text-primary: #cdd6f4;
+    --color-text-secondary: #a6adc8;
+    --color-border: #313244;
+  }
 }
 
 @layer components {
@@ -36,7 +45,7 @@
   }
 
   .btn-secondary {
-    @apply bg-white text-primary-600 border-2 border-primary-200 px-6 py-3 rounded-xl font-semibold
+    @apply bg-surface text-primary-600 border-2 border-primary-200 px-6 py-3 rounded-xl font-semibold
            hover:bg-primary-50 hover:border-primary-300 transition-all duration-300;
   }
 
@@ -59,6 +68,18 @@
 
   .gradient-bg {
     @apply bg-gradient-to-br from-primary-50 via-white to-primary-100;
+  }
+
+  .dark .gradient-bg {
+    background: linear-gradient(135deg, #1e1e2e, #11111b, #1e1e2e);
+  }
+
+  .dark .btn-secondary {
+    @apply bg-surface border-primary-700 text-primary-400;
+  }
+
+  .dark .card-elevated {
+    @apply border-primary-900;
   }
 
   .scrollbar-hide {
