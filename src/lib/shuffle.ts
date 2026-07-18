@@ -48,7 +48,8 @@ export function shuffleArray<T>(array: T[], seed: number): T[] {
 
 /**
  * Shuffle questions order for a test.
- * Options within each question are also shuffled.
+ * Options within each question are also shuffled, but A,B,C,D labels remain fixed.
+ * Only the option TEXT/IMAGE content moves — labels stay in order.
  */
 export function shuffleTest(
   questions: any[],
@@ -70,9 +71,16 @@ export function shuffleTest(
     const optionSeed = baseSeed + index + 1;
     const shuffledOptions = shuffleArray(question.options, optionSeed);
 
+    // Keep A,B,C,D labels in original order — only swap content
+    const labels = ['A', 'B', 'C', 'D', 'E'];
+    const relabeledOptions = shuffledOptions.map((opt: any, i: number) => ({
+      ...opt,
+      label: labels[i], // Always A,B,C,D,E in order
+    }));
+
     return {
       ...question,
-      options: shuffledOptions,
+      options: relabeledOptions,
     };
   });
 }

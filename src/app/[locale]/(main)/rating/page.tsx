@@ -29,7 +29,7 @@ export default function RatingPage() {
   useEffect(() => {
     async function fetchRating() {
       try {
-        const res = await fetch('/api/rating?limit=50');
+        const res = await fetch('/api/rating?limit=10');
         const data = await res.json();
         if (res.ok && data.users) {
           setUsers(data.users);

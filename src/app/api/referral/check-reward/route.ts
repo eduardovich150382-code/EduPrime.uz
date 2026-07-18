@@ -17,12 +17,12 @@ export async function POST(request: NextRequest) {
       where: { referrerId: userId },
     });
 
-    if (referralCount < 5) {
+    if (referralCount < 3) {
       return NextResponse.json({
         eligible: false,
         referralCount,
-        remaining: 5 - referralCount,
-        message: `Sizga yana ${5 - referralCount} ta do'st taklif qilish kerak`,
+        remaining: 3 - referralCount,
+        message: `Sizga yana ${3 - referralCount} ta do'st taklif qilish kerak`,
       });
     }
 

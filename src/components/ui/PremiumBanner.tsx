@@ -36,7 +36,7 @@ export default function PremiumBanner({ userPlan }: PremiumBannerProps) {
   if (dismissed) return null;
 
   return (
-    <div className="w-full bg-gradient-to-r from-primary-600 via-primary-500 to-purple-600 text-white relative z-40">
+    <div className="fixed top-16 left-0 right-0 w-full bg-gradient-to-r from-primary-600 via-primary-500 to-purple-600 text-white z-40">
       <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <Crown size={16} className="flex-shrink-0 text-yellow-300" />

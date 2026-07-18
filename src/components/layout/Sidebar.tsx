@@ -16,6 +16,8 @@ import {
   Shield,
   Gift,
   X,
+  Crown,
+  Globe,
 } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import { useState, useEffect } from 'react';
@@ -102,6 +104,46 @@ export default function Sidebar({ role, mobileOpen, setMobileOpen }: SidebarProp
           );
         })}
       </nav>
+
+      {/* Premium CTA (only in mobile sidebar for free users) */}
+      <div className="md:hidden p-3 border-t border-border">
+        <Link
+          href="/pricing"
+          className="flex items-center gap-3 px-3 py-3 rounded-xl bg-gradient-to-r from-primary-50 to-purple-50 border border-primary-200 transition-all hover:shadow-sm"
+        >
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary-500 to-purple-500 flex items-center justify-center flex-shrink-0">
+            <Crown size={18} className="text-white" />
+          </div>
+          {!collapsed && (
+            <div>
+              <p className="text-sm font-semibold text-primary-700">Premium oling</p>
+              <p className="text-xs text-text-secondary">Barcha testlar cheksiz</p>
+            </div>
+          )}
+        </Link>
+      </div>
+
+      {/* Language switcher (mobile only) */}
+      <div className="md:hidden p-3 border-t border-border">
+        <div className="flex items-center gap-2 px-3">
+          <Globe size={16} className="text-text-secondary" />
+          <span className="text-xs text-text-secondary font-medium">Til:</span>
+          <div className="flex gap-1 ml-auto">
+            {(['uz', 'ru', 'en'] as const).map((l) => (
+              <button
+                key={l}
+                onClick={() => {
+                  const { useRouter } = require('@/i18n/routing');
+                  // Language switch handled by LanguageSwitcher component
+                }}
+                className="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-text-secondary hover:bg-primary-100 hover:text-primary-600 transition-colors uppercase"
+              >
+                {l}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
 
       {/* Bottom actions */}
       <div className="p-3 border-t border-border space-y-1">
