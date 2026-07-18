@@ -3,6 +3,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
+import ThemeProvider from '@/components/providers/ThemeProvider';
 import '../globals.css';
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://eduprime.uz';
@@ -71,9 +72,11 @@ export default async function LocaleLayout({
         />
       </head>
       <body className="min-h-screen bg-background font-sans antialiased">
-        <NextIntlClientProvider messages={messages}>
-          {children}
-        </NextIntlClientProvider>
+        <ThemeProvider>
+          <NextIntlClientProvider messages={messages}>
+            {children}
+          </NextIntlClientProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

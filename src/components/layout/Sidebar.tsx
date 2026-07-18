@@ -33,6 +33,10 @@ export default function Sidebar({ role, mobileOpen, setMobileOpen }: SidebarProp
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
 
+  // User plan label
+  const planLabel = role === 'ADMIN' ? 'Admin' : role === 'TEACHER' ? 'Ustoz' : 'Bepul';
+  const planColor = role === 'ADMIN' ? 'text-red-600 bg-red-50' : role === 'TEACHER' ? 'text-purple-600 bg-purple-50' : 'text-text-secondary bg-gray-100';
+
   // Close mobile sidebar on route change
   useEffect(() => {
     setMobileOpen(false);
@@ -78,6 +82,17 @@ export default function Sidebar({ role, mobileOpen, setMobileOpen }: SidebarProp
 
   const sidebarContent = (
     <>
+      {/* Tarif ko'rsatish */}
+      {!collapsed && (
+        <div className="p-3 border-b border-border">
+          <div className="flex items-center gap-2 px-3 py-2">
+            <span className="text-xs text-text-secondary">Tarifingiz:</span>
+            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${planColor}`}>
+              {planLabel}
+            </span>
+          </div>
+        </div>
+      )}
       {/* Navigation */}
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {links.map((link) => {
@@ -175,7 +190,7 @@ export default function Sidebar({ role, mobileOpen, setMobileOpen }: SidebarProp
           onClick={() => setMobileOpen(false)}
         >
           <aside
-            className="absolute left-0 top-0 h-full w-64 bg-white border-r border-border flex flex-col shadow-xl"
+            className="absolute left-0 top-0 h-full w-64 bg-white dark:bg-[#1e1e2e] border-r border-border flex flex-col shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between p-3 border-b border-border">
@@ -195,7 +210,7 @@ export default function Sidebar({ role, mobileOpen, setMobileOpen }: SidebarProp
       {/* Desktop sidebar */}
       <aside
         className={cn(
-          'hidden md:flex fixed left-0 top-16 h-[calc(100vh-4rem)] bg-white border-r border-border z-40 transition-all duration-300 flex-col',
+          'hidden md:flex fixed left-0 top-16 h-[calc(100vh-4rem)] bg-white dark:bg-[#1e1e2e] border-r border-border z-40 transition-all duration-300 flex-col',
           collapsed ? 'w-16' : 'w-64'
         )}
       >

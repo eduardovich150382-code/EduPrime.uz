@@ -21,7 +21,7 @@ export default function BottomNav({ onMenuClick }: BottomNavProps) {
   const isProfile = pathname.endsWith('/profile');
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-[#1e1e2e] border-t border-gray-200 dark:border-[#313244] shadow-lg">
       <div className="flex items-center justify-around h-16">
         {/* Menu button */}
         <button

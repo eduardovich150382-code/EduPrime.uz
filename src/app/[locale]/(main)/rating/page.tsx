@@ -135,7 +135,7 @@ export default function RatingPage() {
                     )}
                   </div>
                   <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-gray-400 text-white text-xs font-bold flex items-center justify-center">
-                    2
+                    🥈
                   </div>
                 </div>
                 <p className="text-sm font-semibold text-text-primary truncate">{top3[1].name}</p>
@@ -158,7 +158,7 @@ export default function RatingPage() {
                     )}
                   </div>
                   <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-yellow-500 text-white text-sm font-bold flex items-center justify-center">
-                    1
+                    🥇
                   </div>
                 </div>
                 <div className="flex items-center justify-center gap-1 mb-0.5">
@@ -184,7 +184,7 @@ export default function RatingPage() {
                     )}
                   </div>
                   <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-orange-400 text-white text-xs font-bold flex items-center justify-center">
-                    3
+                    🥉
                   </div>
                 </div>
                 <p className="text-sm font-semibold text-text-primary truncate">{top3[2].name}</p>
