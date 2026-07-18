@@ -32,10 +32,30 @@ export default function Sidebar({ role, mobileOpen, setMobileOpen }: SidebarProp
   const t = useTranslations('nav');
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const [userPlan, setUserPlan] = useState<string>('Bepul');
+  const [planColor, setPlanColor] = useState<string>('text-text-secondary bg-gray-100');
 
-  // User plan label (role based — subscription check will be added later)
-  const planLabel = role === 'TEACHER' ? 'Ustoz' : 'Bepul';
-  const planColor = role === 'TEACHER' ? 'text-purple-600 bg-purple-50' : 'text-text-secondary bg-gray-100';
+  // Fetch real subscription status
+  useEffect(() => {
+    fetch('/api/subscription/status')
+      .then(r => r.json())
+      .then(data => {
+        if (data.plan === 'PREMIUM_TEACHER') {
+          setUserPlan('Premium+Ustoz');
+          setPlanColor('text-indigo-600 bg-indigo-50');
+        } else if (data.plan === 'PREMIUM') {
+          setUserPlan('Premium');
+          setPlanColor('text-purple-600 bg-purple-50');
+        } else if (data.plan === 'TEACHER_PLAN') {
+          setUserPlan('Ustoz');
+          setPlanColor('text-blue-600 bg-blue-50');
+        } else {
+          setUserPlan('Bepul');
+          setPlanColor('text-text-secondary bg-gray-100');
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Close mobile sidebar on route change
   useEffect(() => {
@@ -88,7 +108,7 @@ export default function Sidebar({ role, mobileOpen, setMobileOpen }: SidebarProp
           <div className="flex items-center gap-2 px-3 py-2">
             <span className="text-xs text-text-secondary">Tarifingiz:</span>
             <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${planColor}`}>
-              {planLabel}
+              {userPlan}
             </span>
           </div>
         </div>
