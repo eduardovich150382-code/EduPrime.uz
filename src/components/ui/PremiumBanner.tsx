@@ -37,12 +37,11 @@ export default function PremiumBanner({ userPlan }: PremiumBannerProps) {
 
   return (
     <div className="fixed top-16 left-0 right-0 w-full bg-gradient-to-r from-primary-600 via-primary-500 to-purple-600 text-white z-40">
-      <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between gap-3">
+      <div className="md:ml-64 px-4 py-2.5 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <Crown size={16} className="flex-shrink-0 text-yellow-300" />
-          <p className="text-xs sm:text-sm font-medium truncate">
-            <span className="hidden sm:inline">Premium ga o&apos;ting — barcha testlar, video yechimlar va reklama yo&apos;q!</span>
-            <span className="sm:hidden">Premium — barcha testlar cheksiz!</span>
+          <p className="text-xs sm:text-sm font-medium">
+            Premium ga o&apos;ting — barcha testlar cheksiz!
           </p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
@@ -50,7 +49,7 @@ export default function PremiumBanner({ userPlan }: PremiumBannerProps) {
             href="/pricing"
             className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white/20 hover:bg-white/30 text-white text-xs font-semibold transition-colors"
           >
-            Tariflar
+            Sotib olish
             <ArrowRight size={12} />
           </Link>
           <button

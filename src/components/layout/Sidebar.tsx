@@ -33,9 +33,9 @@ export default function Sidebar({ role, mobileOpen, setMobileOpen }: SidebarProp
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
 
-  // User plan label
-  const planLabel = role === 'ADMIN' ? 'Admin' : role === 'TEACHER' ? 'Ustoz' : 'Bepul';
-  const planColor = role === 'ADMIN' ? 'text-red-600 bg-red-50' : role === 'TEACHER' ? 'text-purple-600 bg-purple-50' : 'text-text-secondary bg-gray-100';
+  // User plan label (role based — subscription check will be added later)
+  const planLabel = role === 'TEACHER' ? 'Ustoz' : 'Bepul';
+  const planColor = role === 'TEACHER' ? 'text-purple-600 bg-purple-50' : 'text-text-secondary bg-gray-100';
 
   // Close mobile sidebar on route change
   useEffect(() => {
@@ -190,7 +190,7 @@ export default function Sidebar({ role, mobileOpen, setMobileOpen }: SidebarProp
           onClick={() => setMobileOpen(false)}
         >
           <aside
-            className="absolute left-0 top-0 h-full w-64 bg-white dark:bg-[#1e1e2e] border-r border-border flex flex-col shadow-xl"
+            className="absolute left-0 top-0 h-full w-64 bg-white border-r border-border flex flex-col shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between p-3 border-b border-border">
@@ -210,7 +210,7 @@ export default function Sidebar({ role, mobileOpen, setMobileOpen }: SidebarProp
       {/* Desktop sidebar */}
       <aside
         className={cn(
-          'hidden md:flex fixed left-0 top-16 h-[calc(100vh-4rem)] bg-white dark:bg-[#1e1e2e] border-r border-border z-40 transition-all duration-300 flex-col',
+          'hidden md:flex fixed left-0 top-16 h-[calc(100vh-4rem)] bg-white border-r border-border z-40 transition-all duration-300 flex-col',
           collapsed ? 'w-16' : 'w-64'
         )}
       >
