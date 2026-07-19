@@ -279,7 +279,7 @@ export default function AdminPaymentsPage() {
         </div>
       )}
 
-      {/* Receipt Photo Modal */}
+      {/* Receipt Photo/PDF Modal */}
       {viewingReceipt && (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setViewingReceipt(null)}>
           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
@@ -310,13 +310,24 @@ export default function AdminPaymentsPage() {
                   <Loader2 size={32} className="animate-spin text-primary-600" />
                 </div>
               )}
-              <img
-                src={viewingReceipt}
-                alt="To'lov cheki"
-                className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-sm"
-                onLoad={() => setReceiptLoading(false)}
-                onError={() => setReceiptLoading(false)}
-              />
+              {viewingReceipt.toLowerCase().endsWith('.pdf') || viewingReceipt.includes('/documents/') ? (
+                <div className="w-full h-[70vh]">
+                  <iframe
+                    src={viewingReceipt}
+                    className="w-full h-full rounded-lg border border-border"
+                    title="To'lov cheki PDF"
+                    onLoad={() => setReceiptLoading(false)}
+                  />
+                </div>
+              ) : (
+                <img
+                  src={viewingReceipt}
+                  alt="To'lov cheki"
+                  className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-sm"
+                  onLoad={() => setReceiptLoading(false)}
+                  onError={() => setReceiptLoading(false)}
+                />
+              )}
             </div>
           </motion.div>
         </div>
