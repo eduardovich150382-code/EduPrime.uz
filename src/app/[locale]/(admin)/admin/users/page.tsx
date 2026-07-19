@@ -237,7 +237,7 @@ export default function AdminUsersPage() {
                       <th className="text-left px-6 py-3 text-xs font-semibold text-text-secondary uppercase">Rol</th>
                       <th className="text-left px-6 py-3 text-xs font-semibold text-text-secondary uppercase">Testlar</th>
                       <th className="text-left px-6 py-3 text-xs font-semibold text-text-secondary uppercase">Sana</th>
-                      <th className="text-left px-6 py-3 text-xs font-semibold text-text-secondary uppercase">Rol o&apos;zgartirish</th>
+                      <th className="text-left px-6 py-3 text-xs font-semibold text-text-secondary uppercase">Amallar</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -267,16 +267,24 @@ export default function AdminUsersPage() {
                           {new Date(user.createdAt).toLocaleDateString('uz-UZ')}
                         </td>
                         <td className="px-6 py-4">
-                          <select
-                            value={user.role}
-                            onChange={(e) => changeRole(user.id, e.target.value)}
-                            disabled={changingRole === user.id}
-                            className="px-3 py-1.5 rounded-lg border border-border text-xs font-medium bg-white focus:ring-2 focus:ring-primary-500/20 disabled:opacity-50"
-                          >
-                            <option value="USER">USER</option>
-                            <option value="TEACHER">TEACHER</option>
-                            <option value="ADMIN">ADMIN</option>
-                          </select>
+                          <div className="flex items-center gap-1">
+                            <button onClick={() => viewProfile(user.id)} className="p-2 rounded-lg hover:bg-primary-50 text-primary-600 transition-colors" title="Profil ko'rish">
+                              <Eye size={15} />
+                            </button>
+                            <button onClick={() => toggleBan(user.id, user.isBanned)} className={`p-2 rounded-lg transition-colors ${user.isBanned ? 'hover:bg-green-50 text-green-600' : 'hover:bg-red-50 text-red-500'}`} title={user.isBanned ? 'Blokni olish' : 'Bloklash'}>
+                              <Ban size={15} />
+                            </button>
+                            <select
+                              value={user.role}
+                              onChange={(e) => changeRole(user.id, e.target.value)}
+                              disabled={changingRole === user.id}
+                              className="px-3 py-1.5 rounded-lg border border-border text-xs font-medium bg-white focus:ring-2 focus:ring-primary-500/20 disabled:opacity-50"
+                            >
+                              <option value="USER">USER</option>
+                              <option value="TEACHER">TEACHER</option>
+                              <option value="ADMIN">ADMIN</option>
+                            </select>
+                          </div>
                         </td>
                       </tr>
                     ))}
