@@ -66,8 +66,12 @@ export async function GET(request: NextRequest) {
       where: { referrerId: userId },
     });
 
+    // Read dynamic settings for reward threshold
+    const friendsRequiredSetting = await db.systemSetting.findUnique({ where: { key: 'referral_friends_required' } });
+    const friendsRequired = parseInt(friendsRequiredSetting?.value || '3');
+
     // Check reward status
-    const hasReward = referralCount >= 5;
+    const hasReward = referralCount >= friendsRequired;
     
     // Check if reward subscription already granted (referral reward has no payment)
     let rewardGranted = false;
@@ -88,7 +92,7 @@ export async function GET(request: NextRequest) {
       referralCount,
       hasReward,
       rewardGranted,
-      remainingToReward: Math.max(0, 5 - referralCount),
+      remainingToReward: Math.max(0, friendsRequired - referralCount),
     });
   } catch (error) {
     console.error('GET /api/referral error:', error);
