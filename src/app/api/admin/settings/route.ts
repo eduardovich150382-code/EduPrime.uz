@@ -10,6 +10,12 @@ const DEFAULT_SETTINGS = [
   { key: 'premium_price_1_year', value: '270000' },
   { key: 'telegram_support_username', value: '' },
   { key: 'site_announcement', value: '' },
+  { key: 'referral_friends_required', value: '3' },
+  { key: 'referral_reward_days', value: '5' },
+  { key: 'free_daily_test_limit', value: '3' },
+  { key: 'subscription_alert_days', value: '7,3,1' },
+  { key: 'bot_welcome_message', value: '' },
+  { key: 'bot_payment_message', value: '' },
 ];
 
 // GET /api/admin/settings — get all settings (ADMIN only)

@@ -16,6 +16,11 @@ interface SettingsForm {
   premium_price_1_year: string;
   telegram_support_username: string;
   site_announcement: string;
+  referral_friends_required: string;
+  referral_reward_days: string;
+  free_daily_test_limit: string;
+  subscription_alert_days: string;
+  bot_welcome_message: string;
 }
 
 const settingsMeta: { key: keyof SettingsForm; label: string; placeholder: string; icon: any; type?: string }[] = [
@@ -26,6 +31,11 @@ const settingsMeta: { key: keyof SettingsForm; label: string; placeholder: strin
   { key: 'premium_price_1_year', label: 'Premium narx (1 yil)', placeholder: '270000', icon: DollarSign, type: 'number' },
   { key: 'telegram_support_username', label: 'Telegram qo\'llab-quvvatlash', placeholder: '@EduPrimeuz_support', icon: MessageCircle },
   { key: 'site_announcement', label: 'Sayt e\'loni', placeholder: 'Yangi funksiyalar qo\'shildi!', icon: Megaphone },
+  { key: 'referral_friends_required', label: 'Referral: nechta do\'st kerak', placeholder: '3', icon: DollarSign, type: 'number' },
+  { key: 'referral_reward_days', label: 'Referral: necha kun premium', placeholder: '5', icon: DollarSign, type: 'number' },
+  { key: 'free_daily_test_limit', label: 'Bepul: kunlik test limiti', placeholder: '3', icon: DollarSign, type: 'number' },
+  { key: 'subscription_alert_days', label: 'Obuna ogohlantirish kunlari', placeholder: '7,3,1', icon: MessageCircle },
+  { key: 'bot_welcome_message', label: 'Bot: xush kelibsiz xabari', placeholder: 'Salom! EduPrime.uz ga xush kelibsiz!', icon: MessageCircle },
 ];
 
 export default function AdminSettingsPage() {
@@ -37,6 +47,11 @@ export default function AdminSettingsPage() {
     premium_price_1_year: '270000',
     telegram_support_username: '',
     site_announcement: '',
+    referral_friends_required: '3',
+    referral_reward_days: '5',
+    free_daily_test_limit: '3',
+    subscription_alert_days: '7,3,1',
+    bot_welcome_message: '',
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

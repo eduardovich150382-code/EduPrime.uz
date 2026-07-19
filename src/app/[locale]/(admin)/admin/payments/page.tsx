@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
-  CreditCard, CheckCircle, XCircle, Clock, User, Search,
-  Loader2, RefreshCw, Image as ImageIcon, Filter,
+  CreditCard, CheckCircle, XCircle, Clock, User,
+  Loader2, RefreshCw, Download, TrendingUp, X, Eye,
 } from 'lucide-react';
 import BackButton from '@/components/ui/BackButton';
 
@@ -33,41 +33,20 @@ interface PaymentData {
 function getStatusBadge(status: string) {
   switch (status) {
     case 'CONFIRMED':
-      return (
-        <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-medium">
-          <CheckCircle size={12} /> Tasdiqlangan
-        </span>
-      );
+      return <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-medium"><CheckCircle size={12} /> Tasdiqlangan</span>;
     case 'REJECTED':
-      return (
-        <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-medium">
-          <XCircle size={12} /> Rad etilgan
-        </span>
-      );
+      return <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-medium"><XCircle size={12} /> Rad</span>;
     default:
-      return (
-        <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 text-xs font-medium">
-          <Clock size={12} /> Kutilmoqda
-        </span>
-      );
+      return <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 text-xs font-medium"><Clock size={12} /> Kutilmoqda</span>;
   }
 }
 
-function getDurationLabel(duration: string) {
-  switch (duration) {
-    case 'ONE_MONTH': return '1 oy';
-    case 'SIX_MONTHS': return '6 oy';
-    case 'ONE_YEAR': return '1 yil';
-    default: return duration;
-  }
+function getDurationLabel(d: string) {
+  return d === 'ONE_MONTH' ? '1 oy' : d === 'SIX_MONTHS' ? '6 oy' : d === 'ONE_YEAR' ? '1 yil' : d;
 }
 
-function getPlanLabel(plan: string) {
-  switch (plan) {
-    case 'PREMIUM': return 'Premium';
-    case 'TEACHER_PLAN': return 'Ustoz';
-    default: return plan;
-  }
+function getPlanLabel(p: string) {
+  return p === 'PREMIUM' ? 'Premium' : p === 'TEACHER_PLAN' ? 'Ustoz' : p;
 }
 
 export default function AdminPaymentsPage() {
@@ -76,6 +55,7 @@ export default function AdminPaymentsPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [counts, setCounts] = useState({ pending: 0, confirmed: 0, rejected: 0 });
   const [processing, setProcessing] = useState<string | null>(null);
+  const [viewingReceipt, setViewingReceipt] = useState<string | null>(null);
 
   const fetchPayments = async () => {
     setLoading(true);
@@ -84,19 +64,12 @@ export default function AdminPaymentsPage() {
       if (statusFilter) params.set('status', statusFilter);
       const res = await fetch(`/api/admin/payments?${params.toString()}`);
       const data = await res.json();
-      if (data.payments) {
-        setPayments(data.payments);
-        setCounts(data.counts);
-      }
-    } catch (error) {
-      console.error('Failed to fetch payments:', error);
-    }
+      if (data.payments) { setPayments(data.payments); setCounts(data.counts); }
+    } catch (error) { console.error('Failed to fetch payments:', error); }
     setLoading(false);
   };
 
-  useEffect(() => {
-    fetchPayments();
-  }, [statusFilter]);
+  useEffect(() => { fetchPayments(); }, [statusFilter]);
 
   const handleAction = async (paymentId: string, action: 'confirm' | 'reject') => {
     setProcessing(paymentId);
@@ -106,24 +79,38 @@ export default function AdminPaymentsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ paymentId, action }),
       });
-      const data = await res.json();
-      if (res.ok) {
-        fetchPayments();
-      } else {
-        alert(data.error || 'Xatolik yuz berdi');
-      }
-    } catch (error) {
-      alert('Server xatolik');
-    }
+      if (res.ok) fetchPayments();
+      else { const d = await res.json(); alert(d.error || 'Xatolik'); }
+    } catch { alert('Server xatolik'); }
     setProcessing(null);
   };
+
+  // CSV Export
+  const exportCSV = () => {
+    const header = 'Ism,Telegram,Tarif,Muddat,Summa,Holat,Sana\n';
+    const rows = payments.map(p =>
+      `"${p.user.name || ''}","${p.user.telegramUsername || ''}","${getPlanLabel(p.plan)}","${getDurationLabel(p.duration)}",${p.amount},"${p.status}","${new Date(p.createdAt).toLocaleDateString('uz-UZ')}"`
+    ).join('\n');
+    const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `tolovlar_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+  };
+
+  // Revenue stats
+  const totalRevenue = payments.filter(p => p.status === 'CONFIRMED').reduce((sum, p) => sum + p.amount, 0);
+  const thisMonthRevenue = payments.filter(p => {
+    if (p.status !== 'CONFIRMED') return false;
+    const d = new Date(p.confirmedAt || p.createdAt);
+    const now = new Date();
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  }).reduce((sum, p) => sum + p.amount, 0);
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <BackButton className="mb-2" />
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
         className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
       >
         <div>
@@ -131,193 +118,125 @@ export default function AdminPaymentsPage() {
             <CreditCard size={24} className="text-primary-600" />
             To&apos;lovlar
           </h1>
-          <p className="text-text-secondary mt-1">Barcha to&apos;lovlar va ularning holatlari</p>
+          <p className="text-text-secondary mt-1">Barcha to&apos;lovlar va daromad statistikasi</p>
         </div>
-        <button onClick={fetchPayments} className="btn-ghost flex items-center gap-2 self-start">
-          <RefreshCw size={16} />
-          Yangilash
-        </button>
+        <div className="flex gap-2 self-start">
+          <button onClick={exportCSV} className="btn-ghost flex items-center gap-2 text-sm">
+            <Download size={16} /> CSV
+          </button>
+          <button onClick={fetchPayments} className="btn-ghost flex items-center gap-2 text-sm">
+            <RefreshCw size={16} /> Yangilash
+          </button>
+        </div>
       </motion.div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-3 sm:gap-4">
-        <button
-          onClick={() => setStatusFilter(statusFilter === 'PENDING' ? '' : 'PENDING')}
-          className={`card p-3 sm:p-4 text-center transition-all ${statusFilter === 'PENDING' ? 'ring-2 ring-yellow-400' : ''}`}
-        >
-          <p className="text-xl sm:text-2xl font-bold text-yellow-600">{counts.pending}</p>
-          <p className="text-xs text-text-secondary">Kutilmoqda</p>
+      {/* Revenue + Status Stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <div className="card p-4 col-span-2 sm:col-span-2 bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+          <TrendingUp size={18} className="text-green-600 mb-1" />
+          <p className="text-xl font-bold text-green-700">{totalRevenue.toLocaleString()} <span className="text-sm font-normal">so&apos;m</span></p>
+          <p className="text-xs text-green-600">Jami daromad (tasdiqlangan)</p>
+          <p className="text-xs text-text-secondary mt-1">Bu oy: {thisMonthRevenue.toLocaleString()} so&apos;m</p>
+        </div>
+        <button onClick={() => setStatusFilter(statusFilter === 'PENDING' ? '' : 'PENDING')}
+          className={`card p-3 text-center transition-all ${statusFilter === 'PENDING' ? 'ring-2 ring-yellow-400' : ''}`}>
+          <p className="text-xl font-bold text-yellow-600">{counts.pending}</p>
+          <p className="text-[10px] text-text-secondary">Kutilmoqda</p>
         </button>
-        <button
-          onClick={() => setStatusFilter(statusFilter === 'CONFIRMED' ? '' : 'CONFIRMED')}
-          className={`card p-3 sm:p-4 text-center transition-all ${statusFilter === 'CONFIRMED' ? 'ring-2 ring-green-400' : ''}`}
-        >
-          <p className="text-xl sm:text-2xl font-bold text-green-600">{counts.confirmed}</p>
-          <p className="text-xs text-text-secondary">Tasdiqlangan</p>
+        <button onClick={() => setStatusFilter(statusFilter === 'CONFIRMED' ? '' : 'CONFIRMED')}
+          className={`card p-3 text-center transition-all ${statusFilter === 'CONFIRMED' ? 'ring-2 ring-green-400' : ''}`}>
+          <p className="text-xl font-bold text-green-600">{counts.confirmed}</p>
+          <p className="text-[10px] text-text-secondary">Tasdiqlangan</p>
         </button>
-        <button
-          onClick={() => setStatusFilter(statusFilter === 'REJECTED' ? '' : 'REJECTED')}
-          className={`card p-3 sm:p-4 text-center transition-all ${statusFilter === 'REJECTED' ? 'ring-2 ring-red-400' : ''}`}
-        >
-          <p className="text-xl sm:text-2xl font-bold text-red-600">{counts.rejected}</p>
-          <p className="text-xs text-text-secondary">Rad etilgan</p>
+        <button onClick={() => setStatusFilter(statusFilter === 'REJECTED' ? '' : 'REJECTED')}
+          className={`card p-3 text-center transition-all ${statusFilter === 'REJECTED' ? 'ring-2 ring-red-400' : ''}`}>
+          <p className="text-xl font-bold text-red-600">{counts.rejected}</p>
+          <p className="text-[10px] text-text-secondary">Rad etilgan</p>
         </button>
       </div>
 
-      {/* Payments list */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-      >
-        {loading ? (
-          <div className="card p-12 text-center">
-            <Loader2 size={32} className="animate-spin text-primary-600 mx-auto mb-2" />
-            <p className="text-text-secondary text-sm">Yuklanmoqda...</p>
-          </div>
-        ) : payments.length === 0 ? (
-          <div className="card p-12 text-center">
-            <CreditCard size={48} className="text-text-secondary mx-auto mb-4 opacity-30" />
-            <p className="text-text-secondary">To&apos;lovlar topilmadi</p>
-          </div>
-        ) : (
-          <>
-            {/* Mobile cards */}
-            <div className="space-y-3 md:hidden">
-              {payments.map((payment) => (
-                <div key={payment.id} className="card p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      {payment.user.image ? (
-                        <img src={payment.user.image} alt="" className="w-8 h-8 rounded-full object-cover" />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
-                          <User size={14} className="text-primary-600" />
-                        </div>
-                      )}
-                      <div>
-                        <p className="font-medium text-text-primary text-sm">{payment.user.name || 'Nomsiz'}</p>
-                        <p className="text-xs text-text-secondary">
-                          {payment.user.telegramUsername ? `@${payment.user.telegramUsername}` : payment.user.email}
-                        </p>
-                      </div>
-                    </div>
+      {/* Payments list — Mobile card layout */}
+      {loading ? (
+        <div className="card p-12 text-center"><Loader2 size={32} className="animate-spin text-primary-600 mx-auto" /></div>
+      ) : payments.length === 0 ? (
+        <div className="card p-12 text-center"><CreditCard size={48} className="text-text-secondary mx-auto mb-4 opacity-30" /><p className="text-text-secondary">To&apos;lovlar topilmadi</p></div>
+      ) : (
+        <div className="space-y-3">
+          {payments.map((payment) => (
+            <div key={payment.id} className="card p-4">
+              <div className="flex items-start gap-3">
+                {/* User */}
+                <div className="w-9 h-9 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  {payment.user.image ? (
+                    <img src={payment.user.image} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <User size={16} className="text-primary-600" />
+                  )}
+                </div>
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <p className="font-medium text-text-primary text-sm truncate">{payment.user.name || 'Nomsiz'}</p>
                     {getStatusBadge(payment.status)}
                   </div>
-
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-text-secondary">
-                      {getPlanLabel(payment.plan)} ({getDurationLabel(payment.duration)})
-                    </span>
-                    <span className="font-semibold text-text-primary">
-                      {payment.amount.toLocaleString()} so&apos;m
-                    </span>
+                  <p className="text-xs text-text-secondary mb-2">
+                    {payment.user.telegramUsername ? `@${payment.user.telegramUsername}` : payment.user.email}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-secondary">
+                    <span className="font-semibold text-text-primary">{payment.amount.toLocaleString()} so&apos;m</span>
+                    <span>{getPlanLabel(payment.plan)} ({getDurationLabel(payment.duration)})</span>
+                    <span>{new Date(payment.createdAt).toLocaleDateString('uz-UZ')}</span>
                   </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-text-secondary">
-                      {new Date(payment.createdAt).toLocaleDateString('uz-UZ')}
-                    </span>
+                  {/* Actions */}
+                  <div className="flex items-center gap-2 mt-3">
+                    {payment.receiptPhoto && (
+                      <button
+                        onClick={() => setViewingReceipt(payment.receiptPhoto)}
+                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-blue-50 text-blue-700 text-xs font-medium hover:bg-blue-100 transition-colors"
+                      >
+                        <Eye size={12} /> Chekni ko&apos;rish
+                      </button>
+                    )}
                     {payment.status === 'PENDING' && (
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleAction(payment.id, 'confirm')}
-                          disabled={processing === payment.id}
-                          className="px-3 py-1.5 rounded-lg bg-green-100 text-green-700 text-xs font-medium hover:bg-green-200 transition-colors disabled:opacity-50"
-                        >
-                          <CheckCircle size={12} className="inline mr-1" />
-                          Tasdiqlash
+                      <>
+                        <button onClick={() => handleAction(payment.id, 'confirm')} disabled={processing === payment.id}
+                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-green-100 text-green-700 text-xs font-medium hover:bg-green-200 transition-colors disabled:opacity-50">
+                          <CheckCircle size={12} /> Tasdiqlash
                         </button>
-                        <button
-                          onClick={() => handleAction(payment.id, 'reject')}
-                          disabled={processing === payment.id}
-                          className="px-3 py-1.5 rounded-lg bg-red-100 text-red-700 text-xs font-medium hover:bg-red-200 transition-colors disabled:opacity-50"
-                        >
-                          <XCircle size={12} className="inline mr-1" />
-                          Rad etish
+                        <button onClick={() => handleAction(payment.id, 'reject')} disabled={processing === payment.id}
+                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-red-100 text-red-700 text-xs font-medium hover:bg-red-200 transition-colors disabled:opacity-50">
+                          <XCircle size={12} /> Rad
                         </button>
-                      </div>
+                      </>
+                    )}
+                    {payment.confirmedBy && payment.status !== 'PENDING' && (
+                      <span className="text-[10px] text-text-secondary">
+                        {payment.confirmedBy.name} tomonidan
+                      </span>
                     )}
                   </div>
                 </div>
-              ))}
-            </div>
-
-            {/* Desktop table */}
-            <div className="card overflow-hidden hidden md:block">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-border bg-gray-50">
-                      <th className="text-left px-6 py-3 text-xs font-semibold text-text-secondary uppercase">Foydalanuvchi</th>
-                      <th className="text-left px-6 py-3 text-xs font-semibold text-text-secondary uppercase">Tarif</th>
-                      <th className="text-left px-6 py-3 text-xs font-semibold text-text-secondary uppercase">Summa</th>
-                      <th className="text-left px-6 py-3 text-xs font-semibold text-text-secondary uppercase">Holat</th>
-                      <th className="text-left px-6 py-3 text-xs font-semibold text-text-secondary uppercase">Sana</th>
-                      <th className="text-left px-6 py-3 text-xs font-semibold text-text-secondary uppercase">Amallar</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {payments.map((payment) => (
-                      <tr key={payment.id} className="border-b border-border hover:bg-primary-50/30 transition-colors">
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            {payment.user.image ? (
-                              <img src={payment.user.image} alt="" className="w-8 h-8 rounded-full object-cover" />
-                            ) : (
-                              <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
-                                <User size={14} className="text-primary-600" />
-                              </div>
-                            )}
-                            <div>
-                              <p className="font-medium text-text-primary text-sm">{payment.user.name || 'Nomsiz'}</p>
-                              <p className="text-xs text-text-secondary">
-                                {payment.user.telegramUsername ? `@${payment.user.telegramUsername}` : payment.user.email}
-                              </p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-sm">
-                          {getPlanLabel(payment.plan)} ({getDurationLabel(payment.duration)})
-                        </td>
-                        <td className="px-6 py-4 text-sm font-semibold">{payment.amount.toLocaleString()} so&apos;m</td>
-                        <td className="px-6 py-4">{getStatusBadge(payment.status)}</td>
-                        <td className="px-6 py-4 text-sm text-text-secondary">
-                          {new Date(payment.createdAt).toLocaleDateString('uz-UZ')}
-                        </td>
-                        <td className="px-6 py-4">
-                          {payment.status === 'PENDING' ? (
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => handleAction(payment.id, 'confirm')}
-                                disabled={processing === payment.id}
-                                className="px-3 py-1.5 rounded-lg bg-green-100 text-green-700 text-xs font-medium hover:bg-green-200 transition-colors disabled:opacity-50"
-                              >
-                                Tasdiqlash
-                              </button>
-                              <button
-                                onClick={() => handleAction(payment.id, 'reject')}
-                                disabled={processing === payment.id}
-                                className="px-3 py-1.5 rounded-lg bg-red-100 text-red-700 text-xs font-medium hover:bg-red-200 transition-colors disabled:opacity-50"
-                              >
-                                Rad etish
-                              </button>
-                            </div>
-                          ) : (
-                            <span className="text-xs text-text-secondary">
-                              {payment.confirmedBy?.name && `${payment.confirmedBy.name}`}
-                            </span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
               </div>
             </div>
-          </>
-        )}
-      </motion.div>
+          ))}
+        </div>
+      )}
+
+      {/* Receipt Photo Modal */}
+      {viewingReceipt && (
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setViewingReceipt(null)}>
+          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+            className="relative max-w-lg w-full max-h-[80vh] bg-white rounded-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-4 border-b border-border">
+              <h3 className="font-semibold text-text-primary">To&apos;lov cheki</h3>
+              <button onClick={() => setViewingReceipt(null)} className="p-2 rounded-lg hover:bg-gray-100"><X size={20} /></button>
+            </div>
+            <div className="p-4 overflow-auto max-h-[70vh]">
+              <img src={viewingReceipt} alt="To'lov cheki" className="w-full h-auto rounded-lg" />
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }
