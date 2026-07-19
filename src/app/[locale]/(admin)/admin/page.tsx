@@ -6,7 +6,7 @@ import { Link } from '@/i18n/routing';
 import {
   Users, BookOpen, CreditCard, TrendingUp, Shield,
   Clock, Crown, UserPlus, CheckCircle, XCircle,
-  ArrowRight, BarChart3, Loader2,
+  ArrowRight, BarChart3, Loader2, Bell,
 } from 'lucide-react';
 
 interface DashboardData {
@@ -229,7 +229,7 @@ export default function AdminDashboard() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="grid grid-cols-2 sm:grid-cols-4 gap-3"
+        className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3"
       >
         <Link href="/admin/users" className="card p-4 text-center hover:border-primary-200">
           <Users size={20} className="text-blue-600 mx-auto mb-2" />
@@ -243,9 +243,17 @@ export default function AdminDashboard() {
           <Crown size={20} className="text-orange-600 mx-auto mb-2" />
           <p className="text-xs font-medium text-text-primary">Ustozlar</p>
         </Link>
+        <Link href="/admin/payments" className="card p-4 text-center hover:border-primary-200">
+          <CreditCard size={20} className="text-emerald-600 mx-auto mb-2" />
+          <p className="text-xs font-medium text-text-primary">To&apos;lovlar</p>
+        </Link>
         <Link href="/admin/subscriptions" className="card p-4 text-center hover:border-primary-200">
           <Crown size={20} className="text-purple-600 mx-auto mb-2" />
           <p className="text-xs font-medium text-text-primary">Obunalar</p>
+        </Link>
+        <Link href="/admin/notifications" className="card p-4 text-center hover:border-primary-200">
+          <Bell size={20} className="text-pink-600 mx-auto mb-2" />
+          <p className="text-xs font-medium text-text-primary">Xabar yuborish</p>
         </Link>
       </motion.div>
     </div>
