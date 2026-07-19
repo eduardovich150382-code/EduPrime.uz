@@ -229,7 +229,7 @@ export default function AdminDashboard() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3"
+        className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3"
       >
         <Link href="/admin/users" className="card p-4 text-center hover:border-primary-200">
           <Users size={20} className="text-blue-600 mx-auto mb-2" />
@@ -254,6 +254,10 @@ export default function AdminDashboard() {
         <Link href="/admin/notifications" className="card p-4 text-center hover:border-primary-200">
           <Bell size={20} className="text-pink-600 mx-auto mb-2" />
           <p className="text-xs font-medium text-text-primary">Xabar yuborish</p>
+        </Link>
+        <Link href="/admin/settings" className="card p-4 text-center hover:border-primary-200">
+          <BarChart3 size={20} className="text-gray-600 mx-auto mb-2" />
+          <p className="text-xs font-medium text-text-primary">Sozlamalar</p>
         </Link>
       </motion.div>
     </div>
