@@ -239,13 +239,13 @@ export default function AdminDashboard() {
           <BookOpen size={20} className="text-green-600 mx-auto mb-2" />
           <p className="text-xs font-medium text-text-primary">Testlar</p>
         </Link>
+        <Link href="/admin/teachers" className="card p-4 text-center hover:border-primary-200">
+          <Crown size={20} className="text-orange-600 mx-auto mb-2" />
+          <p className="text-xs font-medium text-text-primary">Ustozlar</p>
+        </Link>
         <Link href="/admin/subscriptions" className="card p-4 text-center hover:border-primary-200">
           <Crown size={20} className="text-purple-600 mx-auto mb-2" />
           <p className="text-xs font-medium text-text-primary">Obunalar</p>
-        </Link>
-        <Link href="/admin/notifications" className="card p-4 text-center hover:border-primary-200">
-          <CreditCard size={20} className="text-pink-600 mx-auto mb-2" />
-          <p className="text-xs font-medium text-text-primary">Xabar yuborish</p>
         </Link>
       </motion.div>
     </div>
