@@ -48,6 +48,8 @@ export default function TestSolvePage() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [questionTimeSpent, setQuestionTimeSpent] = useState<Record<number, number>>({});
+  const questionStartTimeRef = useRef<number>(Date.now());
 
   // Auto-save to localStorage
   useEffect(() => {
@@ -216,12 +218,20 @@ export default function TestSolvePage() {
 
   const handleNext = () => {
     if (test && currentQuestion < test.questions.length - 1) {
+      // Track time spent on current question
+      const elapsed = Math.floor((Date.now() - questionStartTimeRef.current) / 1000);
+      setQuestionTimeSpent(prev => ({ ...prev, [currentQuestion]: (prev[currentQuestion] || 0) + elapsed }));
+      questionStartTimeRef.current = Date.now();
       setCurrentQuestion(currentQuestion + 1);
     }
   };
 
   const handlePrev = () => {
     if (currentQuestion > 0) {
+      // Track time spent on current question
+      const elapsed = Math.floor((Date.now() - questionStartTimeRef.current) / 1000);
+      setQuestionTimeSpent(prev => ({ ...prev, [currentQuestion]: (prev[currentQuestion] || 0) + elapsed }));
+      questionStartTimeRef.current = Date.now();
       setCurrentQuestion(currentQuestion - 1);
     }
   };
@@ -232,10 +242,15 @@ export default function TestSolvePage() {
 
     const timeSpent = Math.floor((Date.now() - startTime) / 1000);
 
-    // Prepare answers array
+    // Capture time for current question before submit
+    const elapsed = Math.floor((Date.now() - questionStartTimeRef.current) / 1000);
+    const finalTimeSpent = { ...questionTimeSpent, [currentQuestion]: (questionTimeSpent[currentQuestion] || 0) + elapsed };
+
+    // Prepare answers array with per-question time
     const answerArray = test.questions.map((q, i) => ({
       questionId: q.id,
       answer: answers[i] || '',
+      timeSpent: finalTimeSpent[i] || 0,
     }));
 
     try {
@@ -324,11 +339,11 @@ export default function TestSolvePage() {
   return (
     <div className="max-w-7xl mx-auto" ref={containerRef}>
       <BackButton className="mb-4" />
-      {/* Top bar */}
+      {/* Top bar — sticky */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 card p-3 sm:p-4 gap-3 sm:gap-0"
+        className="sticky top-16 z-30 flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 card p-3 sm:p-4 gap-3 sm:gap-0"
       >
         <div>
           <h1 className="font-semibold text-text-primary text-sm sm:text-base">{test.titleUz}</h1>
@@ -467,7 +482,13 @@ export default function TestSolvePage() {
             totalQuestions={totalQuestions}
             currentQuestion={currentQuestion}
             answers={answers}
-            onNavigate={setCurrentQuestion}
+            onNavigate={(index) => {
+              // Track time on current question before navigating
+              const elapsed = Math.floor((Date.now() - questionStartTimeRef.current) / 1000);
+              setQuestionTimeSpent(prev => ({ ...prev, [currentQuestion]: (prev[currentQuestion] || 0) + elapsed }));
+              questionStartTimeRef.current = Date.now();
+              setCurrentQuestion(index);
+            }}
             flaggedQuestions={flaggedQuestions}
           />
         </div>
