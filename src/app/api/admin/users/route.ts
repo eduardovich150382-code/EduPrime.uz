@@ -36,6 +36,8 @@ export async function GET(request: NextRequest) {
         telegramUsername: true,
         role: true,
         lang: true,
+        lastActiveAt: true,
+        isBanned: true,
         createdAt: true,
         _count: { select: { testResults: true } },
       },
