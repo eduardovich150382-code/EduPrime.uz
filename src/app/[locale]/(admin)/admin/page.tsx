@@ -6,7 +6,7 @@ import { Link } from '@/i18n/routing';
 import {
   Users, BookOpen, CreditCard, TrendingUp, Shield,
   Clock, Crown, UserPlus, CheckCircle, XCircle,
-  ArrowRight, BarChart3, Loader2, Bell,
+  ArrowRight, BarChart3, Loader2, Bell, Settings,
 } from 'lucide-react';
 
 interface DashboardData {
@@ -229,34 +229,34 @@ export default function AdminDashboard() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3"
+        className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3"
       >
-        <Link href="/admin/users" className="card p-4 text-center hover:border-primary-200">
+        <Link href="/admin/users" className="card p-4 text-center hover:border-primary-200 transition-colors">
           <Users size={20} className="text-blue-600 mx-auto mb-2" />
           <p className="text-xs font-medium text-text-primary">Foydalanuvchilar</p>
         </Link>
-        <Link href="/admin/tests" className="card p-4 text-center hover:border-primary-200">
+        <Link href="/admin/tests" className="card p-4 text-center hover:border-primary-200 transition-colors">
           <BookOpen size={20} className="text-green-600 mx-auto mb-2" />
           <p className="text-xs font-medium text-text-primary">Testlar</p>
         </Link>
-        <Link href="/admin/teachers" className="card p-4 text-center hover:border-primary-200">
+        <Link href="/admin/teachers" className="card p-4 text-center hover:border-primary-200 transition-colors">
           <Crown size={20} className="text-orange-600 mx-auto mb-2" />
           <p className="text-xs font-medium text-text-primary">Ustozlar</p>
         </Link>
-        <Link href="/admin/payments" className="card p-4 text-center hover:border-primary-200">
+        <Link href="/admin/payments" className="card p-4 text-center hover:border-primary-200 transition-colors">
           <CreditCard size={20} className="text-emerald-600 mx-auto mb-2" />
           <p className="text-xs font-medium text-text-primary">To&apos;lovlar</p>
         </Link>
-        <Link href="/admin/subscriptions" className="card p-4 text-center hover:border-primary-200">
+        <Link href="/admin/subscriptions" className="card p-4 text-center hover:border-primary-200 transition-colors">
           <Crown size={20} className="text-purple-600 mx-auto mb-2" />
           <p className="text-xs font-medium text-text-primary">Obunalar</p>
         </Link>
-        <Link href="/admin/notifications" className="card p-4 text-center hover:border-primary-200">
+        <Link href="/admin/notifications" className="card p-4 text-center hover:border-primary-200 transition-colors">
           <Bell size={20} className="text-pink-600 mx-auto mb-2" />
           <p className="text-xs font-medium text-text-primary">Xabar yuborish</p>
         </Link>
-        <Link href="/admin/settings" className="card p-4 text-center hover:border-primary-200">
-          <BarChart3 size={20} className="text-gray-600 mx-auto mb-2" />
+        <Link href="/admin/settings" className="card p-4 text-center hover:border-primary-200 transition-colors">
+          <Settings size={20} className="text-gray-600 mx-auto mb-2" />
           <p className="text-xs font-medium text-text-primary">Sozlamalar</p>
         </Link>
       </motion.div>
