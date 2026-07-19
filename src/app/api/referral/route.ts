@@ -66,9 +66,13 @@ export async function GET(request: NextRequest) {
       where: { referrerId: userId },
     });
 
-    // Read dynamic settings for reward threshold
-    const friendsRequiredSetting = await db.systemSetting.findUnique({ where: { key: 'referral_friends_required' } });
+    // Read dynamic settings for reward threshold and reward days
+    const [friendsRequiredSetting, rewardDaysSetting] = await Promise.all([
+      db.systemSetting.findUnique({ where: { key: 'referral_friends_required' } }),
+      db.systemSetting.findUnique({ where: { key: 'referral_reward_days' } }),
+    ]);
     const friendsRequired = parseInt(friendsRequiredSetting?.value || '3');
+    const rewardDays = parseInt(rewardDaysSetting?.value || '5');
 
     // Check reward status
     const hasReward = referralCount >= friendsRequired;
@@ -93,6 +97,8 @@ export async function GET(request: NextRequest) {
       hasReward,
       rewardGranted,
       remainingToReward: Math.max(0, friendsRequired - referralCount),
+      friendsRequired,
+      rewardDays,
     });
   } catch (error) {
     console.error('GET /api/referral error:', error);

@@ -19,6 +19,8 @@ interface ReferralData {
   hasReward: boolean;
   rewardGranted: boolean;
   remainingToReward: number;
+  friendsRequired: number;
+  rewardDays: number;
 }
 
 export default function ReferralPage() {
@@ -82,7 +84,6 @@ export default function ReferralPage() {
   };
 
   const shareToInstagram = () => {
-    // Instagram doesn't have a direct share URL, copy link for stories
     copyLink();
     window.open('https://www.instagram.com/', '_blank');
   };
@@ -129,7 +130,10 @@ export default function ReferralPage() {
     );
   }
 
-  const progress = Math.min((data.referralCount / 3) * 100, 100);
+  // Dynamic values from admin settings
+  const friendsRequired = data.friendsRequired || 3;
+  const rewardDays = data.rewardDays || 5;
+  const progress = Math.min((data.referralCount / friendsRequired) * 100, 100);
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -228,7 +232,7 @@ export default function ReferralPage() {
         {/* Count */}
         <div className="flex items-center justify-between mb-4">
           <span className="text-3xl font-bold text-primary-600">{data.referralCount}</span>
-          <span className="text-text-secondary text-sm">/ 3 do&apos;st</span>
+          <span className="text-text-secondary text-sm">/ {friendsRequired} do&apos;st</span>
         </div>
 
         {/* Progress bar */}
@@ -248,8 +252,8 @@ export default function ReferralPage() {
             </div>
             <p className="text-sm text-green-600">
               {data.rewardGranted
-                ? 'Siz 5 kunlik Premium tarifni oldingiz!'
-                : '5 ta do\'st taklif qildingiz! Mukofotingizni oling.'}
+                ? `Siz ${rewardDays} kunlik Premium tarifni oldingiz!`
+                : `${friendsRequired} ta do'st taklif qildingiz! Mukofotingizni oling.`}
             </p>
             {!data.rewardGranted && (
               <button
@@ -273,7 +277,7 @@ export default function ReferralPage() {
               <span className="font-semibold text-primary-700">Mukofot</span>
             </div>
             <p className="text-sm text-text-secondary">
-              3 ta do&apos;stingizni taklif qiling va <strong>5 kunlik Premium tarif bepul</strong> oling!
+              {friendsRequired} ta do&apos;stingizni taklif qiling va <strong>{rewardDays} kunlik Premium tarif bepul</strong> oling!
               Sizga yana <strong>{data.remainingToReward}</strong> ta do&apos;st taklif qilish kerak.
             </p>
           </div>
@@ -319,7 +323,7 @@ export default function ReferralPage() {
             </div>
             <div>
               <p className="font-medium text-text-primary">Mukofot oling</p>
-              <p className="text-sm text-text-secondary">3 ta do&apos;st = 5 kunlik bepul Premium tarif</p>
+              <p className="text-sm text-text-secondary">{friendsRequired} ta do&apos;st = {rewardDays} kunlik bepul Premium tarif</p>
             </div>
           </div>
         </div>

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
-// Public pricing keys that are safe to expose
+// Public keys that are safe to expose
 const PUBLIC_KEYS = [
   'premium_price_1_month',
   'premium_price_3_months',
@@ -15,6 +15,9 @@ const PUBLIC_KEYS = [
   'payment_card_owner',
   'site_announcement',
   'telegram_support_username',
+  'referral_friends_required',
+  'referral_reward_days',
+  'free_daily_test_limit',
 ];
 
 const DEFAULTS: Record<string, string> = {
@@ -30,6 +33,9 @@ const DEFAULTS: Record<string, string> = {
   payment_card_owner: '',
   site_announcement: '',
   telegram_support_username: '',
+  referral_friends_required: '3',
+  referral_reward_days: '5',
+  free_daily_test_limit: '3',
 };
 
 // GET /api/settings — public settings (pricing, card info, announcement)
