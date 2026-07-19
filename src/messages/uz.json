@@ -117,7 +117,8 @@
         ],
         "cta": "Sotib olish",
         "discount6": "6 oy — 150 000 so'm",
-        "discount12": "1 yil — 270 000 so'm"
+        "discount12": "1 yil — 270 000 so'm",
+        "discount3": "3 oy — 79 000 so'm"
       },
       "ustoz": {
         "title": "Ustoz",
@@ -133,7 +134,8 @@
         ],
         "cta": "Sotib olish",
         "discount6": "6 oy — 150 000 so'm",
-        "discount12": "1 yil — 270 000 so'm"
+        "discount12": "1 yil — 270 000 so'm",
+        "discount3": "3 oy — 129 000 so'm"
       }
     },
     "howItWorks": {

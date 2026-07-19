@@ -1,12 +1,75 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
-import { Check, X, Crown, GraduationCap, Sparkles } from 'lucide-react';
+import { Check, Crown, GraduationCap, Sparkles } from 'lucide-react';
+
+type DurationKey = '1month' | '3months' | '6months' | '1year';
+
+const DURATION_LABELS: Record<DurationKey, string> = {
+  '1month': '1 oy',
+  '3months': '3 oy',
+  '6months': '6 oy',
+  '1year': '1 yil',
+};
+
+const DEFAULT_PREMIUM_PRICES: Record<DurationKey, number> = {
+  '1month': 29000,
+  '3months': 79000,
+  '6months': 150000,
+  '1year': 270000,
+};
+
+const DEFAULT_TEACHER_PRICES: Record<DurationKey, number> = {
+  '1month': 49000,
+  '3months': 129000,
+  '6months': 240000,
+  '1year': 430000,
+};
 
 export default function PricingSection() {
   const t = useTranslations('landing.pricing');
+  const [premiumPrices, setPremiumPrices] = useState(DEFAULT_PREMIUM_PRICES);
+  const [teacherPrices, setTeacherPrices] = useState(DEFAULT_TEACHER_PRICES);
+  const [selectedDuration, setSelectedDuration] = useState<Record<string, DurationKey>>({
+    premium: '1month',
+    ustoz: '1month',
+  });
+
+  useEffect(() => {
+    const fetchPrices = async () => {
+      try {
+        const res = await fetch('/api/settings');
+        const data = await res.json();
+        if (data.settings) {
+          const s = data.settings;
+          setPremiumPrices({
+            '1month': parseInt(s.premium_price_1_month) || DEFAULT_PREMIUM_PRICES['1month'],
+            '3months': parseInt(s.premium_price_3_months) || DEFAULT_PREMIUM_PRICES['3months'],
+            '6months': parseInt(s.premium_price_6_months) || DEFAULT_PREMIUM_PRICES['6months'],
+            '1year': parseInt(s.premium_price_1_year) || DEFAULT_PREMIUM_PRICES['1year'],
+          });
+          setTeacherPrices({
+            '1month': parseInt(s.teacher_price_1_month) || DEFAULT_TEACHER_PRICES['1month'],
+            '3months': parseInt(s.teacher_price_3_months) || DEFAULT_TEACHER_PRICES['3months'],
+            '6months': parseInt(s.teacher_price_6_months) || DEFAULT_TEACHER_PRICES['6months'],
+            '1year': parseInt(s.teacher_price_1_year) || DEFAULT_TEACHER_PRICES['1year'],
+          });
+        }
+      } catch (error) {
+        console.error('Failed to fetch pricing:', error);
+      }
+    };
+    fetchPrices();
+  }, []);
+
+  const getPriceForPlan = (planKey: string, duration: DurationKey) => {
+    if (planKey === 'premium') return premiumPrices[duration];
+    if (planKey === 'ustoz') return teacherPrices[duration];
+    return 0;
+  };
 
   const plans = [
     {
@@ -28,6 +91,8 @@ export default function PricingSection() {
       gradient: false,
     },
   ];
+
+  const durations: DurationKey[] = ['1month', '3months', '6months', '1year'];
 
   return (
     <section className="py-20 bg-white">
@@ -80,13 +145,54 @@ export default function PricingSection() {
                   {t(`${plan.key}.title`)}
                 </h3>
 
+                {/* Duration selector for paid plans */}
+                {plan.key !== 'free' && (
+                  <div className="mb-4">
+                    <div className={`inline-flex rounded-xl p-1 gap-0.5 flex-wrap justify-center ${plan.popular ? 'bg-white/10' : 'bg-gray-100'}`}>
+                      {durations.map((dur) => {
+                        const isSelected = selectedDuration[plan.key] === dur;
+                        return (
+                          <button
+                            key={dur}
+                            onClick={() => setSelectedDuration(prev => ({ ...prev, [plan.key]: dur }))}
+                            className={`px-2 py-1 rounded-lg text-[11px] font-medium transition-all ${
+                              isSelected
+                                ? plan.popular
+                                  ? 'bg-white text-primary-700 shadow-sm'
+                                  : 'bg-primary-600 text-white shadow-sm'
+                                : plan.popular
+                                  ? 'text-white/70 hover:text-white'
+                                  : 'text-text-secondary hover:text-text-primary'
+                            }`}
+                          >
+                            {DURATION_LABELS[dur]}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex items-baseline justify-center gap-1 mb-6">
-                  <span className={`text-4xl font-bold ${plan.popular ? 'text-white' : 'gradient-text'}`}>
-                    {t(`${plan.key}.price`)}
-                  </span>
-                  <span className={`text-sm ${plan.popular ? 'text-white/70' : 'text-text-secondary'}`}>
-                    {t(`${plan.key}.period`)}
-                  </span>
+                  {plan.key !== 'free' ? (
+                    <>
+                      <span className={`text-4xl font-bold ${plan.popular ? 'text-white' : 'gradient-text'}`}>
+                        {getPriceForPlan(plan.key, selectedDuration[plan.key] || '1month').toLocaleString()}
+                      </span>
+                      <span className={`text-sm ${plan.popular ? 'text-white/70' : 'text-text-secondary'}`}>
+                        so&apos;m / {DURATION_LABELS[selectedDuration[plan.key] || '1month']}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className={`text-4xl font-bold ${plan.popular ? 'text-white' : 'gradient-text'}`}>
+                        {t(`${plan.key}.price`)}
+                      </span>
+                      <span className={`text-sm ${plan.popular ? 'text-white/70' : 'text-text-secondary'}`}>
+                        {t(`${plan.key}.period`)}
+                      </span>
+                    </>
+                  )}
                 </div>
 
                 {/* Features list */}
@@ -101,11 +207,12 @@ export default function PricingSection() {
                   ))}
                 </ul>
 
-                {/* Discounts */}
+                {/* Dynamic discount info */}
                 {plan.key !== 'free' && (
                   <div className={`text-xs mb-4 space-y-1 ${plan.popular ? 'text-white/70' : 'text-text-secondary'}`}>
-                    <p>{t(`${plan.key}.discount6`)}</p>
-                    <p>{t(`${plan.key}.discount12`)}</p>
+                    <p>3 oy — {getPriceForPlan(plan.key, '3months').toLocaleString()} so&apos;m</p>
+                    <p>6 oy — {getPriceForPlan(plan.key, '6months').toLocaleString()} so&apos;m</p>
+                    <p>1 yil — {getPriceForPlan(plan.key, '1year').toLocaleString()} so&apos;m</p>
                   </div>
                 )}
 

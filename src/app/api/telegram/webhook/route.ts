@@ -569,6 +569,7 @@ async function handleCallbackQuery(callbackQuery: any) {
         // Map duration string to SubscriptionDuration enum
         const durationMap: Record<string, string> = {
           '1_month': 'ONE_MONTH',
+          '3_months': 'THREE_MONTHS',
           '6_months': 'SIX_MONTHS',
           '1_year': 'ONE_YEAR',
         };
@@ -579,6 +580,8 @@ async function handleCallbackQuery(callbackQuery: any) {
         const endDate = new Date(startDate);
         if (payment.duration === '1_month') {
           endDate.setMonth(endDate.getMonth() + 1);
+        } else if (payment.duration === '3_months') {
+          endDate.setMonth(endDate.getMonth() + 3);
         } else if (payment.duration === '6_months') {
           endDate.setMonth(endDate.getMonth() + 6);
         } else if (payment.duration === '1_year') {

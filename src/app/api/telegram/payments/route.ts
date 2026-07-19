@@ -45,8 +45,9 @@ export async function POST(request: NextRequest) {
       teacher: 'TEACHER_PLAN',
     };
 
-    const durationMap: Record<string, 'ONE_MONTH' | 'SIX_MONTHS' | 'ONE_YEAR'> = {
+    const durationMap: Record<string, 'ONE_MONTH' | 'THREE_MONTHS' | 'SIX_MONTHS' | 'ONE_YEAR'> = {
       '1_month': 'ONE_MONTH',
+      '3_months': 'THREE_MONTHS',
       '6_months': 'SIX_MONTHS',
       '1_year': 'ONE_YEAR',
     };
@@ -169,6 +170,7 @@ export async function PATCH(request: NextRequest) {
       // Create subscription
       const durationMonths: Record<string, number> = {
         ONE_MONTH: 1,
+        THREE_MONTHS: 3,
         SIX_MONTHS: 6,
         ONE_YEAR: 12,
       };

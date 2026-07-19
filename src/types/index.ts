@@ -106,7 +106,7 @@ export interface TestResult {
 // ===================== SUBSCRIPTION TYPES =====================
 
 export type SubscriptionPlan = 'PREMIUM' | 'TEACHER_PLAN';
-export type SubscriptionDuration = 'ONE_MONTH' | 'SIX_MONTHS' | 'ONE_YEAR';
+export type SubscriptionDuration = 'ONE_MONTH' | 'THREE_MONTHS' | 'SIX_MONTHS' | 'ONE_YEAR';
 export type PaymentStatus = 'PENDING' | 'CONFIRMED' | 'REJECTED';
 
 export interface Subscription {
@@ -139,13 +139,15 @@ export interface Payment {
 export const PRICING = {
   PREMIUM: {
     ONE_MONTH: 29000,
+    THREE_MONTHS: 79000,
     SIX_MONTHS: 150000,
     ONE_YEAR: 270000,
   },
   TEACHER_PLAN: {
-    ONE_MONTH: 29000,
-    SIX_MONTHS: 150000,
-    ONE_YEAR: 270000,
+    ONE_MONTH: 49000,
+    THREE_MONTHS: 129000,
+    SIX_MONTHS: 240000,
+    ONE_YEAR: 430000,
   },
 } as const;
 

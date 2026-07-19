@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import {
   CreditCard, CheckCircle, XCircle, Clock, User,
   Loader2, RefreshCw, Download, TrendingUp, X, Eye,
+  ArrowUpDown, ArrowUp, ArrowDown,
 } from 'lucide-react';
 import BackButton from '@/components/ui/BackButton';
 
@@ -30,6 +31,8 @@ interface PaymentData {
   } | null;
 }
 
+type SortDirection = 'none' | 'asc' | 'desc';
+
 function getStatusBadge(status: string) {
   switch (status) {
     case 'CONFIRMED':
@@ -42,7 +45,13 @@ function getStatusBadge(status: string) {
 }
 
 function getDurationLabel(d: string) {
-  return d === 'ONE_MONTH' ? '1 oy' : d === 'SIX_MONTHS' ? '6 oy' : d === 'ONE_YEAR' ? '1 yil' : d;
+  switch (d) {
+    case 'ONE_MONTH': return '1 oy';
+    case 'THREE_MONTHS': return '3 oy';
+    case 'SIX_MONTHS': return '6 oy';
+    case 'ONE_YEAR': return '1 yil';
+    default: return d;
+  }
 }
 
 function getPlanLabel(p: string) {
@@ -53,9 +62,11 @@ export default function AdminPaymentsPage() {
   const [payments, setPayments] = useState<PaymentData[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
+  const [amountSort, setAmountSort] = useState<SortDirection>('none');
   const [counts, setCounts] = useState({ pending: 0, confirmed: 0, rejected: 0 });
   const [processing, setProcessing] = useState<string | null>(null);
   const [viewingReceipt, setViewingReceipt] = useState<string | null>(null);
+  const [receiptLoading, setReceiptLoading] = useState(false);
 
   const fetchPayments = async () => {
     setLoading(true);
@@ -70,6 +81,19 @@ export default function AdminPaymentsPage() {
   };
 
   useEffect(() => { fetchPayments(); }, [statusFilter]);
+
+  // Sort payments by amount
+  const sortedPayments = [...payments].sort((a, b) => {
+    if (amountSort === 'asc') return a.amount - b.amount;
+    if (amountSort === 'desc') return b.amount - a.amount;
+    return 0; // default: no sort (by date from API)
+  });
+
+  const cycleAmountSort = () => {
+    if (amountSort === 'none') setAmountSort('desc');
+    else if (amountSort === 'desc') setAmountSort('asc');
+    else setAmountSort('none');
+  };
 
   const handleAction = async (paymentId: string, action: 'confirm' | 'reject') => {
     setProcessing(paymentId);
@@ -106,6 +130,12 @@ export default function AdminPaymentsPage() {
     const now = new Date();
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   }).reduce((sum, p) => sum + p.amount, 0);
+
+  const getSortIcon = () => {
+    if (amountSort === 'asc') return <ArrowUp size={14} />;
+    if (amountSort === 'desc') return <ArrowDown size={14} />;
+    return <ArrowUpDown size={14} />;
+  };
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -155,14 +185,38 @@ export default function AdminPaymentsPage() {
         </button>
       </div>
 
+      {/* Amount Sort Filter */}
+      <div className="flex items-center gap-3">
+        <span className="text-sm text-text-secondary">Saralash:</span>
+        <button
+          onClick={cycleAmountSort}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
+            amountSort !== 'none'
+              ? 'bg-primary-50 border-primary-200 text-primary-700'
+              : 'bg-white border-border text-text-secondary hover:bg-gray-50'
+          }`}
+        >
+          {getSortIcon()}
+          Summa {amountSort === 'asc' ? '(kichik→katta)' : amountSort === 'desc' ? '(katta→kichik)' : ''}
+        </button>
+        {amountSort !== 'none' && (
+          <button
+            onClick={() => setAmountSort('none')}
+            className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs text-red-600 hover:bg-red-50 transition-colors"
+          >
+            <X size={12} /> Tozalash
+          </button>
+        )}
+      </div>
+
       {/* Payments list — Mobile card layout */}
       {loading ? (
         <div className="card p-12 text-center"><Loader2 size={32} className="animate-spin text-primary-600 mx-auto" /></div>
-      ) : payments.length === 0 ? (
+      ) : sortedPayments.length === 0 ? (
         <div className="card p-12 text-center"><CreditCard size={48} className="text-text-secondary mx-auto mb-4 opacity-30" /><p className="text-text-secondary">To&apos;lovlar topilmadi</p></div>
       ) : (
         <div className="space-y-3">
-          {payments.map((payment) => (
+          {sortedPayments.map((payment) => (
             <div key={payment.id} className="card p-4">
               <div className="flex items-start gap-3">
                 {/* User */}
@@ -191,7 +245,10 @@ export default function AdminPaymentsPage() {
                   <div className="flex items-center gap-2 mt-3">
                     {payment.receiptPhoto && (
                       <button
-                        onClick={() => setViewingReceipt(payment.receiptPhoto)}
+                        onClick={() => {
+                          setReceiptLoading(true);
+                          setViewingReceipt(payment.receiptPhoto);
+                        }}
                         className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-blue-50 text-blue-700 text-xs font-medium hover:bg-blue-100 transition-colors"
                       >
                         <Eye size={12} /> Chekni ko&apos;rish
@@ -226,13 +283,40 @@ export default function AdminPaymentsPage() {
       {viewingReceipt && (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setViewingReceipt(null)}>
           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-            className="relative max-w-lg w-full max-h-[80vh] bg-white rounded-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+            className="relative max-w-lg w-full max-h-[85vh] bg-white rounded-2xl overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-4 border-b border-border">
-              <h3 className="font-semibold text-text-primary">To&apos;lov cheki</h3>
-              <button onClick={() => setViewingReceipt(null)} className="p-2 rounded-lg hover:bg-gray-100"><X size={20} /></button>
+              <h3 className="font-semibold text-text-primary flex items-center gap-2">
+                <CreditCard size={18} className="text-primary-600" />
+                To&apos;lov cheki
+              </h3>
+              <div className="flex items-center gap-2">
+                <a
+                  href={viewingReceipt}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 rounded-lg hover:bg-gray-100 text-text-secondary hover:text-primary-600 transition-colors"
+                  title="Yangi tabda ochish"
+                >
+                  <Download size={18} />
+                </a>
+                <button onClick={() => setViewingReceipt(null)} className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                  <X size={20} />
+                </button>
+              </div>
             </div>
-            <div className="p-4 overflow-auto max-h-[70vh]">
-              <img src={viewingReceipt} alt="To'lov cheki" className="w-full h-auto rounded-lg" />
+            <div className="p-4 overflow-auto max-h-[75vh] flex items-center justify-center bg-gray-50">
+              {receiptLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10">
+                  <Loader2 size={32} className="animate-spin text-primary-600" />
+                </div>
+              )}
+              <img
+                src={viewingReceipt}
+                alt="To'lov cheki"
+                className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-sm"
+                onLoad={() => setReceiptLoading(false)}
+                onError={() => setReceiptLoading(false)}
+              />
             </div>
           </motion.div>
         </div>

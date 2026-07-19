@@ -59,14 +59,24 @@ const API_HEADERS = {
 };
 
 // ===================== PRICING =====================
-const PRICES = {
-  '1_month': 29000,
-  '6_months': 150000,
-  '1_year': 270000,
+const PRICES: Record<string, Record<string, number>> = {
+  premium: {
+    '1_month': 29000,
+    '3_months': 79000,
+    '6_months': 150000,
+    '1_year': 270000,
+  },
+  teacher: {
+    '1_month': 49000,
+    '3_months': 129000,
+    '6_months': 240000,
+    '1_year': 430000,
+  },
 };
 
 const DURATION_LABELS: Record<string, string> = {
   '1_month': '1 oy',
+  '3_months': '3 oy',
   '6_months': '6 oy',
   '1_year': '1 yil',
 };
@@ -261,7 +271,8 @@ bot.onText(/\/premium/, async (msg) => {
       reply_markup: {
         inline_keyboard: [
           [{ text: '1 oy — 29,000 so\'m', callback_data: 'pay_premium_1_month' }],
-          [{ text: '6 oy — 150,000 so\'m (tejash 17%)', callback_data: 'pay_premium_6_months' }],
+          [{ text: '3 oy — 79,000 so\'m (tejash 9%)', callback_data: 'pay_premium_3_months' }],
+          [{ text: '6 oy — 150,000 so\'m (tejash 14%)', callback_data: 'pay_premium_6_months' }],
           [{ text: '1 yil — 270,000 so\'m (tejash 22%)', callback_data: 'pay_premium_1_year' }],
         ]
       }
@@ -293,9 +304,10 @@ bot.onText(/\/ustoz/, async (msg) => {
       parse_mode: 'Markdown',
       reply_markup: {
         inline_keyboard: [
-          [{ text: '1 oy — 29,000 so\'m', callback_data: 'pay_teacher_1_month' }],
-          [{ text: '6 oy — 150,000 so\'m (tejash 17%)', callback_data: 'pay_teacher_6_months' }],
-          [{ text: '1 yil — 270,000 so\'m (tejash 22%)', callback_data: 'pay_teacher_1_year' }],
+          [{ text: '1 oy — 49,000 so\'m', callback_data: 'pay_teacher_1_month' }],
+          [{ text: '3 oy — 129,000 so\'m (tejash 12%)', callback_data: 'pay_teacher_3_months' }],
+          [{ text: '6 oy — 240,000 so\'m (tejash 18%)', callback_data: 'pay_teacher_6_months' }],
+          [{ text: '1 yil — 430,000 so\'m (tejash 27%)', callback_data: 'pay_teacher_1_year' }],
         ]
       }
     }
@@ -358,8 +370,9 @@ bot.on('callback_query', async (query) => {
   if (data.startsWith('pay_')) {
     const parts = data.replace('pay_', '').split('_');
     const plan = parts[0] as 'premium' | 'teacher';
-    const duration = parts.slice(1).join('_') as keyof typeof PRICES;
-    const amount = PRICES[duration];
+    const duration = parts.slice(1).join('_');
+    const planPrices = PRICES[plan] || PRICES['premium'];
+    const amount = planPrices[duration] || planPrices['1_month'];
 
     // Save payment request to database via API
     try {
@@ -503,6 +516,7 @@ bot.on('photo', async (msg) => {
   const planName = payment.plan === 'PREMIUM' ? '💎 Premium' : '👨‍🏫 Ustoz';
   const durationLabel = DURATION_LABELS[
     payment.duration === 'ONE_MONTH' ? '1_month' :
+    payment.duration === 'THREE_MONTHS' ? '3_months' :
     payment.duration === 'SIX_MONTHS' ? '6_months' : '1_year'
   ];
 
