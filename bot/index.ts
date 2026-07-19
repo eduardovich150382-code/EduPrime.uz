@@ -59,7 +59,8 @@ const API_HEADERS = {
 };
 
 // ===================== PRICING =====================
-const PRICES: Record<string, Record<string, number>> = {
+// Default prices (fallback if API fails)
+const DEFAULT_PRICES: Record<string, Record<string, number>> = {
   premium: {
     '1_month': 29000,
     '3_months': 79000,
@@ -80,6 +81,48 @@ const DURATION_LABELS: Record<string, string> = {
   '6_months': '6 oy',
   '1_year': '1 yil',
 };
+
+// Fetch dynamic prices and card info from admin settings
+async function fetchSettings(): Promise<{
+  prices: Record<string, Record<string, number>>;
+  cardNumber: string;
+  cardOwner: string;
+}> {
+  try {
+    const res = await fetch(`${APP_URL}/api/settings`);
+    if (!res.ok) throw new Error('API error');
+    const data = await res.json();
+    const s = data.settings || {};
+    return {
+      prices: {
+        premium: {
+          '1_month': parseInt(s.premium_price_1_month) || DEFAULT_PRICES.premium['1_month'],
+          '3_months': parseInt(s.premium_price_3_months) || DEFAULT_PRICES.premium['3_months'],
+          '6_months': parseInt(s.premium_price_6_months) || DEFAULT_PRICES.premium['6_months'],
+          '1_year': parseInt(s.premium_price_1_year) || DEFAULT_PRICES.premium['1_year'],
+        },
+        teacher: {
+          '1_month': parseInt(s.teacher_price_1_month) || DEFAULT_PRICES.teacher['1_month'],
+          '3_months': parseInt(s.teacher_price_3_months) || DEFAULT_PRICES.teacher['3_months'],
+          '6_months': parseInt(s.teacher_price_6_months) || DEFAULT_PRICES.teacher['6_months'],
+          '1_year': parseInt(s.teacher_price_1_year) || DEFAULT_PRICES.teacher['1_year'],
+        },
+      },
+      cardNumber: s.payment_card_number || PAYMENT_CARD,
+      cardOwner: s.payment_card_owner || PAYMENT_CARD_OWNER,
+    };
+  } catch (error) {
+    console.error('Failed to fetch settings:', error);
+    return { prices: DEFAULT_PRICES, cardNumber: PAYMENT_CARD, cardOwner: PAYMENT_CARD_OWNER };
+  }
+}
+
+// Calculate savings percentage
+function calcSavings(monthlyPrice: number, totalPrice: number, months: number): number {
+  const fullPrice = monthlyPrice * months;
+  if (fullPrice <= 0) return 0;
+  return Math.round(((fullPrice - totalPrice) / fullPrice) * 100);
+}
 
 // ===================== COMMANDS =====================
 
@@ -125,13 +168,16 @@ bot.onText(/\/start(.*)/, async (msg, match) => {
           }),
         });
 
+        // Fetch card info from admin settings
+        const { cardNumber, cardOwner } = await fetchSettings();
+
         await bot.sendMessage(chatId,
           `🛒 *Test sotib olish*\n\n` +
           `📝 Test: *${test.titleUz}*\n` +
           `💰 Narx: *${price.toLocaleString()} so'm*\n\n` +
           `💳 Karta raqami:\n` +
-          `\`${PAYMENT_CARD}\`\n` +
-          `👤 Karta egasi: *${PAYMENT_CARD_OWNER}*\n\n` +
+          `\`${cardNumber}\`\n` +
+          `👤 Karta egasi: *${cardOwner}*\n\n` +
           `📎 To'lov qilganingizdan keyin *chek screenshot*ini shu yerga yuboring.\n\n` +
           `⏱ Admin 24 soat ichida tasdiqlaydi va test sizga ochiladi.`,
           { parse_mode: 'Markdown' }
@@ -258,6 +304,13 @@ bot.onText(/\/premium/, async (msg) => {
     return;
   }
 
+  // Fetch dynamic prices from admin settings
+  const { prices } = await fetchSettings();
+  const p = prices.premium;
+  const s3 = calcSavings(p['1_month'], p['3_months'], 3);
+  const s6 = calcSavings(p['1_month'], p['6_months'], 6);
+  const s12 = calcSavings(p['1_month'], p['1_year'], 12);
+
   await bot.sendMessage(chatId,
     `💎 *Premium tarif*\n\n` +
     `✅ DTM testlari — cheksiz\n` +
@@ -270,10 +323,10 @@ bot.onText(/\/premium/, async (msg) => {
       parse_mode: 'Markdown',
       reply_markup: {
         inline_keyboard: [
-          [{ text: '1 oy — 29,000 so\'m', callback_data: 'pay_premium_1_month' }],
-          [{ text: '3 oy — 79,000 so\'m (tejash 9%)', callback_data: 'pay_premium_3_months' }],
-          [{ text: '6 oy — 150,000 so\'m (tejash 14%)', callback_data: 'pay_premium_6_months' }],
-          [{ text: '1 yil — 270,000 so\'m (tejash 22%)', callback_data: 'pay_premium_1_year' }],
+          [{ text: `1 oy — ${p['1_month'].toLocaleString()} so'm`, callback_data: 'pay_premium_1_month' }],
+          [{ text: `3 oy — ${p['3_months'].toLocaleString()} so'm${s3 > 0 ? ` (tejash ${s3}%)` : ''}`, callback_data: 'pay_premium_3_months' }],
+          [{ text: `6 oy — ${p['6_months'].toLocaleString()} so'm${s6 > 0 ? ` (tejash ${s6}%)` : ''}`, callback_data: 'pay_premium_6_months' }],
+          [{ text: `1 yil — ${p['1_year'].toLocaleString()} so'm${s12 > 0 ? ` (tejash ${s12}%)` : ''}`, callback_data: 'pay_premium_1_year' }],
         ]
       }
     }
@@ -292,6 +345,13 @@ bot.onText(/\/ustoz/, async (msg) => {
     return;
   }
 
+  // Fetch dynamic prices from admin settings
+  const { prices } = await fetchSettings();
+  const p = prices.teacher;
+  const s3 = calcSavings(p['1_month'], p['3_months'], 3);
+  const s6 = calcSavings(p['1_month'], p['6_months'], 6);
+  const s12 = calcSavings(p['1_month'], p['1_year'], 12);
+
   await bot.sendMessage(chatId,
     `👨‍🏫 *Ustoz tarif*\n\n` +
     `✅ Attestatsiya testlari (tanlangan fanlar)\n` +
@@ -304,10 +364,10 @@ bot.onText(/\/ustoz/, async (msg) => {
       parse_mode: 'Markdown',
       reply_markup: {
         inline_keyboard: [
-          [{ text: '1 oy — 49,000 so\'m', callback_data: 'pay_teacher_1_month' }],
-          [{ text: '3 oy — 129,000 so\'m (tejash 12%)', callback_data: 'pay_teacher_3_months' }],
-          [{ text: '6 oy — 240,000 so\'m (tejash 18%)', callback_data: 'pay_teacher_6_months' }],
-          [{ text: '1 yil — 430,000 so\'m (tejash 27%)', callback_data: 'pay_teacher_1_year' }],
+          [{ text: `1 oy — ${p['1_month'].toLocaleString()} so'm`, callback_data: 'pay_teacher_1_month' }],
+          [{ text: `3 oy — ${p['3_months'].toLocaleString()} so'm${s3 > 0 ? ` (tejash ${s3}%)` : ''}`, callback_data: 'pay_teacher_3_months' }],
+          [{ text: `6 oy — ${p['6_months'].toLocaleString()} so'm${s6 > 0 ? ` (tejash ${s6}%)` : ''}`, callback_data: 'pay_teacher_6_months' }],
+          [{ text: `1 yil — ${p['1_year'].toLocaleString()} so'm${s12 > 0 ? ` (tejash ${s12}%)` : ''}`, callback_data: 'pay_teacher_1_year' }],
         ]
       }
     }
@@ -371,7 +431,10 @@ bot.on('callback_query', async (query) => {
     const parts = data.replace('pay_', '').split('_');
     const plan = parts[0] as 'premium' | 'teacher';
     const duration = parts.slice(1).join('_');
-    const planPrices = PRICES[plan] || PRICES['premium'];
+
+    // Fetch dynamic prices and card info from admin settings
+    const { prices, cardNumber, cardOwner } = await fetchSettings();
+    const planPrices = prices[plan] || prices['premium'];
     const amount = planPrices[duration] || planPrices['1_month'];
 
     // Save payment request to database via API
@@ -398,8 +461,8 @@ bot.on('callback_query', async (query) => {
       `Muddat: ${DURATION_LABELS[duration]}\n` +
       `Summa: *${amount.toLocaleString()} so'm*\n\n` +
       `💳 Karta raqami:\n` +
-      `\`${PAYMENT_CARD}\`\n` +
-      `👤 Karta egasi: *${PAYMENT_CARD_OWNER}*\n\n` +
+      `\`${cardNumber}\`\n` +
+      `👤 Karta egasi: *${cardOwner}*\n\n` +
       `📎 To'lov qilganingizdan keyin *chek screenshot*ini shu yerga yuboring.\n\n` +
       `⏱ Chek yuborilgandan keyin 24 soat ichida admin tasdiqlaydi.`,
       { parse_mode: 'Markdown' }
