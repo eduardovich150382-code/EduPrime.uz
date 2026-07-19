@@ -9,17 +9,77 @@ const PAYMENT_CARD_OWNER = 'Asrorov Xushbaxt';
 const CHANNEL_USERNAME = '@EduPrimeuz';
 const CHANNEL_LINK = 'https://t.me/EduPrimeuz';
 
-const PRICES: Record<string, number> = {
-  '1_month': 29000,
-  '6_months': 150000,
-  '1_year': 270000,
+const DEFAULT_PRICES: Record<string, Record<string, number>> = {
+  premium: { '1_month': 29000, '3_months': 79000, '6_months': 150000, '1_year': 270000 },
+  teacher: { '1_month': 49000, '3_months': 129000, '6_months': 240000, '1_year': 430000 },
 };
 
 const DURATION_LABELS: Record<string, string> = {
   '1_month': '1 oy',
+  '3_months': '3 oy',
   '6_months': '6 oy',
   '1_year': '1 yil',
 };
+
+// Fetch dynamic settings from DB
+async function getSettings() {
+  try {
+    const settings = await db.systemSetting.findMany({
+      where: { key: { in: [
+        'premium_price_1_month', 'premium_price_3_months', 'premium_price_6_months', 'premium_price_1_year',
+        'teacher_price_1_month', 'teacher_price_3_months', 'teacher_price_6_months', 'teacher_price_1_year',
+        'payment_card_number', 'payment_card_owner',
+      ] } },
+    });
+    const s: Record<string, string> = {};
+    for (const st of settings) s[st.key] = st.value;
+    return {
+      prices: {
+        premium: {
+          '1_month': parseInt(s.premium_price_1_month) || DEFAULT_PRICES.premium['1_month'],
+          '3_months': parseInt(s.premium_price_3_months) || DEFAULT_PRICES.premium['3_months'],
+          '6_months': parseInt(s.premium_price_6_months) || DEFAULT_PRICES.premium['6_months'],
+          '1_year': parseInt(s.premium_price_1_year) || DEFAULT_PRICES.premium['1_year'],
+        },
+        teacher: {
+          '1_month': parseInt(s.teacher_price_1_month) || DEFAULT_PRICES.teacher['1_month'],
+          '3_months': parseInt(s.teacher_price_3_months) || DEFAULT_PRICES.teacher['3_months'],
+          '6_months': parseInt(s.teacher_price_6_months) || DEFAULT_PRICES.teacher['6_months'],
+          '1_year': parseInt(s.teacher_price_1_year) || DEFAULT_PRICES.teacher['1_year'],
+        },
+      },
+      cardNumber: s.payment_card_number || PAYMENT_CARD,
+      cardOwner: s.payment_card_owner || PAYMENT_CARD_OWNER,
+    };
+  } catch {
+    return { prices: DEFAULT_PRICES, cardNumber: PAYMENT_CARD, cardOwner: PAYMENT_CARD_OWNER };
+  }
+}
+
+function calcSavings(monthly: number, total: number, months: number): string {
+  const full = monthly * months;
+  if (full <= 0) return '';
+  const pct = Math.round(((full - total) / full) * 100);
+  return pct > 0 ? ` (tejash ${pct}%)` : '';
+}
+
+// Get Telegram file URL (for photos and documents)
+async function getFileUrl(fileId: string): Promise<string | null> {
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getFile`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ file_id: fileId }),
+    });
+    const data = await res.json();
+    if (data.ok && data.result?.file_path) {
+      return `https://api.telegram.org/file/bot${BOT_TOKEN}/${data.result.file_path}`;
+    }
+  } catch (error) {
+    console.error('getFileUrl error:', error);
+  }
+  return null;
+}
 
 // Telegram API helper
 async function sendMessage(chatId: number | string, text: string, options: any = {}) {
@@ -115,17 +175,21 @@ async function handleStart(chatId: number, userId: number, username: string, fir
   // Handle plan-specific buy params: buy_premium_1month, buy_teacher_6months, etc.
   if (param.startsWith('buy_')) {
     const parts = param.replace('buy_', '').split('_');
-    // parts could be like ['premium', '1month'] or ['teacher', '6months']
     const plan = parts[0]; // premium or teacher
-    const durationKey = parts.slice(1).join('_'); // 1month, 6months, 1year
+    const durationKey = parts.slice(1).join(''); // 1month, 3months, 6months, 1year
 
     const durationMap: Record<string, string> = {
       '1month': '1_month',
+      '3months': '3_months',
       '6months': '6_months',
       '1year': '1_year',
     };
     const duration = durationMap[durationKey] || '1_month';
-    const amount = PRICES[duration];
+
+    // Fetch dynamic prices and card info from admin settings
+    const { prices, cardNumber, cardOwner } = await getSettings();
+    const planPrices = plan === 'teacher' ? prices.teacher : prices.premium;
+    const amount = planPrices[duration] || planPrices['1_month'];
     const planName = plan === 'premium' ? '💎 Premium' : '👨‍🏫 Ustoz';
 
     // Check if user exists in DB, if not register them
@@ -170,9 +234,9 @@ async function handleStart(chatId: number, userId: number, username: string, fir
       `Muddat: ${DURATION_LABELS[duration]}\n` +
       `Summa: <b>${amount.toLocaleString()} so'm</b>\n\n` +
       `💳 Karta raqami:\n` +
-      `<code>${PAYMENT_CARD}</code>\n` +
-      `👤 Karta egasi: <b>${PAYMENT_CARD_OWNER}</b>\n\n` +
-      `📎 To'lov qilganingizdan keyin <b>chek screenshot</b>ini shu yerga yuboring.\n\n` +
+      `<code>${cardNumber}</code>\n` +
+      `👤 Karta egasi: <b>${cardOwner}</b>\n\n` +
+      `📎 To'lov qilganingizdan keyin <b>chek screenshot yoki PDF</b>ini shu yerga yuboring.\n\n` +
       `⏱ Chek yuborilgandan keyin 24 soat ichida admin tasdiqlaydi.`
     );
     return;
@@ -275,6 +339,8 @@ async function handleLogin(chatId: number, userId: number, username: string, fir
 
 // Handle /premium
 async function handlePremium(chatId: number) {
+  const { prices } = await getSettings();
+  const p = prices.premium;
   await sendMessage(chatId,
     `💎 <b>Premium tarif</b>\n\n` +
     `✅ DTM testlari — cheksiz\n` +
@@ -286,9 +352,10 @@ async function handlePremium(chatId: number) {
     {
       reply_markup: {
         inline_keyboard: [
-          [{ text: '1 oy — 29,000 so\'m', callback_data: 'pay_premium_1month' }],
-          [{ text: '6 oy — 150,000 so\'m (tejash 17%)', callback_data: 'pay_premium_6months' }],
-          [{ text: '1 yil — 270,000 so\'m (tejash 22%)', callback_data: 'pay_premium_1year' }],
+          [{ text: `1 oy — ${p['1_month'].toLocaleString()} so'm`, callback_data: 'pay_premium_1month' }],
+          [{ text: `3 oy — ${p['3_months'].toLocaleString()} so'm${calcSavings(p['1_month'], p['3_months'], 3)}`, callback_data: 'pay_premium_3months' }],
+          [{ text: `6 oy — ${p['6_months'].toLocaleString()} so'm${calcSavings(p['1_month'], p['6_months'], 6)}`, callback_data: 'pay_premium_6months' }],
+          [{ text: `1 yil — ${p['1_year'].toLocaleString()} so'm${calcSavings(p['1_month'], p['1_year'], 12)}`, callback_data: 'pay_premium_1year' }],
         ]
       }
     }
@@ -297,6 +364,8 @@ async function handlePremium(chatId: number) {
 
 // Handle /ustoz
 async function handleUstoz(chatId: number) {
+  const { prices } = await getSettings();
+  const p = prices.teacher;
   await sendMessage(chatId,
     `👨‍🏫 <b>Ustoz tarif</b>\n\n` +
     `✅ Attestatsiya testlari (tanlangan fanlar)\n` +
@@ -308,9 +377,10 @@ async function handleUstoz(chatId: number) {
     {
       reply_markup: {
         inline_keyboard: [
-          [{ text: '1 oy — 29,000 so\'m', callback_data: 'pay_teacher_1month' }],
-          [{ text: '6 oy — 150,000 so\'m (tejash 17%)', callback_data: 'pay_teacher_6months' }],
-          [{ text: '1 yil — 270,000 so\'m (tejash 22%)', callback_data: 'pay_teacher_1year' }],
+          [{ text: `1 oy — ${p['1_month'].toLocaleString()} so'm`, callback_data: 'pay_teacher_1month' }],
+          [{ text: `3 oy — ${p['3_months'].toLocaleString()} so'm${calcSavings(p['1_month'], p['3_months'], 3)}`, callback_data: 'pay_teacher_3months' }],
+          [{ text: `6 oy — ${p['6_months'].toLocaleString()} so'm${calcSavings(p['1_month'], p['6_months'], 6)}`, callback_data: 'pay_teacher_6months' }],
+          [{ text: `1 yil — ${p['1_year'].toLocaleString()} so'm${calcSavings(p['1_month'], p['1_year'], 12)}`, callback_data: 'pay_teacher_1year' }],
         ]
       }
     }
@@ -510,16 +580,21 @@ async function handleCallbackQuery(callbackQuery: any) {
   // Payment selection
   if (data.startsWith('pay_')) {
     const parts = data.replace('pay_', '').split('_');
-    const plan = parts[0];
-    const durationKey = parts[1];
+    const plan = parts[0]; // premium or teacher
+    const durationKey = parts.slice(1).join(''); // 1month, 3months, 6months, 1year
 
     const durationMap: Record<string, string> = {
       '1month': '1_month',
+      '3months': '3_months',
       '6months': '6_months',
       '1year': '1_year',
     };
     const duration = durationMap[durationKey] || '1_month';
-    const amount = PRICES[duration];
+
+    // Fetch dynamic prices and card info from admin settings
+    const { prices, cardNumber, cardOwner } = await getSettings();
+    const planPrices = plan === 'teacher' ? prices.teacher : prices.premium;
+    const amount = planPrices[duration] || planPrices['1_month'];
     const planName = plan === 'premium' ? '💎 Premium' : '👨‍🏫 Ustoz';
 
     await db.systemSetting.upsert({
@@ -539,9 +614,9 @@ async function handleCallbackQuery(callbackQuery: any) {
       `Muddat: ${DURATION_LABELS[duration]}\n` +
       `Summa: <b>${amount.toLocaleString()} so'm</b>\n\n` +
       `💳 Karta raqami:\n` +
-      `<code>${PAYMENT_CARD}</code>\n` +
-      `👤 Karta egasi: <b>${PAYMENT_CARD_OWNER}</b>\n\n` +
-      `📎 To'lov qilganingizdan keyin <b>chek screenshot</b>ini shu yerga yuboring.\n\n` +
+      `<code>${cardNumber}</code>\n` +
+      `👤 Karta egasi: <b>${cardOwner}</b>\n\n` +
+      `📎 To'lov qilganingizdan keyin <b>chek screenshot yoki PDF</b>ini shu yerga yuboring.\n\n` +
       `⏱ Chek yuborilgandan keyin 24 soat ichida admin tasdiqlaydi.`
     );
   }
@@ -651,7 +726,7 @@ async function handleCallbackQuery(callbackQuery: any) {
   }
 }
 
-// Handle photo (payment receipt)
+// Handle photo (payment receipt — image)
 async function handlePhoto(message: any) {
   const chatId = message.chat.id;
   const userId = message.from.id;
@@ -669,9 +744,111 @@ async function handlePhoto(message: any) {
   const payment = JSON.parse(paymentData.value);
   const planName = payment.plan === 'premium' ? '💎 Premium' : '👨‍🏫 Ustoz';
 
+  // Get photo file URL (largest size)
+  const photos = message.photo;
+  const largestPhoto = photos[photos.length - 1];
+  const receiptPhotoUrl = await getFileUrl(largestPhoto.file_id);
+
+  // Save receipt to Payment table in DB
+  await saveReceiptToDB(userId, payment, receiptPhotoUrl);
+
+  // Notify admins
+  await notifyAdminsAboutReceipt(chatId, userId, username, planName, payment, message.message_id);
+
+  await sendMessage(chatId,
+    `✅ Chekingiz qabul qilindi!\n\nAdmin tekshirmoqda. 24 soat ichida natija bildiriladi.\nSabr qiling... ⏳`
+  );
+}
+
+// Handle document (PDF receipt)
+async function handleDocument(message: any) {
+  const chatId = message.chat.id;
+  const userId = message.from.id;
+  const username = message.from.username || '';
+  const doc = message.document;
+
+  // Only accept PDF and image files
+  const allowedMimes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+  if (doc.mime_type && !allowedMimes.includes(doc.mime_type)) {
+    await sendMessage(chatId, '⚠️ Faqat rasm (JPG, PNG) yoki PDF fayl yuboring.');
+    return;
+  }
+
+  const paymentData = await db.systemSetting.findUnique({
+    where: { key: `pending_payment_${userId}` },
+  });
+
+  if (!paymentData) {
+    await sendMessage(chatId, 'ℹ️ Avval tarif tanlang:\n/premium yoki /ustoz');
+    return;
+  }
+
+  const payment = JSON.parse(paymentData.value);
+  const planName = payment.plan === 'premium' ? '💎 Premium' : '👨‍🏫 Ustoz';
+
+  // Get document file URL
+  const receiptFileUrl = await getFileUrl(doc.file_id);
+
+  // Save receipt to Payment table in DB
+  await saveReceiptToDB(userId, payment, receiptFileUrl);
+
+  // Notify admins
+  await notifyAdminsAboutReceipt(chatId, userId, username, planName, payment, message.message_id);
+
+  await sendMessage(chatId,
+    `✅ Chekingiz (${doc.file_name || 'fayl'}) qabul qilindi!\n\nAdmin tekshirmoqda. 24 soat ichida natija bildiriladi.\nSabr qiling... ⏳`
+  );
+}
+
+// Save receipt file URL to Payment record in DB
+async function saveReceiptToDB(userId: number, payment: any, receiptUrl: string | null) {
+  try {
+    const dbUser = await db.user.findFirst({ where: { telegramId: userId.toString() } });
+    if (!dbUser) return;
+
+    const planEnum = payment.plan === 'premium' ? 'PREMIUM' : 'TEACHER_PLAN';
+    const durationMap: Record<string, string> = {
+      '1_month': 'ONE_MONTH', '3_months': 'THREE_MONTHS',
+      '6_months': 'SIX_MONTHS', '1_year': 'ONE_YEAR',
+    };
+    const durationEnum = durationMap[payment.duration] || 'ONE_MONTH';
+
+    // Check if there's already a pending payment for this user
+    const existingPayment = await db.payment.findFirst({
+      where: { userId: dbUser.id, status: 'PENDING' },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (existingPayment) {
+      await db.payment.update({
+        where: { id: existingPayment.id },
+        data: { receiptPhoto: receiptUrl, amount: payment.amount },
+      });
+    } else {
+      await db.payment.create({
+        data: {
+          userId: dbUser.id,
+          plan: planEnum as any,
+          duration: durationEnum as any,
+          amount: payment.amount,
+          status: 'PENDING',
+          receiptPhoto: receiptUrl,
+        },
+      });
+    }
+  } catch (error) {
+    console.error('Failed to save receipt to DB:', error);
+  }
+}
+
+// Notify all admins about new receipt
+async function notifyAdminsAboutReceipt(
+  chatId: number, userId: number, username: string,
+  planName: string, payment: any, messageId: number
+) {
   for (const adminId of ADMIN_IDS) {
     try {
-      await forwardMessage(parseInt(adminId), chatId, message.message_id);
+      await forwardMessage(parseInt(adminId), chatId, messageId);
 
       await sendMessage(parseInt(adminId),
         `📋 <b>Yangi to'lov cheki</b>\n\n` +
@@ -693,10 +870,6 @@ async function handlePhoto(message: any) {
       console.error(`Failed to notify admin ${adminId}:`, error);
     }
   }
-
-  await sendMessage(chatId,
-    `✅ Chekingiz qabul qilindi!\n\nAdmin tekshirmoqda. 24 soat ichida natija bildiriladi.\nSabr qiling... ⏳`
-  );
 }
 
 // ===================== WEBHOOK HANDLER =====================
@@ -769,6 +942,23 @@ export async function POST(request: NextRequest) {
       }
 
       await handlePhoto(body.message);
+    }
+
+    // Handle document (PDF receipts)
+    if (body.message?.document && !body.message?.photo) {
+      const msg = body.message;
+      const userId = msg.from.id;
+      const chatId = msg.chat.id;
+
+      if (!isAdmin(userId)) {
+        const isSubscribed = await checkChannelSubscription(userId);
+        if (!isSubscribed) {
+          await sendSubscriptionPrompt(chatId);
+          return NextResponse.json({ ok: true });
+        }
+      }
+
+      await handleDocument(body.message);
     }
 
     if (body.callback_query) {
