@@ -29,6 +29,8 @@ model User {
   referralCode      String?  @unique
   referredBy        String?
   lastActiveAt      DateTime?
+  isBanned          Boolean  @default(false)
+  bannedReason      String?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 

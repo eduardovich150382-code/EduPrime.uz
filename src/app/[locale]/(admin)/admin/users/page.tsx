@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Users, Search, Shield, GraduationCap, User, Crown,
-  Mail, MessageCircle, Loader2, RefreshCw,
+  Mail, MessageCircle, Loader2, RefreshCw, Eye, Ban, X, BookOpen, Clock,
 } from 'lucide-react';
 import BackButton from '@/components/ui/BackButton';
 
@@ -15,6 +15,8 @@ interface UserData {
   image: string | null;
   telegramUsername: string | null;
   role: string;
+  lastActiveAt: string | null;
+  isBanned: boolean;
   createdAt: string;
   _count: { testResults: number };
 }
@@ -33,6 +35,37 @@ export default function AdminUsersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [total, setTotal] = useState(0);
   const [changingRole, setChangingRole] = useState<string | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [profileData, setProfileData] = useState<any>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
+
+  const viewProfile = async (userId: string) => {
+    setSelectedUserId(userId);
+    setProfileLoading(true);
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`);
+      const data = await res.json();
+      if (res.ok) setProfileData(data);
+    } catch {}
+    setProfileLoading(false);
+  };
+
+  const toggleBan = async (userId: string, currentBanned: boolean) => {
+    const reason = currentBanned ? '' : prompt('Ban sababi (ixtiyoriy):') || '';
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ban: !currentBanned, banReason: reason }),
+      });
+      if (res.ok) {
+        setUsers(users.map(u => u.id === userId ? { ...u, isBanned: !currentBanned } : u));
+        if (profileData?.user?.id === userId) {
+          setProfileData({ ...profileData, user: { ...profileData.user, isBanned: !currentBanned } });
+        }
+      }
+    } catch { alert('Xatolik'); }
+  };
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -162,22 +195,34 @@ export default function AdminUsersPage() {
                     <div className="flex items-center gap-2">
                       {getRoleBadge(user.role)}
                       <span className="text-xs text-text-secondary">{user._count.testResults} test</span>
+                      {user.isBanned && <span className="px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-medium">Bloklangan</span>}
                     </div>
-                    <select
-                      value={user.role}
-                      onChange={(e) => changeRole(user.id, e.target.value)}
-                      disabled={changingRole === user.id}
-                      className="px-2 py-1 rounded-lg border border-border text-xs font-medium bg-white focus:ring-2 focus:ring-primary-500/20 disabled:opacity-50"
-                    >
-                      <option value="USER">USER</option>
-                      <option value="TEACHER">TEACHER</option>
-                      <option value="ADMIN">ADMIN</option>
-                    </select>
+                    <div className="flex items-center gap-1">
+                      <button onClick={() => viewProfile(user.id)} className="p-1.5 rounded-lg hover:bg-primary-50 text-primary-600" title="Profil">
+                        <Eye size={14} />
+                      </button>
+                      <button onClick={() => toggleBan(user.id, user.isBanned)} className={`p-1.5 rounded-lg ${user.isBanned ? 'hover:bg-green-50 text-green-600' : 'hover:bg-red-50 text-red-500'}`} title={user.isBanned ? 'Blokni olish' : 'Bloklash'}>
+                        <Ban size={14} />
+                      </button>
+                      <select
+                        value={user.role}
+                        onChange={(e) => changeRole(user.id, e.target.value)}
+                        disabled={changingRole === user.id}
+                        className="px-2 py-1 rounded-lg border border-border text-xs font-medium bg-white focus:ring-2 focus:ring-primary-500/20 disabled:opacity-50"
+                      >
+                        <option value="USER">USER</option>
+                        <option value="TEACHER">TEACHER</option>
+                        <option value="ADMIN">ADMIN</option>
+                      </select>
+                    </div>
                   </div>
 
-                  <p className="text-xs text-text-secondary">
-                    Ro&apos;yxatdan: {new Date(user.createdAt).toLocaleDateString('uz-UZ')}
-                  </p>
+                  <div className="flex items-center gap-3 text-xs text-text-secondary">
+                    <span>Ro&apos;yxatdan: {new Date(user.createdAt).toLocaleDateString('uz-UZ')}</span>
+                    {user.lastActiveAt && (
+                      <span className="flex items-center gap-0.5"><Clock size={10} /> {new Date(user.lastActiveAt).toLocaleDateString('uz-UZ')}</span>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -242,6 +287,84 @@ export default function AdminUsersPage() {
           </>
         )}
       </motion.div>
+
+      {/* Profile Modal */}
+      {selectedUserId && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => { setSelectedUserId(null); setProfileData(null); }}>
+          <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[85vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-4 border-b border-border">
+              <h3 className="font-semibold text-text-primary">Foydalanuvchi profili</h3>
+              <button onClick={() => { setSelectedUserId(null); setProfileData(null); }} className="p-2 rounded-lg hover:bg-gray-100"><X size={18} /></button>
+            </div>
+            <div className="p-4 overflow-y-auto max-h-[70vh]">
+              {profileLoading ? (
+                <div className="text-center py-8"><Loader2 size={24} className="animate-spin text-primary-600 mx-auto" /></div>
+              ) : profileData ? (
+                <div className="space-y-4">
+                  {/* User info */}
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center overflow-hidden">
+                      {profileData.user.image ? <img src={profileData.user.image} alt="" className="w-full h-full object-cover" /> : <User size={20} className="text-primary-600" />}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-text-primary">{profileData.user.name || 'Nomsiz'}</p>
+                      <p className="text-xs text-text-secondary">{profileData.user.email || profileData.user.telegramUsername ? `@${profileData.user.telegramUsername}` : ''}</p>
+                    </div>
+                    {profileData.user.isBanned && <span className="ml-auto px-2 py-1 rounded-full bg-red-100 text-red-700 text-xs font-medium">Bloklangan</span>}
+                  </div>
+                  {/* Details */}
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="p-2.5 rounded-lg bg-gray-50"><span className="text-text-secondary">Rol:</span> <span className="font-medium">{profileData.user.role}</span></div>
+                    <div className="p-2.5 rounded-lg bg-gray-50"><span className="text-text-secondary">Testlar:</span> <span className="font-medium">{profileData.user._count.testResults}</span></div>
+                    <div className="p-2.5 rounded-lg bg-gray-50"><span className="text-text-secondary">Referral:</span> <span className="font-medium">{profileData.user._count.referralsMade}</span></div>
+                    <div className="p-2.5 rounded-lg bg-gray-50"><span className="text-text-secondary">To&apos;lovlar:</span> <span className="font-medium">{profileData.user._count.payments}</span></div>
+                    <div className="p-2.5 rounded-lg bg-gray-50"><span className="text-text-secondary">Ro&apos;yxatdan:</span> <span className="font-medium">{new Date(profileData.user.createdAt).toLocaleDateString('uz-UZ')}</span></div>
+                    <div className="p-2.5 rounded-lg bg-gray-50"><span className="text-text-secondary">Oxirgi:</span> <span className="font-medium">{profileData.user.lastActiveAt ? new Date(profileData.user.lastActiveAt).toLocaleDateString('uz-UZ') : '—'}</span></div>
+                  </div>
+                  {/* Subscriptions */}
+                  {profileData.subscriptions.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-semibold text-text-primary mb-2">Aktiv obunalar</h4>
+                      {profileData.subscriptions.map((s: any, i: number) => (
+                        <div key={i} className="flex items-center justify-between p-2.5 rounded-lg bg-purple-50 text-xs mb-1">
+                          <span className="font-medium text-purple-700">{s.plan === 'PREMIUM' ? 'Premium' : 'Ustoz'}</span>
+                          <span className="text-text-secondary">gacha: {new Date(s.endDate).toLocaleDateString('uz-UZ')}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {/* Test history */}
+                  {profileData.testResults.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-semibold text-text-primary mb-2 flex items-center gap-1"><BookOpen size={14} /> Test tarixi (oxirgi 20)</h4>
+                      <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                        {profileData.testResults.map((r: any) => (
+                          <div key={r.id} className="flex items-center justify-between p-2 rounded-lg bg-gray-50 text-xs">
+                            <div className="min-w-0 flex-1">
+                              <p className="font-medium text-text-primary truncate">{r.testTitle}</p>
+                              <p className="text-text-secondary">{r.subject}</p>
+                            </div>
+                            <span className={`font-bold ml-2 ${r.percentage >= 70 ? 'text-green-600' : r.percentage >= 50 ? 'text-yellow-600' : 'text-red-600'}`}>{r.percentage}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {/* Ban button */}
+                  <button
+                    onClick={() => toggleBan(profileData.user.id, profileData.user.isBanned)}
+                    className={`w-full py-2.5 rounded-xl text-sm font-medium ${profileData.user.isBanned ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-red-100 text-red-700 hover:bg-red-200'} transition-colors`}
+                  >
+                    {profileData.user.isBanned ? 'Blokni olib tashlash' : 'Foydalanuvchini bloklash'}
+                  </button>
+                </div>
+              ) : (
+                <p className="text-center text-text-secondary py-4">Ma&apos;lumot topilmadi</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
