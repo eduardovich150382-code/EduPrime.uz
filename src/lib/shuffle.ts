@@ -84,3 +84,55 @@ export function shuffleTest(
     };
   });
 }
+
+/**
+ * Get the original answer label from a shuffled answer.
+ * When user selects "A" on a shuffled test, this returns what the original label was.
+ * 
+ * Example: if original options were [A,B,C,D] and shuffled to [C,A,D,B],
+ * then shuffled position "A" (index 0) = original "C".
+ * So if user picks "A", the real answer is "C".
+ */
+export function unshuffleAnswer(
+  questionId: string,
+  shuffledAnswer: string,
+  originalOptions: any[],
+  userId: string,
+  testId: string,
+  questionShuffleIndex: number
+): string {
+  if (!shuffledAnswer || !originalOptions || originalOptions.length === 0) {
+    return shuffledAnswer;
+  }
+
+  const labels = ['A', 'B', 'C', 'D', 'E'];
+  const selectedIndex = labels.indexOf(shuffledAnswer);
+  if (selectedIndex === -1) return shuffledAnswer; // Not a standard label, return as-is
+
+  const baseSeed = generateSeed(userId, testId);
+  const optionSeed = baseSeed + questionShuffleIndex + 1;
+
+  // Re-create the same shuffle
+  const shuffledOptions = shuffleArray(originalOptions, optionSeed);
+
+  // The option at selectedIndex in shuffled array — get its original label
+  if (selectedIndex < shuffledOptions.length) {
+    return shuffledOptions[selectedIndex].label || shuffledAnswer;
+  }
+
+  return shuffledAnswer;
+}
+
+/**
+ * Get the shuffled question order (returns array of question indices in shuffle order).
+ * This is needed to know the questionShuffleIndex for unshuffleAnswer.
+ */
+export function getShuffledQuestionIndices(
+  questions: any[],
+  userId: string,
+  testId: string
+): number[] {
+  const baseSeed = generateSeed(userId, testId);
+  const indices = questions.map((_, i) => i);
+  return shuffleArray(indices, baseSeed);
+}
