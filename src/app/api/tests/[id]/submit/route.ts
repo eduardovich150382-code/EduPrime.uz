@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { sanitizeText, sanitizeInt } from '@/lib/sanitize';
+import { generateSeed, shuffleArray } from '@/lib/shuffle';
 
 // POST /api/tests/[id]/submit — test javoblarini yuborish va natija olish
 export async function POST(
@@ -32,13 +33,15 @@ export async function POST(
 
     const sanitizedTimeSpent = sanitizeInt(timeSpent, 0, 86400) || 0; // Max 24 hours
 
-    // Get test with correct answers
+    const userId = session.user.id!;
+
+    // Get test with correct answers AND options (needed for unshuffle)
     const test = await db.test.findUnique({
       where: { id },
       include: {
         questions: {
           orderBy: { order: 'asc' },
-          select: { id: true, correctAnswer: true, points: true, type: true },
+          select: { id: true, correctAnswer: true, points: true, type: true, options: true },
         },
       },
     });
@@ -47,27 +50,63 @@ export async function POST(
       return NextResponse.json({ error: 'Test not found' }, { status: 404 });
     }
 
-    // Calculate score
+    // Recreate the same shuffle order used when serving the test
+    const baseSeed = generateSeed(userId, id);
+    const shuffledQuestions = shuffleArray(test.questions, baseSeed);
+
+    // Build a map: questionId -> shuffleIndex (position in shuffled array)
+    const shuffleIndexMap: Record<string, number> = {};
+    shuffledQuestions.forEach((q: any, index: number) => {
+      shuffleIndexMap[q.id] = index;
+    });
+
+    // Calculate score with unshuffle logic
     let score = 0;
     let maxScore = 0;
+    const labels = ['A', 'B', 'C', 'D', 'E'];
+
     const answerResults = test.questions.map((question) => {
       maxScore += question.points;
       const userAnswer = sanitizedAnswers.find((a: any) => a.questionId === question.id);
+      const userAnswerValue = userAnswer?.answer || '';
 
-      // For OPEN_ENDED: case-insensitive trimmed comparison
-      // For MULTIPLE_CHOICE: exact match
       let isCorrect = false;
+
       if (question.type === 'OPEN_ENDED') {
-        isCorrect = (userAnswer?.answer || '').trim().toLowerCase() === (question.correctAnswer || '').trim().toLowerCase();
+        // For open-ended: case-insensitive comparison (no shuffle involved)
+        isCorrect = userAnswerValue.trim().toLowerCase() === (question.correctAnswer || '').trim().toLowerCase();
       } else {
-        isCorrect = userAnswer?.answer === question.correctAnswer;
+        // For multiple choice: unshuffle the user's answer back to original label
+        const options = question.options as any[];
+        const shuffleIndex = shuffleIndexMap[question.id];
+
+        if (shuffleIndex !== undefined && options && options.length > 0) {
+          // Recreate the same option shuffle
+          const optionSeed = baseSeed + shuffleIndex + 1;
+          const shuffledOptions = shuffleArray(options, optionSeed);
+
+          // User selected label (e.g., "A") -> find which original option was at that position
+          const selectedLabelIndex = labels.indexOf(userAnswerValue);
+
+          if (selectedLabelIndex >= 0 && selectedLabelIndex < shuffledOptions.length) {
+            // The original label of the option that ended up at selectedLabelIndex
+            const originalLabel = shuffledOptions[selectedLabelIndex].label;
+            isCorrect = originalLabel === question.correctAnswer;
+          } else {
+            // Fallback: direct comparison
+            isCorrect = userAnswerValue === question.correctAnswer;
+          }
+        } else {
+          // No shuffle info — direct comparison
+          isCorrect = userAnswerValue === question.correctAnswer;
+        }
       }
 
       if (isCorrect) score += question.points;
 
       return {
         questionId: question.id,
-        answer: userAnswer?.answer || '',
+        answer: userAnswerValue,
         isCorrect,
         correctAnswer: question.correctAnswer,
         timeSpent: userAnswer?.timeSpent || 0,
@@ -79,7 +118,7 @@ export async function POST(
     // Save result
     const result = await db.testResult.create({
       data: {
-        userId: session.user.id!,
+        userId,
         testId: id,
         score,
         maxScore,
