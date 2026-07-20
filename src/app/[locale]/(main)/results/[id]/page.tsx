@@ -453,32 +453,45 @@ export default function ResultPage() {
               Har savolga sarflangan vaqt
             </h4>
             <div className="space-y-2">
-              {result.answers.map((ans, i) => {
-                const timeSpent = ans.timeSpent || 0;
-                const maxTime = Math.max(...result.answers.map(a => a.timeSpent || 0), 1);
-                const percentage = (timeSpent / maxTime) * 100;
-                return (
-                  <div key={i} className="flex items-center gap-3 text-xs">
-                    <span className="w-6 text-right text-text-secondary font-mono">{i + 1}</span>
-                    <div className="flex-1 h-4 bg-blue-100 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all ${
-                          ans.isCorrect ? 'bg-green-400' : ans.answer ? 'bg-red-400' : 'bg-gray-300'
-                        }`}
-                        style={{ width: `${Math.max(percentage, 3)}%` }}
-                      />
+              {(() => {
+                // If most per-question times are 0, distribute total time evenly
+                const totalPerQuestion = result.answers.reduce((sum, a) => sum + (a.timeSpent || 0), 0);
+                const hasPerQuestionData = totalPerQuestion > 5; // At least 5 seconds tracked per-question
+                
+                return result.answers.map((ans, i) => {
+                  let timeSpent = ans.timeSpent || 0;
+                  // If no per-question data, estimate from total
+                  if (!hasPerQuestionData && result.timeSpent > 0) {
+                    timeSpent = Math.round(result.timeSpent / result.answers.length);
+                  }
+                  const maxTime = hasPerQuestionData
+                    ? Math.max(...result.answers.map(a => a.timeSpent || 0), 1)
+                    : Math.round(result.timeSpent / result.answers.length) + 1;
+                  const percentage = (timeSpent / maxTime) * 100;
+                  return (
+                    <div key={i} className="flex items-center gap-3 text-xs">
+                      <span className="w-6 text-right text-text-secondary font-mono">{i + 1}</span>
+                      <div className="flex-1 h-4 bg-blue-100 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${
+                            ans.isCorrect ? 'bg-green-400' : ans.answer ? 'bg-red-400' : 'bg-gray-300'
+                          }`}
+                          style={{ width: `${Math.max(percentage, 3)}%` }}
+                        />
+                      </div>
+                      <span className="w-12 text-text-secondary font-mono">
+                        {timeSpent >= 60 ? `${Math.floor(timeSpent / 60)}:${(timeSpent % 60).toString().padStart(2, '0')}` : `${timeSpent}s`}
+                      </span>
                     </div>
-                    <span className="w-12 text-text-secondary font-mono">
-                      {timeSpent > 60 ? `${Math.floor(timeSpent / 60)}:${(timeSpent % 60).toString().padStart(2, '0')}` : `${timeSpent}s`}
-                    </span>
-                  </div>
-                );
-              })}
+                  );
+                });
+              })()}
             </div>
             <div className="flex items-center gap-4 mt-3 text-xs text-text-secondary">
               <span className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-full bg-green-400" /> To&apos;g&apos;ri</span>
               <span className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-full bg-red-400" /> Noto&apos;g&apos;ri</span>
               <span className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-full bg-gray-300" /> Javobsiz</span>
+              <span className="ml-auto">Jami: {formatTime(result.timeSpent)}</span>
             </div>
           </motion.div>
         )}

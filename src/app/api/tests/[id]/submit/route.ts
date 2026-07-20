@@ -71,10 +71,12 @@ export async function POST(
       const userAnswerValue = userAnswer?.answer || '';
 
       let isCorrect = false;
+      let originalAnswerLabel = userAnswerValue; // Will be converted to original label
 
       if (question.type === 'OPEN_ENDED') {
         // For open-ended: case-insensitive comparison (no shuffle involved)
         isCorrect = userAnswerValue.trim().toLowerCase() === (question.correctAnswer || '').trim().toLowerCase();
+        originalAnswerLabel = userAnswerValue;
       } else {
         // For multiple choice: unshuffle the user's answer back to original label
         const options = question.options as any[];
@@ -90,8 +92,8 @@ export async function POST(
 
           if (selectedLabelIndex >= 0 && selectedLabelIndex < shuffledOptions.length) {
             // The original label of the option that ended up at selectedLabelIndex
-            const originalLabel = shuffledOptions[selectedLabelIndex].label;
-            isCorrect = originalLabel === question.correctAnswer;
+            originalAnswerLabel = shuffledOptions[selectedLabelIndex].label;
+            isCorrect = originalAnswerLabel === question.correctAnswer;
           } else {
             // Fallback: direct comparison
             isCorrect = userAnswerValue === question.correctAnswer;
@@ -106,7 +108,7 @@ export async function POST(
 
       return {
         questionId: question.id,
-        answer: userAnswerValue,
+        answer: originalAnswerLabel, // Store ORIGINAL label (not shuffled)
         isCorrect,
         correctAnswer: question.correctAnswer,
         timeSpent: userAnswer?.timeSpent || 0,
