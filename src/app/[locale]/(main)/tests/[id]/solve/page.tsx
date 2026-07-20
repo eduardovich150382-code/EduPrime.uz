@@ -199,6 +199,8 @@ export default function TestSolvePage() {
         const data = await res.json();
         if (data.test) {
           setTest(data.test);
+          // Reset question timer when test loads
+          questionStartTimeRef.current = Date.now();
         }
       } catch (error) {
         console.error('Failed to fetch test:', error);
@@ -212,6 +214,10 @@ export default function TestSolvePage() {
     setAnswers((prev) => ({ ...prev, [currentQuestion]: answer }));
     // Auto-next: go to next question after selecting answer
     if (autoNext && test && currentQuestion < test.questions.length - 1) {
+      // Track time before auto-navigating
+      const elapsed = Math.floor((Date.now() - questionStartTimeRef.current) / 1000);
+      setQuestionTimeSpent(prev => ({ ...prev, [currentQuestion]: (prev[currentQuestion] || 0) + elapsed }));
+      questionStartTimeRef.current = Date.now();
       setTimeout(() => setCurrentQuestion(currentQuestion + 1), 300);
     }
   };
