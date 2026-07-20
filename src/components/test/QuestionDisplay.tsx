@@ -105,7 +105,9 @@ export default function QuestionDisplay({
       ) : (
       /* MULTIPLE_CHOICE: Options */
       <div className="space-y-3">
-        {options.map((option) => {
+        {options
+          .filter((option) => option.text || option.image) // Bo'sh variantlarni ko'rsatmaslik
+          .map((option, index) => {
           const isSelected = selectedAnswer === option.label;
           const isCorrect = isReview && option.label === correctAnswer;
           const isWrong = isReview && isSelected && option.label !== correctAnswer;
@@ -124,19 +126,26 @@ export default function QuestionDisplay({
                 isReview && !isCorrect && !isWrong && 'border-border opacity-60'
               )}
             >
-              {/* Option label circle */}
+              {/* Option indicator (radio-style circle, no letter) */}
               <div className={cn(
-                'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 border-2 transition-colors',
-                !isReview && !isSelected && 'border-border text-text-secondary',
-                !isReview && isSelected && 'border-primary-500 bg-primary-500 text-white',
-                isCorrect && 'border-green-500 bg-green-500 text-white',
-                isWrong && 'border-red-500 bg-red-500 text-white'
+                'w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 border-2 transition-colors',
+                !isReview && !isSelected && 'border-gray-300',
+                !isReview && isSelected && 'border-primary-500 bg-primary-500',
+                isCorrect && 'border-green-500 bg-green-500',
+                isWrong && 'border-red-500 bg-red-500'
               )}>
-                {option.label}
+                {(isSelected || isCorrect || isWrong) && (
+                  <div className={cn(
+                    'w-2.5 h-2.5 rounded-full',
+                    !isReview && isSelected && 'bg-white',
+                    isCorrect && 'bg-white',
+                    isWrong && 'bg-white'
+                  )} />
+                )}
               </div>
 
               {/* Option content */}
-              <div className="flex-1 pt-1">
+              <div className="flex-1 pt-0.5">
                 {/* Text (LaTeX rendered) */}
                 <LatexRenderer content={option.text} className="text-text-primary" />
 
@@ -151,7 +160,7 @@ export default function QuestionDisplay({
                   >
                     <img
                       src={option.image}
-                      alt={`Variant ${option.label}`}
+                      alt="Variant rasmi"
                       className="max-h-32 w-auto object-contain"
                     />
                   </div>

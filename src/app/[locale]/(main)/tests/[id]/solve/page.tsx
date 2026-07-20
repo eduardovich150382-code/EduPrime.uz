@@ -339,54 +339,55 @@ export default function TestSolvePage() {
   return (
     <div className="max-w-7xl mx-auto" ref={containerRef}>
       <BackButton className="mb-4" />
-      {/* Top bar — sticky */}
+      {/* Top bar — sticky with progress */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="sticky top-16 z-30 flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 card p-3 sm:p-4 gap-3 sm:gap-0"
+        className="sticky top-16 z-30 card p-0 mb-4 sm:mb-6 overflow-hidden"
       >
-        <div>
-          <h1 className="font-semibold text-text-primary text-sm sm:text-base">{test.titleUz}</h1>
-          <p className="text-xs text-text-secondary">
-            {answeredCount}/{totalQuestions} javob berilgan
-          </p>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 gap-3 sm:gap-0">
+          <div>
+            <h1 className="font-semibold text-text-primary text-sm sm:text-base">{test.titleUz}</h1>
+            <p className="text-xs text-text-secondary">
+              {answeredCount}/{totalQuestions} javob berilgan
+            </p>
+          </div>
+          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end">
+            <TestTimer totalSeconds={test.duration * 60} onTimeUp={handleFinish} />
+            <button
+              onClick={toggleFullscreen}
+              className="p-2 rounded-lg hover:bg-primary-50 text-text-secondary hover:text-primary-600 transition-colors hidden sm:flex"
+              title="Fullscreen (F11)"
+            >
+              <Maximize size={16} />
+            </button>
+            <button
+              onClick={() => setShowShortcuts(!showShortcuts)}
+              className="p-2 rounded-lg hover:bg-primary-50 text-text-secondary hover:text-primary-600 transition-colors hidden sm:flex"
+              title="Klaviatura yorliqlari (?)"
+            >
+              <Keyboard size={16} />
+            </button>
+            <button
+              onClick={() => setShowFinishDialog(true)}
+              disabled={submitting}
+              className="btn-primary !py-2 !px-3 sm:!px-4 text-sm flex items-center gap-2"
+            >
+              <Flag size={14} />
+              Tugatish
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end">
-          <TestTimer totalSeconds={test.duration * 60} onTimeUp={handleFinish} />
-          <button
-            onClick={toggleFullscreen}
-            className="p-2 rounded-lg hover:bg-primary-50 text-text-secondary hover:text-primary-600 transition-colors hidden sm:flex"
-            title="Fullscreen (F11)"
-          >
-            <Maximize size={16} />
-          </button>
-          <button
-            onClick={() => setShowShortcuts(!showShortcuts)}
-            className="p-2 rounded-lg hover:bg-primary-50 text-text-secondary hover:text-primary-600 transition-colors hidden sm:flex"
-            title="Klaviatura yorliqlari (?)"
-          >
-            <Keyboard size={16} />
-          </button>
-          <button
-            onClick={() => setShowFinishDialog(true)}
-            disabled={submitting}
-            className="btn-primary !py-2 !px-3 sm:!px-4 text-sm flex items-center gap-2"
-          >
-            <Flag size={14} />
-            Tugatish
-          </button>
+        {/* Progress bar inside sticky header */}
+        <div className="w-full h-1.5 bg-gray-100">
+          <motion.div
+            className="h-full bg-gradient-to-r from-primary-500 to-primary-600"
+            initial={{ width: 0 }}
+            animate={{ width: `${(answeredCount / totalQuestions) * 100}%` }}
+            transition={{ duration: 0.3 }}
+          />
         </div>
       </motion.div>
-
-      {/* Progress bar */}
-      <div className="w-full h-1.5 bg-gray-100 rounded-full mb-4 sm:mb-6 overflow-hidden">
-        <motion.div
-          className="h-full bg-gradient-to-r from-primary-500 to-primary-600 rounded-full"
-          initial={{ width: 0 }}
-          animate={{ width: `${(answeredCount / totalQuestions) * 100}%` }}
-          transition={{ duration: 0.3 }}
-        />
-      </div>
 
       {/* Keyboard shortcuts modal */}
       {showShortcuts && (

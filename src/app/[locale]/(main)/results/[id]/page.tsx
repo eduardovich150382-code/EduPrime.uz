@@ -576,16 +576,11 @@ export default function ResultPage() {
                     <div className="flex items-center gap-3 mt-1 text-xs">
                       {!isSkipped && (
                         <span className={isCorrect ? 'text-green-600' : 'text-red-600'}>
-                          Sizning javob: {userAnswer}
+                          {isCorrect ? '✓ To\'g\'ri javob topildi' : '✗ Noto\'g\'ri javob'}
                         </span>
                       )}
                       {isSkipped && (
                         <span className="text-gray-500">Javob berilmagan</span>
-                      )}
-                      {!isCorrect && !isSkipped && (
-                        <span className="text-green-600">
-                          To&apos;g&apos;ri javob: {question.correctAnswer}
-                        </span>
                       )}
                     </div>
                   </div>
@@ -665,8 +660,11 @@ export default function ResultPage() {
                         )}
                       </div>
                     ) : (
-                      /* MULTIPLE_CHOICE: show options as before */
-                    (question.options as QuestionOption[]).map((option) => {
+                      /* MULTIPLE_CHOICE: show options without A/B/C/D labels */
+                    <div className="space-y-2">
+                    {(question.options as QuestionOption[])
+                      .filter((option) => option.text || option.image) // Bo'sh variantlarni ko'rsatmaslik
+                      .map((option) => {
                       const isUserChoice = option.label === userAnswer;
                       const isCorrectOption = option.label === question.correctAnswer;
                       const isWrongChoice = isUserChoice && !isCorrectOption;
@@ -682,21 +680,26 @@ export default function ResultPage() {
                               : 'border-gray-100 bg-white'
                           }`}
                         >
-                          <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 border-2 ${
+                          {/* Radio-style indicator (no letter) */}
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 border-2 mt-0.5 ${
                             isCorrectOption
-                              ? 'border-green-500 bg-green-500 text-white'
+                              ? 'border-green-500 bg-green-500'
                               : isWrongChoice
-                              ? 'border-red-500 bg-red-500 text-white'
-                              : 'border-gray-200 text-gray-500'
+                              ? 'border-red-500 bg-red-500'
+                              : isUserChoice
+                              ? 'border-primary-500 bg-primary-500'
+                              : 'border-gray-200'
                           }`}>
-                            {option.label}
+                            {(isCorrectOption || isWrongChoice || isUserChoice) && (
+                              <div className="w-2 h-2 rounded-full bg-white" />
+                            )}
                           </div>
                           <div className="flex-1 min-w-0 pt-0.5">
                             <LatexRenderer content={option.text} className="text-sm text-text-primary" />
                             {option.image && (
                               <img
                                 src={option.image}
-                                alt={`Variant ${option.label}`}
+                                alt="Variant rasmi"
                                 className="mt-2 max-h-32 w-auto object-contain rounded-lg border border-border"
                               />
                             )}
@@ -709,7 +712,8 @@ export default function ResultPage() {
                           )}
                         </div>
                       );
-                    })
+                    })}
+                    </div>
                     )}
                   </div>
 
