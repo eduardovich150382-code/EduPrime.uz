@@ -172,6 +172,63 @@ async function sendSubscriptionPrompt(chatId: number) {
 
 // Handle /start command
 async function handleStart(chatId: number, userId: number, username: string, firstName: string, param: string) {
+  // Handle single-test purchase: buy_test_<testId> — must be checked before the
+  // generic 'buy_' prefix below, which would otherwise misparse "test" as a
+  // plan name and show the wrong (Ustoz/Premium) price instead of this test's.
+  if (param.startsWith('buy_test_')) {
+    const testId = param.replace('buy_test_', '');
+
+    const test = await db.test.findUnique({
+      where: { id: testId },
+      select: { id: true, titleUz: true, price: true },
+    });
+
+    if (!test) {
+      await sendMessage(chatId, "❌ Test topilmadi.");
+      return;
+    }
+
+    let dbUser = await db.user.findFirst({ where: { telegramId: userId.toString() } });
+    if (!dbUser) {
+      dbUser = await db.user.create({
+        data: {
+          telegramId: userId.toString(),
+          telegramUsername: username || undefined,
+          name: firstName || username || 'Telegram User',
+          role: 'USER',
+        },
+      });
+    }
+
+    const { cardNumber, cardOwner } = await getSettings();
+
+    // Store pending payment — plan:'test_purchase' + testId marks this as a
+    // single-test purchase rather than a subscription, so it must never be
+    // confirmed into a Premium/Ustoz subscription later.
+    await db.systemSetting.upsert({
+      where: { key: `pending_payment_${userId}` },
+      update: {
+        value: JSON.stringify({ userId, username, plan: 'test_purchase', testId, testTitle: test.titleUz, amount: test.price, timestamp: Date.now() }),
+      },
+      create: {
+        key: `pending_payment_${userId}`,
+        value: JSON.stringify({ userId, username, plan: 'test_purchase', testId, testTitle: test.titleUz, amount: test.price, timestamp: Date.now() }),
+      },
+    });
+
+    await sendMessage(chatId,
+      `🛒 <b>Test sotib olish</b>\n\n` +
+      `📝 Test: <b>${test.titleUz}</b>\n` +
+      `💰 Narx: <b>${test.price.toLocaleString()} so'm</b>\n\n` +
+      `💳 Karta raqami:\n` +
+      `<code>${cardNumber}</code>\n` +
+      `👤 Karta egasi: <b>${cardOwner}</b>\n\n` +
+      `📎 To'lov qilganingizdan keyin <b>chek screenshot yoki PDF</b>ini shu yerga yuboring.\n\n` +
+      `⏱ Chek yuborilgandan keyin 24 soat ichida admin tasdiqlaydi.`
+    );
+    return;
+  }
+
   // Handle plan-specific buy params: buy_premium_1month, buy_teacher_6months, etc.
   if (param.startsWith('buy_')) {
     const parts = param.replace('buy_', '').split('_');
@@ -642,62 +699,82 @@ async function handleCallbackQuery(callbackQuery: any) {
       });
 
       if (targetUser) {
-        // Map plan string to SubscriptionPlan enum
-        const planEnum = payment.plan === 'premium' ? 'PREMIUM' : 'TEACHER_PLAN';
+        if (payment.plan === 'test_purchase') {
+          // Single-test purchase — grant access to exactly this test, never a
+          // subscription. checkTestAccess() looks for a CONFIRMED Payment
+          // whose selectedSubjects contains this test's id; plan/duration
+          // have no "single test" enum value so they're inert placeholders.
+          await db.payment.create({
+            data: {
+              userId: targetUser.id,
+              plan: 'PREMIUM',
+              duration: 'ONE_MONTH',
+              amount: payment.amount,
+              status: 'CONFIRMED',
+              confirmedAt: new Date(),
+              selectedSubjects: [payment.testId],
+            },
+          });
+        } else {
+          // Map plan string to SubscriptionPlan enum
+          const planEnum = payment.plan === 'premium' ? 'PREMIUM' : 'TEACHER_PLAN';
 
-        // Map duration string to SubscriptionDuration enum
-        const durationMap: Record<string, string> = {
-          '1_month': 'ONE_MONTH',
-          '3_months': 'THREE_MONTHS',
-          '6_months': 'SIX_MONTHS',
-          '1_year': 'ONE_YEAR',
-        };
-        const durationEnum = durationMap[payment.duration] || 'ONE_MONTH';
+          // Map duration string to SubscriptionDuration enum
+          const durationMap: Record<string, string> = {
+            '1_month': 'ONE_MONTH',
+            '3_months': 'THREE_MONTHS',
+            '6_months': 'SIX_MONTHS',
+            '1_year': 'ONE_YEAR',
+          };
+          const durationEnum = durationMap[payment.duration] || 'ONE_MONTH';
 
-        // Calculate end date based on duration
-        const startDate = new Date();
-        const endDate = new Date(startDate);
-        if (payment.duration === '1_month') {
-          endDate.setMonth(endDate.getMonth() + 1);
-        } else if (payment.duration === '3_months') {
-          endDate.setMonth(endDate.getMonth() + 3);
-        } else if (payment.duration === '6_months') {
-          endDate.setMonth(endDate.getMonth() + 6);
-        } else if (payment.duration === '1_year') {
-          endDate.setFullYear(endDate.getFullYear() + 1);
+          // Calculate end date based on duration
+          const startDate = new Date();
+          const endDate = new Date(startDate);
+          if (payment.duration === '1_month') {
+            endDate.setMonth(endDate.getMonth() + 1);
+          } else if (payment.duration === '3_months') {
+            endDate.setMonth(endDate.getMonth() + 3);
+          } else if (payment.duration === '6_months') {
+            endDate.setMonth(endDate.getMonth() + 6);
+          } else if (payment.duration === '1_year') {
+            endDate.setFullYear(endDate.getFullYear() + 1);
+          }
+
+          // Create Payment record
+          const paymentRecord = await db.payment.create({
+            data: {
+              userId: targetUser.id,
+              plan: planEnum as any,
+              duration: durationEnum as any,
+              amount: payment.amount,
+              status: 'CONFIRMED',
+              confirmedAt: new Date(),
+            },
+          });
+
+          // Create Subscription record
+          await db.subscription.create({
+            data: {
+              userId: targetUser.id,
+              plan: planEnum as any,
+              duration: durationEnum as any,
+              startDate,
+              endDate,
+              isActive: true,
+              paymentId: paymentRecord.id,
+            },
+          });
         }
-
-        // Create Payment record
-        const paymentRecord = await db.payment.create({
-          data: {
-            userId: targetUser.id,
-            plan: planEnum as any,
-            duration: durationEnum as any,
-            amount: payment.amount,
-            status: 'CONFIRMED',
-            confirmedAt: new Date(),
-          },
-        });
-
-        // Create Subscription record
-        await db.subscription.create({
-          data: {
-            userId: targetUser.id,
-            plan: planEnum as any,
-            duration: durationEnum as any,
-            startDate,
-            endDate,
-            isActive: true,
-            paymentId: paymentRecord.id,
-          },
-        });
       }
 
       await sendMessage(parseInt(targetUserId),
-        `🎉 <b>Tabriklaymiz!</b>\n\n` +
-        `Sizning ${payment.plan === 'premium' ? 'Premium' : 'Ustoz'} tarifingiz aktivlashtirildi!\n` +
-        `Muddat: ${DURATION_LABELS[payment.duration]}\n\n` +
-        `🌐 Saytga kiring va barcha testlardan foydalaning!`,
+        payment.plan === 'test_purchase'
+          ? `🎉 <b>Tabriklaymiz!</b>\n\n"${payment.testTitle}" testi uchun to'lovingiz tasdiqlandi!\n\n🌐 Saytga kiring va testni yeching!`
+          : `🎉 <b>Tabriklaymiz!</b>\n\n` +
+            `Sizning ${payment.plan === 'premium' ? 'Premium' : 'Ustoz'} tarifingiz aktivlashtirildi!\n` +
+            `Muddat: ${DURATION_LABELS[payment.duration]}\n\n` +
+            `🌐 Saytga kiring va barcha testlardan foydalaning!`,
         {
           reply_markup: {
             inline_keyboard: [[{ text: '🌐 Saytga kirish', url: APP_URL }]]
@@ -706,7 +783,7 @@ async function handleCallbackQuery(callbackQuery: any) {
       );
 
       await db.systemSetting.delete({ where: { key: `pending_payment_${targetUserId}` } });
-      await sendMessage(chatId, `✅ @${payment.username} uchun tarif aktivlashtirildi.`);
+      await sendMessage(chatId, `✅ @${payment.username} uchun ${payment.plan === 'test_purchase' ? 'test' : 'tarif'} aktivlashtirildi.`);
     }
   }
 
@@ -750,7 +827,7 @@ async function handlePhoto(message: any) {
   }
 
   const payment = JSON.parse(paymentData.value);
-  const planName = payment.plan === 'premium' ? '💎 Premium' : '👨‍🏫 Ustoz';
+  const planName = getPaymentLabel(payment);
 
   // Get photo file URL (largest size)
   const photos = message.photo;
@@ -792,7 +869,7 @@ async function handleDocument(message: any) {
   }
 
   const payment = JSON.parse(paymentData.value);
-  const planName = payment.plan === 'premium' ? '💎 Premium' : '👨‍🏫 Ustoz';
+  const planName = getPaymentLabel(payment);
 
   // Get document file URL
   const receiptFileUrl = await getFileUrl(doc.file_id);
@@ -808,11 +885,51 @@ async function handleDocument(message: any) {
   );
 }
 
+// Display label for a pending payment — a single-test purchase shows the
+// test's title instead of a subscription plan name.
+function getPaymentLabel(payment: any): string {
+  if (payment.plan === 'test_purchase') return `📝 ${payment.testTitle || 'Test'}`;
+  return payment.plan === 'premium' ? '💎 Premium' : '👨‍🏫 Ustoz';
+}
+
 // Save receipt file URL to Payment record in DB
 async function saveReceiptToDB(userId: number, payment: any, receiptUrl: string | null) {
   try {
     const dbUser = await db.user.findFirst({ where: { telegramId: userId.toString() } });
     if (!dbUser) return;
+
+    // Check if there's already a pending payment for this user
+    const existingPayment = await db.payment.findFirst({
+      where: { userId: dbUser.id, status: 'PENDING' },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (payment.plan === 'test_purchase') {
+      // Single-test purchase — tag the Payment with selectedSubjects so
+      // checkTestAccess() grants access to exactly this test once confirmed,
+      // never a full subscription. plan/duration are required non-null
+      // columns with no "single test" enum value, so PREMIUM/ONE_MONTH here
+      // are inert placeholders — access is decided by selectedSubjects only.
+      if (existingPayment) {
+        await db.payment.update({
+          where: { id: existingPayment.id },
+          data: { receiptPhoto: receiptUrl, amount: payment.amount, selectedSubjects: [payment.testId] },
+        });
+      } else {
+        await db.payment.create({
+          data: {
+            userId: dbUser.id,
+            plan: 'PREMIUM',
+            duration: 'ONE_MONTH',
+            amount: payment.amount,
+            status: 'PENDING',
+            receiptPhoto: receiptUrl,
+            selectedSubjects: [payment.testId],
+          },
+        });
+      }
+      return;
+    }
 
     const planEnum = payment.plan === 'premium' ? 'PREMIUM' : 'TEACHER_PLAN';
     const durationMap: Record<string, string> = {
@@ -820,12 +937,6 @@ async function saveReceiptToDB(userId: number, payment: any, receiptUrl: string 
       '6_months': 'SIX_MONTHS', '1_year': 'ONE_YEAR',
     };
     const durationEnum = durationMap[payment.duration] || 'ONE_MONTH';
-
-    // Check if there's already a pending payment for this user
-    const existingPayment = await db.payment.findFirst({
-      where: { userId: dbUser.id, status: 'PENDING' },
-      orderBy: { createdAt: 'desc' },
-    });
 
     if (existingPayment) {
       await db.payment.update({
@@ -854,6 +965,8 @@ async function notifyAdminsAboutReceipt(
   chatId: number, userId: number, username: string,
   planName: string, payment: any, messageId: number
 ) {
+  const durationLine = payment.plan === 'test_purchase' ? '' : `⏱ Muddat: ${DURATION_LABELS[payment.duration]}\n`;
+
   for (const adminId of ADMIN_IDS) {
     try {
       await forwardMessage(parseInt(adminId), chatId, messageId);
@@ -861,8 +974,8 @@ async function notifyAdminsAboutReceipt(
       await sendMessage(parseInt(adminId),
         `📋 <b>Yangi to'lov cheki</b>\n\n` +
         `👤 Foydalanuvchi: @${username} (${userId})\n` +
-        `📦 Tarif: ${planName}\n` +
-        `⏱ Muddat: ${DURATION_LABELS[payment.duration]}\n` +
+        `📦 ${payment.plan === 'test_purchase' ? 'Test' : 'Tarif'}: ${planName}\n` +
+        durationLine +
         `💰 Summa: ${payment.amount.toLocaleString()} so'm\n\n` +
         `Tasdiqlaysizmi?`,
         {
