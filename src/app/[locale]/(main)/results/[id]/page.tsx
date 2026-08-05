@@ -193,11 +193,41 @@ export default function ResultPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ questionId }),
       });
-      const data = await res.json();
-      if (res.ok && data.explanation) {
-        setAiExplain(prev => ({ ...prev, [questionId]: { text: data.explanation } }));
-      } else {
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
         setAiExplain(prev => ({ ...prev, [questionId]: { error: data.error || 'Xatolik yuz berdi' } }));
+        return;
+      }
+
+      const contentType = res.headers.get('content-type') || '';
+
+      // Cached explanations come back as plain JSON (already known, instant)
+      if (contentType.includes('application/json')) {
+        const data = await res.json();
+        setAiExplain(prev => ({ ...prev, [questionId]: { text: data.explanation } }));
+        return;
+      }
+
+      // Newly generated explanations stream in as plain text — show it as
+      // it arrives instead of waiting for the whole thing
+      if (!res.body) {
+        setAiExplain(prev => ({ ...prev, [questionId]: { error: 'Xatolik yuz berdi' } }));
+        return;
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let accumulated = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        accumulated += decoder.decode(value, { stream: true });
+        setAiExplain(prev => ({ ...prev, [questionId]: { text: accumulated } }));
+      }
+
+      if (!accumulated.trim()) {
+        setAiExplain(prev => ({ ...prev, [questionId]: { error: "AI javob bera olmadi, qayta urinib ko'ring" } }));
       }
     } catch {
       setAiExplain(prev => ({ ...prev, [questionId]: { error: "Server bilan bog'lanishda xatolik" } }));

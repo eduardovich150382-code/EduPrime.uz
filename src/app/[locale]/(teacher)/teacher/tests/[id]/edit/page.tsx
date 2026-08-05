@@ -58,6 +58,7 @@ export default function EditTestPage() {
     duration: 60,
     isFree: false,
     price: 0,
+    accessType: 'free' as 'free' | 'premium' | 'teacher' | 'premium_teacher' | 'paid',
     difficulty: 3,
     videoSolution: '',
     coverImage: '',
@@ -82,6 +83,7 @@ export default function EditTestPage() {
           duration: test.duration || 60,
           isFree: test.isFree || false,
           price: test.price || 0,
+          accessType: test.accessType || 'free',
           difficulty: test.difficulty || 3,
           videoSolution: test.videoSolution || '',
           coverImage: test.coverImage || '',
@@ -171,8 +173,9 @@ export default function EditTestPage() {
         body: JSON.stringify({
           titleUz: testInfo.titleUz,
           duration: testInfo.duration,
-          isFree: testInfo.isFree,
-          price: testInfo.isFree ? 0 : testInfo.price,
+          isFree: testInfo.accessType === 'free',
+          price: testInfo.accessType === 'paid' ? testInfo.price : 0,
+          accessType: testInfo.accessType,
           difficulty: testInfo.difficulty,
           coverImage: testInfo.coverImage || null,
           isPublished: publish,
@@ -336,18 +339,36 @@ export default function EditTestPage() {
               />
             </div>
           </div>
-          <div className="flex items-center gap-6">
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={testInfo.isFree}
-                onChange={(e) => setTestInfo({ ...testInfo, isFree: e.target.checked, price: 0 })}
-                className="w-5 h-5 rounded border-border text-primary-600 focus:ring-primary-500"
-              />
-              <span className="text-sm font-medium text-text-primary">Bepul test</span>
-            </label>
-            {!testInfo.isFree && (
-              <div className="flex items-center gap-2">
+          <div>
+            <label className="text-sm font-medium text-text-primary block mb-3">Test kirish turi *</label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+              {([
+                { key: 'free' as const, label: 'Bepul', desc: 'Hammaga ochiq', color: 'border-green-300 bg-green-50 text-green-700' },
+                { key: 'premium' as const, label: 'Premium', desc: 'Premium tarifi', color: 'border-purple-300 bg-purple-50 text-purple-700' },
+                { key: 'teacher' as const, label: 'Ustoz', desc: 'Ustoz tarifi', color: 'border-blue-300 bg-blue-50 text-blue-700' },
+                { key: 'premium_teacher' as const, label: 'Premium + Ustoz', desc: 'Ikkala tarif', color: 'border-indigo-300 bg-indigo-50 text-indigo-700' },
+                { key: 'paid' as const, label: 'Narxli', desc: 'Alohida sotib olish', color: 'border-orange-300 bg-orange-50 text-orange-700' },
+              ]).map((opt) => (
+                <button
+                  key={opt.key}
+                  type="button"
+                  onClick={() => {
+                    const isFree = opt.key === 'free';
+                    setTestInfo({ ...testInfo, accessType: opt.key, isFree, price: isFree ? 0 : testInfo.price });
+                  }}
+                  className={`p-3 rounded-xl border-2 text-left transition-all ${
+                    testInfo.accessType === opt.key
+                      ? `${opt.color} shadow-sm`
+                      : 'border-gray-200 bg-white text-text-secondary hover:border-gray-300'
+                  }`}
+                >
+                  <p className="text-sm font-semibold">{opt.label}</p>
+                  <p className="text-xs opacity-75 mt-0.5">{opt.desc}</p>
+                </button>
+              ))}
+            </div>
+            {testInfo.accessType === 'paid' && (
+              <div className="flex items-center gap-2 mt-3">
                 <label className="text-sm font-medium text-text-primary">Narx:</label>
                 <input
                   type="number"

@@ -196,15 +196,23 @@ interface ExplainQuestionParams {
 }
 
 /**
- * AI Tutor: given a question and its already-known correct answer, produce a
+ * AI Tutor: given a question and its already-known correct answer, stream a
  * simple, step-by-step explanation in the student's language.
  *
  * IMPORTANT: this is intentionally "grounded" — the correct answer is passed
  * in as ground truth and the model is instructed never to re-derive or
  * contradict it. This avoids the model hallucinating a wrong answer on math/
  * physics questions, which would otherwise teach students incorrect content.
+ *
+ * Streams token-by-token (instead of waiting for the full response) so the
+ * student sees text appear immediately rather than staring at a spinner, and
+ * caps maxOutputTokens as a hard ceiling on worst-case latency/cost — the
+ * prompt's own "250 so'z" instruction is only a soft guideline the model can
+ * ignore.
  */
-export async function explainQuestion(params: ExplainQuestionParams): Promise<string> {
+export async function* streamExplainQuestion(
+  params: ExplainQuestionParams
+): AsyncGenerator<string> {
   const langName = TUTOR_LANG_NAMES[params.lang] || TUTOR_LANG_NAMES.uz;
 
   const optionsText =
@@ -223,7 +231,17 @@ ${params.existingExplanation ? `\nUstozning yozma yechimi (shunga asoslan, kenga
 
 Vazifa: Yuqoridagi to'g'ri javobni ${langName} tilida, o'quvchiga tushunarli, qadamma-qadam, do'stona ohangda tushuntir. Formulalar uchun LaTeX belgilaridan foydalan ($...$ inline, $$...$$ katta formulalar uchun). Javobing 250 so'zdan oshmasin. Faqat tushuntirish matnini yoz — sarlavha, "mana javob" kabi kirish so'zlari yozma.`;
 
-  const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash' });
-  const result = await model.generateContent(prompt);
-  return result.response.text().trim();
+  const model = genAI.getGenerativeModel({
+    model: 'gemini-3.5-flash',
+    generationConfig: {
+      maxOutputTokens: 600,
+      temperature: 0.4,
+    },
+  });
+
+  const { stream } = await model.generateContentStream(prompt);
+  for await (const chunk of stream) {
+    const text = chunk.text();
+    if (text) yield text;
+  }
 }

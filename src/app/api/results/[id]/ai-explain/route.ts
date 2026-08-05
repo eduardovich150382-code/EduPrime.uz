@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
-import { explainQuestion } from '@/lib/gemini';
+import { streamExplainQuestion } from '@/lib/gemini';
 import { hasActiveSubscription } from '@/lib/access';
 
 const FREE_DAILY_AI_EXPLAIN_LIMIT = 3;
@@ -105,7 +105,7 @@ export async function POST(
       }
     }
 
-    const explanationText = await explainQuestion({
+    const chunks = streamExplainQuestion({
       questionText: question.text,
       options: question.type === 'OPEN_ENDED' ? [] : ((question.options as any[]) || []),
       correctAnswer: question.correctAnswer,
@@ -114,15 +114,37 @@ export async function POST(
       lang,
     });
 
-    // Cache per-language so the next student asking about the same question
-    // (the overwhelming majority of requests, since content is shared) never
-    // hits Gemini again.
-    await db.question.update({
-      where: { id: questionId },
-      data: { aiExplanations: { ...cache, [lang]: explanationText } },
+    // Stream the response to the client as it's generated (instead of
+    // waiting for the full text) so the student sees it appear immediately.
+    const encoder = new TextEncoder();
+    const readable = new ReadableStream<Uint8Array>({
+      async start(controller) {
+        let fullText = '';
+        try {
+          for await (const piece of chunks) {
+            fullText += piece;
+            controller.enqueue(encoder.encode(piece));
+          }
+          // Cache per-language once complete so the next student asking
+          // about the same question (the overwhelming majority of requests,
+          // since content is shared) never hits Gemini again.
+          if (fullText.trim()) {
+            await db.question.update({
+              where: { id: questionId },
+              data: { aiExplanations: { ...cache, [lang]: fullText.trim() } },
+            });
+          }
+          controller.close();
+        } catch (err) {
+          console.error('AI explain stream error:', err);
+          controller.error(err);
+        }
+      },
     });
 
-    return NextResponse.json({ explanation: explanationText, cached: false });
+    return new NextResponse(readable, {
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+    });
   } catch (error) {
     console.error('POST /api/results/[id]/ai-explain error:', error);
     return NextResponse.json({ error: 'AI tushuntirish olishda xatolik yuz berdi' }, { status: 500 });
