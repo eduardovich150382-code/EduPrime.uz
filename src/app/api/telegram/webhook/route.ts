@@ -623,6 +623,10 @@ async function handleCallbackQuery(callbackQuery: any) {
 
   // Admin confirms payment
   if (data.startsWith('confirm_')) {
+    if (!isAdmin(userId)) {
+      await sendMessage(chatId, '❌ Bu amal faqat adminlar uchun.');
+      return;
+    }
     const targetUserId = data.replace('confirm_', '');
     const paymentData = await db.systemSetting.findUnique({
       where: { key: `pending_payment_${targetUserId}` },
@@ -708,6 +712,10 @@ async function handleCallbackQuery(callbackQuery: any) {
 
   // Admin rejects payment
   if (data.startsWith('reject_')) {
+    if (!isAdmin(userId)) {
+      await sendMessage(chatId, '❌ Bu amal faqat adminlar uchun.');
+      return;
+    }
     const targetUserId = data.replace('reject_', '');
     const paymentData = await db.systemSetting.findUnique({
       where: { key: `pending_payment_${targetUserId}` },
@@ -875,6 +883,16 @@ async function notifyAdminsAboutReceipt(
 // ===================== WEBHOOK HANDLER =====================
 export async function POST(request: NextRequest) {
   try {
+    // Verify request actually comes from Telegram (set via secret_token in setWebhook below).
+    // Without this, anyone could POST forged updates directly to this endpoint.
+    const webhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
+    if (webhookSecret) {
+      const incomingSecret = request.headers.get('x-telegram-bot-api-secret-token');
+      if (incomingSecret !== webhookSecret) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+    }
+
     const body = await request.json();
 
     if (body.message?.text) {
@@ -974,9 +992,11 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   const webhookUrl = `${APP_URL}/api/telegram/webhook`;
+  const webhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
+  const secretParam = webhookSecret ? `&secret_token=${encodeURIComponent(webhookSecret)}` : '';
 
   const response = await fetch(
-    `https://api.telegram.org/bot${BOT_TOKEN}/setWebhook?url=${encodeURIComponent(webhookUrl)}`
+    `https://api.telegram.org/bot${BOT_TOKEN}/setWebhook?url=${encodeURIComponent(webhookUrl)}${secretParam}`
   );
   const data = await response.json();
 

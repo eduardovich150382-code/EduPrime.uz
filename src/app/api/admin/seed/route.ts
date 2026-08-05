@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
-// GET /api/admin/seed?secret=eduprime2026 — boshlang'ich ma'lumotlarni DB ga kiritish
+// GET /api/admin/seed?secret=<ADMIN_SETUP_SECRET> — boshlang'ich ma'lumotlarni DB ga kiritish
 export async function GET(request: NextRequest) {
   const secret = request.nextUrl.searchParams.get('secret');
-  if (secret !== 'eduprime2026') {
+  const expectedSecret = process.env.ADMIN_SETUP_SECRET;
+
+  if (!expectedSecret || !secret || secret !== expectedSecret) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

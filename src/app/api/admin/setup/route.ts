@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
 // This endpoint sets up the admin user
-// Call ONCE after first deploy: /api/admin/setup?secret=eduprime2026
+// Call ONCE after first deploy: /api/admin/setup?secret=<ADMIN_SETUP_SECRET>
 export async function GET(request: NextRequest) {
   const secret = request.nextUrl.searchParams.get('secret');
-  
-  // Simple secret protection — change this in production
-  if (secret !== 'eduprime2026') {
+  const expectedSecret = process.env.ADMIN_SETUP_SECRET;
+
+  if (!expectedSecret || !secret || secret !== expectedSecret) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

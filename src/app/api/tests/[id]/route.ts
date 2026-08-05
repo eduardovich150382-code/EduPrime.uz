@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { shuffleTest } from '@/lib/shuffle';
+import { checkTestAccess } from '@/lib/access';
 
 // GET /api/tests/[id] — bitta testni olish
 export async function GET(
@@ -15,19 +16,6 @@ export async function GET(
       where: { id },
       include: {
         subject: true,
-        questions: {
-          orderBy: { order: 'asc' },
-          select: {
-            id: true,
-            text: true,
-            images: true,
-            options: true,
-            type: true,
-            points: true,
-            order: true,
-            // NOT including correctAnswer — foydalanuvchi ko'rmasligi kerak
-          },
-        },
         teacher: {
           include: { user: { select: { name: true } } },
         },
@@ -38,13 +26,50 @@ export async function GET(
       return NextResponse.json({ error: 'Test not found' }, { status: 404 });
     }
 
-    // Shuffle questions and options for authenticated users (anti-cheating)
     const session = await auth();
     const userId = session?.user?.id;
 
-    let questions = test.questions;
+    // Enforce access control server-side — the question content itself is the
+    // paid product, so it must never be returned to users without access,
+    // regardless of what the client-side check-access call decided.
+    if (!test.isFree && test.accessType !== 'free') {
+      if (!userId) {
+        return NextResponse.json(
+          { error: 'Unauthorized', accessType: test.accessType, price: test.price },
+          { status: 401 }
+        );
+      }
+
+      const user = await db.user.findUnique({ where: { id: userId }, select: { role: true } });
+      const hasAccess = await checkTestAccess(userId, test, user?.role);
+
+      if (!hasAccess) {
+        return NextResponse.json(
+          { error: 'Forbidden', accessType: test.accessType, price: test.price },
+          { status: 403 }
+        );
+      }
+    }
+
+    const rawQuestions = await db.question.findMany({
+      where: { testId: id },
+      orderBy: { order: 'asc' },
+      select: {
+        id: true,
+        text: true,
+        images: true,
+        options: true,
+        type: true,
+        points: true,
+        order: true,
+        // NOT including correctAnswer — foydalanuvchi ko'rmasligi kerak
+      },
+    });
+
+    // Shuffle questions and options for authenticated users (anti-cheating)
+    let questions = rawQuestions;
     if (userId) {
-      questions = shuffleTest(test.questions, userId, id);
+      questions = shuffleTest(rawQuestions, userId, id);
     }
 
     return NextResponse.json({

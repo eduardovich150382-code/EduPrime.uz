@@ -11,7 +11,7 @@ import {
   CheckCircle, XCircle, SkipForward, Clock, Trophy,
   Video, FileText, ArrowLeft, Share2, RotateCcw,
   Loader2, AlertCircle, Play,
-  X, Copy, ExternalLink, Filter, Bookmark, BarChart3,
+  X, Copy, ExternalLink, Filter, Bookmark, BarChart3, Bot,
 } from 'lucide-react';
 
 interface QuestionOption {
@@ -67,6 +67,8 @@ export default function ResultPage() {
   const [error, setError] = useState<string | null>(null);
   const [showExplanation, setShowExplanation] = useState<Record<string, boolean>>({});
   const [showVideo, setShowVideo] = useState<Record<string, boolean>>({});
+  const [showAiExplain, setShowAiExplain] = useState<Record<string, boolean>>({});
+  const [aiExplain, setAiExplain] = useState<Record<string, { text?: string; loading?: boolean; error?: string }>>({});
   const [showGeneralVideo, setShowGeneralVideo] = useState(false);
   const [shareSuccess, setShareSuccess] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
@@ -175,6 +177,31 @@ export default function ResultPage() {
 
   const toggleVideo = (questionId: string) => {
     setShowVideo(prev => ({ ...prev, [questionId]: !prev[questionId] }));
+  };
+
+  const toggleAiExplain = async (questionId: string) => {
+    const wasVisible = showAiExplain[questionId];
+    setShowAiExplain(prev => ({ ...prev, [questionId]: !wasVisible }));
+
+    // Already hiding, or already have a loaded/loading answer — nothing to fetch
+    if (wasVisible || aiExplain[questionId]?.text || aiExplain[questionId]?.loading) return;
+
+    setAiExplain(prev => ({ ...prev, [questionId]: { loading: true } }));
+    try {
+      const res = await fetch(`/api/results/${resultId}/ai-explain`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ questionId }),
+      });
+      const data = await res.json();
+      if (res.ok && data.explanation) {
+        setAiExplain(prev => ({ ...prev, [questionId]: { text: data.explanation } }));
+      } else {
+        setAiExplain(prev => ({ ...prev, [questionId]: { error: data.error || 'Xatolik yuz berdi' } }));
+      }
+    } catch {
+      setAiExplain(prev => ({ ...prev, [questionId]: { error: "Server bilan bog'lanishda xatolik" } }));
+    }
   };
 
   if (loading) {
@@ -758,6 +785,17 @@ export default function ResultPage() {
                         Videoyechim
                       </button>
                     )}
+                    <button
+                      onClick={() => toggleAiExplain(question.id)}
+                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                        showAiExplain[question.id]
+                          ? 'bg-emerald-600 text-white'
+                          : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
+                      }`}
+                    >
+                      <Bot size={16} />
+                      AI&apos;dan tushuntirish
+                    </button>
                   </div>
 
                   {/* Written solution content - only after clicking */}
@@ -800,6 +838,33 @@ export default function ResultPage() {
                         title={`${i + 1}-savol videoyechim`}
                         onClose={() => toggleVideo(question.id)}
                       />
+                    </motion.div>
+                  )}
+
+                  {/* AI tutor explanation - only after clicking */}
+                  {showAiExplain[question.id] && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200"
+                    >
+                      <h4 className="text-sm font-semibold text-emerald-800 mb-2 flex items-center gap-2">
+                        <Bot size={14} /> AI tushuntirishi
+                      </h4>
+                      {aiExplain[question.id]?.loading && (
+                        <div className="flex items-center gap-2 text-sm text-emerald-700">
+                          <Loader2 size={14} className="animate-spin" />
+                          AI tushuntirmoqda...
+                        </div>
+                      )}
+                      {aiExplain[question.id]?.error && (
+                        <p className="text-sm text-red-600">{aiExplain[question.id]?.error}</p>
+                      )}
+                      {aiExplain[question.id]?.text && (
+                        <div className="text-sm text-text-primary leading-relaxed">
+                          <LatexRenderer content={aiExplain[question.id]!.text!} />
+                        </div>
+                      )}
                     </motion.div>
                   )}
                 </div>

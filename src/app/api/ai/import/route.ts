@@ -1,10 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { importTestFromText, importTestFromImage, importTestFromFile } from '@/lib/gemini';
+import { requireTeacher } from '@/lib/api-auth';
 
 export async function POST(request: NextRequest) {
   try {
+    // Requires TEACHER/ADMIN — this calls a paid/rate-limited AI API and must
+    // not be reachable by anonymous visitors.
+    const { error } = await requireTeacher();
+    if (error) return error;
+
     const body = await request.json();
     const { type, content, fileUrl, fileName, mimeType } = body;
+
+    // fileUrl is fetched server-side by importTestFromFile — restrict to
+    // http(s) URLs only to prevent SSRF against internal/cloud-metadata hosts.
+    if (type === 'file' && fileUrl) {
+      try {
+        const parsed = new URL(fileUrl);
+        if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+          return NextResponse.json({ error: 'Invalid fileUrl protocol' }, { status: 400 });
+        }
+      } catch {
+        return NextResponse.json({ error: 'Invalid fileUrl' }, { status: 400 });
+      }
+    }
 
     let result;
 
