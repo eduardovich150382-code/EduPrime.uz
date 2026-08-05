@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { sanitizeText, sanitizeInt } from '@/lib/sanitize';
 import { generateSeed, shuffleArray } from '@/lib/shuffle';
+import { checkTestAccess } from '@/lib/access';
 
 // POST /api/tests/[id]/submit — test javoblarini yuborish va natija olish
 export async function POST(
@@ -48,6 +49,17 @@ export async function POST(
 
     if (!test) {
       return NextResponse.json({ error: 'Test not found' }, { status: 404 });
+    }
+
+    // Grading returns correctAnswer for every question in the response — this
+    // must be blocked for anyone without access, same as the GET endpoint,
+    // otherwise POSTing here directly bypasses the paywall entirely.
+    if (!test.isFree && test.accessType !== 'free') {
+      const user = await db.user.findUnique({ where: { id: userId }, select: { role: true } });
+      const hasAccess = await checkTestAccess(userId, test, user?.role);
+      if (!hasAccess) {
+        return NextResponse.json({ error: 'Forbidden — subscription required' }, { status: 403 });
+      }
     }
 
     // Recreate the same shuffle order used when serving the test

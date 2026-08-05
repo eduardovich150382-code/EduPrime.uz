@@ -25,7 +25,6 @@ export default function LatexRenderer({ content, className = '' }: LatexRenderer
           return katex.renderToString(formula.trim(), {
             displayMode: true,
             throwOnError: false,
-            trust: true,
           });
         } catch {
           return `<span class="text-red-500">[Formula xato: ${formula}]</span>`;
@@ -38,7 +37,6 @@ export default function LatexRenderer({ content, className = '' }: LatexRenderer
           return katex.renderToString(formula.trim(), {
             displayMode: false,
             throwOnError: false,
-            trust: true,
           });
         } catch {
           return `<span class="text-red-500">[${formula}]</span>`;

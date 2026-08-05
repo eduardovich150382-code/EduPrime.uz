@@ -179,3 +179,51 @@ export async function importTestFromFile(fileUrl: string, fileName: string): Pro
     };
   }
 }
+
+const TUTOR_LANG_NAMES: Record<string, string> = {
+  uz: "o'zbek",
+  ru: 'rus',
+  en: 'ingliz',
+};
+
+interface ExplainQuestionParams {
+  questionText: string;
+  options: { label: string; text: string }[];
+  correctAnswer: string;
+  existingExplanation?: string | null;
+  type: string;
+  lang: string;
+}
+
+/**
+ * AI Tutor: given a question and its already-known correct answer, produce a
+ * simple, step-by-step explanation in the student's language.
+ *
+ * IMPORTANT: this is intentionally "grounded" — the correct answer is passed
+ * in as ground truth and the model is instructed never to re-derive or
+ * contradict it. This avoids the model hallucinating a wrong answer on math/
+ * physics questions, which would otherwise teach students incorrect content.
+ */
+export async function explainQuestion(params: ExplainQuestionParams): Promise<string> {
+  const langName = TUTOR_LANG_NAMES[params.lang] || TUTOR_LANG_NAMES.uz;
+
+  const optionsText =
+    params.type === 'OPEN_ENDED' || params.options.length === 0
+      ? ''
+      : `\nVariantlar:\n${params.options.map((o) => `${o.label}) ${o.text}`).join('\n')}`;
+
+  const prompt = `Sen o'quvchilarga sodda va tushunarli tilda tushuntiradigan mehribon repetitor-o'qituvchisan.
+
+QAT'IY QOIDA: Pastda berilgan "TO'G'RI JAVOB" har doim to'g'ri hisoblanadi. Sen uni qayta tekshirmaysan, shubha qilmaysan va boshqa variantni to'g'ri deb aytmaysan — sening yagona vazifang shu javob NEGA to'g'ri ekanini sodda, qadamma-qadam tushuntirishdir.
+
+Savol: ${params.questionText}${optionsText}
+
+TO'G'RI JAVOB: ${params.correctAnswer}
+${params.existingExplanation ? `\nUstozning yozma yechimi (shunga asoslan, kengaytir):\n${params.existingExplanation}` : ''}
+
+Vazifa: Yuqoridagi to'g'ri javobni ${langName} tilida, o'quvchiga tushunarli, qadamma-qadam, do'stona ohangda tushuntir. Formulalar uchun LaTeX belgilaridan foydalan ($...$ inline, $$...$$ katta formulalar uchun). Javobing 250 so'zdan oshmasin. Faqat tushuntirish matnini yoz — sarlavha, "mana javob" kabi kirish so'zlari yozma.`;
+
+  const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash' });
+  const result = await model.generateContent(prompt);
+  return result.response.text().trim();
+}

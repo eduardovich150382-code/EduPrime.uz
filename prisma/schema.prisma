@@ -205,6 +205,7 @@ model Question {
   explanation        String?      // LaTeX written solution
   explanationImages  String[]     // Images in explanation
   videoUrl           String?      // Video solution URL
+  aiExplanations     Json?        // AI tutor explanation cache, keyed by lang: {uz, ru, en}
   points             Int          @default(1)
   order              Int          @default(0)
   createdAt          DateTime     @default(now())
