@@ -113,6 +113,11 @@ export async function PUT(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    const VALID_ACCESS_TYPES = ['free', 'premium', 'teacher', 'premium_teacher', 'paid'];
+    if (body.accessType !== undefined && !VALID_ACCESS_TYPES.includes(body.accessType)) {
+      return NextResponse.json({ error: 'Invalid accessType' }, { status: 400 });
+    }
+
     const updateData: any = {};
     if (body.titleUz !== undefined) updateData.titleUz = body.titleUz;
     if (body.titleRu !== undefined) updateData.titleRu = body.titleRu;
@@ -120,6 +125,7 @@ export async function PUT(
     if (body.duration !== undefined) updateData.duration = body.duration;
     if (body.isFree !== undefined) updateData.isFree = body.isFree;
     if (body.price !== undefined) updateData.price = body.price;
+    if (body.accessType !== undefined) updateData.accessType = body.accessType;
     if (body.difficulty !== undefined) updateData.difficulty = body.difficulty;
     if (body.isPublished !== undefined) updateData.isPublished = body.isPublished;
     if (body.coverImage !== undefined) updateData.coverImage = body.coverImage;

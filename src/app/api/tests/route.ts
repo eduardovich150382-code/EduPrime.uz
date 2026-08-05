@@ -66,10 +66,15 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { titleUz, titleRu, titleEn, subjectId, duration, isFree, price, difficulty, questions, videoSolution, coverImage, isPublished } = body;
+    const { titleUz, titleRu, titleEn, subjectId, duration, isFree, price, accessType, difficulty, questions, videoSolution, coverImage, isPublished } = body;
 
     if (!titleUz || !subjectId || !duration) {
       return NextResponse.json({ error: 'titleUz, subjectId, duration required' }, { status: 400 });
+    }
+
+    const VALID_ACCESS_TYPES = ['free', 'premium', 'teacher', 'premium_teacher', 'paid'];
+    if (accessType !== undefined && !VALID_ACCESS_TYPES.includes(accessType)) {
+      return NextResponse.json({ error: 'Invalid accessType' }, { status: 400 });
     }
 
     // Find teacher record
@@ -99,6 +104,7 @@ export async function POST(request: NextRequest) {
         duration,
         isFree: isFree || false,
         price: isFree ? 0 : (price || 0),
+        accessType: accessType || (isFree ? 'free' : 'premium'),
         difficulty: difficulty || 3,
         questionCount: questions?.length || 0,
         isPublished: isPublished || false,
