@@ -246,6 +246,13 @@ export default function TeacherTestsPage() {
 
                 {/* Actions */}
                 <div className="flex items-center gap-2 flex-shrink-0 ml-16 sm:ml-4">
+                  <Link
+                    href={`/teacher/tests/${test.id}/analytics`}
+                    title="Savol darajasidagi tahlil"
+                    className="p-2 rounded-lg text-text-secondary hover:bg-gray-100 transition-colors"
+                  >
+                    <BarChart3 size={16} />
+                  </Link>
                   {test.isPublished && (
                     <button
                       onClick={() => handleCopyPreviewLink(test.id)}

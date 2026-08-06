@@ -4,6 +4,7 @@ import { auth } from '@/lib/auth';
 import { sanitizeText, sanitizeInt } from '@/lib/sanitize';
 import { generateSeed, shuffleArray } from '@/lib/shuffle';
 import { checkTestAccess } from '@/lib/access';
+import { checkOpenEndedEquivalence } from '@/lib/gemini';
 
 // POST /api/tests/[id]/submit — test javoblarini yuborish va natija olish
 export async function POST(
@@ -42,7 +43,7 @@ export async function POST(
       include: {
         questions: {
           orderBy: { order: 'asc' },
-          select: { id: true, correctAnswer: true, points: true, type: true, options: true },
+          select: { id: true, text: true, correctAnswer: true, points: true, type: true, options: true },
         },
       },
     });
@@ -89,8 +90,35 @@ export async function POST(
         // For open-ended: case-insensitive comparison (no shuffle involved)
         isCorrect = userAnswerValue.trim().toLowerCase() === (question.correctAnswer || '').trim().toLowerCase();
         originalAnswerLabel = userAnswerValue;
+      } else if (question.type === 'MULTI_SELECT') {
+        // Multiple correct labels, comma-separated (e.g. "A,C") — unshuffle
+        // each selected label independently, then compare as sets so order
+        // and shuffle position never matter, only which options were chosen.
+        const options = question.options as any[];
+        const shuffleIndex = shuffleIndexMap[question.id];
+        const selectedLabels = userAnswerValue.split(',').filter(Boolean);
+
+        let originalLabels: string[];
+        if (shuffleIndex !== undefined && options && options.length > 0) {
+          const optionSeed = baseSeed + shuffleIndex + 1;
+          const shuffledOptions = shuffleArray(options, optionSeed);
+          originalLabels = selectedLabels
+            .map((label) => {
+              const idx = labels.indexOf(label);
+              return idx >= 0 && idx < shuffledOptions.length ? shuffledOptions[idx].label : label;
+            });
+        } else {
+          originalLabels = selectedLabels;
+        }
+
+        originalAnswerLabel = originalLabels.slice().sort().join(',');
+        const correctSet = new Set((question.correctAnswer || '').split(',').filter(Boolean));
+        const selectedSet = new Set(originalLabels);
+        isCorrect = correctSet.size > 0
+          && correctSet.size === selectedSet.size
+          && [...correctSet].every((label) => selectedSet.has(label));
       } else {
-        // For multiple choice: unshuffle the user's answer back to original label
+        // For multiple choice / true-false: unshuffle the user's answer back to original label
         const options = question.options as any[];
         const shuffleIndex = shuffleIndexMap[question.id];
 
@@ -116,8 +144,6 @@ export async function POST(
         }
       }
 
-      if (isCorrect) score += question.points;
-
       return {
         questionId: question.id,
         answer: originalAnswerLabel, // Store ORIGINAL label (not shuffled)
@@ -125,6 +151,34 @@ export async function POST(
         correctAnswer: question.correctAnswer,
         timeSpent: userAnswer?.timeSpent || 0,
       };
+    });
+
+    // Ochiq savollar uchun AI orqali ekvivalentlik zaxira tekshiruvi — faqat
+    // aniq (case-insensitive) moslik topilmagan holatlarda ishga tushadi, shu
+    // sababli tez/bepul aniq solishtirish hamon birinchi va asosiy yo'l
+    // bo'lib qoladi. AI xatolik bersa yoki vaqt yetishmasa, mavjud (noto'g'ri)
+    // natija o'zgarishsiz qoladi — ballarga hech qachon salbiy ta'sir qilmaydi.
+    const MAX_AI_CHECKS = 20;
+    let aiChecksUsed = 0;
+    await Promise.all(
+      test.questions.map(async (question, idx) => {
+        if (question.type !== 'OPEN_ENDED') return;
+        const r = answerResults[idx];
+        if (r.isCorrect || !r.answer.trim()) return;
+        if (aiChecksUsed >= MAX_AI_CHECKS) return;
+        aiChecksUsed++;
+        try {
+          const equivalent = await checkOpenEndedEquivalence(question.text, question.correctAnswer, r.answer);
+          if (equivalent) answerResults[idx] = { ...answerResults[idx], isCorrect: true };
+        } catch {
+          // Keep exact-match result on failure
+        }
+      })
+    );
+
+    score = 0;
+    test.questions.forEach((question, idx) => {
+      if (answerResults[idx].isCorrect) score += question.points;
     });
 
     const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;

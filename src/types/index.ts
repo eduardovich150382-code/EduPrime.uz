@@ -18,7 +18,7 @@ export interface User {
 // ===================== TEST TYPES =====================
 
 export type TestType = 'DTM' | 'SCHOOL' | 'ATTESTATION' | 'SAT' | 'GRE' | 'CERTIFICATE' | 'PRESIDENT_SCHOOL';
-export type QuestionType = 'MULTIPLE_CHOICE' | 'OPEN_ENDED';
+export type QuestionType = 'MULTIPLE_CHOICE' | 'OPEN_ENDED' | 'TRUE_FALSE' | 'MULTI_SELECT';
 export type PlanType = 'FREE' | 'PREMIUM' | 'TEACHER_PLAN';
 
 export interface TestCategory {
@@ -82,6 +82,22 @@ export interface Question {
   bloomLevel: string | null;
   points: number;
   order: number;
+}
+
+export interface BankQuestion {
+  id: string;
+  teacherId: string;
+  subjectId: string;
+  text: string;
+  images: string[];
+  options: QuestionOption[];
+  correctAnswer: string;
+  type: QuestionType;
+  explanation: string | null;
+  explanationImages: string[];
+  topic: string | null;
+  bloomLevel: string | null;
+  createdAt: string;
 }
 
 export const BLOOM_LEVELS = [

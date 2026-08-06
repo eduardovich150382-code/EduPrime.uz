@@ -108,6 +108,7 @@ model Teacher {
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   subject Subject @relation(fields: [subjectId], references: [id])
   tests   Test[]
+  bankQuestions BankQuestion[]
 }
 
 // ===================== SUBJECTS & CATEGORIES =====================
@@ -157,6 +158,7 @@ model Subject {
   category TestCategory @relation(fields: [categoryId], references: [id])
   teachers Teacher[]
   tests    Test[]
+  bankQuestions BankQuestion[]
 }
 
 // ===================== TESTS & QUESTIONS =====================
@@ -164,6 +166,8 @@ model Subject {
 enum QuestionType {
   MULTIPLE_CHOICE
   OPEN_ENDED
+  TRUE_FALSE
+  MULTI_SELECT
 }
 
 model Test {
@@ -213,6 +217,29 @@ model Question {
   createdAt          DateTime     @default(now())
 
   test Test @relation(fields: [testId], references: [id], onDelete: Cascade)
+}
+
+// Savollar bazasi — o'qituvchi yozgan savol testdan mustaqil, qayta-qayta
+// ko'p testga (nusxa sifatida) qo'shilishi mumkin. Mavjud Question/Test
+// bog'lanishiga tegilmagan — shuning uchun bu qo'shimcha, xavfsiz jadval.
+model BankQuestion {
+  id                String       @id @default(cuid())
+  teacherId         String
+  subjectId         String
+  text              String
+  images            String[]
+  options           Json
+  correctAnswer     String
+  type              QuestionType @default(MULTIPLE_CHOICE)
+  explanation       String?
+  explanationImages String[]
+  topic             String?
+  bloomLevel        String?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  subject Subject @relation(fields: [subjectId], references: [id])
 }
 
 // ===================== RESULTS =====================

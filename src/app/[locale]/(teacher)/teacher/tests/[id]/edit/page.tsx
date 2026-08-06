@@ -24,6 +24,7 @@ interface QuestionForm {
   explanation: string;
   explanationImages: string[];
   videoUrl: string;
+  type: 'MULTIPLE_CHOICE' | 'OPEN_ENDED' | 'TRUE_FALSE' | 'MULTI_SELECT';
   points: number;
   topic: string;
   bloomLevel: string;
@@ -49,6 +50,7 @@ const emptyQuestion: QuestionForm = {
   explanation: '',
   explanationImages: [],
   videoUrl: '',
+  type: 'MULTIPLE_CHOICE',
   points: 1,
   topic: '',
   bloomLevel: '',
@@ -143,6 +145,7 @@ export default function EditTestPage() {
             explanation: q.explanation || '',
             explanationImages: q.explanationImages || [],
             videoUrl: q.videoUrl || '',
+            type: q.type || 'MULTIPLE_CHOICE',
             points: q.points || 1,
             topic: q.topic || '',
             bloomLevel: q.bloomLevel || '',
@@ -183,6 +186,53 @@ export default function EditTestPage() {
     if (questions.length <= 1) return;
     setQuestions(questions.filter((_, i) => i !== index));
     if (activeQuestion >= questions.length - 1) setActiveQuestion(Math.max(0, questions.length - 2));
+  };
+
+  const switchQuestionType = (qIndex: number, newType: QuestionForm['type']) => {
+    setQuestions((prev) => {
+      const updated = [...prev];
+      const q = updated[qIndex];
+      let options = q.options;
+      let correctAnswer = q.correctAnswer;
+
+      if (newType === 'TRUE_FALSE') {
+        options = [
+          { label: 'A', text: "To'g'ri", image: null },
+          { label: 'B', text: "Noto'g'ri", image: null },
+        ];
+        correctAnswer = '';
+      } else if (q.type === 'TRUE_FALSE' && newType !== 'OPEN_ENDED') {
+        options = [
+          { label: 'A', text: '', image: null },
+          { label: 'B', text: '', image: null },
+          { label: 'C', text: '', image: null },
+          { label: 'D', text: '', image: null },
+        ];
+        correctAnswer = '';
+      } else if (newType === 'OPEN_ENDED') {
+        correctAnswer = '';
+      } else if (newType === 'MULTIPLE_CHOICE' && correctAnswer.includes(',')) {
+        correctAnswer = correctAnswer.split(',')[0] || '';
+      }
+
+      updated[qIndex] = { ...q, type: newType, options, correctAnswer };
+      return updated;
+    });
+  };
+
+  const toggleCorrectAnswer = (qIndex: number, label: string) => {
+    setQuestions((prev) => {
+      const updated = [...prev];
+      const q = updated[qIndex];
+      if (q.type === 'MULTI_SELECT') {
+        const set = new Set((q.correctAnswer || '').split(',').filter(Boolean));
+        if (set.has(label)) set.delete(label); else set.add(label);
+        updated[qIndex] = { ...q, correctAnswer: Array.from(set).sort().join(',') };
+      } else {
+        updated[qIndex] = { ...q, correctAnswer: label };
+      }
+      return updated;
+    });
   };
 
   // SAVE TEST
@@ -234,12 +284,12 @@ export default function EditTestPage() {
             id: q.id || undefined,
             text: q.text,
             images: q.images,
-            options: q.options.filter(o => o.text),
+            options: q.type === 'OPEN_ENDED' ? [] : q.options.filter(o => o.text),
             correctAnswer: q.correctAnswer,
             explanation: q.explanation || null,
             explanationImages: q.explanationImages,
             videoUrl: q.videoUrl || null,
-            type: 'MULTIPLE_CHOICE',
+            type: q.type,
             points: q.points || 1,
             topic: q.topic || null,
             bloomLevel: q.bloomLevel || null,
@@ -471,7 +521,18 @@ export default function EditTestPage() {
                   i === activeQuestion ? 'bg-primary-100 text-primary-700 font-medium' : 'hover:bg-gray-50 text-text-secondary'
                 }`}
               >
-                <span>{i + 1}-savol</span>
+                <span className="flex items-center gap-1.5">
+                  {i + 1}-savol
+                  {q.type === 'OPEN_ENDED' && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">Ochiq</span>
+                  )}
+                  {q.type === 'MULTI_SELECT' && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-medium">Ko&apos;p tanlovli</span>
+                  )}
+                  {q.type === 'TRUE_FALSE' && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 font-medium">T/N</span>
+                  )}
+                </span>
                 {q.text && q.correctAnswer && <CheckCircle size={12} className="text-green-500" />}
               </button>
             ))}
@@ -592,21 +653,66 @@ export default function EditTestPage() {
               )}
             </div>
 
-            {/* Options */}
+            {/* Question type toggle */}
+            <div>
+              <label className="text-sm font-medium text-text-primary block mb-2">Savol turi</label>
+              <div className="inline-flex flex-wrap rounded-xl border border-border overflow-hidden">
+                {([
+                  { key: 'MULTIPLE_CHOICE' as const, label: 'Variantli' },
+                  { key: 'MULTI_SELECT' as const, label: "Ko'p tanlovli" },
+                  { key: 'TRUE_FALSE' as const, label: "To'g'ri/Noto'g'ri" },
+                  { key: 'OPEN_ENDED' as const, label: 'Ochiq' },
+                ]).map((opt) => (
+                  <button
+                    key={opt.key}
+                    onClick={() => switchQuestionType(activeQuestion, opt.key)}
+                    className={`px-4 py-2 text-sm font-medium transition-all ${
+                      questions[activeQuestion]?.type === opt.key
+                        ? 'bg-primary-600 text-white'
+                        : 'bg-white text-text-secondary hover:bg-gray-50'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* OPEN_ENDED: text input for correct answer */}
+            {questions[activeQuestion]?.type === 'OPEN_ENDED' ? (
+              <div>
+                <label className="text-sm font-medium text-text-primary block mb-2">
+                  To&apos;g&apos;ri javob (matn) *
+                </label>
+                <input
+                  type="text"
+                  value={questions[activeQuestion]?.correctAnswer || ''}
+                  onChange={(e) => {
+                    const updated = [...questions];
+                    updated[activeQuestion] = { ...updated[activeQuestion], correctAnswer: e.target.value };
+                    setQuestions(updated);
+                  }}
+                  placeholder="Javobni kiriting (masalan: 42, 3.14)"
+                  className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all text-sm"
+                />
+              </div>
+            ) : (
+            /* MULTIPLE_CHOICE / TRUE_FALSE / MULTI_SELECT: options */
             <div>
               <label className="text-sm font-medium text-text-primary block mb-3">Javob variantlari *</label>
               <div className="space-y-3">
-                {questions[activeQuestion]?.options.map((opt, optIndex) => (
+                {questions[activeQuestion]?.options.map((opt, optIndex) => {
+                  const isMulti = questions[activeQuestion]?.type === 'MULTI_SELECT';
+                  const isChecked = isMulti
+                    ? (questions[activeQuestion]?.correctAnswer || '').split(',').includes(opt.label)
+                    : questions[activeQuestion]?.correctAnswer === opt.label;
+                  return (
                   <div key={optIndex} className="space-y-1">
                     <div className="flex items-start gap-3">
                       <button
-                        onClick={() => {
-                          const updated = [...questions];
-                          updated[activeQuestion] = { ...updated[activeQuestion], correctAnswer: opt.label };
-                          setQuestions(updated);
-                        }}
-                        className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 border-2 text-xs font-bold mt-2 transition-all ${
-                          questions[activeQuestion]?.correctAnswer === opt.label
+                        onClick={() => toggleCorrectAnswer(activeQuestion, opt.label)}
+                        className={`w-8 h-8 flex items-center justify-center flex-shrink-0 border-2 text-xs font-bold mt-2 transition-all ${isMulti ? 'rounded-md' : 'rounded-full'} ${
+                          isChecked
                             ? 'border-green-500 bg-green-500 text-white'
                             : 'border-border text-text-secondary hover:border-primary-300'
                         }`}
@@ -626,15 +732,17 @@ export default function EditTestPage() {
                             placeholder={`${opt.label} variantini kiriting`}
                             className="flex-1 px-4 py-2.5 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all text-sm"
                           />
-                          <ImageUploadButton
-                            endpoint="optionImage"
-                            label="Rasm"
-                            onUpload={(url) => {
-                              const updated = [...questions];
-                              updated[activeQuestion].options[optIndex].image = url;
-                              setQuestions(updated);
-                            }}
-                          />
+                          {questions[activeQuestion]?.type !== 'TRUE_FALSE' && (
+                            <ImageUploadButton
+                              endpoint="optionImage"
+                              label="Rasm"
+                              onUpload={(url) => {
+                                const updated = [...questions];
+                                updated[activeQuestion].options[optIndex].image = url;
+                                setQuestions(updated);
+                              }}
+                            />
+                          )}
                           {optIndex === 4 && (
                             <button onClick={() => removeOption(activeQuestion, optIndex)} className="p-2 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50">
                               <Trash2 size={14} />
@@ -664,17 +772,21 @@ export default function EditTestPage() {
                       </div>
                     </div>
                   </div>
-                ))}
-                {questions[activeQuestion]?.options.length < 5 && (
+                  );
+                })}
+                {questions[activeQuestion]?.type !== 'TRUE_FALSE' && questions[activeQuestion]?.options.length < 5 && (
                   <button onClick={() => addOption(activeQuestion)} className="text-xs text-primary-600 hover:text-primary-700 flex items-center gap-1 ml-11">
                     <Plus size={12} /> E variantini qo&apos;shish
                   </button>
                 )}
               </div>
               <p className="text-xs text-text-secondary mt-2 ml-11">
-                Yashil doira = to&apos;g&apos;ri javob. Belgilash uchun harf tugmasini bosing.
+                {questions[activeQuestion]?.type === 'MULTI_SELECT'
+                  ? "Yashil kvadrat = to'g'ri javob. Bir nechtasini belgilashingiz mumkin."
+                  : "Yashil doira = to'g'ri javob. Belgilash uchun harf tugmasini bosing."}
               </p>
             </div>
+            )}
 
             {/* Topic tag & Bloom level */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-gray-50 border border-border">
