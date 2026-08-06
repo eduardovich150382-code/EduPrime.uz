@@ -730,13 +730,18 @@ export default function ResultPage() {
                         )}
                       </div>
                     ) : (
-                      /* MULTIPLE_CHOICE: show options without A/B/C/D labels */
+                      /* MULTIPLE_CHOICE / TRUE_FALSE / MULTI_SELECT: show options without A/B/C/D labels */
                     <div className="space-y-2">
                     {(question.options as QuestionOption[])
                       .filter((option) => option.text || option.image) // Bo'sh variantlarni ko'rsatmaslik
                       .map((option) => {
-                      const isUserChoice = option.label === userAnswer;
-                      const isCorrectOption = option.label === question.correctAnswer;
+                      const isMulti = question.type === 'MULTI_SELECT';
+                      const isUserChoice = isMulti
+                        ? userAnswer.split(',').includes(option.label)
+                        : option.label === userAnswer;
+                      const isCorrectOption = isMulti
+                        ? question.correctAnswer.split(',').includes(option.label)
+                        : option.label === question.correctAnswer;
                       const isWrongChoice = isUserChoice && !isCorrectOption;
 
                       return (

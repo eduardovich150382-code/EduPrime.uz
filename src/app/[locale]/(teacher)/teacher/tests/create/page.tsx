@@ -10,6 +10,7 @@ import { BLOOM_LEVELS } from '@/types';
 import {
   ArrowLeft, Plus, Trash2, Image, Upload, Bot,
   Save, FileUp, CheckCircle, Loader2, Send, Eye, Clock, Paperclip,
+  Library, BookmarkPlus, X,
 } from 'lucide-react';
 import ImageUploadButton, {
   ImagePreviewList, uploadImageFile, extractPastedImageFile, extractDroppedImageFile,
@@ -23,7 +24,7 @@ interface QuestionForm {
   explanation: string;
   explanationImages: string[];
   videoUrl: string;
-  type: 'MULTIPLE_CHOICE' | 'OPEN_ENDED';
+  type: 'MULTIPLE_CHOICE' | 'OPEN_ENDED' | 'TRUE_FALSE' | 'MULTI_SELECT';
   points: number;
   topic: string;
   bloomLevel: string;
@@ -55,6 +56,25 @@ const emptyQuestion: QuestionForm = {
   bloomLevel: '',
 };
 
+// Bitta savolni API kutayotgan formatga o'giradi — qoralamani serverga
+// avtosaqlash va aniq "Saqlash"/"Nashr qilish" tugmalari bir xil mapping'dan
+// foydalanadi, shu sababli ikkalasi sinxronsizlanmaydi.
+function mapQuestionForApi(q: QuestionForm) {
+  return {
+    text: q.text,
+    images: q.images,
+    options: q.type === 'OPEN_ENDED' ? [] : q.options.filter((o) => o.text),
+    correctAnswer: q.correctAnswer,
+    explanation: q.explanation || null,
+    explanationImages: q.explanationImages,
+    videoUrl: q.videoUrl || null,
+    type: q.type,
+    points: q.points || 1,
+    topic: q.topic || null,
+    bloomLevel: q.bloomLevel || null,
+  };
+}
+
 export default function CreateTestPage() {
   const router = useRouter();
   const [subjects, setSubjects] = useState<SubjectItem[]>([]);
@@ -78,13 +98,99 @@ export default function CreateTestPage() {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiResult, setAiResult] = useState<any>(null);
   const [lastSaved, setLastSaved] = useState<string | null>(null);
+  const [draftTestId, setDraftTestId] = useState<string | null>(null);
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const draftSaveInFlightRef = useRef(false);
   const questionTextRef = useRef<HTMLTextAreaElement | null>(null);
   const explanationRef = useRef<HTMLTextAreaElement | null>(null);
   const [dropUploading, setDropUploading] = useState<'question' | 'explanation' | null>(null);
   const [aiFileLoading, setAiFileLoading] = useState(false);
   const aiImageInputRef = useRef<HTMLInputElement | null>(null);
   const aiFileInputRef = useRef<HTMLInputElement | null>(null);
+  const [bankPickerOpen, setBankPickerOpen] = useState(false);
+  const [bankQuestions, setBankQuestions] = useState<any[]>([]);
+  const [bankLoading, setBankLoading] = useState(false);
+  const [savingToBank, setSavingToBank] = useState(false);
+  const [aiSuggestLoading, setAiSuggestLoading] = useState(false);
+
+  // Savollar bazasidan tanlash uchun ro'yxatni yuklaydi (test fani bo'yicha filtrlaydi)
+  const openBankPicker = async () => {
+    setBankPickerOpen(true);
+    setBankLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (testInfo.subjectId) params.set('subjectId', testInfo.subjectId);
+      const res = await fetch(`/api/teacher/question-bank?${params.toString()}`);
+      const data = await res.json();
+      setBankQuestions(data.questions || []);
+    } catch {
+      setBankQuestions([]);
+    }
+    setBankLoading(false);
+  };
+
+  const insertFromBank = (bq: any) => {
+    const imported: QuestionForm = {
+      text: bq.text || '',
+      images: bq.images || [],
+      options: bq.type === 'OPEN_ENDED' ? [...emptyQuestion.options] : (bq.options?.length ? bq.options : [...emptyQuestion.options]),
+      correctAnswer: bq.correctAnswer || '',
+      explanation: bq.explanation || '',
+      explanationImages: [],
+      videoUrl: '',
+      type: bq.type || 'MULTIPLE_CHOICE',
+      points: 1,
+      topic: bq.topic || '',
+      bloomLevel: bq.bloomLevel || '',
+    };
+    setQuestions((prev) => {
+      const isOnlyEmpty = prev.length === 1 && !prev[0].text;
+      const next = isOnlyEmpty ? [imported] : [...prev, imported];
+      setActiveQuestion(next.length - 1);
+      return next;
+    });
+    setBankPickerOpen(false);
+  };
+
+  const saveActiveQuestionToBank = async () => {
+    const q = questions[activeQuestion];
+    if (!testInfo.subjectId) {
+      alert("Avval 'Test ma'lumotlari' qadamida fanni tanlang!");
+      return;
+    }
+    if (!q.text || !q.correctAnswer) {
+      alert("Savol matni va to'g'ri javob to'ldirilishi kerak!");
+      return;
+    }
+    setSavingToBank(true);
+    try {
+      const res = await fetch('/api/teacher/question-bank', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subjectId: testInfo.subjectId,
+          text: q.text,
+          images: q.images,
+          options: q.type === 'OPEN_ENDED' ? [] : q.options.filter((o) => o.text),
+          correctAnswer: q.correctAnswer,
+          type: q.type,
+          explanation: q.explanation || null,
+          explanationImages: q.explanationImages,
+          topic: q.topic || null,
+          bloomLevel: q.bloomLevel || null,
+        }),
+      });
+      if (res.ok) {
+        alert('Savol bazaga saqlandi!');
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Xatolik yuz berdi');
+      }
+    } catch {
+      alert('Server xatolik');
+    }
+    setSavingToBank(false);
+  };
 
   // Savol matni / yechim maydonlariga rasmni sudrab tashlash yoki
   // clipboard'dan (Ctrl+V) joylash orqali yuklash
@@ -111,19 +217,63 @@ export default function CreateTestPage() {
     setDropUploading(null);
   };
 
-  // Auto-save to localStorage every 30 seconds
+  // Qoralamani serverga jim tarzda saqlaydi — birinchi marta test yaratadi
+  // (POST), keyingi chaqiruvlar o'sha bitta qatorni yangilaydi (PUT), shu
+  // sababli har 30 soniyada yangi-yangi test yaratilmaydi. Faqat sarlavha va
+  // fan tanlangandan keyin ishga tushadi; savollar tugallanmagan bo'lsa ham
+  // saqlanadi — bu shunchaki qoralama, nashr qilish uchun emas.
+  const saveDraftToServer = async (currentTestInfo: typeof testInfo, currentQuestions: QuestionForm[], currentDraftId: string | null) => {
+    if (!currentTestInfo.titleUz || !currentTestInfo.subjectId) return;
+    if (draftSaveInFlightRef.current) return; // Bir vaqtda ikkita saqlash — dublikat test yaratilishining oldini oladi
+    draftSaveInFlightRef.current = true;
+    try {
+      const { categoryType, accessType, ...testData } = currentTestInfo;
+      const isFree = accessType === 'free';
+      const price = accessType === 'paid' ? currentTestInfo.price : 0;
+      const questionsPayload = currentQuestions.map(mapQuestionForApi);
+
+      if (!currentDraftId) {
+        const res = await fetch('/api/tests', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...testData, isFree, price, accessType, questions: questionsPayload }),
+        });
+        const data = await res.json();
+        if (res.ok && data.test?.id) setDraftTestId(data.test.id);
+      } else {
+        await fetch(`/api/tests/${currentDraftId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...testData, isFree, price, accessType }),
+        });
+        await fetch(`/api/teacher/tests/${currentDraftId}/questions`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ questions: questionsPayload }),
+        });
+      }
+    } catch {
+      // Jim tarzda ishlaydi — server bilan bog'lanish vaqtincha uzilsa ham
+      // localStorage'dagi nusxa saqlanib qoladi, keyingi avtosaqlash urinishida davom etadi.
+    } finally {
+      draftSaveInFlightRef.current = false;
+    }
+  };
+
+  // Auto-save to localStorage (va fon rejimida serverga) — oxirgi tahrirdan 30 soniya o'tgach
   useEffect(() => {
-    const saveToLocal = () => {
-      const data = { testInfo, questions, timestamp: Date.now() };
+    const saveDraft = () => {
+      const data = { testInfo, questions, draftTestId, timestamp: Date.now() };
       localStorage.setItem('teacher_test_draft', JSON.stringify(data));
       setLastSaved(new Date().toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' }));
+      saveDraftToServer(testInfo, questions, draftTestId);
     };
 
-    autoSaveTimerRef.current = setInterval(saveToLocal, 30000);
+    autoSaveTimerRef.current = setInterval(saveDraft, 30000);
     return () => {
       if (autoSaveTimerRef.current) clearInterval(autoSaveTimerRef.current);
     };
-  }, [testInfo, questions]);
+  }, [testInfo, questions, draftTestId]);
 
   // Restore from localStorage on mount
   useEffect(() => {
@@ -135,6 +285,7 @@ export default function CreateTestPage() {
         if (parsed.timestamp && Date.now() - parsed.timestamp < 86400000) {
           if (parsed.testInfo && !testInfo.titleUz) {
             setTestInfo(parsed.testInfo);
+            if (parsed.draftTestId) setDraftTestId(parsed.draftTestId);
           }
           if (parsed.questions && parsed.questions.length > 0 && questions.length === 1 && !questions[0].text) {
             setQuestions(parsed.questions);
@@ -193,6 +344,57 @@ export default function CreateTestPage() {
     setActiveQuestion(questions.length);
   };
 
+  // Savol turini almashtirish — TRUE_FALSE uchun variantlarni 2 taga
+  // qat'iylashtiradi, boshqa turlarga qaytishda esa bo'sh 4 variant tiklaydi.
+  const switchQuestionType = (qIndex: number, newType: QuestionForm['type']) => {
+    setQuestions((prev) => {
+      const updated = [...prev];
+      const q = updated[qIndex];
+      let options = q.options;
+      let correctAnswer = q.correctAnswer;
+
+      if (newType === 'TRUE_FALSE') {
+        options = [
+          { label: 'A', text: "To'g'ri", image: null },
+          { label: 'B', text: "Noto'g'ri", image: null },
+        ];
+        correctAnswer = '';
+      } else if (q.type === 'TRUE_FALSE' && newType !== 'OPEN_ENDED') {
+        options = [
+          { label: 'A', text: '', image: null },
+          { label: 'B', text: '', image: null },
+          { label: 'C', text: '', image: null },
+          { label: 'D', text: '', image: null },
+        ];
+        correctAnswer = '';
+      } else if (newType === 'OPEN_ENDED') {
+        correctAnswer = '';
+      } else if (newType === 'MULTIPLE_CHOICE' && correctAnswer.includes(',')) {
+        correctAnswer = correctAnswer.split(',')[0] || '';
+      }
+
+      updated[qIndex] = { ...q, type: newType, options, correctAnswer };
+      return updated;
+    });
+  };
+
+  // MULTIPLE_CHOICE/TRUE_FALSE: bitta javobni belgilaydi.
+  // MULTI_SELECT: belgilarni to'plamga qo'shadi/olib tashlaydi (vergul bilan ajratilgan saqlanadi).
+  const toggleCorrectAnswer = (qIndex: number, label: string) => {
+    setQuestions((prev) => {
+      const updated = [...prev];
+      const q = updated[qIndex];
+      if (q.type === 'MULTI_SELECT') {
+        const set = new Set((q.correctAnswer || '').split(',').filter(Boolean));
+        if (set.has(label)) set.delete(label); else set.add(label);
+        updated[qIndex] = { ...q, correctAnswer: Array.from(set).sort().join(',') };
+      } else {
+        updated[qIndex] = { ...q, correctAnswer: label };
+      }
+      return updated;
+    });
+  };
+
   const removeQuestion = (index: number) => {
     if (questions.length <= 1) return;
     setQuestions(questions.filter((_, i) => i !== index));
@@ -223,53 +425,68 @@ export default function CreateTestPage() {
     try {
       // Exclude categoryType and accessType from the request body - only used client-side
       const { categoryType, accessType, ...testData } = testInfo;
-      
+
       // Map accessType to isFree and price
       const isFree = accessType === 'free';
       const price = accessType === 'paid' ? testInfo.price : 0;
+      const questionsPayload = validQuestions.map(mapQuestionForApi);
 
-      const res = await fetch('/api/tests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...testData,
-          isFree,
-          price,
-          accessType, // Send to API for storing
-          questions: validQuestions.map(q => ({
-            text: q.text,
-            images: q.images,
-            options: q.type === 'OPEN_ENDED' ? [] : q.options.filter(o => o.text),
-            correctAnswer: q.correctAnswer,
-            explanation: q.explanation || null,
-            explanationImages: q.explanationImages,
-            videoUrl: q.videoUrl || null,
-            type: q.type,
-            points: q.points || 1,
-            topic: q.topic || null,
-            bloomLevel: q.bloomLevel || null,
-          })),
-        }),
-      });
+      // Avtosaqlash bu testni allaqachon serverda yaratgan bo'lishi mumkin —
+      // shunday bo'lsa qayta POST qilib dublikat yaratish o'rniga o'sha
+      // qatorni yangilaymiz.
+      let testId = draftTestId;
 
-      const data = await res.json();
-
-      if (res.ok) {
-        // Publish if requested
-        if (publish && data.test?.id) {
-          await fetch(`/api/tests/${data.test.id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ isPublished: true }),
-          });
+      if (!testId) {
+        const res = await fetch('/api/tests', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...testData, isFree, price, accessType, questions: questionsPayload }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          alert(data.error || "Xatolik yuz berdi");
+          setSaving(false);
+          return;
         }
-        // Clear auto-saved draft
-        localStorage.removeItem('teacher_test_draft');
-        alert(publish ? "Test yaratildi va nashr qilindi! ✅" : "Test saqlandi (qoralama)!");
-        router.push('/teacher');
+        testId = data.test.id;
+        setDraftTestId(testId);
       } else {
-        alert(data.error || "Xatolik yuz berdi");
+        const res = await fetch(`/api/tests/${testId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...testData, isFree, price, accessType }),
+        });
+        if (!res.ok) {
+          const data = await res.json();
+          alert(data.error || "Xatolik yuz berdi");
+          setSaving(false);
+          return;
+        }
+        const qRes = await fetch(`/api/teacher/tests/${testId}/questions`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ questions: questionsPayload }),
+        });
+        if (!qRes.ok) {
+          const qData = await qRes.json();
+          alert(qData.error || "Savollarni saqlashda xatolik");
+          setSaving(false);
+          return;
+        }
       }
+
+      // Publish if requested
+      if (publish && testId) {
+        await fetch(`/api/tests/${testId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ isPublished: true }),
+        });
+      }
+      // Clear auto-saved draft
+      localStorage.removeItem('teacher_test_draft');
+      alert(publish ? "Test yaratildi va nashr qilindi! ✅" : "Test saqlandi (qoralama)!");
+      router.push('/teacher');
     } catch (error) {
       alert("Server xatolik. Qayta urinib ko'ring.");
     }
@@ -362,6 +579,53 @@ export default function CreateTestPage() {
     }
     setAiFileLoading(false);
     setAiLoading(false);
+  };
+
+  // AI orqali bo'sh variantlarga distraktor va mavzu/Bloom darajasi taklif qilish.
+  // Faqat bo'sh maydonlarni to'ldiradi — o'qituvchi allaqachon yozgan narsani bosib o'tmaydi.
+  const handleAiSuggest = async () => {
+    const q = questions[activeQuestion];
+    if (!q.text || !q.correctAnswer) return;
+    setAiSuggestLoading(true);
+    try {
+      const res = await fetch('/api/ai/suggest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: q.text,
+          correctAnswer: q.correctAnswer,
+          type: q.type,
+          existingOptionTexts: q.options.filter((o) => o.text).map((o) => o.text),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || 'Xatolik yuz berdi');
+        return;
+      }
+      setQuestions((prev) => {
+        const updated = [...prev];
+        const current = updated[activeQuestion];
+        let options = current.options;
+        if ((current.type === 'MULTIPLE_CHOICE' || current.type === 'MULTI_SELECT') && data.distractors?.length) {
+          let di = 0;
+          options = current.options.map((o) => {
+            if (!o.text && di < data.distractors.length) return { ...o, text: data.distractors[di++] };
+            return o;
+          });
+        }
+        updated[activeQuestion] = {
+          ...current,
+          options,
+          topic: current.topic || data.topic || current.topic,
+          bloomLevel: current.bloomLevel || data.bloomLevel || current.bloomLevel,
+        };
+        return updated;
+      });
+    } catch {
+      alert("AI xatolik. Qayta urinib ko'ring.");
+    }
+    setAiSuggestLoading(false);
   };
 
   return (
@@ -645,6 +909,12 @@ export default function CreateTestPage() {
                   {q.type === 'OPEN_ENDED' && (
                     <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">Ochiq</span>
                   )}
+                  {q.type === 'MULTI_SELECT' && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-medium">Ko&apos;p tanlovli</span>
+                  )}
+                  {q.type === 'TRUE_FALSE' && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 font-medium">T/N</span>
+                  )}
                 </span>
                 {q.text && q.correctAnswer && <CheckCircle size={12} className="text-green-500" />}
               </button>
@@ -654,6 +924,12 @@ export default function CreateTestPage() {
               className="w-full px-3 py-2 rounded-lg text-sm text-primary-600 hover:bg-primary-50 flex items-center gap-2 transition-colors border border-dashed border-primary-200"
             >
               <Plus size={14} /> Savol qo&apos;shish
+            </button>
+            <button
+              onClick={openBankPicker}
+              className="w-full px-3 py-2 rounded-lg text-sm text-text-secondary hover:bg-gray-50 flex items-center gap-2 transition-colors border border-dashed border-border"
+            >
+              <Library size={14} /> Bazadan tanlash
             </button>
           </div>
 
@@ -680,6 +956,14 @@ export default function CreateTestPage() {
                     className="w-14 px-2 py-1 rounded-lg border border-border text-center text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300"
                   />
                 </label>
+                <button
+                  onClick={saveActiveQuestionToBank}
+                  disabled={savingToBank}
+                  title="Bu savolni bazaga saqlash"
+                  className="p-2 rounded-lg text-primary-600 hover:bg-primary-50 disabled:opacity-50"
+                >
+                  {savingToBank ? <Loader2 size={16} className="animate-spin" /> : <BookmarkPlus size={16} />}
+                </button>
                 <button onClick={() => removeQuestion(activeQuestion)} className="p-2 rounded-lg text-red-500 hover:bg-red-50">
                   <Trash2 size={16} />
                 </button>
@@ -772,40 +1056,31 @@ export default function CreateTestPage() {
               {/* Question type toggle */}
               <div className="mb-4">
                 <label className="text-sm font-medium text-text-primary block mb-2">Savol turi</label>
-                <div className="inline-flex rounded-xl border border-border overflow-hidden">
-                  <button
-                    onClick={() => {
-                      const updated = [...questions];
-                      updated[activeQuestion] = { ...updated[activeQuestion], type: 'MULTIPLE_CHOICE' };
-                      setQuestions(updated);
-                    }}
-                    className={`px-4 py-2 text-sm font-medium transition-all ${
-                      questions[activeQuestion]?.type !== 'OPEN_ENDED'
-                        ? 'bg-primary-600 text-white'
-                        : 'bg-white text-text-secondary hover:bg-gray-50'
-                    }`}
-                  >
-                    Variantli
-                  </button>
-                  <button
-                    onClick={() => {
-                      const updated = [...questions];
-                      updated[activeQuestion] = { ...updated[activeQuestion], type: 'OPEN_ENDED', correctAnswer: '' };
-                      setQuestions(updated);
-                    }}
-                    className={`px-4 py-2 text-sm font-medium transition-all ${
-                      questions[activeQuestion]?.type === 'OPEN_ENDED'
-                        ? 'bg-primary-600 text-white'
-                        : 'bg-white text-text-secondary hover:bg-gray-50'
-                    }`}
-                  >
-                    Ochiq
-                  </button>
+                <div className="inline-flex flex-wrap rounded-xl border border-border overflow-hidden">
+                  {([
+                    { key: 'MULTIPLE_CHOICE' as const, label: 'Variantli' },
+                    { key: 'MULTI_SELECT' as const, label: "Ko'p tanlovli" },
+                    { key: 'TRUE_FALSE' as const, label: "To'g'ri/Noto'g'ri" },
+                    { key: 'OPEN_ENDED' as const, label: 'Ochiq' },
+                  ]).map((opt) => (
+                    <button
+                      key={opt.key}
+                      onClick={() => switchQuestionType(activeQuestion, opt.key)}
+                      className={`px-4 py-2 text-sm font-medium transition-all ${
+                        questions[activeQuestion]?.type === opt.key
+                          ? 'bg-primary-600 text-white'
+                          : 'bg-white text-text-secondary hover:bg-gray-50'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
                 </div>
                 <p className="text-xs text-text-secondary mt-1">
-                  {questions[activeQuestion]?.type === 'OPEN_ENDED'
-                    ? "Ochiq savol — foydalanuvchi javobni qo'lda kiritadi (masalan: son, formula natijasi)"
-                    : "Variantli savol — foydalanuvchi A, B, C, D variantlardan tanlaydi"}
+                  {questions[activeQuestion]?.type === 'OPEN_ENDED' && "Ochiq savol — foydalanuvchi javobni qo'lda kiritadi (masalan: son, formula natijasi)"}
+                  {questions[activeQuestion]?.type === 'MULTIPLE_CHOICE' && 'Variantli savol — foydalanuvchi bitta to\'g\'ri variantni tanlaydi'}
+                  {questions[activeQuestion]?.type === 'MULTI_SELECT' && "Ko'p tanlovli savol — foydalanuvchi bir nechta to'g'ri variantni belgilashi mumkin"}
+                  {questions[activeQuestion]?.type === 'TRUE_FALSE' && "To'g'ri/Noto'g'ri savol — ikkita variantdan biri tanlanadi"}
                 </p>
               </div>
 
@@ -831,21 +1106,22 @@ export default function CreateTestPage() {
                   </p>
                 </div>
               ) : (
-              /* MULTIPLE_CHOICE: options */
+              /* MULTIPLE_CHOICE / TRUE_FALSE / MULTI_SELECT: options */
               <div>
               <label className="text-sm font-medium text-text-primary block mb-3">Javob variantlari *</label>
               <div className="space-y-3">
-                {questions[activeQuestion]?.options.map((opt, optIndex) => (
+                {questions[activeQuestion]?.options.map((opt, optIndex) => {
+                  const isMulti = questions[activeQuestion]?.type === 'MULTI_SELECT';
+                  const isChecked = isMulti
+                    ? (questions[activeQuestion]?.correctAnswer || '').split(',').includes(opt.label)
+                    : questions[activeQuestion]?.correctAnswer === opt.label;
+                  return (
                   <div key={optIndex} className="space-y-1">
                     <div className="flex items-start gap-3">
                       <button
-                        onClick={() => {
-                          const updated = [...questions];
-                          updated[activeQuestion] = { ...updated[activeQuestion], correctAnswer: opt.label };
-                          setQuestions(updated);
-                        }}
-                        className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 border-2 text-xs font-bold mt-2 transition-all ${
-                          questions[activeQuestion]?.correctAnswer === opt.label
+                        onClick={() => toggleCorrectAnswer(activeQuestion, opt.label)}
+                        className={`w-8 h-8 flex items-center justify-center flex-shrink-0 border-2 text-xs font-bold mt-2 transition-all ${isMulti ? 'rounded-md' : 'rounded-full'} ${
+                          isChecked
                             ? 'border-green-500 bg-green-500 text-white'
                             : 'border-border text-text-secondary hover:border-primary-300'
                         }`}
@@ -865,15 +1141,17 @@ export default function CreateTestPage() {
                             placeholder={`${opt.label} variantini kiriting`}
                             className="flex-1 px-4 py-2.5 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all text-sm"
                           />
-                          <ImageUploadButton
-                            endpoint="optionImage"
-                            label="Rasm"
-                            onUpload={(url) => {
-                              const updated = [...questions];
-                              updated[activeQuestion].options[optIndex].image = url;
-                              setQuestions(updated);
-                            }}
-                          />
+                          {questions[activeQuestion]?.type !== 'TRUE_FALSE' && (
+                            <ImageUploadButton
+                              endpoint="optionImage"
+                              label="Rasm"
+                              onUpload={(url) => {
+                                const updated = [...questions];
+                                updated[activeQuestion].options[optIndex].image = url;
+                                setQuestions(updated);
+                              }}
+                            />
+                          )}
                           {optIndex === 4 && (
                             <button onClick={() => removeOption(activeQuestion, optIndex)} className="p-2 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50">
                               <Trash2 size={14} />
@@ -910,15 +1188,18 @@ export default function CreateTestPage() {
                       </div>
                     </div>
                   </div>
-                ))}
-                {questions[activeQuestion]?.options.length < 5 && (
+                  );
+                })}
+                {questions[activeQuestion]?.type !== 'TRUE_FALSE' && questions[activeQuestion]?.options.length < 5 && (
                   <button onClick={() => addOption(activeQuestion)} className="text-xs text-primary-600 hover:text-primary-700 flex items-center gap-1 ml-11">
                     <Plus size={12} /> E variantini qo&apos;shish
                   </button>
                 )}
               </div>
               <p className="text-xs text-text-secondary mt-2 ml-11">
-                Yashil doira = to&apos;g&apos;ri javob. Belgilash uchun harf tugmasini bosing.
+                {questions[activeQuestion]?.type === 'MULTI_SELECT'
+                  ? "Yashil kvadrat = to'g'ri javob. Bir nechtasini belgilashingiz mumkin."
+                  : "Yashil doira = to'g'ri javob. Belgilash uchun harf tugmasini bosing."}
               </p>
               </div>
               )}
@@ -926,6 +1207,18 @@ export default function CreateTestPage() {
 
             {/* Topic tag & Bloom level */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-gray-50 border border-border">
+              <div className="sm:col-span-2 flex items-center justify-between">
+                <p className="text-xs font-medium text-text-secondary">Mavzu, daraja va variantlarni AI to&apos;ldirsin</p>
+                <button
+                  type="button"
+                  onClick={handleAiSuggest}
+                  disabled={aiSuggestLoading || !questions[activeQuestion]?.text || !questions[activeQuestion]?.correctAnswer}
+                  className="text-xs font-medium text-primary-600 hover:text-primary-700 flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {aiSuggestLoading ? <Loader2 size={12} className="animate-spin" /> : <Bot size={12} />}
+                  AI bilan to&apos;ldirish
+                </button>
+              </div>
               <div>
                 <label className="text-xs font-medium text-text-secondary block mb-1.5">Mavzu tegi (ixtiyoriy)</label>
                 <input
@@ -1193,17 +1486,21 @@ export default function CreateTestPage() {
                         </div>
                       ) : (
                         <div className="space-y-2">
-                          {q.options.filter(o => o.text).map((opt) => (
+                          {q.options.filter(o => o.text).map((opt) => {
+                            const isCorrectOpt = q.type === 'MULTI_SELECT'
+                              ? q.correctAnswer.split(',').includes(opt.label)
+                              : opt.label === q.correctAnswer;
+                            return (
                             <div
                               key={opt.label}
                               className={`flex items-start gap-2 p-2.5 rounded-lg text-sm ${
-                                opt.label === q.correctAnswer
+                                isCorrectOpt
                                   ? 'bg-green-50 border border-green-200'
                                   : 'bg-gray-50 border border-gray-100'
                               }`}
                             >
-                              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                                opt.label === q.correctAnswer
+                              <span className={`w-6 h-6 flex items-center justify-center text-xs font-bold flex-shrink-0 ${q.type === 'MULTI_SELECT' ? 'rounded-md' : 'rounded-full'} ${
+                                isCorrectOpt
                                   ? 'bg-green-500 text-white'
                                   : 'bg-gray-200 text-gray-600'
                               }`}>
@@ -1213,7 +1510,8 @@ export default function CreateTestPage() {
                                 <LatexRenderer content={opt.text} />
                               </span>
                             </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       )}
                       {q.explanation && (
@@ -1237,6 +1535,57 @@ export default function CreateTestPage() {
             )}
           </div>
         </motion.div>
+      )}
+
+      {/* Bank picker modal */}
+      {bankPickerOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setBankPickerOpen(false)}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl"
+          >
+            <div className="flex items-center justify-between p-4 border-b border-border">
+              <h3 className="font-semibold text-text-primary flex items-center gap-2">
+                <Library size={18} className="text-primary-600" /> Savollar bazasidan tanlash
+              </h3>
+              <button onClick={() => setBankPickerOpen(false)} className="p-1.5 rounded-lg hover:bg-gray-100 text-text-secondary">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              {bankLoading ? (
+                <div className="flex items-center justify-center py-10"><Loader2 size={24} className="animate-spin text-primary-600" /></div>
+              ) : bankQuestions.length === 0 ? (
+                <div className="text-center py-10 text-sm text-text-secondary">
+                  <p>Bazada {testInfo.subjectId ? 'shu fan bo\'yicha' : ''} savol topilmadi.</p>
+                  <Link href="/teacher/question-bank" className="text-primary-600 hover:underline text-sm mt-2 inline-block">
+                    Savollar bazasiga o&apos;tish
+                  </Link>
+                </div>
+              ) : (
+                bankQuestions.map((bq) => (
+                  <div key={bq.id} className="flex items-start justify-between gap-3 p-3 rounded-xl border border-border hover:border-primary-200 transition-colors">
+                    <div className="flex-1 min-w-0">
+                      {bq.topic && <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 mr-1.5">{bq.topic}</span>}
+                      <div className="text-sm text-text-primary mt-1">
+                        <LatexRenderer content={bq.text} />
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => insertFromBank(bq)}
+                      className="flex-shrink-0 p-2 rounded-lg bg-primary-50 text-primary-600 hover:bg-primary-100 transition-colors"
+                      title="Testga qo'shish"
+                    >
+                      <Plus size={16} />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </motion.div>
+        </div>
       )}
     </div>
   );
