@@ -15,6 +15,7 @@ import {
   TrendingUp,
   Crown,
   Loader2,
+  Compass,
 } from 'lucide-react';
 import PremiumCTA from '@/components/ui/PremiumCTA';
 
@@ -99,6 +100,7 @@ export default function DashboardPage() {
     { label: 'DTM test yechish', href: '/tests?type=DTM', icon: BookOpen },
     { label: 'Maktab testi', href: '/tests?type=SCHOOL', icon: BookOpen },
     { label: 'Reyting ko\'rish', href: '/rating', icon: Trophy },
+    { label: 'Bilim xaritasi', href: '/dashboard/mastery-map', icon: Compass },
   ];
 
   return (

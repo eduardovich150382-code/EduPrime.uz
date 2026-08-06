@@ -196,6 +196,48 @@ export interface SuggestMetadataResult {
 const BLOOM_VALUES = ['BILISH', 'TUSHUNISH', 'QOLLASH', 'TAHLIL', 'BAHOLASH', 'YARATISH'];
 
 /**
+ * Bilim xaritasi — shaxsiy o'sish rejasidagi har bir mavzu uchun qisqa
+ * "nimani qayta ko'rib chiqish kerak" tavsiyasi. Jadvalning o'zi (qachon,
+ * qaysi mavzu) deterministik hisoblanadi — AI faqat matn/tushuntirish
+ * qismini yozadi, shu sabab bitta chaqiruvda barcha mavzular uchun tavsiya
+ * so'raladi (mavzu boshiga alohida so'rov emas — tez va arzon).
+ */
+export async function generateGrowthPlanTips(topics: string[]): Promise<Record<string, string>> {
+  if (topics.length === 0) return {};
+
+  const prompt = `Sen talabalarga shaxsiy o'quv rejasi tuzib beradigan metodistsan. Quyidagi mavzular talaba uchun qiyin bo'lgan (test natijalariga ko'ra). Har bir mavzu uchun 1-2 gaplik, aniq va amaliy tavsiya yoz — nimani qayta ko'rib chiqish, qanday mashq qilish kerak.
+
+Mavzular: ${topics.join(' | ')}
+
+FAQAT quyidagi JSON formatda javob ber (boshqa hech narsa yozma):
+{
+  "Mavzu nomi 1": "tavsiya matni",
+  "Mavzu nomi 2": "tavsiya matni"
+}`;
+
+  try {
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-3.5-flash',
+      generationConfig: { maxOutputTokens: 800, temperature: 0.4 },
+    });
+    const result = await model.generateContent(prompt);
+    const response = result.response.text();
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return {};
+
+    const parsed = JSON.parse(jsonMatch[0]);
+    const tips: Record<string, string> = {};
+    for (const topic of topics) {
+      if (typeof parsed[topic] === 'string') tips[topic] = parsed[topic].slice(0, 400);
+    }
+    return tips;
+  } catch (error) {
+    console.error('Gemini generateGrowthPlanTips error:', error);
+    return {};
+  }
+}
+
+/**
  * Savol matni va to'g'ri javobga asoslanib, o'qituvchiga noto'g'ri variant
  * (distraktor) va mavzu/Bloom darajasi taklif qiladi. Aniq, ishonchli formatga
  * majburlash uchun natija qat'iy JSON sifatida so'raladi; parslanmasa bo'sh
