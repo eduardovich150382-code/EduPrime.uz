@@ -1,15 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import { useRouter, useParams } from 'next/navigation';
 import LatexRenderer from '@/components/ui/LatexRenderer';
+import LatexToolbar from '@/components/ui/LatexToolbar';
+import { BLOOM_LEVELS } from '@/types';
 import {
   ArrowLeft, Plus, Trash2, Save, Loader2, Send,
   FileUp, CheckCircle, Bot,
 } from 'lucide-react';
-import ImageUploadButton, { ImagePreviewList } from '@/components/ui/ImageUploadButton';
+import ImageUploadButton, {
+  ImagePreviewList, uploadImageFile, extractPastedImageFile, extractDroppedImageFile,
+} from '@/components/ui/ImageUploadButton';
 
 interface QuestionForm {
   id?: string;
@@ -20,6 +24,9 @@ interface QuestionForm {
   explanation: string;
   explanationImages: string[];
   videoUrl: string;
+  points: number;
+  topic: string;
+  bloomLevel: string;
 }
 
 interface SubjectItem {
@@ -42,6 +49,9 @@ const emptyQuestion: QuestionForm = {
   explanation: '',
   explanationImages: [],
   videoUrl: '',
+  points: 1,
+  topic: '',
+  bloomLevel: '',
 };
 
 export default function EditTestPage() {
@@ -67,6 +77,29 @@ export default function EditTestPage() {
   const [questions, setQuestions] = useState<QuestionForm[]>([{ ...emptyQuestion }]);
   const [currentStep, setCurrentStep] = useState<'info' | 'questions'>('info');
   const [activeQuestion, setActiveQuestion] = useState(0);
+  const questionTextRef = useRef<HTMLTextAreaElement | null>(null);
+  const explanationRef = useRef<HTMLTextAreaElement | null>(null);
+  const [dropUploading, setDropUploading] = useState<'question' | 'explanation' | null>(null);
+
+  const handleImageDropOrPaste = async (file: File, target: 'question' | 'explanation') => {
+    setDropUploading(target);
+    try {
+      const endpoint = target === 'question' ? 'questionImage' : 'solutionImage';
+      const url = await uploadImageFile(file, endpoint);
+      setQuestions((prev) => {
+        const updated = [...prev];
+        const key = target === 'question' ? 'images' : 'explanationImages';
+        updated[activeQuestion] = {
+          ...updated[activeQuestion],
+          [key]: [...updated[activeQuestion][key], url],
+        };
+        return updated;
+      });
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Rasm yuklashda xatolik');
+    }
+    setDropUploading(null);
+  };
 
   // Fetch subjects and test data
   useEffect(() => {
@@ -110,6 +143,9 @@ export default function EditTestPage() {
             explanation: q.explanation || '',
             explanationImages: q.explanationImages || [],
             videoUrl: q.videoUrl || '',
+            points: q.points || 1,
+            topic: q.topic || '',
+            bloomLevel: q.bloomLevel || '',
           }));
           setQuestions(loadedQuestions);
         }
@@ -204,7 +240,9 @@ export default function EditTestPage() {
             explanationImages: q.explanationImages,
             videoUrl: q.videoUrl || null,
             type: 'MULTIPLE_CHOICE',
-            points: 1,
+            points: q.points || 1,
+            topic: q.topic || null,
+            bloomLevel: q.bloomLevel || null,
             order: index,
           })),
         }),
@@ -449,9 +487,29 @@ export default function EditTestPage() {
           <div className="lg:col-span-3 card p-6 space-y-6">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-text-primary">{activeQuestion + 1}-savol</h3>
-              <button onClick={() => removeQuestion(activeQuestion)} className="p-2 rounded-lg text-red-500 hover:bg-red-50">
-                <Trash2 size={16} />
-              </button>
+              <div className="flex items-center gap-3">
+                <label className="flex items-center gap-1.5 text-xs text-text-secondary">
+                  Ball:
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={questions[activeQuestion]?.points ?? 1}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const num = val === '' ? 1 : parseInt(val);
+                      if (val === '' || (!isNaN(num) && num >= 1 && num <= 100)) {
+                        const updated = [...questions];
+                        updated[activeQuestion] = { ...updated[activeQuestion], points: val === '' ? 1 : num };
+                        setQuestions(updated);
+                      }
+                    }}
+                    className="w-14 px-2 py-1 rounded-lg border border-border text-center text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300"
+                  />
+                </label>
+                <button onClick={() => removeQuestion(activeQuestion)} className="p-2 rounded-lg text-red-500 hover:bg-red-50">
+                  <Trash2 size={16} />
+                </button>
+              </div>
             </div>
 
             {/* Question text */}
@@ -473,17 +531,48 @@ export default function EditTestPage() {
                   }}
                 />
               </div>
+              <LatexToolbar
+                targetRef={questionTextRef}
+                value={questions[activeQuestion]?.text || ''}
+                onChange={(text) => {
+                  const updated = [...questions];
+                  updated[activeQuestion] = { ...updated[activeQuestion], text };
+                  setQuestions(updated);
+                }}
+                className="mb-1.5"
+              />
               <textarea
+                ref={questionTextRef}
                 value={questions[activeQuestion]?.text || ''}
                 onChange={(e) => {
                   const updated = [...questions];
                   updated[activeQuestion] = { ...updated[activeQuestion], text: e.target.value };
                   setQuestions(updated);
                 }}
-                placeholder="Savolni kiriting..."
+                onPaste={(e) => {
+                  const file = extractPastedImageFile(e);
+                  if (file) {
+                    e.preventDefault();
+                    handleImageDropOrPaste(file, 'question');
+                  }
+                }}
+                onDrop={(e) => {
+                  const file = extractDroppedImageFile(e);
+                  if (file) {
+                    e.preventDefault();
+                    handleImageDropOrPaste(file, 'question');
+                  }
+                }}
+                onDragOver={(e) => e.preventDefault()}
+                placeholder="Savolni kiriting... (rasmni shu yerga sudrab tashlashingiz yoki joylashingiz mumkin)"
                 rows={3}
                 className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all resize-none font-mono text-sm"
               />
+              {dropUploading === 'question' && (
+                <p className="text-xs text-primary-600 mt-1 flex items-center gap-1.5">
+                  <Loader2 size={12} className="animate-spin" /> Rasm yuklanmoqda...
+                </p>
+              )}
               <ImagePreviewList
                 images={questions[activeQuestion]?.images || []}
                 onRemove={(index) => {
@@ -587,6 +676,41 @@ export default function EditTestPage() {
               </p>
             </div>
 
+            {/* Topic tag & Bloom level */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-gray-50 border border-border">
+              <div>
+                <label className="text-xs font-medium text-text-secondary block mb-1.5">Mavzu tegi (ixtiyoriy)</label>
+                <input
+                  type="text"
+                  value={questions[activeQuestion]?.topic || ''}
+                  onChange={(e) => {
+                    const updated = [...questions];
+                    updated[activeQuestion] = { ...updated[activeQuestion], topic: e.target.value };
+                    setQuestions(updated);
+                  }}
+                  placeholder="Masalan: Kvadrat tenglama"
+                  className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-text-secondary block mb-1.5">Bloom darajasi (ixtiyoriy)</label>
+                <select
+                  value={questions[activeQuestion]?.bloomLevel || ''}
+                  onChange={(e) => {
+                    const updated = [...questions];
+                    updated[activeQuestion] = { ...updated[activeQuestion], bloomLevel: e.target.value };
+                    setQuestions(updated);
+                  }}
+                  className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all"
+                >
+                  <option value="">Tanlanmagan</option>
+                  {BLOOM_LEVELS.map((b) => (
+                    <option key={b.value} value={b.value}>{b.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
             {/* Explanation */}
             <div>
               <div className="flex items-center justify-between mb-2">
@@ -604,17 +728,48 @@ export default function EditTestPage() {
                   }}
                 />
               </div>
+              <LatexToolbar
+                targetRef={explanationRef}
+                value={questions[activeQuestion]?.explanation || ''}
+                onChange={(explanation) => {
+                  const updated = [...questions];
+                  updated[activeQuestion] = { ...updated[activeQuestion], explanation };
+                  setQuestions(updated);
+                }}
+                className="mb-1.5"
+              />
               <textarea
+                ref={explanationRef}
                 value={questions[activeQuestion]?.explanation || ''}
                 onChange={(e) => {
                   const updated = [...questions];
                   updated[activeQuestion] = { ...updated[activeQuestion], explanation: e.target.value };
                   setQuestions(updated);
                 }}
-                placeholder="Yechimni kiriting..."
+                onPaste={(e) => {
+                  const file = extractPastedImageFile(e);
+                  if (file) {
+                    e.preventDefault();
+                    handleImageDropOrPaste(file, 'explanation');
+                  }
+                }}
+                onDrop={(e) => {
+                  const file = extractDroppedImageFile(e);
+                  if (file) {
+                    e.preventDefault();
+                    handleImageDropOrPaste(file, 'explanation');
+                  }
+                }}
+                onDragOver={(e) => e.preventDefault()}
+                placeholder="Yechimni kiriting... (rasmni shu yerga sudrab tashlashingiz yoki joylashingiz mumkin)"
                 rows={2}
                 className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all resize-none text-sm"
               />
+              {dropUploading === 'explanation' && (
+                <p className="text-xs text-primary-600 mt-1 flex items-center gap-1.5">
+                  <Loader2 size={12} className="animate-spin" /> Rasm yuklanmoqda...
+                </p>
+              )}
               <ImagePreviewList
                 images={questions[activeQuestion]?.explanationImages || []}
                 onRemove={(index) => {

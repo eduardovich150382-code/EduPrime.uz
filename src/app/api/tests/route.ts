@@ -120,6 +120,8 @@ export async function POST(request: NextRequest) {
             explanation: q.explanation || null,
             explanationImages: q.explanationImages || [],
             videoUrl: q.videoUrl || null,
+            topic: q.topic || null,
+            bloomLevel: q.bloomLevel || null,
             points: q.points || 1,
             order: index,
           })),
