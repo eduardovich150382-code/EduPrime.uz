@@ -46,6 +46,11 @@ export default function QuestionDisplay({
               Ochiq savol
             </span>
           )}
+          {questionType === 'MULTI_SELECT' && (
+            <span className="text-xs font-medium text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">
+              Bir nechtasini tanlang
+            </span>
+          )}
         </div>
 
         {/* LaTeX rendered text */}
@@ -103,19 +108,34 @@ export default function QuestionDisplay({
           )}
         </div>
       ) : (
-      /* MULTIPLE_CHOICE: Options */
+      /* MULTIPLE_CHOICE / TRUE_FALSE / MULTI_SELECT: Options */
       <div className="space-y-3">
         {options
           .filter((option) => option.text || option.image) // Bo'sh variantlarni ko'rsatmaslik
           .map((option, index) => {
-          const isSelected = selectedAnswer === option.label;
-          const isCorrect = isReview && option.label === correctAnswer;
-          const isWrong = isReview && isSelected && option.label !== correctAnswer;
+          const isMulti = questionType === 'MULTI_SELECT';
+          const selectedLabels = isMulti ? (selectedAnswer || '').split(',').filter(Boolean) : [];
+          const correctLabels = isMulti ? (correctAnswer || '').split(',').filter(Boolean) : [];
+          const isSelected = isMulti ? selectedLabels.includes(option.label) : selectedAnswer === option.label;
+          const isCorrect = isReview && (isMulti ? correctLabels.includes(option.label) : option.label === correctAnswer);
+          const isWrong = isReview && isSelected && !isCorrect;
+
+          const handleClick = () => {
+            if (isReview) return;
+            if (isMulti) {
+              const next = selectedLabels.includes(option.label)
+                ? selectedLabels.filter((l) => l !== option.label)
+                : [...selectedLabels, option.label];
+              onAnswer(next.sort().join(','));
+            } else {
+              onAnswer(option.label);
+            }
+          };
 
           return (
             <button
               key={option.label}
-              onClick={() => !isReview && onAnswer(option.label)}
+              onClick={handleClick}
               disabled={isReview}
               className={cn(
                 'w-full flex items-start gap-4 p-4 rounded-xl border-2 transition-all duration-200 text-left',
@@ -126,9 +146,10 @@ export default function QuestionDisplay({
                 isReview && !isCorrect && !isWrong && 'border-border opacity-60'
               )}
             >
-              {/* Option indicator (radio-style circle, no letter) */}
+              {/* Option indicator (radio circle for single-answer, checkbox square for multi-select) */}
               <div className={cn(
-                'w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 border-2 transition-colors',
+                'w-7 h-7 flex items-center justify-center flex-shrink-0 border-2 transition-colors',
+                isMulti ? 'rounded-md' : 'rounded-full',
                 !isReview && !isSelected && 'border-gray-300',
                 !isReview && isSelected && 'border-primary-500 bg-primary-500',
                 isCorrect && 'border-green-500 bg-green-500',
@@ -136,7 +157,7 @@ export default function QuestionDisplay({
               )}>
                 {(isSelected || isCorrect || isWrong) && (
                   <div className={cn(
-                    'w-2.5 h-2.5 rounded-full',
+                    isMulti ? 'w-3 h-3 rounded-sm' : 'w-2.5 h-2.5 rounded-full',
                     !isReview && isSelected && 'bg-white',
                     isCorrect && 'bg-white',
                     isWrong && 'bg-white'

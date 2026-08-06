@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import {
   BookOpen, Plus, Eye, Users, DollarSign,
-  ArrowRight, FileText, Loader2, Pencil, Trash2, Copy,
+  ArrowRight, FileText, Loader2, Pencil, Trash2, Copy, Library,
 } from 'lucide-react';
 
 interface StatsData {
@@ -135,10 +135,16 @@ export default function TeacherDashboard() {
           </h1>
           <p className="text-text-secondary mt-1 text-sm sm:text-base">Testlaringizni boshqaring va natijalarni kuzating</p>
         </div>
-        <Link href="/teacher/tests/create" className="btn-primary flex items-center gap-2 self-start sm:self-auto">
-          <Plus size={18} />
-          Yangi test
-        </Link>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <Link href="/teacher/question-bank" className="btn-secondary flex items-center gap-2">
+            <Library size={18} />
+            Savollar bazasi
+          </Link>
+          <Link href="/teacher/tests/create" className="btn-primary flex items-center gap-2">
+            <Plus size={18} />
+            Yangi test
+          </Link>
+        </div>
       </motion.div>
 
       {/* Stats */}

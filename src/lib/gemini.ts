@@ -180,6 +180,107 @@ export async function importTestFromFile(fileUrl: string, fileName: string): Pro
   }
 }
 
+export interface SuggestMetadataParams {
+  text: string;
+  correctAnswer: string;
+  type: string;
+  existingOptionTexts: string[];
+}
+
+export interface SuggestMetadataResult {
+  distractors: string[];
+  topic: string;
+  bloomLevel: string;
+}
+
+const BLOOM_VALUES = ['BILISH', 'TUSHUNISH', 'QOLLASH', 'TAHLIL', 'BAHOLASH', 'YARATISH'];
+
+/**
+ * Savol matni va to'g'ri javobga asoslanib, o'qituvchiga noto'g'ri variant
+ * (distraktor) va mavzu/Bloom darajasi taklif qiladi. Aniq, ishonchli formatga
+ * majburlash uchun natija qat'iy JSON sifatida so'raladi; parslanmasa bo'sh
+ * natija qaytadi — chaqiruvchi buni "hech narsa taklif qilinmadi" deb talqin qiladi.
+ */
+export async function suggestQuestionMetadata(params: SuggestMetadataParams): Promise<SuggestMetadataResult> {
+  const needsDistractors = params.type === 'MULTIPLE_CHOICE' || params.type === 'MULTI_SELECT';
+
+  const prompt = `Sen tajribali test tuzuvchi metodistsan. Quyidagi savolni tahlil qil:
+
+Savol: ${params.text}
+To'g'ri javob: ${params.correctAnswer}
+${params.existingOptionTexts.length > 0 ? `Mavjud variantlar: ${params.existingOptionTexts.join(' | ')}` : ''}
+
+Vazifa — quyidagi JSON formatda javob ber (FAQAT JSON, boshqa hech narsa yozma):
+{
+  "distractors": [${needsDistractors ? '"noto\'g\'ri variant 1", "noto\'g\'ri variant 2", "noto\'g\'ri variant 3"' : ''}],
+  "topic": "qisqa mavzu tegi (2-4 so'z, masalan: Kvadrat tenglama)",
+  "bloomLevel": "BILISH yoki TUSHUNISH yoki QOLLASH yoki TAHLIL yoki BAHOLASH yoki YARATISH"
+}
+
+QOIDALAR:
+1. Distraktorlar ishonchli, mavzuga oid, lekin aniq noto'g'ri bo'lishi kerak (tasodifiy yoki bema'ni emas).
+2. Distraktorlar mavjud variantlarni takrorlamasin.
+3. Formulalar LaTeX formatda ($...$) bo'lsin.
+4. ${needsDistractors ? '' : 'Bu savol turi uchun distractors bo\'sh massiv [] bo\'lsin.'}
+5. topic va bloomLevel har doim to'ldirilishi kerak.`;
+
+  try {
+    const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash' });
+    const result = await model.generateContent(prompt);
+    const response = result.response.text();
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return { distractors: [], topic: '', bloomLevel: '' };
+
+    const parsed = JSON.parse(jsonMatch[0]);
+    return {
+      distractors: Array.isArray(parsed.distractors) ? parsed.distractors.filter((d: unknown) => typeof d === 'string').slice(0, 4) : [],
+      topic: typeof parsed.topic === 'string' ? parsed.topic.slice(0, 100) : '',
+      bloomLevel: BLOOM_VALUES.includes(parsed.bloomLevel) ? parsed.bloomLevel : '',
+    };
+  } catch (error) {
+    console.error('Gemini suggestQuestionMetadata error:', error);
+    return { distractors: [], topic: '', bloomLevel: '' };
+  }
+}
+
+/**
+ * Ochiq savol uchun aniq (case-insensitive) moslik topilmaganda ishlatiladigan
+ * zaxira tekshiruv: talaba javobi to'g'ri javobga MA'NO jihatdan teng-mi
+ * (masalan, "3.14" va "3,14", yoki "1/2" va "0.5"), faqat format farqi bo'lsa.
+ * Har qanday shubha bo'lsa FALSE qaytarishga qat'iy yo'naltirilgan — bu
+ * ballarga ta'sir qilgani uchun xato-musbat (false positive) dan qochish
+ * xato-manfiy (false negative, ya'ni aniq moslik yo'q holatda default)dan
+ * ancha xavfliroq.
+ */
+export async function checkOpenEndedEquivalence(
+  questionText: string,
+  correctAnswer: string,
+  userAnswer: string
+): Promise<boolean> {
+  if (!userAnswer.trim()) return false;
+
+  const prompt = `Sen qat'iy test tekshiruvchisan. Faqat FORMAT farqi bo'lgan javoblarni teng deb hisoblaysan (masalan: "3.14" va "3,14", "1/2" va "0.5", ortiqcha probel, katta-kichik harf). MA'NOSI yoki QIYMATI boshqacha bo'lsa — teng emas. Shubha bo'lsa FALSE javob ber.
+
+Savol: ${questionText}
+To'g'ri javob: ${correctAnswer}
+Talaba javobi: ${userAnswer}
+
+Talaba javobi to'g'ri javobga TENGmi? Faqat bitta so'z bilan javob ber: TRUE yoki FALSE.`;
+
+  try {
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-3.5-flash',
+      generationConfig: { maxOutputTokens: 10, temperature: 0 },
+    });
+    const result = await model.generateContent(prompt);
+    const response = result.response.text().trim().toUpperCase();
+    return response.startsWith('TRUE');
+  } catch (error) {
+    console.error('Gemini checkOpenEndedEquivalence error:', error);
+    return false;
+  }
+}
+
 const TUTOR_LANG_NAMES: Record<string, string> = {
   uz: "o'zbek",
   ru: 'rus',
