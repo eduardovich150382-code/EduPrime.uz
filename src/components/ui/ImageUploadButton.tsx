@@ -3,11 +3,68 @@
 import { useState, useRef } from 'react';
 import { Image, X, Loader2 } from 'lucide-react';
 
+type ImageUploadEndpoint = 'questionImage' | 'optionImage' | 'solutionImage';
+
 interface ImageUploadButtonProps {
-  endpoint: 'questionImage' | 'optionImage' | 'solutionImage';
+  endpoint: ImageUploadEndpoint;
   onUpload: (url: string) => void;
   className?: string;
   label?: string;
+}
+
+/**
+ * Bitta rasm faylini yuklaydi (UploadThing proksisi orqali, muvaffaqiyatsiz
+ * bo'lsa base64 data URL'ga qaytadi). ImageUploadButton ham, drag-drop/paste
+ * handlerlari ham shu funksiyani ishlatadi — yuklash mantig'i bitta joyda.
+ */
+export async function uploadImageFile(file: File, endpoint: ImageUploadEndpoint): Promise<string> {
+  const maxSize = endpoint === 'optionImage' ? 1 * 1024 * 1024 : 2 * 1024 * 1024;
+  if (file.size > maxSize) {
+    throw new Error(`Rasm hajmi ${endpoint === 'optionImage' ? '1' : '2'} MB dan oshmasligi kerak`);
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const res = await fetch(`/api/upload?endpoint=${endpoint}`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.url) return data.url as string;
+    }
+  } catch {
+    // fall through to base64 fallback below
+  }
+
+  // Fallback: convert to base64 data URL for local preview
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error("Rasmni o'qib bo'lmadi"));
+    reader.readAsDataURL(file);
+  });
+}
+
+/** Clipboard'dan joylashtirilgan rasm faylini oladi (Ctrl+V uchun) */
+export function extractPastedImageFile(e: React.ClipboardEvent): File | null {
+  const items = e.clipboardData?.items;
+  if (!items) return null;
+  for (let i = 0; i < items.length; i++) {
+    if (items[i].type.startsWith('image/')) {
+      return items[i].getAsFile();
+    }
+  }
+  return null;
+}
+
+/** Sudrab tashlangan rasm faylini oladi (drag & drop uchun) */
+export function extractDroppedImageFile(e: React.DragEvent): File | null {
+  const file = e.dataTransfer?.files?.[0];
+  return file && file.type.startsWith('image/') ? file : null;
 }
 
 /**
@@ -33,47 +90,12 @@ export default function ImageUploadButton({
       return;
     }
 
-    // Validate file size (max 2MB for question, 1MB for option)
-    const maxSize = endpoint === 'optionImage' ? 1 * 1024 * 1024 : 2 * 1024 * 1024;
-    if (file.size > maxSize) {
-      alert(`Rasm hajmi ${endpoint === 'optionImage' ? '1' : '2'} MB dan oshmasligi kerak`);
-      return;
-    }
-
     setUploading(true);
     try {
-      // Create FormData for upload
-      const formData = new FormData();
-      formData.append('file', file);
-
-      // Use a simple direct upload approach via our own proxy
-      const res = await fetch(`/api/upload?endpoint=${endpoint}`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        if (data.url) {
-          onUpload(data.url);
-        }
-      } else {
-        // Fallback: convert to base64 data URL for local preview
-        const reader = new FileReader();
-        reader.onload = () => {
-          const dataUrl = reader.result as string;
-          onUpload(dataUrl);
-        };
-        reader.readAsDataURL(file);
-      }
-    } catch {
-      // Fallback: convert to base64 data URL
-      const reader = new FileReader();
-      reader.onload = () => {
-        const dataUrl = reader.result as string;
-        onUpload(dataUrl);
-      };
-      reader.readAsDataURL(file);
+      const url = await uploadImageFile(file, endpoint);
+      onUpload(url);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Rasm yuklashda xatolik");
     }
     setUploading(false);
 

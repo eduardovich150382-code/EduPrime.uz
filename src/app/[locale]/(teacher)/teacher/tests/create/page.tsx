@@ -5,11 +5,15 @@ import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import { useRouter } from 'next/navigation';
 import LatexRenderer from '@/components/ui/LatexRenderer';
+import LatexToolbar from '@/components/ui/LatexToolbar';
+import { BLOOM_LEVELS } from '@/types';
 import {
   ArrowLeft, Plus, Trash2, Image, Upload, Bot,
-  Save, FileUp, CheckCircle, Loader2, Send, Eye, Clock,
+  Save, FileUp, CheckCircle, Loader2, Send, Eye, Clock, Paperclip,
 } from 'lucide-react';
-import ImageUploadButton, { ImagePreviewList } from '@/components/ui/ImageUploadButton';
+import ImageUploadButton, {
+  ImagePreviewList, uploadImageFile, extractPastedImageFile, extractDroppedImageFile,
+} from '@/components/ui/ImageUploadButton';
 
 interface QuestionForm {
   text: string;
@@ -20,6 +24,9 @@ interface QuestionForm {
   explanationImages: string[];
   videoUrl: string;
   type: 'MULTIPLE_CHOICE' | 'OPEN_ENDED';
+  points: number;
+  topic: string;
+  bloomLevel: string;
 }
 
 interface SubjectItem {
@@ -43,6 +50,9 @@ const emptyQuestion: QuestionForm = {
   explanationImages: [],
   videoUrl: '',
   type: 'MULTIPLE_CHOICE',
+  points: 1,
+  topic: '',
+  bloomLevel: '',
 };
 
 export default function CreateTestPage() {
@@ -69,6 +79,37 @@ export default function CreateTestPage() {
   const [aiResult, setAiResult] = useState<any>(null);
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const questionTextRef = useRef<HTMLTextAreaElement | null>(null);
+  const explanationRef = useRef<HTMLTextAreaElement | null>(null);
+  const [dropUploading, setDropUploading] = useState<'question' | 'explanation' | null>(null);
+  const [aiFileLoading, setAiFileLoading] = useState(false);
+  const aiImageInputRef = useRef<HTMLInputElement | null>(null);
+  const aiFileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Savol matni / yechim maydonlariga rasmni sudrab tashlash yoki
+  // clipboard'dan (Ctrl+V) joylash orqali yuklash
+  const handleImageDropOrPaste = async (
+    file: File,
+    target: 'question' | 'explanation'
+  ) => {
+    setDropUploading(target);
+    try {
+      const endpoint = target === 'question' ? 'questionImage' : 'solutionImage';
+      const url = await uploadImageFile(file, endpoint);
+      setQuestions((prev) => {
+        const updated = [...prev];
+        const key = target === 'question' ? 'images' : 'explanationImages';
+        updated[activeQuestion] = {
+          ...updated[activeQuestion],
+          [key]: [...updated[activeQuestion][key], url],
+        };
+        return updated;
+      });
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Rasm yuklashda xatolik');
+    }
+    setDropUploading(null);
+  };
 
   // Auto-save to localStorage every 30 seconds
   useEffect(() => {
@@ -204,7 +245,9 @@ export default function CreateTestPage() {
             explanationImages: q.explanationImages,
             videoUrl: q.videoUrl || null,
             type: q.type,
-            points: 1,
+            points: q.points || 1,
+            topic: q.topic || null,
+            bloomLevel: q.bloomLevel || null,
           })),
         }),
       });
@@ -233,24 +276,19 @@ export default function CreateTestPage() {
     setSaving(false);
   };
 
-  // AI IMPORT
-  const handleAiImport = async () => {
-    if (!aiText.trim()) {
-      alert("Matn kiriting!");
-      return;
-    }
-    setAiLoading(true);
+  // AI IMPORT — matn, rasm yoki fayl (PDF/DOCX/TXT) qaysi biri bo'lishidan
+  // qat'i nazar, bitta umumiy oqim orqali /api/ai/import ga yuboriladi
+  const runAiImport = async (payload: Record<string, unknown>) => {
     setAiResult(null);
     try {
       const res = await fetch('/api/ai/import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'text', content: aiText }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       setAiResult(data);
 
-      // Import questions
       if (data.questions?.length > 0) {
         const imported: QuestionForm[] = data.questions.map((q: any) => ({
           text: q.text || '',
@@ -266,6 +304,9 @@ export default function CreateTestPage() {
           explanationImages: [],
           videoUrl: '',
           type: q.type === 'OPEN_ENDED' ? 'OPEN_ENDED' : 'MULTIPLE_CHOICE',
+          points: 1,
+          topic: '',
+          bloomLevel: '',
         }));
         setQuestions(imported);
         setActiveQuestion(0);
@@ -274,6 +315,52 @@ export default function CreateTestPage() {
     } catch (error) {
       alert("AI xatolik. Qayta urinib ko'ring.");
     }
+  };
+
+  const handleAiImport = async () => {
+    if (!aiText.trim()) {
+      alert("Matn kiriting!");
+      return;
+    }
+    setAiLoading(true);
+    await runAiImport({ type: 'text', content: aiText });
+    setAiLoading(false);
+  };
+
+  const handleAiImageImport = async (file: File) => {
+    setAiLoading(true);
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve((reader.result as string).split(',')[1] || '');
+        reader.onerror = () => reject(new Error("Rasmni o'qib bo'lmadi"));
+        reader.readAsDataURL(file);
+      });
+      await runAiImport({ type: 'image', content: base64, mimeType: file.type });
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Rasmni yuklashda xatolik');
+    }
+    setAiLoading(false);
+  };
+
+  const handleAiFileImport = async (file: File) => {
+    setAiFileLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const uploadRes = await fetch('/api/upload?endpoint=aiImportFile', { method: 'POST', body: formData });
+      const uploadData = await uploadRes.json();
+      if (!uploadRes.ok || !uploadData.url) {
+        alert(uploadData.error || 'Faylni yuklashda xatolik');
+        setAiFileLoading(false);
+        return;
+      }
+      setAiLoading(true);
+      await runAiImport({ type: 'file', fileUrl: uploadData.url, fileName: file.name });
+    } catch {
+      alert('Faylni yuklashda xatolik');
+    }
+    setAiFileLoading(false);
     setAiLoading(false);
   };
 
@@ -574,9 +661,29 @@ export default function CreateTestPage() {
           <div className="lg:col-span-3 card p-6 space-y-6">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-text-primary">{activeQuestion + 1}-savol</h3>
-              <button onClick={() => removeQuestion(activeQuestion)} className="p-2 rounded-lg text-red-500 hover:bg-red-50">
-                <Trash2 size={16} />
-              </button>
+              <div className="flex items-center gap-3">
+                <label className="flex items-center gap-1.5 text-xs text-text-secondary">
+                  Ball:
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={questions[activeQuestion]?.points ?? 1}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const num = val === '' ? 1 : parseInt(val);
+                      if (val === '' || (!isNaN(num) && num >= 1 && num <= 100)) {
+                        const updated = [...questions];
+                        updated[activeQuestion] = { ...updated[activeQuestion], points: val === '' ? 1 : num };
+                        setQuestions(updated);
+                      }
+                    }}
+                    className="w-14 px-2 py-1 rounded-lg border border-border text-center text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300"
+                  />
+                </label>
+                <button onClick={() => removeQuestion(activeQuestion)} className="p-2 rounded-lg text-red-500 hover:bg-red-50">
+                  <Trash2 size={16} />
+                </button>
+              </div>
             </div>
 
             {/* Question text */}
@@ -598,17 +705,48 @@ export default function CreateTestPage() {
                   }}
                 />
               </div>
+              <LatexToolbar
+                targetRef={questionTextRef}
+                value={questions[activeQuestion]?.text || ''}
+                onChange={(text) => {
+                  const updated = [...questions];
+                  updated[activeQuestion] = { ...updated[activeQuestion], text };
+                  setQuestions(updated);
+                }}
+                className="mb-1.5"
+              />
               <textarea
+                ref={questionTextRef}
                 value={questions[activeQuestion]?.text || ''}
                 onChange={(e) => {
                   const updated = [...questions];
                   updated[activeQuestion] = { ...updated[activeQuestion], text: e.target.value };
                   setQuestions(updated);
                 }}
-                placeholder="Savolni kiriting..."
+                onPaste={(e) => {
+                  const file = extractPastedImageFile(e);
+                  if (file) {
+                    e.preventDefault();
+                    handleImageDropOrPaste(file, 'question');
+                  }
+                }}
+                onDrop={(e) => {
+                  const file = extractDroppedImageFile(e);
+                  if (file) {
+                    e.preventDefault();
+                    handleImageDropOrPaste(file, 'question');
+                  }
+                }}
+                onDragOver={(e) => e.preventDefault()}
+                placeholder="Savolni kiriting... (rasmni shu yerga sudrab tashlashingiz yoki joylashingiz mumkin)"
                 rows={3}
                 className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all resize-none font-mono text-sm"
               />
+              {dropUploading === 'question' && (
+                <p className="text-xs text-primary-600 mt-1 flex items-center gap-1.5">
+                  <Loader2 size={12} className="animate-spin" /> Rasm yuklanmoqda...
+                </p>
+              )}
               {/* Question images preview */}
               <ImagePreviewList
                 images={questions[activeQuestion]?.images || []}
@@ -786,6 +924,44 @@ export default function CreateTestPage() {
               )}
             </div>
 
+            {/* Topic tag & Bloom level */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-gray-50 border border-border">
+              <div>
+                <label className="text-xs font-medium text-text-secondary block mb-1.5">Mavzu tegi (ixtiyoriy)</label>
+                <input
+                  type="text"
+                  value={questions[activeQuestion]?.topic || ''}
+                  onChange={(e) => {
+                    const updated = [...questions];
+                    updated[activeQuestion] = { ...updated[activeQuestion], topic: e.target.value };
+                    setQuestions(updated);
+                  }}
+                  placeholder="Masalan: Kvadrat tenglama"
+                  className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-text-secondary block mb-1.5">Bloom darajasi (ixtiyoriy)</label>
+                <select
+                  value={questions[activeQuestion]?.bloomLevel || ''}
+                  onChange={(e) => {
+                    const updated = [...questions];
+                    updated[activeQuestion] = { ...updated[activeQuestion], bloomLevel: e.target.value };
+                    setQuestions(updated);
+                  }}
+                  className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all"
+                >
+                  <option value="">Tanlanmagan</option>
+                  {BLOOM_LEVELS.map((b) => (
+                    <option key={b.value} value={b.value}>{b.label}</option>
+                  ))}
+                </select>
+              </div>
+              <p className="text-xs text-text-secondary sm:col-span-2">
+                Bu teglar savol darajasidagi tahlil va shaxsiylashtirilgan tavsiyalar uchun ishlatiladi.
+              </p>
+            </div>
+
             {/* Explanation */}
             <div>
               <div className="flex items-center justify-between mb-2">
@@ -803,17 +979,48 @@ export default function CreateTestPage() {
                   }}
                 />
               </div>
+              <LatexToolbar
+                targetRef={explanationRef}
+                value={questions[activeQuestion]?.explanation || ''}
+                onChange={(explanation) => {
+                  const updated = [...questions];
+                  updated[activeQuestion] = { ...updated[activeQuestion], explanation };
+                  setQuestions(updated);
+                }}
+                className="mb-1.5"
+              />
               <textarea
+                ref={explanationRef}
                 value={questions[activeQuestion]?.explanation || ''}
                 onChange={(e) => {
                   const updated = [...questions];
                   updated[activeQuestion] = { ...updated[activeQuestion], explanation: e.target.value };
                   setQuestions(updated);
                 }}
-                placeholder="Yechimni kiriting..."
+                onPaste={(e) => {
+                  const file = extractPastedImageFile(e);
+                  if (file) {
+                    e.preventDefault();
+                    handleImageDropOrPaste(file, 'explanation');
+                  }
+                }}
+                onDrop={(e) => {
+                  const file = extractDroppedImageFile(e);
+                  if (file) {
+                    e.preventDefault();
+                    handleImageDropOrPaste(file, 'explanation');
+                  }
+                }}
+                onDragOver={(e) => e.preventDefault()}
+                placeholder="Yechimni kiriting... (rasmni shu yerga sudrab tashlashingiz yoki joylashingiz mumkin)"
                 rows={2}
                 className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all resize-none text-sm"
               />
+              {dropUploading === 'explanation' && (
+                <p className="text-xs text-primary-600 mt-1 flex items-center gap-1.5">
+                  <Loader2 size={12} className="animate-spin" /> Rasm yuklanmoqda...
+                </p>
+              )}
               {/* Explanation images preview */}
               <ImagePreviewList
                 images={questions[activeQuestion]?.explanationImages || []}
@@ -875,6 +1082,56 @@ export default function CreateTestPage() {
             >
               {aiLoading ? <Loader2 size={16} className="animate-spin" /> : <Bot size={16} />}
               {aiLoading ? 'Tahlil qilinmoqda...' : 'AI bilan import'}
+            </button>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="h-px flex-1 bg-border" />
+            <span className="text-xs text-text-secondary flex-shrink-0">yoki rasm/fayl yuklang</span>
+            <div className="h-px flex-1 bg-border" />
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <input
+              ref={aiImageInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleAiImageImport(file);
+                e.target.value = '';
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => aiImageInputRef.current?.click()}
+              disabled={aiLoading || aiFileLoading}
+              className="btn-secondary flex items-center gap-2 !py-2.5 !px-4 text-sm disabled:opacity-50"
+            >
+              {aiLoading ? <Loader2 size={16} className="animate-spin" /> : <Image size={16} />}
+              Rasmdan import (skan/skrinshot)
+            </button>
+
+            <input
+              ref={aiFileInputRef}
+              type="file"
+              accept=".pdf,.doc,.docx,.txt"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleAiFileImport(file);
+                e.target.value = '';
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => aiFileInputRef.current?.click()}
+              disabled={aiLoading || aiFileLoading}
+              className="btn-secondary flex items-center gap-2 !py-2.5 !px-4 text-sm disabled:opacity-50"
+            >
+              {aiFileLoading ? <Loader2 size={16} className="animate-spin" /> : <Paperclip size={16} />}
+              Fayldan import (PDF, DOCX, TXT)
             </button>
           </div>
 

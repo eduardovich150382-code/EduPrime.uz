@@ -78,9 +78,20 @@ export interface Question {
   explanation: string | null;
   explanationImages: string[];
   videoUrl: string | null;
+  topic: string | null;
+  bloomLevel: string | null;
   points: number;
   order: number;
 }
+
+export const BLOOM_LEVELS = [
+  { value: 'BILISH', label: 'Bilish' },
+  { value: 'TUSHUNISH', label: 'Tushunish' },
+  { value: 'QOLLASH', label: "Qo'llash" },
+  { value: 'TAHLIL', label: 'Tahlil' },
+  { value: 'BAHOLASH', label: 'Baholash' },
+  { value: 'YARATISH', label: 'Yaratish' },
+] as const;
 
 // ===================== RESULT TYPES =====================
 

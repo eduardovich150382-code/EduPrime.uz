@@ -38,6 +38,8 @@ export async function GET(
             explanation: true,
             explanationImages: true,
             videoUrl: true,
+            topic: true,
+            bloomLevel: true,
             points: true,
             order: true,
           },

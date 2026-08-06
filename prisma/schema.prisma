@@ -206,6 +206,8 @@ model Question {
   explanationImages  String[]     // Images in explanation
   videoUrl           String?      // Video solution URL
   aiExplanations     Json?        // AI tutor explanation cache, keyed by lang: {uz, ru, en}
+  topic              String?      // Mavzu tegi, masalan: "Kvadrat tenglama"
+  bloomLevel         String?      // BILISH, TUSHUNISH, QOLLASH, TAHLIL, BAHOLASH, YARATISH
   points             Int          @default(1)
   order              Int          @default(0)
   createdAt          DateTime     @default(now())

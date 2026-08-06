@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import {
   ArrowLeft, Plus, FileText, Users, BarChart3, Trash2,
-  Pencil, Eye, EyeOff, Loader2, Search,
+  Pencil, Eye, EyeOff, Loader2, Search, Link2, Check,
 } from 'lucide-react';
 
 interface TestItem {
@@ -31,6 +31,18 @@ export default function TeacherTestsPage() {
   const [filter, setFilter] = useState<'all' | 'published' | 'draft'>('all');
   const [deleting, setDeleting] = useState<string | null>(null);
   const [toggling, setToggling] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const handleCopyPreviewLink = async (testId: string) => {
+    const url = `${window.location.origin}/preview/${testId}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedId(testId);
+      setTimeout(() => setCopiedId((cur) => (cur === testId ? null : cur)), 2000);
+    } catch {
+      alert(url);
+    }
+  };
 
   useEffect(() => {
     fetchTests();
@@ -234,6 +246,17 @@ export default function TeacherTestsPage() {
 
                 {/* Actions */}
                 <div className="flex items-center gap-2 flex-shrink-0 ml-16 sm:ml-4">
+                  {test.isPublished && (
+                    <button
+                      onClick={() => handleCopyPreviewLink(test.id)}
+                      title="Ommaviy sinov havolasini nusxalash"
+                      className={`p-2 rounded-lg transition-colors ${
+                        copiedId === test.id ? 'text-green-600 bg-green-50' : 'text-text-secondary hover:bg-gray-100'
+                      }`}
+                    >
+                      {copiedId === test.id ? <Check size={16} /> : <Link2 size={16} />}
+                    </button>
+                  )}
                   <button
                     onClick={() => handleTogglePublish(test.id, test.isPublished)}
                     disabled={toggling === test.id}
