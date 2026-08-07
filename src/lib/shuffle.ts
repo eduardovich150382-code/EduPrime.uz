@@ -54,12 +54,16 @@ export function shuffleArray<T>(array: T[], seed: number): T[] {
 export function shuffleTest(
   questions: any[],
   userId: string,
-  testId: string
+  testId: string,
+  opts: { preserveOrder?: boolean } = {}
 ): any[] {
   const baseSeed = generateSeed(userId, testId);
 
-  // Shuffle question order
-  const shuffledQuestions = shuffleArray(questions, baseSeed);
+  // Shuffle question order — skipped for generated, section-grouped exams
+  // (e.g. DTM Online) where the presentation order (mutaxassislik 1 →
+  // mutaxassislik 2 → majburiy fanlar) must stay intact. Options within each
+  // question still shuffle either way.
+  const shuffledQuestions = opts.preserveOrder ? [...questions] : shuffleArray(questions, baseSeed);
 
   // Shuffle options within each question (only for MULTIPLE_CHOICE)
   return shuffledQuestions.map((question, index) => {

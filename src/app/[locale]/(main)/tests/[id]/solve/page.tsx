@@ -17,6 +17,7 @@ interface QuestionData {
   type: string;
   points: number;
   order: number;
+  subjectId?: string | null; // Faqat generatsiya qilingan (DTM Online) testlarda — bo'lim belgisi
 }
 
 interface TestData {
@@ -50,6 +51,7 @@ export default function TestSolvePage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [questionTimeSpent, setQuestionTimeSpent] = useState<Record<number, number>>({});
   const questionStartTimeRef = useRef<number>(Date.now());
+  const [sections, setSections] = useState<{ label: string; count: number }[] | undefined>(undefined);
 
   // Auto-save to localStorage
   useEffect(() => {
@@ -201,6 +203,32 @@ export default function TestSolvePage() {
           setTest(data.test);
           // Reset question timer when test loads
           questionStartTimeRef.current = Date.now();
+
+          // Generatsiya qilingan (masalan DTM Online) testlarda savollar
+          // subjectId bilan bo'limlarga bo'lingan — nav panelida guruhlab
+          // ko'rsatish uchun fan nomlarini olib, ketma-ket guruhlarga ajratamiz.
+          const qs: QuestionData[] = data.test.questions || [];
+          if (qs.some((q) => q.subjectId)) {
+            try {
+              const subjRes = await fetch('/api/subjects');
+              const subjData = await subjRes.json();
+              const nameMap = new Map<string, string>(
+                (subjData.subjects || []).map((s: any) => [s.id, `${s.icon || ''} ${s.nameUz}`.trim()])
+              );
+              const grouped: { label: string; count: number }[] = [];
+              for (const q of qs) {
+                const label = q.subjectId ? nameMap.get(q.subjectId) || "Bo'lim" : "Bo'lim";
+                if (grouped.length > 0 && grouped[grouped.length - 1].label === label) {
+                  grouped[grouped.length - 1].count++;
+                } else {
+                  grouped.push({ label, count: 1 });
+                }
+              }
+              setSections(grouped);
+            } catch {
+              // Bo'lim nomlarini olib bo'lmasa ham test yechishga xalaqit bermaydi
+            }
+          }
         }
       } catch (error) {
         console.error('Failed to fetch test:', error);
@@ -342,6 +370,16 @@ export default function TestSolvePage() {
   const totalQuestions = test.questions.length;
   const answeredCount = Object.keys(answers).length;
 
+  // Joriy savol qaysi bo'limga tegishli ekanini aniqlaydi (faqat sections mavjud bo'lsa, masalan DTM Online)
+  let currentSectionLabel: string | null = null;
+  if (sections && sections.length > 1) {
+    let acc = 0;
+    for (const s of sections) {
+      if (currentQuestion < acc + s.count) { currentSectionLabel = s.label; break; }
+      acc += s.count;
+    }
+  }
+
   return (
     <div className="max-w-7xl mx-auto" ref={containerRef}>
       <BackButton className="mb-4" />
@@ -437,6 +475,11 @@ export default function TestSolvePage() {
             transition={{ duration: 0.3 }}
             className="card p-4 sm:p-6"
           >
+            {currentSectionLabel && (
+              <span className="inline-block text-xs font-medium text-primary-700 bg-primary-50 px-2.5 py-1 rounded-full mb-3">
+                {currentSectionLabel}
+              </span>
+            )}
             <QuestionDisplay
               questionNumber={currentQuestion + 1}
               totalQuestions={totalQuestions}
@@ -497,6 +540,7 @@ export default function TestSolvePage() {
               setCurrentQuestion(index);
             }}
             flaggedQuestions={flaggedQuestions}
+            sections={sections}
           />
         </div>
       </div>

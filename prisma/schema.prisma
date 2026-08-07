@@ -32,6 +32,7 @@ model User {
   isBanned          Boolean  @default(false)
   bannedReason      String?
   masteryMapFreeViewedAt DateTime? // Bepul tarif uchun Bilim xaritasi 1 martalik ko'rish belgisi
+  dtmOnlineFreeUsedAt    DateTime? // Bepul tarif uchun DTM Online 1 martalik urinish belgisi
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -47,6 +48,7 @@ model User {
   referralsMade     Referral[]   @relation("ReferralsMade")
   referralsReceived Referral[]   @relation("ReferralsReceived")
   notifications     Notification[]
+  generatedTests    Test[]       @relation("GeneratedTests")
 }
 
 model Referral {
@@ -179,6 +181,7 @@ model Test {
   categoryId      String
   subjectId       String
   teacherId       String?
+  userId          String?      // Faqat dasturiy generatsiya qilingan testlar uchun (masalan DTM Online) — egasi va "shaxsiy/generatsiya qilingan" belgisi
   price           Int          @default(0)
   isFree          Boolean      @default(false)
   accessType      String       @default("free") // free, premium, teacher, premium_teacher, paid
@@ -195,6 +198,7 @@ model Test {
 
   subject   Subject       @relation(fields: [subjectId], references: [id])
   teacher   Teacher?      @relation(fields: [teacherId], references: [id])
+  user      User?         @relation("GeneratedTests", fields: [userId], references: [id], onDelete: Cascade)
   questions Question[]
   results   TestResult[]
 }
@@ -213,7 +217,8 @@ model Question {
   aiExplanations     Json?        // AI tutor explanation cache, keyed by lang: {uz, ru, en}
   topic              String?      // Mavzu tegi, masalan: "Kvadrat tenglama"
   bloomLevel         String?      // BILISH, TUSHUNISH, QOLLASH, TAHLIL, BAHOLASH, YARATISH
-  points             Int          @default(1)
+  subjectId          String?      // Faqat generatsiya qilingan (masalan DTM Online) savollarda — bo'lim tegi
+  points             Float        @default(1) // Float — DTM Online kabi qismli ball (3.1/2.1/1.1) uchun
   order              Int          @default(0)
   createdAt          DateTime     @default(now())
 

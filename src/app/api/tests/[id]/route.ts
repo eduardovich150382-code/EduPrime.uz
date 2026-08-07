@@ -62,14 +62,21 @@ export async function GET(
         type: true,
         points: true,
         order: true,
+        subjectId: true, // Faqat generatsiya qilingan (masalan DTM Online) testlarda to'ldirilgan — bo'lim belgisi
         // NOT including correctAnswer — foydalanuvchi ko'rmasligi kerak
       },
     });
 
+    // Bo'limlarga bo'lingan generatsiya qilingan testlarda (masalan DTM
+    // Online) taqdimot tartibi (mutaxassislik 1 → 2 → majburiy fanlar)
+    // buzilmasligi kerak — shuning uchun savol tartibi aralashtirilmaydi,
+    // faqat variantlar aralashtiriladi.
+    const preserveOrder = rawQuestions.some((q) => q.subjectId);
+
     // Shuffle questions and options for authenticated users (anti-cheating)
     let questions = rawQuestions;
     if (userId) {
-      questions = shuffleTest(rawQuestions, userId, id);
+      questions = shuffleTest(rawQuestions, userId, id, { preserveOrder });
     }
 
     return NextResponse.json({
