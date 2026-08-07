@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import {
   ArrowLeft, Plus, GraduationCap, Users, Layers, Trash2,
-  Pencil, Eye, EyeOff, Loader2, Search,
+  Pencil, Eye, EyeOff, Loader2, Search, BarChart3,
 } from 'lucide-react';
 
 interface CourseItem {
@@ -212,6 +212,9 @@ export default function TeacherCoursesPage() {
                   >
                     {toggling === course.id ? <Loader2 size={16} className="animate-spin" /> : course.isPublished ? <Eye size={16} /> : <EyeOff size={16} />}
                   </button>
+                  <Link href={`/teacher/courses/${course.id}/analytics`} className="p-2 rounded-lg text-text-secondary hover:bg-gray-100 transition-colors" title="Kurs tahlili">
+                    <BarChart3 size={16} />
+                  </Link>
                   <Link href={`/teacher/courses/${course.id}/edit`} className="p-2 rounded-lg text-primary-600 hover:bg-primary-50 transition-colors" title="Tahrirlash">
                     <Pencil size={16} />
                   </Link>
