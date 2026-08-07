@@ -110,6 +110,27 @@ function mapQuestionForApi(q: QuestionForm) {
   };
 }
 
+// Bitta savolni Savollar bazasi (BankQuestion) API kutayotgan formatga
+// o'giradi — yakka "Bu savolni bazaga saqlash" va ko'p "Hammasini bazaga
+// saqlash" tugmalari bir xil mapping'dan foydalanadi.
+function mapQuestionForBank(q: QuestionForm, subjectId: string) {
+  const isFillBlank = q.type === 'FILL_BLANK';
+  const isMatching = q.type === 'MATCHING';
+  return {
+    subjectId,
+    text: q.text,
+    images: q.images,
+    options: isMatching ? matchingOptions(q) : (q.type === 'OPEN_ENDED' || isFillBlank) ? [] : q.options.filter((o) => o.text),
+    correctAnswer: isFillBlank ? fillBlankCorrectAnswer(q) : isMatching ? '' : q.correctAnswer,
+    type: q.type,
+    explanation: q.explanation || null,
+    explanationImages: q.explanationImages,
+    topic: q.topic || null,
+    bloomLevel: q.bloomLevel || null,
+    difficulty: q.difficulty || null,
+  };
+}
+
 // Savol yaroqli hisoblanishi uchun: matn bo'lishi, va turiga qarab yoki
 // to'g'ri javob (correctAnswer), yoki FILL_BLANK uchun har bir bo'shliqqa
 // kamida bitta qabul qilinadigan javob, yoki MATCHING uchun kamida 2 ta
@@ -167,6 +188,7 @@ export default function CreateTestPage() {
   const [bankQuestions, setBankQuestions] = useState<any[]>([]);
   const [bankLoading, setBankLoading] = useState(false);
   const [savingToBank, setSavingToBank] = useState(false);
+  const [savingAllToBank, setSavingAllToBank] = useState(false);
   const [aiSuggestLoading, setAiSuggestLoading] = useState(false);
 
   // Savollar bazasidan tanlash uchun ro'yxatni yuklaydi (test fani bo'yicha filtrlaydi)
@@ -230,24 +252,10 @@ export default function CreateTestPage() {
     }
     setSavingToBank(true);
     try {
-      const isFillBlank = q.type === 'FILL_BLANK';
-      const isMatching = q.type === 'MATCHING';
       const res = await fetch('/api/teacher/question-bank', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          subjectId: testInfo.subjectId,
-          text: q.text,
-          images: q.images,
-          options: isMatching ? matchingOptions(q) : (q.type === 'OPEN_ENDED' || isFillBlank) ? [] : q.options.filter((o) => o.text),
-          correctAnswer: isFillBlank ? fillBlankCorrectAnswer(q) : isMatching ? '' : q.correctAnswer,
-          type: q.type,
-          explanation: q.explanation || null,
-          explanationImages: q.explanationImages,
-          topic: q.topic || null,
-          bloomLevel: q.bloomLevel || null,
-          difficulty: q.difficulty || null,
-        }),
+        body: JSON.stringify(mapQuestionForBank(q, testInfo.subjectId)),
       });
       if (res.ok) {
         alert('Savol bazaga saqlandi!');
@@ -259,6 +267,44 @@ export default function CreateTestPage() {
       alert('Server xatolik');
     }
     setSavingToBank(false);
+  };
+
+  // Kiritilgan barcha (yaroqli) savollarni bitta so'rovda Savollar bazasiga
+  // yozadi — ko'p savol kiritilganda har birini alohida bosib chiqishning
+  // o'rniga.
+  const saveAllQuestionsToBank = async () => {
+    if (!testInfo.subjectId) {
+      alert("Avval 'Test ma'lumotlari' qadamida fanni tanlang!");
+      return;
+    }
+    const validQuestions = questions.filter(isQuestionValid);
+    if (validQuestions.length === 0) {
+      alert("Bazaga saqlash uchun kamida bitta to'liq to'ldirilgan savol bo'lishi kerak!");
+      return;
+    }
+    setSavingAllToBank(true);
+    try {
+      const res = await fetch('/api/teacher/question-bank/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          questions: validQuestions.map((q) => mapQuestionForBank(q, testInfo.subjectId)),
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        const skippedNote = questions.length - validQuestions.length;
+        alert(
+          `${data.count} ta savol bazaga saqlandi!` +
+            (skippedNote > 0 ? `\n${skippedNote} ta to'ldirilmagan savol o'tkazib yuborildi.` : '')
+        );
+      } else {
+        alert(data.error || 'Xatolik yuz berdi');
+      }
+    } catch {
+      alert('Server xatolik');
+    }
+    setSavingAllToBank(false);
   };
 
   // Savol matni / yechim maydonlariga rasmni sudrab tashlash yoki
@@ -1036,6 +1082,15 @@ export default function CreateTestPage() {
               className="w-full px-3 py-2 rounded-lg text-sm text-text-secondary hover:bg-gray-50 flex items-center gap-2 transition-colors border border-dashed border-border"
             >
               <Library size={14} /> Bazadan tanlash
+            </button>
+            <button
+              onClick={saveAllQuestionsToBank}
+              disabled={savingAllToBank}
+              title="Kiritilgan barcha to'liq savollarni bitta bosishda bazaga saqlaydi"
+              className="w-full px-3 py-2 rounded-lg text-sm text-primary-600 hover:bg-primary-50 flex items-center gap-2 transition-colors border border-dashed border-primary-200 disabled:opacity-50"
+            >
+              {savingAllToBank ? <Loader2 size={14} className="animate-spin" /> : <BookmarkPlus size={14} />}
+              Hammasini bazaga saqlash
             </button>
           </div>
 
