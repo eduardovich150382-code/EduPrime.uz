@@ -191,6 +191,7 @@ export interface SuggestMetadataResult {
   distractors: string[];
   topic: string;
   bloomLevel: string;
+  difficulty: number | null;
 }
 
 const BLOOM_VALUES = ['BILISH', 'TUSHUNISH', 'QOLLASH', 'TAHLIL', 'BAHOLASH', 'YARATISH'];
@@ -256,7 +257,8 @@ Vazifa — quyidagi JSON formatda javob ber (FAQAT JSON, boshqa hech narsa yozma
 {
   "distractors": [${needsDistractors ? '"noto\'g\'ri variant 1", "noto\'g\'ri variant 2", "noto\'g\'ri variant 3"' : ''}],
   "topic": "qisqa mavzu tegi (2-4 so'z, masalan: Kvadrat tenglama)",
-  "bloomLevel": "BILISH yoki TUSHUNISH yoki QOLLASH yoki TAHLIL yoki BAHOLASH yoki YARATISH"
+  "bloomLevel": "BILISH yoki TUSHUNISH yoki QOLLASH yoki TAHLIL yoki BAHOLASH yoki YARATISH",
+  "difficulty": "1 dan 5 gacha butun son — 1 juda oson, 5 juda qiyin"
 }
 
 QOIDALAR:
@@ -264,24 +266,27 @@ QOIDALAR:
 2. Distraktorlar mavjud variantlarni takrorlamasin.
 3. Formulalar LaTeX formatda ($...$) bo'lsin.
 4. ${needsDistractors ? '' : 'Bu savol turi uchun distractors bo\'sh massiv [] bo\'lsin.'}
-5. topic va bloomLevel har doim to'ldirilishi kerak.`;
+5. topic, bloomLevel va difficulty har doim to'ldirilishi kerak.
+6. difficulty savolning haqiqiy murakkabligini baholasin: bir bosqichli hisob/eslab qolish = 1-2, ko'p bosqichli fikrlash yoki chuqur tahlil = 4-5.`;
 
   try {
     const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash' });
     const result = await model.generateContent(prompt);
     const response = result.response.text();
     const jsonMatch = response.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return { distractors: [], topic: '', bloomLevel: '' };
+    if (!jsonMatch) return { distractors: [], topic: '', bloomLevel: '', difficulty: null };
 
     const parsed = JSON.parse(jsonMatch[0]);
+    const difficultyNum = Number(parsed.difficulty);
     return {
       distractors: Array.isArray(parsed.distractors) ? parsed.distractors.filter((d: unknown) => typeof d === 'string').slice(0, 4) : [],
       topic: typeof parsed.topic === 'string' ? parsed.topic.slice(0, 100) : '',
       bloomLevel: BLOOM_VALUES.includes(parsed.bloomLevel) ? parsed.bloomLevel : '',
+      difficulty: Number.isInteger(difficultyNum) && difficultyNum >= 1 && difficultyNum <= 5 ? difficultyNum : null,
     };
   } catch (error) {
     console.error('Gemini suggestQuestionMetadata error:', error);
-    return { distractors: [], topic: '', bloomLevel: '' };
+    return { distractors: [], topic: '', bloomLevel: '', difficulty: null };
   }
 }
 

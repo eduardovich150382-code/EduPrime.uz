@@ -28,6 +28,7 @@ interface QuestionForm {
   points: number;
   topic: string;
   bloomLevel: string;
+  difficulty: number | null;
 }
 
 interface SubjectItem {
@@ -54,6 +55,7 @@ const emptyQuestion: QuestionForm = {
   points: 1,
   topic: '',
   bloomLevel: '',
+  difficulty: null,
 };
 
 // Bitta savolni API kutayotgan formatga o'giradi — qoralamani serverga
@@ -72,6 +74,7 @@ function mapQuestionForApi(q: QuestionForm) {
     points: q.points || 1,
     topic: q.topic || null,
     bloomLevel: q.bloomLevel || null,
+    difficulty: q.difficulty || null,
   };
 }
 
@@ -142,6 +145,7 @@ export default function CreateTestPage() {
       points: 1,
       topic: bq.topic || '',
       bloomLevel: bq.bloomLevel || '',
+      difficulty: bq.difficulty || null,
     };
     setQuestions((prev) => {
       const isOnlyEmpty = prev.length === 1 && !prev[0].text;
@@ -178,6 +182,7 @@ export default function CreateTestPage() {
           explanationImages: q.explanationImages,
           topic: q.topic || null,
           bloomLevel: q.bloomLevel || null,
+          difficulty: q.difficulty || null,
         }),
       });
       if (res.ok) {
@@ -524,6 +529,7 @@ export default function CreateTestPage() {
           points: 1,
           topic: '',
           bloomLevel: '',
+          difficulty: null,
         }));
         setQuestions(imported);
         setActiveQuestion(0);
@@ -619,6 +625,7 @@ export default function CreateTestPage() {
           options,
           topic: current.topic || data.topic || current.topic,
           bloomLevel: current.bloomLevel || data.bloomLevel || current.bloomLevel,
+          difficulty: current.difficulty ?? data.difficulty ?? current.difficulty,
         };
         return updated;
       });
@@ -1205,9 +1212,9 @@ export default function CreateTestPage() {
               )}
             </div>
 
-            {/* Topic tag & Bloom level */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-gray-50 border border-border">
-              <div className="sm:col-span-2 flex items-center justify-between">
+            {/* Topic tag, Bloom level & difficulty */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 rounded-xl bg-gray-50 border border-border">
+              <div className="sm:col-span-3 flex items-center justify-between">
                 <p className="text-xs font-medium text-text-secondary">Mavzu, daraja va variantlarni AI to&apos;ldirsin</p>
                 <button
                   type="button"
@@ -1250,8 +1257,27 @@ export default function CreateTestPage() {
                   ))}
                 </select>
               </div>
-              <p className="text-xs text-text-secondary sm:col-span-2">
-                Bu teglar savol darajasidagi tahlil va shaxsiylashtirilgan tavsiyalar uchun ishlatiladi.
+              <div>
+                <label className="text-xs font-medium text-text-secondary block mb-1.5">Qiyinlik darajasi (ixtiyoriy)</label>
+                <select
+                  value={questions[activeQuestion]?.difficulty ?? ''}
+                  onChange={(e) => {
+                    const updated = [...questions];
+                    updated[activeQuestion] = { ...updated[activeQuestion], difficulty: e.target.value ? Number(e.target.value) : null };
+                    setQuestions(updated);
+                  }}
+                  className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all"
+                >
+                  <option value="">Tanlanmagan</option>
+                  <option value="1">1 — Juda oson</option>
+                  <option value="2">2 — Oson</option>
+                  <option value="3">3 — O&apos;rta</option>
+                  <option value="4">4 — Qiyin</option>
+                  <option value="5">5 — Juda qiyin</option>
+                </select>
+              </div>
+              <p className="text-xs text-text-secondary sm:col-span-3">
+                Bu teglar savol darajasidagi tahlil, shaxsiylashtirilgan tavsiyalar va DTM Online&apos;dagi qiyinlik balanslash uchun ishlatiladi.
               </p>
             </div>
 

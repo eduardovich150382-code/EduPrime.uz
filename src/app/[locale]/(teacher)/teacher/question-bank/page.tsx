@@ -26,6 +26,7 @@ interface BankQuestionItem {
   explanation: string | null;
   topic: string | null;
   bloomLevel: string | null;
+  difficulty: number | null;
   createdAt: string;
   subject: { nameUz: string; icon: string | null };
 }
@@ -52,6 +53,7 @@ const emptyForm = {
   explanation: '',
   topic: '',
   bloomLevel: '',
+  difficulty: null as number | null,
 };
 
 export default function QuestionBankPage() {
@@ -153,6 +155,7 @@ export default function QuestionBankPage() {
           explanation: form.explanation || null,
           topic: form.topic || null,
           bloomLevel: form.bloomLevel || null,
+          difficulty: form.difficulty || null,
         }),
       });
       if (res.ok) {
@@ -329,7 +332,7 @@ export default function QuestionBankPage() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="text-xs font-medium text-text-secondary block mb-1.5">Mavzu tegi (ixtiyoriy)</label>
               <input
@@ -349,6 +352,21 @@ export default function QuestionBankPage() {
               >
                 <option value="">Tanlanmagan</option>
                 {BLOOM_LEVELS.map((b) => <option key={b.value} value={b.value}>{b.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-text-secondary block mb-1.5">Qiyinlik darajasi (ixtiyoriy)</label>
+              <select
+                value={form.difficulty ?? ''}
+                onChange={(e) => setForm({ ...form, difficulty: e.target.value ? Number(e.target.value) : null })}
+                className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300"
+              >
+                <option value="">Tanlanmagan</option>
+                <option value="1">1 — Juda oson</option>
+                <option value="2">2 — Oson</option>
+                <option value="3">3 — O&apos;rta</option>
+                <option value="4">4 — Qiyin</option>
+                <option value="5">5 — Juda qiyin</option>
               </select>
             </div>
           </div>
@@ -415,6 +433,7 @@ export default function QuestionBankPage() {
                     </span>
                     {q.topic && <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">{q.topic}</span>}
                     {q.bloomLevel && <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600">{q.bloomLevel}</span>}
+                    {q.difficulty && <span className="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-600">Qiyinlik: {q.difficulty}/5</span>}
                     {q.type === 'OPEN_ENDED' && <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">Ochiq</span>}
                     {q.type === 'MULTI_SELECT' && <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">Ko&apos;p tanlovli</span>}
                     {q.type === 'TRUE_FALSE' && <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">T/N</span>}
