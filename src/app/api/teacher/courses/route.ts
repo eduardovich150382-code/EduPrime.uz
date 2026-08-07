@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { titleUz, titleRu, titleEn, description, coverImage, subjectId, accessType, price, difficulty, estimatedHours } = body;
+    const { titleUz, titleRu, titleEn, description, coverImage, subjectId, accessType, price, difficulty, estimatedHours, sequentialUnlock } = body;
 
     if (!titleUz || !subjectId) {
       return NextResponse.json({ error: 'titleUz, subjectId required' }, { status: 400 });
@@ -87,6 +87,7 @@ export async function POST(request: NextRequest) {
         price: isFree ? 0 : (price || 0),
         difficulty: difficulty || null,
         estimatedHours: estimatedHours || null,
+        sequentialUnlock: !!sequentialUnlock,
       },
       include: { subject: { select: { nameUz: true, icon: true } } },
     });

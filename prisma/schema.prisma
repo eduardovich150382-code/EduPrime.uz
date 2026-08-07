@@ -282,6 +282,7 @@ model Course {
   isPublished    Boolean  @default(false)
   difficulty     Int?     // 1-5, ixtiyoriy
   estimatedHours Float?
+  sequentialUnlock Boolean @default(false) // yoqilsa, dars faqat oldingi dars "o'tilgan" bo'lsagina ochiladi
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -313,6 +314,7 @@ model CourseLesson {
   content         String?    // LaTeX/matn — LatexRenderer qayta ishlatiladi
   testId          String?    // MAVJUD Test'ga ishora — QUIZ turi uchun, qayta qurilmaydi
   fileUrl         String?    // PDF turi uchun — /api/upload?endpoint=aiImportFile orqali yuklanadi
+  minPassPercent  Int?       // Faqat QUIZ turi uchun — sequentialUnlock yoqilgan kursda keyingi darsni ochish uchun talab qilinadigan minimal ball foizi
   durationMinutes Int?
   isPreviewable   Boolean    @default(false) // yozilmagan foydalanuvchi ham ko'ra oladigan bepul namuna (MVP-B)
   createdAt       DateTime   @default(now())
@@ -341,6 +343,7 @@ model LessonProgress {
   lessonId            String
   completed           Boolean   @default(false)
   lastPositionSeconds Int?
+  bestScorePercent    Int?      // QUIZ darsi uchun — eng yaxshi urinishning ball foizi
   completedAt         DateTime?
   updatedAt           DateTime  @updatedAt
 

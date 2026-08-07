@@ -9,7 +9,7 @@ import LatexRenderer from '@/components/ui/LatexRenderer';
 import SecureYouTubePlayer from '@/components/ui/SecureYouTubePlayer';
 import {
   Loader2, AlertCircle, Play, FileText, ListChecks, CheckCircle2,
-  Circle, PartyPopper, ArrowRight, GraduationCap, Award,
+  Circle, PartyPopper, ArrowRight, GraduationCap, Award, Lock,
 } from 'lucide-react';
 
 interface LessonItem {
@@ -21,7 +21,10 @@ interface LessonItem {
   content: string | null;
   test: { id: string; titleUz: string; questionCount: number; duration: number } | null;
   fileUrl: string | null;
+  minPassPercent: number | null;
+  locked: boolean;
   completed: boolean;
+  bestScorePercent: number | null;
   lastPositionSeconds: number;
 }
 
@@ -60,21 +63,36 @@ export default function CourseLearnPage() {
   const currentIndex = allLessons.findIndex((l) => l.id === currentLessonId);
   const currentLesson = currentIndex >= 0 ? allLessons[currentIndex] : null;
 
+  // `locked` bayrog'i serverda hisoblanadi (ketma-ket ochish yoqilgan bo'lsa)
+  // — bir dars tugatilgach keyingisining qulfi ochilishi mumkin, shu sababli
+  // avtomatik keyingi darsga o'tishdan oldin har doim serverdan yangi
+  // ma'lumot olinadi (faqat lokal patch bilan cheklanmaydi).
+  const fetchCourse = async (): Promise<LearnCourse | null> => {
+    try {
+      const res = await fetch(`/api/courses/${courseId}/learn`);
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Kursni yuklab bo'lmadi");
+        return null;
+      }
+      setCourse(data.course);
+      return data.course as LearnCourse;
+    } catch {
+      setError("Server bilan bog'lanishda xatolik");
+      return null;
+    }
+  };
+
   useEffect(() => {
-    fetch(`/api/courses/${courseId}/learn`)
-      .then(async (res) => {
-        const data = await res.json();
-        if (!res.ok) {
-          setError(data.error || 'Kursni yuklab bo\'lmadi');
-          return;
-        }
-        setCourse(data.course);
-        const lessons: LessonItem[] = data.course.sections.flatMap((s: SectionItem) => s.lessons);
+    fetchCourse()
+      .then((c) => {
+        if (!c) return;
+        const lessons = c.sections.flatMap((s) => s.lessons);
         const firstIncomplete = lessons.find((l) => !l.completed);
         setCurrentLessonId((firstIncomplete || lessons[0])?.id || null);
       })
-      .catch(() => setError("Server bilan bog'lanishda xatolik"))
       .finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseId]);
 
   const updateLessonLocal = (lessonId: string, patch: Partial<LessonItem>) => {
@@ -105,12 +123,16 @@ export default function CourseLearnPage() {
     setMarking(true);
     updateLessonLocal(lessonId, { completed: true });
     await saveProgress(lessonId, { completed: true });
+    const freshCourse = await fetchCourse();
     setMarking(false);
 
-    // Avtomatik keyingi darsga o'tish
-    const idx = allLessons.findIndex((l) => l.id === lessonId);
-    if (idx >= 0 && idx < allLessons.length - 1) {
-      setCurrentLessonId(allLessons[idx + 1].id);
+    // Avtomatik keyingi darsga o'tish — faqat u qulflanmagan bo'lsa
+    if (freshCourse) {
+      const lessons = freshCourse.sections.flatMap((s) => s.lessons);
+      const idx = lessons.findIndex((l) => l.id === lessonId);
+      if (idx >= 0 && idx < lessons.length - 1 && !lessons[idx + 1].locked) {
+        setCurrentLessonId(lessons[idx + 1].id);
+      }
     }
   };
 
@@ -180,6 +202,15 @@ export default function CourseLearnPage() {
             <motion.div key={currentLesson.id} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="card p-4 sm:p-6 space-y-4">
               <h2 className="font-semibold text-text-primary">{currentLesson.titleUz}</h2>
 
+              {currentLesson.locked ? (
+                <div className="flex flex-col items-center text-center py-10 gap-3">
+                  <Lock size={32} className="text-gray-300" />
+                  <p className="text-sm text-text-secondary max-w-sm">
+                    Bu dars hali qulflangan. Ochish uchun avval oldingi darsni tugating.
+                  </p>
+                </div>
+              ) : (
+              <>
               {currentLesson.type === 'VIDEO' && currentLesson.videoUrl && (
                 <SecureYouTubePlayer
                   videoUrl={currentLesson.videoUrl}
@@ -197,9 +228,17 @@ export default function CourseLearnPage() {
               )}
 
               {currentLesson.type === 'QUIZ' && currentLesson.test && (
-                <Link href={`/tests/${currentLesson.test.id}/solve`} className="btn-primary inline-flex items-center gap-2 text-sm">
-                  <ListChecks size={16} /> Tekshiruvni boshlash ({currentLesson.test.questionCount} savol)
-                </Link>
+                <div className="space-y-2">
+                  <Link href={`/tests/${currentLesson.test.id}/solve`} className="btn-primary inline-flex items-center gap-2 text-sm">
+                    <ListChecks size={16} /> Tekshiruvni boshlash ({currentLesson.test.questionCount} savol)
+                  </Link>
+                  {currentLesson.minPassPercent != null && (
+                    <p className="text-xs text-text-secondary">
+                      Darsni o&apos;tish uchun kamida <strong>{currentLesson.minPassPercent}%</strong> ball kerak
+                      {currentLesson.bestScorePercent != null && ` — eng yaxshi natijangiz: ${currentLesson.bestScorePercent}%`}.
+                    </p>
+                  )}
+                </div>
               )}
 
               {currentLesson.type === 'PDF' && currentLesson.fileUrl && (
@@ -212,6 +251,11 @@ export default function CourseLearnPage() {
                 {currentLesson.completed ? (
                   <span className="text-sm text-green-600 font-medium flex items-center gap-1.5">
                     <CheckCircle2 size={16} /> Tugatilgan
+                    {currentLesson.type === 'QUIZ' && currentLesson.bestScorePercent != null && ` (${currentLesson.bestScorePercent}%)`}
+                  </span>
+                ) : currentLesson.type === 'QUIZ' ? (
+                  <span className="text-sm text-text-secondary flex items-center gap-1.5">
+                    <Circle size={14} className="text-gray-300" /> Test yechilgach avtomatik belgilanadi
                   </span>
                 ) : (
                   <button
@@ -223,7 +267,7 @@ export default function CourseLearnPage() {
                     Tugatdim deb belgilash
                   </button>
                 )}
-                {currentIndex >= 0 && currentIndex < allLessons.length - 1 && (
+                {currentIndex >= 0 && currentIndex < allLessons.length - 1 && !allLessons[currentIndex + 1].locked && (
                   <button
                     onClick={() => setCurrentLessonId(allLessons[currentIndex + 1].id)}
                     className="text-sm text-primary-600 hover:text-primary-700 flex items-center gap-1.5"
@@ -232,6 +276,8 @@ export default function CourseLearnPage() {
                   </button>
                 )}
               </div>
+              </>
+              )}
             </motion.div>
           ) : (
             <div className="card p-12 text-center text-text-secondary">Dars topilmadi</div>
@@ -251,12 +297,18 @@ export default function CourseLearnPage() {
                     return (
                       <button
                         key={lesson.id}
-                        onClick={() => setCurrentLessonId(lesson.id)}
+                        onClick={() => !lesson.locked && setCurrentLessonId(lesson.id)}
+                        disabled={lesson.locked}
+                        title={lesson.locked ? "Avval oldingi darsni tugating" : undefined}
                         className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-left text-xs transition-colors ${
-                          isActive ? 'bg-primary-100 text-primary-700 font-medium' : 'hover:bg-gray-50 text-text-secondary'
+                          lesson.locked
+                            ? 'text-gray-300 cursor-not-allowed'
+                            : isActive ? 'bg-primary-100 text-primary-700 font-medium' : 'hover:bg-gray-50 text-text-secondary'
                         }`}
                       >
-                        {lesson.completed ? (
+                        {lesson.locked ? (
+                          <Lock size={14} className="text-gray-300 flex-shrink-0" />
+                        ) : lesson.completed ? (
                           <CheckCircle2 size={14} className="text-green-500 flex-shrink-0" />
                         ) : (
                           <Circle size={14} className="text-gray-300 flex-shrink-0" />

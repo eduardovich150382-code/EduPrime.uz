@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAuth } from '@/lib/api-auth';
+import { computeLockedLessonIds } from '@/lib/course-lock';
 
 // POST /api/lessons/[id]/progress — dars progressini yangilash (video
 // pozitsiyasi va/yoki tugatilganlik belgisi). Faqat kursga yozilgan
@@ -20,7 +21,7 @@ export async function POST(
 
     const lesson = await db.courseLesson.findUnique({
       where: { id },
-      select: { id: true, section: { select: { courseId: true } } },
+      select: { id: true, type: true, section: { select: { courseId: true } } },
     });
     if (!lesson) return NextResponse.json({ error: 'Lesson not found' }, { status: 404 });
 
@@ -30,6 +31,44 @@ export async function POST(
     });
     if (!enrollment) {
       return NextResponse.json({ error: "Siz bu kursga yozilmagansiz" }, { status: 403 });
+    }
+
+    // QUIZ darslar bu umumiy endpoint orqali "tugatilgan" deb belgilanmaydi —
+    // ular faqat bog'langan testni yechish orqali (POST /api/tests/[id]/submit)
+    // avtomatik belgilanadi, aks holda talaba testni yechmasdan ham
+    // "o'tdim" deb belgilab qo'ya oladi.
+    if (completed === true && lesson.type === 'QUIZ') {
+      return NextResponse.json(
+        { error: "QUIZ turidagi darslar faqat testni yechish orqali avtomatik belgilanadi" },
+        { status: 400 }
+      );
+    }
+
+    // Ketma-ket ochish yoqilgan bo'lsa — oldingi darslar hali "o'tilmagan"
+    // bo'lsa, bu darsni tugatilgan deb belgilashga yo'l qo'yilmaydi (frontend
+    // qulflangan darsni ko'rsatmaydi, lekin bu server-side himoya — to'g'ridan
+    // to'g'ri API so'rovi bilan chetlab o'tishning oldini oladi).
+    if (completed === true) {
+      const course = await db.course.findUnique({ where: { id: courseId }, select: { sequentialUnlock: true } });
+      if (course?.sequentialUnlock) {
+        const allLessonsOrdered = await db.courseLesson.findMany({
+          where: { section: { courseId } },
+          orderBy: [{ section: { order: 'asc' } }, { order: 'asc' }],
+          select: { id: true, type: true, minPassPercent: true },
+        });
+        const progressRows = await db.lessonProgress.findMany({
+          where: { userId: user.id, lessonId: { in: allLessonsOrdered.map((l) => l.id) } },
+          select: { lessonId: true, completed: true, bestScorePercent: true },
+        });
+        const lockedIds = computeLockedLessonIds(
+          allLessonsOrdered,
+          new Map(progressRows.map((p) => [p.lessonId, { completed: p.completed, bestScorePercent: p.bestScorePercent }])),
+          true
+        );
+        if (lockedIds.has(id)) {
+          return NextResponse.json({ error: "Avval oldingi darslarni tugating" }, { status: 403 });
+        }
+      }
     }
 
     const updateData: any = {};
