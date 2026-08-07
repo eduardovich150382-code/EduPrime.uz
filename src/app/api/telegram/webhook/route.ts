@@ -229,6 +229,62 @@ async function handleStart(chatId: number, userId: number, username: string, fir
     return;
   }
 
+  // Handle course purchase: buy_course_<courseId> — same pattern as
+  // buy_test_ above, must also be checked before the generic 'buy_' prefix.
+  if (param.startsWith('buy_course_')) {
+    const courseId = param.replace('buy_course_', '');
+
+    const course = await db.course.findUnique({
+      where: { id: courseId },
+      select: { id: true, titleUz: true, price: true },
+    });
+
+    if (!course) {
+      await sendMessage(chatId, "❌ Kurs topilmadi.");
+      return;
+    }
+
+    let dbUser = await db.user.findFirst({ where: { telegramId: userId.toString() } });
+    if (!dbUser) {
+      dbUser = await db.user.create({
+        data: {
+          telegramId: userId.toString(),
+          telegramUsername: username || undefined,
+          name: firstName || username || 'Telegram User',
+          role: 'USER',
+        },
+      });
+    }
+
+    const { cardNumber, cardOwner } = await getSettings();
+
+    // Store pending payment — plan:'course_purchase' + courseId, mirrors
+    // 'test_purchase' exactly so it must never be confirmed into a
+    // Premium/Ustoz subscription later.
+    await db.systemSetting.upsert({
+      where: { key: `pending_payment_${userId}` },
+      update: {
+        value: JSON.stringify({ userId, username, plan: 'course_purchase', courseId, courseTitle: course.titleUz, amount: course.price, timestamp: Date.now() }),
+      },
+      create: {
+        key: `pending_payment_${userId}`,
+        value: JSON.stringify({ userId, username, plan: 'course_purchase', courseId, courseTitle: course.titleUz, amount: course.price, timestamp: Date.now() }),
+      },
+    });
+
+    await sendMessage(chatId,
+      `🛒 <b>Kurs sotib olish</b>\n\n` +
+      `🎓 Kurs: <b>${course.titleUz}</b>\n` +
+      `💰 Narx: <b>${course.price.toLocaleString()} so'm</b>\n\n` +
+      `💳 Karta raqami:\n` +
+      `<code>${cardNumber}</code>\n` +
+      `👤 Karta egasi: <b>${cardOwner}</b>\n\n` +
+      `📎 To'lov qilganingizdan keyin <b>chek screenshot yoki PDF</b>ini shu yerga yuboring.\n\n` +
+      `⏱ Chek yuborilgandan keyin 24 soat ichida admin tasdiqlaydi.`
+    );
+    return;
+  }
+
   // Handle plan-specific buy params: buy_premium_1month, buy_teacher_6months, etc.
   if (param.startsWith('buy_')) {
     const parts = param.replace('buy_', '').split('_');
@@ -715,6 +771,21 @@ async function handleCallbackQuery(callbackQuery: any) {
               selectedSubjects: [payment.testId],
             },
           });
+        } else if (payment.plan === 'course_purchase') {
+          // Single-course purchase — mirrors test_purchase exactly.
+          // checkCourseAccess() looks for a CONFIRMED Payment whose
+          // selectedSubjects contains this course's id.
+          await db.payment.create({
+            data: {
+              userId: targetUser.id,
+              plan: 'PREMIUM',
+              duration: 'ONE_MONTH',
+              amount: payment.amount,
+              status: 'CONFIRMED',
+              confirmedAt: new Date(),
+              selectedSubjects: [payment.courseId],
+            },
+          });
         } else {
           // Map plan string to SubscriptionPlan enum
           const planEnum = payment.plan === 'premium' ? 'PREMIUM' : 'TEACHER_PLAN';
@@ -768,13 +839,18 @@ async function handleCallbackQuery(callbackQuery: any) {
         }
       }
 
-      await sendMessage(parseInt(targetUserId),
+      const confirmMessage =
         payment.plan === 'test_purchase'
           ? `🎉 <b>Tabriklaymiz!</b>\n\n"${payment.testTitle}" testi uchun to'lovingiz tasdiqlandi!\n\n🌐 Saytga kiring va testni yeching!`
+          : payment.plan === 'course_purchase'
+          ? `🎉 <b>Tabriklaymiz!</b>\n\n"${payment.courseTitle}" kursi uchun to'lovingiz tasdiqlandi!\n\n🌐 Saytga kiring va kursga yoziling!`
           : `🎉 <b>Tabriklaymiz!</b>\n\n` +
             `Sizning ${payment.plan === 'premium' ? 'Premium' : 'Ustoz'} tarifingiz aktivlashtirildi!\n` +
             `Muddat: ${DURATION_LABELS[payment.duration]}\n\n` +
-            `🌐 Saytga kiring va barcha testlardan foydalaning!`,
+            `🌐 Saytga kiring va barcha testlardan foydalaning!`;
+
+      await sendMessage(parseInt(targetUserId),
+        confirmMessage,
         {
           reply_markup: {
             inline_keyboard: [[{ text: '🌐 Saytga kirish', url: APP_URL }]]
@@ -783,7 +859,8 @@ async function handleCallbackQuery(callbackQuery: any) {
       );
 
       await db.systemSetting.delete({ where: { key: `pending_payment_${targetUserId}` } });
-      await sendMessage(chatId, `✅ @${payment.username} uchun ${payment.plan === 'test_purchase' ? 'test' : 'tarif'} aktivlashtirildi.`);
+      const itemLabel = payment.plan === 'test_purchase' ? 'test' : payment.plan === 'course_purchase' ? 'kurs' : 'tarif';
+      await sendMessage(chatId, `✅ @${payment.username} uchun ${itemLabel} aktivlashtirildi.`);
     }
   }
 
@@ -889,6 +966,7 @@ async function handleDocument(message: any) {
 // test's title instead of a subscription plan name.
 function getPaymentLabel(payment: any): string {
   if (payment.plan === 'test_purchase') return `📝 ${payment.testTitle || 'Test'}`;
+  if (payment.plan === 'course_purchase') return `🎓 ${payment.courseTitle || 'Kurs'}`;
   return payment.plan === 'premium' ? '💎 Premium' : '👨‍🏫 Ustoz';
 }
 
@@ -931,6 +1009,30 @@ async function saveReceiptToDB(userId: number, payment: any, receiptUrl: string 
       return;
     }
 
+    if (payment.plan === 'course_purchase') {
+      // Kurs sotib olish — test_purchase bilan bir xil naqsh: selectedSubjects
+      // orqali checkCourseAccess() faqat shu kursga ruxsat beradi, obuna emas.
+      if (existingPayment) {
+        await db.payment.update({
+          where: { id: existingPayment.id },
+          data: { receiptPhoto: receiptUrl, amount: payment.amount, selectedSubjects: [payment.courseId] },
+        });
+      } else {
+        await db.payment.create({
+          data: {
+            userId: dbUser.id,
+            plan: 'PREMIUM',
+            duration: 'ONE_MONTH',
+            amount: payment.amount,
+            status: 'PENDING',
+            receiptPhoto: receiptUrl,
+            selectedSubjects: [payment.courseId],
+          },
+        });
+      }
+      return;
+    }
+
     const planEnum = payment.plan === 'premium' ? 'PREMIUM' : 'TEACHER_PLAN';
     const durationMap: Record<string, string> = {
       '1_month': 'ONE_MONTH', '3_months': 'THREE_MONTHS',
@@ -965,7 +1067,9 @@ async function notifyAdminsAboutReceipt(
   chatId: number, userId: number, username: string,
   planName: string, payment: any, messageId: number
 ) {
-  const durationLine = payment.plan === 'test_purchase' ? '' : `⏱ Muddat: ${DURATION_LABELS[payment.duration]}\n`;
+  const isSingleItemPurchase = payment.plan === 'test_purchase' || payment.plan === 'course_purchase';
+  const durationLine = isSingleItemPurchase ? '' : `⏱ Muddat: ${DURATION_LABELS[payment.duration]}\n`;
+  const itemLabel = payment.plan === 'test_purchase' ? 'Test' : payment.plan === 'course_purchase' ? 'Kurs' : 'Tarif';
 
   for (const adminId of ADMIN_IDS) {
     try {
@@ -974,7 +1078,7 @@ async function notifyAdminsAboutReceipt(
       await sendMessage(parseInt(adminId),
         `📋 <b>Yangi to'lov cheki</b>\n\n` +
         `👤 Foydalanuvchi: @${username} (${userId})\n` +
-        `📦 ${payment.plan === 'test_purchase' ? 'Test' : 'Tarif'}: ${planName}\n` +
+        `📦 ${itemLabel}: ${planName}\n` +
         durationLine +
         `💰 Summa: ${payment.amount.toLocaleString()} so'm\n\n` +
         `Tasdiqlaysizmi?`,

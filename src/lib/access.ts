@@ -29,6 +29,35 @@ export async function checkTestAccess(
   return false;
 }
 
+/**
+ * Same shape as checkTestAccess, for Course. Kept as a separate function
+ * (rather than a generic helper) because Test and Course are different
+ * Prisma models — duplicating this ~10-line check is cheaper than forcing a
+ * shared generic type through two unrelated tables.
+ */
+export async function checkCourseAccess(
+  userId: string,
+  course: { id: string; accessType: string },
+  role: string | undefined
+): Promise<boolean> {
+  if (role === 'ADMIN') return true;
+
+  const { premium, teacher } = await hasActiveSubscription(userId);
+
+  if (course.accessType === 'premium' && premium) return true;
+  if (course.accessType === 'teacher' && teacher) return true;
+  if (course.accessType === 'premium_teacher' && (premium || teacher)) return true;
+
+  if (course.accessType === 'paid') {
+    const purchase = await db.payment.findFirst({
+      where: { userId, status: 'CONFIRMED', selectedSubjects: { has: course.id } },
+    });
+    if (purchase) return true;
+  }
+
+  return false;
+}
+
 export async function hasActiveSubscription(
   userId: string
 ): Promise<{ premium: boolean; teacher: boolean }> {

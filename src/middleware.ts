@@ -8,6 +8,7 @@ const intlMiddleware = createMiddleware(routing);
 const protectedPaths = [
   '/dashboard',
   '/tests',
+  '/courses',
   '/results',
   '/rating',
   '/profile',

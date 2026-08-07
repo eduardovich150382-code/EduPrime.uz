@@ -18,6 +18,7 @@ import {
   X,
   Crown,
   Globe,
+  Video,
 } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import { useState, useEffect } from 'react';
@@ -77,6 +78,7 @@ export default function Sidebar({ role, mobileOpen, setMobileOpen }: SidebarProp
   const userLinks = [
     { href: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
     { href: '/tests', icon: BookOpen, label: t('tests') },
+    { href: '/courses', icon: Video, label: 'Kurslar' },
     { href: '/rating', icon: Trophy, label: t('rating') },
     { href: '/pricing', icon: CreditCard, label: t('pricing') },
     { href: '/dashboard/referral', icon: Gift, label: 'Referral' },
