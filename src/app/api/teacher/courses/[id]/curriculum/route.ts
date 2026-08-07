@@ -96,6 +96,9 @@ export async function PUT(
             content: l.type === 'TEXT' ? (l.content || null) : null,
             testId: l.type === 'QUIZ' ? (l.testId || null) : null,
             fileUrl: l.type === 'PDF' ? (l.fileUrl || null) : null,
+            minPassPercent: l.type === 'QUIZ' && Number.isInteger(l.minPassPercent) && l.minPassPercent >= 1 && l.minPassPercent <= 100
+              ? l.minPassPercent
+              : null,
             durationMinutes: l.durationMinutes || null,
             isPreviewable: !!l.isPreviewable,
           };

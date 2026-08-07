@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAuth } from '@/lib/api-auth';
+import { computeLockedLessonIds } from '@/lib/course-lock';
 
 // GET /api/courses/[id]/learn — kursni to'liq iste'mol qilish uchun kerak
 // bo'lgan hamma narsa: barcha dars kontenti (video/matn/test) + shu
@@ -44,27 +45,38 @@ export async function GET(
       return NextResponse.json({ error: "Siz bu kursga yozilmagansiz" }, { status: 403 });
     }
 
-    const allLessonIds = course.sections.flatMap((s) => s.lessons.map((l) => l.id));
+    const allLessons = course.sections.flatMap((s) => s.lessons);
+    const allLessonIds = allLessons.map((l) => l.id);
     const progressRows = await db.lessonProgress.findMany({
       where: { userId: user.id, lessonId: { in: allLessonIds } },
     });
     const progressMap = new Map(progressRows.map((p) => [p.lessonId, p]));
+
+    const lockedLessonIds = computeLockedLessonIds(
+      allLessons.map((l) => ({ id: l.id, type: l.type, minPassPercent: l.minPassPercent })),
+      new Map(progressRows.map((p) => [p.lessonId, { completed: p.completed, bestScorePercent: p.bestScorePercent }])),
+      course.sequentialUnlock
+    );
 
     const sections = course.sections.map((s) => ({
       id: s.id,
       titleUz: s.titleUz,
       lessons: s.lessons.map((l) => {
         const p = progressMap.get(l.id);
+        const locked = lockedLessonIds.has(l.id);
         return {
           id: l.id,
           titleUz: l.titleUz,
           type: l.type,
           durationMinutes: l.durationMinutes,
-          videoUrl: l.videoUrl,
-          content: l.content,
-          test: l.test,
-          fileUrl: l.fileUrl,
+          videoUrl: locked ? null : l.videoUrl,
+          content: locked ? null : l.content,
+          test: locked ? null : l.test,
+          fileUrl: locked ? null : l.fileUrl,
+          minPassPercent: l.minPassPercent,
+          locked,
           completed: p?.completed || false,
+          bestScorePercent: p?.bestScorePercent ?? null,
           lastPositionSeconds: p?.lastPositionSeconds || 0,
         };
       }),

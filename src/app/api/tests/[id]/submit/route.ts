@@ -10,6 +10,7 @@ import {
   parseMatchingPairs, parseMatchingAnswer, shuffleMatchingIndexOrder, translateMatchingToCanonical,
   encodeMatchingAnswer, isMatchingCorrect,
 } from '@/lib/matching';
+import { creditQuizLessonProgress } from '@/lib/course-progress';
 
 // POST /api/tests/[id]/submit — test javoblarini yuborish va natija olish
 export async function POST(
@@ -50,6 +51,7 @@ export async function POST(
           orderBy: { order: 'asc' },
           select: { id: true, text: true, correctAnswer: true, points: true, type: true, options: true, subjectId: true },
         },
+        courseLessons: { select: { id: true } },
       },
     });
 
@@ -254,6 +256,15 @@ export async function POST(
         timeSpent: sanitizedTimeSpent,
       },
     });
+
+    // Bu test biror kurs darsining QUIZ turi bilan bog'langan bo'lsa —
+    // shu dars progressini avtomatik yangilaydi (ketma-ket ochish uchun).
+    // Natijani qaytarishga xalaqit bermasligi uchun xatolik yutiladi.
+    if (test.courseLessons.length > 0) {
+      await Promise.all(
+        test.courseLessons.map((cl) => creditQuizLessonProgress(userId, cl.id, percentage).catch(() => {}))
+      );
+    }
 
     return NextResponse.json({
       result: {

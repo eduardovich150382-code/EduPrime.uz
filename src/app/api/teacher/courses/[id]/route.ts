@@ -76,6 +76,7 @@ export async function PUT(
     if (body.difficulty !== undefined) updateData.difficulty = body.difficulty;
     if (body.estimatedHours !== undefined) updateData.estimatedHours = body.estimatedHours;
     if (body.isPublished !== undefined) updateData.isPublished = body.isPublished;
+    if (body.sequentialUnlock !== undefined) updateData.sequentialUnlock = !!body.sequentialUnlock;
     if (body.accessType !== undefined) {
       updateData.accessType = body.accessType;
       updateData.isFree = body.accessType === 'free';

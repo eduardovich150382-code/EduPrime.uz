@@ -20,6 +20,7 @@ interface LessonForm {
   content: string;
   testId: string;
   fileUrl: string;
+  minPassPercent: number | '';
   durationMinutes: number | '';
   isPreviewable: boolean;
 }
@@ -43,7 +44,7 @@ interface TeacherTestItem {
 }
 
 const emptyLesson: LessonForm = {
-  titleUz: '', type: 'VIDEO', videoUrl: '', content: '', testId: '', fileUrl: '', durationMinutes: '', isPreviewable: false,
+  titleUz: '', type: 'VIDEO', videoUrl: '', content: '', testId: '', fileUrl: '', minPassPercent: '', durationMinutes: '', isPreviewable: false,
 };
 
 const LESSON_TYPE_META: Record<LessonType, { label: string; icon: typeof Video }> = {
@@ -73,6 +74,7 @@ export default function CreateCoursePage() {
     price: 0,
     difficulty: 0,
     estimatedHours: 0,
+    sequentialUnlock: false,
   });
 
   const [sections, setSections] = useState<SectionForm[]>([{ titleUz: '', lessons: [{ ...emptyLesson }] }]);
@@ -244,6 +246,7 @@ export default function CreateCoursePage() {
           price: isFree ? 0 : courseInfo.price,
           difficulty: courseInfo.difficulty || null,
           estimatedHours: courseInfo.estimatedHours || null,
+          sequentialUnlock: courseInfo.sequentialUnlock,
         }),
       });
       const data = await res.json();
@@ -288,6 +291,7 @@ export default function CreateCoursePage() {
             content: l.type === 'TEXT' ? l.content || null : null,
             testId: l.type === 'QUIZ' ? l.testId || null : null,
             fileUrl: l.type === 'PDF' ? l.fileUrl || null : null,
+            minPassPercent: l.type === 'QUIZ' && l.minPassPercent !== '' ? l.minPassPercent : null,
             durationMinutes: l.durationMinutes === '' ? null : l.durationMinutes,
             isPreviewable: l.isPreviewable,
           })),
@@ -465,6 +469,21 @@ export default function CreateCoursePage() {
             )}
           </div>
 
+          <div className="p-4 rounded-xl border border-border bg-gray-50/50">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={courseInfo.sequentialUnlock}
+                onChange={(e) => setCourseInfo({ ...courseInfo, sequentialUnlock: e.target.checked })}
+                className="w-4 h-4 rounded border-border text-primary-600"
+              />
+              <span className="text-sm font-medium text-text-primary">Darslarni ketma-ket ochish</span>
+            </label>
+            <p className="text-xs text-text-secondary mt-1.5 ml-7">
+              Yoqilsa, talaba keyingi darsni faqat oldingi darsni tugatgach (Tekshiruv darsida — belgilangan minimal foizdan o&apos;tgach) ocha oladi.
+            </p>
+          </div>
+
           <div>
             <label className="text-sm font-medium text-text-primary block mb-2">Muqova rasmi (ixtiyoriy)</label>
             <div className="flex items-center gap-4">
@@ -607,14 +626,32 @@ export default function CreateCoursePage() {
                           </div>
                         )}
                         {lesson.type === 'QUIZ' && (
-                          <select
-                            value={lesson.testId}
-                            onChange={(e) => updateLesson(sIdx, lIdx, { testId: e.target.value })}
-                            className="w-full px-3 py-2 rounded-lg border border-border focus:ring-2 focus:ring-primary-500/20 text-sm"
-                          >
-                            <option value="">Test tanlang...</option>
-                            {teacherTests.map((t) => <option key={t.id} value={t.id}>{t.titleUz}</option>)}
-                          </select>
+                          <div className="space-y-2">
+                            <select
+                              value={lesson.testId}
+                              onChange={(e) => updateLesson(sIdx, lIdx, { testId: e.target.value })}
+                              className="w-full px-3 py-2 rounded-lg border border-border focus:ring-2 focus:ring-primary-500/20 text-sm"
+                            >
+                              <option value="">Test tanlang...</option>
+                              {teacherTests.map((t) => <option key={t.id} value={t.id}>{t.titleUz}</option>)}
+                            </select>
+                            <label className="flex items-center gap-1.5 text-xs text-text-secondary">
+                              O&apos;tish uchun minimal foiz (ixtiyoriy):
+                              <input
+                                type="text"
+                                inputMode="numeric"
+                                value={lesson.minPassPercent}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  const num = parseInt(val);
+                                  updateLesson(sIdx, lIdx, { minPassPercent: val === '' ? '' : (isNaN(num) ? '' : Math.min(100, Math.max(1, num))) });
+                                }}
+                                placeholder="60"
+                                className="w-16 px-2 py-1 rounded-lg border border-border text-center text-xs"
+                              />
+                              %
+                            </label>
+                          </div>
                         )}
                         {lesson.type === 'PDF' && (
                           <div className="flex items-center gap-3">
