@@ -37,7 +37,7 @@ export default function DtmOnlinePage() {
     ])
       .then(([subjectsData, currentData]) => {
         if (subjectsData.subjects) {
-          setSubjects(subjectsData.subjects.filter((s: SubjectItem) => !MANDATORY_SUBJECTS.includes(s.nameUz)));
+          setSubjects(subjectsData.subjects);
         }
         if (currentData.current) setCurrent(currentData.current);
       })
@@ -176,7 +176,9 @@ export default function DtmOnlinePage() {
             >
               <option value="">Fan tanlang...</option>
               {subjects.map((s) => (
-                <option key={s.id} value={s.id} disabled={s.id === specialty2}>{s.icon} {s.nameUz}</option>
+                <option key={s.id} value={s.id} disabled={s.id === specialty2}>
+                  {s.icon} {s.nameUz}{MANDATORY_SUBJECTS.includes(s.nameUz) ? ' (majburiy ham)' : ''}
+                </option>
               ))}
             </select>
           </div>
@@ -189,7 +191,9 @@ export default function DtmOnlinePage() {
             >
               <option value="">Fan tanlang...</option>
               {subjects.map((s) => (
-                <option key={s.id} value={s.id} disabled={s.id === specialty1}>{s.icon} {s.nameUz}</option>
+                <option key={s.id} value={s.id} disabled={s.id === specialty1}>
+                  {s.icon} {s.nameUz}{MANDATORY_SUBJECTS.includes(s.nameUz) ? ' (majburiy ham)' : ''}
+                </option>
               ))}
             </select>
           </div>
@@ -197,7 +201,10 @@ export default function DtmOnlinePage() {
 
         <div className="p-3 rounded-xl bg-gray-50 border border-border text-xs text-text-secondary flex items-start gap-2">
           <CheckCircle2 size={14} className="text-green-600 flex-shrink-0 mt-0.5" />
-          <span>Majburiy fanlar (Matematika, Ona tili va adabiyot, Tarix — har biri 10 savoldan, 1.1 balldan) avtomatik qo&apos;shiladi.</span>
+          <span>
+            Majburiy fanlar (Matematika, Ona tili va adabiyot, Tarix — har biri 10 nisbatan oson savoldan, 1.1 balldan) avtomatik qo&apos;shiladi.
+            Shu fanlardan birini mutaxassislik sifatida ham tanlasangiz, undan qo&apos;shimcha 30 ta nisbatan o&apos;rtacha/qiyin savol olasiz (takrorlanmaydi).
+          </span>
         </div>
 
         {errorMsg && (
