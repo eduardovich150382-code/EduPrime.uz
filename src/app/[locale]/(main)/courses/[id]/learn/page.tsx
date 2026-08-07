@@ -9,7 +9,7 @@ import LatexRenderer from '@/components/ui/LatexRenderer';
 import SecureYouTubePlayer from '@/components/ui/SecureYouTubePlayer';
 import {
   Loader2, AlertCircle, Play, FileText, ListChecks, CheckCircle2,
-  Circle, PartyPopper, ArrowRight, GraduationCap,
+  Circle, PartyPopper, ArrowRight, GraduationCap, Award,
 } from 'lucide-react';
 
 interface LessonItem {
@@ -40,6 +40,7 @@ interface LearnCourse {
   totalLessons: number;
   completedLessons: number;
   isCompleted: boolean;
+  enrollmentId: string;
 }
 
 const LESSON_ICONS = { VIDEO: Play, TEXT: FileText, QUIZ: ListChecks, PDF: FileText };
@@ -158,8 +159,16 @@ export default function CourseLearnPage() {
           <motion.div className="h-full bg-gradient-to-r from-primary-500 to-primary-600" initial={{ width: 0 }} animate={{ width: `${progressPct}%` }} transition={{ duration: 0.3 }} />
         </div>
         {course.isCompleted && (
-          <div className="mt-3 flex items-center gap-2 text-green-700 bg-green-50 rounded-lg p-2.5 text-sm">
-            <PartyPopper size={16} /> Tabriklaymiz — siz bu kursni to&apos;liq tugatdingiz!
+          <div className="mt-3 flex items-center justify-between gap-2 text-green-700 bg-green-50 rounded-lg p-2.5 text-sm flex-wrap">
+            <span className="flex items-center gap-2">
+              <PartyPopper size={16} /> Tabriklaymiz — siz bu kursni to&apos;liq tugatdingiz!
+            </span>
+            <Link
+              href={`/certificate/${course.enrollmentId}`}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-600 text-white text-xs font-semibold hover:bg-green-700 transition-colors"
+            >
+              <Award size={14} /> Sertifikatni ko&apos;rish
+            </Link>
           </div>
         )}
       </motion.div>
