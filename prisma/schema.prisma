@@ -231,7 +231,20 @@ model Question {
   order              Int          @default(0)
   createdAt          DateTime     @default(now())
 
+  // --- Parametrik savol generatori (lib/paramgen) uchun maydonlar ---
+  templateId         String?      // Generator shabloni id'si, masalan "fiz-kinematika-erkin-tushish-01"
+  variantSig         String?      @unique // Shu shablon+parametrlar kombinatsiyasi imzosi — qayta seed qilinganda dublikatning oldini oladi
+  subtopic           String?
+  grade              Int[]        @default([])
+  exams              String[]     @default([]) // "dtm", "maktab", "milliy" va h.k.
+  lang               String       @default("uz")
+  hints              String[]     @default([])
+  tags               String[]     @default([])
+  source             String       @default("manual") // "manual" | "parametric"
+
   test Test @relation(fields: [testId], references: [id], onDelete: Cascade)
+
+  @@index([templateId])
 }
 
 // Savollar bazasi — o'qituvchi yozgan savol testdan mustaqil, qayta-qayta
