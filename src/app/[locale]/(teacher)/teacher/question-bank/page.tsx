@@ -10,8 +10,12 @@ import {
   ArrowLeft, Plus, Trash2, Search, Loader2, Library, X,
 } from 'lucide-react';
 import ImageUploadButton, { ImagePreviewList } from '@/components/ui/ImageUploadButton';
+import {
+  FILL_BLANK_MARKER, countFillBlanks, encodeFillBlankCorrectAnswer, parseFillBlankCorrectAnswer,
+} from '@/lib/fill-blank';
+import FillBlankEditor from '@/components/ui/FillBlankEditor';
 
-type QType = 'MULTIPLE_CHOICE' | 'OPEN_ENDED' | 'TRUE_FALSE' | 'MULTI_SELECT';
+type QType = 'MULTIPLE_CHOICE' | 'OPEN_ENDED' | 'TRUE_FALSE' | 'MULTI_SELECT' | 'FILL_BLANK';
 
 interface BankOption { label: string; text: string; image: string | null }
 
@@ -54,7 +58,30 @@ const emptyForm = {
   topic: '',
   bloomLevel: '',
   difficulty: null as number | null,
+  blankAnswers: [''] as string[],
 };
+
+// FILL_BLANK: matndagi "___" soniga mos ravishda blankAnswers ro'yxatini hisoblaydi.
+function fillBlankCorrectAnswer(text: string, blankAnswers: string[]): string {
+  const blankCount = countFillBlanks(text);
+  const perBlank = Array.from({ length: blankCount }, (_, i) =>
+    (blankAnswers[i] || '').split(',').map((s) => s.trim()).filter(Boolean)
+  );
+  return encodeFillBlankCorrectAnswer(perBlank);
+}
+
+function isBankFormValid(form: { text: string; type: QType; correctAnswer: string; blankAnswers: string[] }): boolean {
+  if (!form.text) return false;
+  if (form.type === 'FILL_BLANK') {
+    const blankCount = countFillBlanks(form.text);
+    if (blankCount === 0) return false;
+    for (let i = 0; i < blankCount; i++) {
+      if (!(form.blankAnswers[i] || '').trim()) return false;
+    }
+    return true;
+  }
+  return !!form.correctAnswer;
+}
 
 export default function QuestionBankPage() {
   const [subjects, setSubjects] = useState<SubjectItem[]>([]);
@@ -104,12 +131,30 @@ export default function QuestionBankPage() {
           { label: 'C', text: '', image: null }, { label: 'D', text: '', image: null },
         ];
         correctAnswer = '';
-      } else if (newType === 'OPEN_ENDED') {
+      } else if (newType === 'OPEN_ENDED' || newType === 'FILL_BLANK') {
         correctAnswer = '';
       } else if (newType === 'MULTIPLE_CHOICE' && correctAnswer.includes(',')) {
         correctAnswer = correctAnswer.split(',')[0] || '';
       }
-      return { ...prev, type: newType, options, correctAnswer };
+      const blankAnswers = newType === 'FILL_BLANK' ? [''] : prev.blankAnswers;
+      return { ...prev, type: newType, options, correctAnswer, blankAnswers };
+    });
+  };
+
+  // "Bo'shliq qo'shish" tugmasi — savol matni ichiga kursor turgan joyga "___" belgisini qo'yadi.
+  const insertBlankMarker = () => {
+    const el = textRef.current;
+    const text = form.text;
+    const start = el?.selectionStart ?? text.length;
+    const end = el?.selectionEnd ?? text.length;
+    const before = text.slice(0, start);
+    const after = text.slice(end);
+    setForm((prev) => ({ ...prev, text: `${before}${FILL_BLANK_MARKER}${after}` }));
+    requestAnimationFrame(() => {
+      if (!el) return;
+      el.focus();
+      const caret = before.length + FILL_BLANK_MARKER.length;
+      el.setSelectionRange(caret, caret);
     });
   };
 
@@ -136,12 +181,13 @@ export default function QuestionBankPage() {
   };
 
   const handleSubmit = async () => {
-    if (!form.subjectId || !form.text || !form.correctAnswer) {
+    if (!form.subjectId || !isBankFormValid(form)) {
       alert("Fan, savol matni va to'g'ri javob majburiy!");
       return;
     }
     setSaving(true);
     try {
+      const isFillBlank = form.type === 'FILL_BLANK';
       const res = await fetch('/api/teacher/question-bank', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -149,8 +195,8 @@ export default function QuestionBankPage() {
           subjectId: form.subjectId,
           text: form.text,
           images: form.images,
-          options: form.type === 'OPEN_ENDED' ? [] : form.options.filter(o => o.text),
-          correctAnswer: form.correctAnswer,
+          options: (form.type === 'OPEN_ENDED' || isFillBlank) ? [] : form.options.filter(o => o.text),
+          correctAnswer: isFillBlank ? fillBlankCorrectAnswer(form.text, form.blankAnswers) : form.correctAnswer,
           type: form.type,
           explanation: form.explanation || null,
           topic: form.topic || null,
@@ -262,6 +308,7 @@ export default function QuestionBankPage() {
                 { key: 'MULTI_SELECT' as const, label: "Ko'p tanlovli" },
                 { key: 'TRUE_FALSE' as const, label: "To'g'ri/Noto'g'ri" },
                 { key: 'OPEN_ENDED' as const, label: 'Ochiq' },
+                { key: 'FILL_BLANK' as const, label: "Bo'shliqni to'ldirish" },
               ]).map((opt) => (
                 <button
                   key={opt.key}
@@ -276,7 +323,13 @@ export default function QuestionBankPage() {
             </div>
           </div>
 
-          {form.type === 'OPEN_ENDED' ? (
+          {form.type === 'FILL_BLANK' ? (
+            <FillBlankEditor
+              question={form}
+              onInsertBlank={insertBlankMarker}
+              onBlankAnswersChange={(blankAnswers) => setForm({ ...form, blankAnswers })}
+            />
+          ) : form.type === 'OPEN_ENDED' ? (
             <div>
               <label className="text-sm font-medium text-text-primary block mb-2">To&apos;g&apos;ri javob (matn) *</label>
               <input
@@ -437,6 +490,7 @@ export default function QuestionBankPage() {
                     {q.type === 'OPEN_ENDED' && <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">Ochiq</span>}
                     {q.type === 'MULTI_SELECT' && <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">Ko&apos;p tanlovli</span>}
                     {q.type === 'TRUE_FALSE' && <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">T/N</span>}
+                    {q.type === 'FILL_BLANK' && <span className="text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">Bo&apos;shliq</span>}
                   </div>
                   <div className="text-sm text-text-primary">
                     <LatexRenderer content={q.text} />
