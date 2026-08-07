@@ -1,0 +1,2381 @@
+[
+  {
+    "id": "fiz-kinematika-erkin-tushish-01",
+    "subject": "fizika",
+    "topic": "Kinematika",
+    "subtopic": "Erkin tushish",
+    "grade": [
+      9,
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab"
+    ],
+    "difficulty": 2,
+    "params": [
+      {
+        "name": "h",
+        "type": "int",
+        "min": 5,
+        "max": 500,
+        "step": 5
+      },
+      {
+        "name": "g",
+        "type": "const",
+        "value": 10
+      }
+    ],
+    "derived": {
+      "t": "sqrt(2*h/g)",
+      "v": "g*t"
+    },
+    "constraints": [],
+    "answer": {
+      "expr": "v",
+      "unit": "m/s",
+      "round": 1
+    },
+    "distractors": [
+      {
+        "expr": "sqrt(g*h)",
+        "why": {
+          "uz": "v = √(2gh) formulasidagi 2 koeffitsienti tushirib qoldirilgan."
+        }
+      },
+      {
+        "expr": "v/2",
+        "why": {
+          "uz": "Bu — o'rtacha tezlik. Savolda esa yerga urilish paytidagi oxirgi tezlik so'ralgan."
+        }
+      },
+      {
+        "expr": "t",
+        "why": {
+          "uz": "Bu — tushish vaqti (s), tezlik emas. Kattalik birligiga e'tibor bering."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "Jism {h} m balandlikdan boshlang'ich tezliksiz erkin tushdi. Havo qarshiligi hisobga olinmasin, g = {g} m/s². Jism yerga qanday tezlik bilan uriladi?"
+    },
+    "solution": {
+      "uz": "Boshlang'ich tezlik nolga teng, shuning uchun v² = 2gh.\nv = √(2·{g}·{h}) = {ans} m/s.\nTushish vaqti esa t = v/g = {t} s."
+    },
+    "hints": [
+      {
+        "uz": "Boshlang'ich tezlik nolga teng — v² = 2gh munosabatidan foydalaning."
+      },
+      {
+        "uz": "2·{g}·{h} ni hisoblang va natijadan kvadrat ildiz oling."
+      }
+    ],
+    "tags": [
+      "erkin tushish",
+      "tezlik",
+      "kinematika"
+    ]
+  },
+  {
+    "id": "fiz-kinematika-gorizontal-otish-01",
+    "subject": "fizika",
+    "topic": "Kinematika",
+    "subtopic": "Gorizontal otilgan jism",
+    "grade": [
+      9,
+      10
+    ],
+    "exams": [
+      "dtm"
+    ],
+    "difficulty": 3,
+    "params": [
+      {
+        "name": "h",
+        "type": "int",
+        "min": 5,
+        "max": 320,
+        "step": 5
+      },
+      {
+        "name": "v0",
+        "type": "int",
+        "min": 5,
+        "max": 40,
+        "step": 5
+      },
+      {
+        "name": "g",
+        "type": "const",
+        "value": 10
+      }
+    ],
+    "derived": {
+      "t": "sqrt(2*h/g)",
+      "L": "v0*t"
+    },
+    "constraints": [],
+    "answer": {
+      "expr": "L",
+      "unit": "m",
+      "round": 1
+    },
+    "distractors": [
+      {
+        "expr": "2*v0*t",
+        "why": {
+          "uz": "Uchish vaqti ikki barobar olingan. t = √(2h/g), 2√(2h/g) emas."
+        }
+      },
+      {
+        "expr": "v0*t/2",
+        "why": {
+          "uz": "Gorizontal harakat tekis — masofa v₀·t ga teng, uni 2 ga bo'lish shart emas."
+        }
+      },
+      {
+        "expr": "sqrt((v0*t)^2 + h^2)",
+        "why": {
+          "uz": "Bu — to'liq ko'chish moduli. Savolda gorizontal uchish masofasi so'ralgan."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "Jism {h} m balandlikdan gorizontal yo'nalishda {v0} m/s tezlik bilan otildi. g = {g} m/s², havo qarshiligi hisobga olinmasin. Jism qancha gorizontal masofaga uchadi?"
+    },
+    "solution": {
+      "uz": "Vertikal bo'yicha: h = gt²/2 → t = √(2h/g) = {t} s.\nGorizontal bo'yicha harakat tekis: L = v₀·t = {v0}·{t} = {ans} m."
+    },
+    "hints": [
+      {
+        "uz": "Vertikal va gorizontal harakatlarni ajrating: vaqt ikkalasi uchun bir xil."
+      },
+      {
+        "uz": "Avval balandlikdan uchish vaqtini toping, keyin uni v₀ ga ko'paytiring."
+      }
+    ],
+    "tags": [
+      "gorizontal otish",
+      "ballistika"
+    ]
+  },
+  {
+    "id": "fiz-dinamika-ishqalanish-01",
+    "subject": "fizika",
+    "topic": "Dinamika",
+    "subtopic": "Nyutonning II qonuni va ishqalanish",
+    "grade": [
+      9,
+      10
+    ],
+    "exams": [
+      "dtm",
+      "maktab"
+    ],
+    "difficulty": 3,
+    "params": [
+      {
+        "name": "m",
+        "type": "choice",
+        "values": [
+          2,
+          4,
+          5,
+          8,
+          10
+        ]
+      },
+      {
+        "name": "F",
+        "type": "choice",
+        "values": [
+          20,
+          30,
+          40,
+          50,
+          60,
+          80
+        ]
+      },
+      {
+        "name": "mu",
+        "type": "choice",
+        "values": [
+          0.1,
+          0.2,
+          0.25,
+          0.5
+        ]
+      },
+      {
+        "name": "g",
+        "type": "const",
+        "value": 10
+      }
+    ],
+    "derived": {
+      "Ftr": "mu*m*g",
+      "a": "(F - Ftr)/m"
+    },
+    "constraints": [
+      "a > 0.4",
+      "isInteger(a*10)"
+    ],
+    "answer": {
+      "expr": "a",
+      "unit": "m/s²",
+      "round": 2
+    },
+    "distractors": [
+      {
+        "expr": "F/m",
+        "why": {
+          "uz": "Ishqalanish kuchi hisobga olinmagan. a = (F − F_ishq)/m."
+        }
+      },
+      {
+        "expr": "(F + Ftr)/m",
+        "why": {
+          "uz": "Ishqalanish harakatga qarshi yo'nalgan — u qo'shilmaydi, ayiriladi."
+        }
+      },
+      {
+        "expr": "F - Ftr",
+        "why": {
+          "uz": "Bu — natijaviy kuch (N). Tezlanish uchun uni massaga bo'lish kerak."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "Gorizontal sirtda turgan {m} kg massali jismga gorizontal yo'nalgan {F} N kuch ta'sir qilmoqda. Ishqalanish koeffitsienti μ = {mu}, g = {g} m/s². Jismning tezlanishini toping."
+    },
+    "solution": {
+      "uz": "Ishqalanish kuchi: F_ishq = μmg = {mu}·{m}·{g} = {Ftr} N.\nNyutonning II qonuni: ma = F − F_ishq.\na = ({F} − {Ftr})/{m} = {ans} m/s²."
+    },
+    "hints": [
+      {
+        "uz": "Jismga ta'sir etuvchi barcha kuchlarni chizing: F, ishqalanish, og'irlik, normal reaksiya."
+      },
+      {
+        "uz": "F_ishq = μ·m·g. Natijaviy kuchni massaga bo'ling."
+      }
+    ],
+    "tags": [
+      "nyuton qonuni",
+      "ishqalanish",
+      "tezlanish"
+    ]
+  },
+  {
+    "id": "fiz-elektr-parallel-ulanish-01",
+    "subject": "fizika",
+    "topic": "Elektr toki",
+    "subtopic": "Om qonuni, parallel ulanish",
+    "grade": [
+      8,
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab"
+    ],
+    "difficulty": 3,
+    "params": [
+      {
+        "name": "R1",
+        "type": "choice",
+        "values": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          8,
+          10,
+          12,
+          20
+        ]
+      },
+      {
+        "name": "R2",
+        "type": "choice",
+        "values": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          8,
+          10,
+          12,
+          20
+        ]
+      },
+      {
+        "name": "U",
+        "type": "choice",
+        "values": [
+          6,
+          12,
+          18,
+          24,
+          36,
+          48
+        ]
+      }
+    ],
+    "derived": {
+      "R": "R1*R2/(R1+R2)",
+      "I": "U/R"
+    },
+    "constraints": [
+      "R1 != R2",
+      "isInteger(I*10)",
+      "I <= 40"
+    ],
+    "answer": {
+      "expr": "I",
+      "unit": "A",
+      "round": 1
+    },
+    "distractors": [
+      {
+        "expr": "U/(R1+R2)",
+        "why": {
+          "uz": "Qarshiliklar ketma-ket deb hisoblangan. Parallel ulanishda R = R₁R₂/(R₁+R₂)."
+        }
+      },
+      {
+        "expr": "U/R1",
+        "why": {
+          "uz": "Bu — faqat birinchi shoxdagi tok. Umumiy tok ikkala shox toklarining yig'indisi."
+        }
+      },
+      {
+        "expr": "U/R2",
+        "why": {
+          "uz": "Bu — faqat ikkinchi shoxdagi tok, umumiy tok emas."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "{R1} Ω va {R2} Ω qarshiliklar o'zaro parallel ulangan va ularga {U} V kuchlanish berilgan. Zanjirdagi umumiy tok kuchini toping."
+    },
+    "solution": {
+      "uz": "Parallel ulanishda 1/R = 1/R₁ + 1/R₂, ya'ni R = R₁R₂/(R₁+R₂) = {R} Ω.\nOm qonuni: I = U/R = {U}/{R} = {ans} A."
+    },
+    "hints": [
+      {
+        "uz": "Avval umumiy qarshilikni toping — parallel ulanish uchun R = R₁R₂/(R₁+R₂)."
+      },
+      {
+        "uz": "Keyin Om qonunini qo'llang: I = U/R."
+      }
+    ],
+    "tags": [
+      "om qonuni",
+      "parallel ulanish",
+      "tok kuchi"
+    ]
+  },
+  {
+    "id": "fiz-impuls-noelastik-toqnashuv-01",
+    "subject": "fizika",
+    "topic": "Impuls",
+    "subtopic": "Impulsning saqlanish qonuni",
+    "grade": [
+      9,
+      10
+    ],
+    "exams": [
+      "dtm"
+    ],
+    "difficulty": 3,
+    "params": [
+      {
+        "name": "m1",
+        "type": "choice",
+        "values": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          8
+        ]
+      },
+      {
+        "name": "m2",
+        "type": "choice",
+        "values": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          8,
+          10,
+          12
+        ]
+      },
+      {
+        "name": "v1",
+        "type": "choice",
+        "values": [
+          3,
+          4,
+          5,
+          6,
+          8,
+          9,
+          10,
+          12,
+          15
+        ]
+      }
+    ],
+    "derived": {
+      "u": "m1*v1/(m1+m2)"
+    },
+    "constraints": [
+      "isInteger(u*10)"
+    ],
+    "answer": {
+      "expr": "u",
+      "unit": "m/s",
+      "round": 1
+    },
+    "distractors": [
+      {
+        "expr": "m1*v1/m2",
+        "why": {
+          "uz": "Umumiy massa m₁+m₂ bo'lishi kerak, faqat m₂ emas — to'qnashuvdan keyin ikkala jism birga harakatlanadi."
+        }
+      },
+      {
+        "expr": "v1*m2/(m1+m2)",
+        "why": {
+          "uz": "Massalar o'rni almashtirilgan. Boshlang'ich impuls m₁v₁ ga teng."
+        }
+      },
+      {
+        "expr": "v1/2",
+        "why": {
+          "uz": "Bu javob faqat massalar teng bo'lgandagina to'g'ri bo'ladi."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "{m1} kg massali jism {v1} m/s tezlik bilan harakatlanib, tinch turgan {m2} kg massali jism bilan noelastik to'qnashdi va ular birgalikda harakatlanishda davom etdi. To'qnashuvdan keyingi umumiy tezlikni toping."
+    },
+    "solution": {
+      "uz": "Impulsning saqlanish qonuni: m₁v₁ = (m₁+m₂)u.\nu = {m1}·{v1}/({m1}+{m2}) = {ans} m/s."
+    },
+    "hints": [
+      {
+        "uz": "Ikkinchi jism tinch turgani uchun boshlang'ich impuls faqat m₁v₁ ga teng."
+      },
+      {
+        "uz": "Noelastik to'qnashuvda jismlar birga harakatlanadi — umumiy massa m₁+m₂."
+      }
+    ],
+    "tags": [
+      "impuls",
+      "noelastik toqnashuv",
+      "saqlanish qonuni"
+    ]
+  },
+  {
+    "id": "mat-vieta-ildizlar-kvadrati-01",
+    "subject": "matematika",
+    "topic": "Algebra",
+    "subtopic": "Kvadrat tenglama, Viet teoremasi",
+    "grade": [
+      8,
+      9,
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab",
+      "milliy"
+    ],
+    "difficulty": 3,
+    "params": [
+      {
+        "name": "p",
+        "type": "int",
+        "min": -9,
+        "max": 9
+      },
+      {
+        "name": "q",
+        "type": "int",
+        "min": -9,
+        "max": 9
+      }
+    ],
+    "derived": {
+      "b": "-(p+q)",
+      "c": "p*q",
+      "s": "p^2 + q^2"
+    },
+    "constraints": [
+      "p != 0",
+      "q != 0",
+      "p != q",
+      "abs(b) <= 15",
+      "abs(c) <= 60"
+    ],
+    "answer": {
+      "expr": "s",
+      "round": 0
+    },
+    "distractors": [
+      {
+        "expr": "(p+q)^2",
+        "why": {
+          "uz": "x₁²+x₂² = (x₁+x₂)² emas. To'g'ri ayniyat: x₁²+x₂² = (x₁+x₂)² − 2x₁x₂."
+        }
+      },
+      {
+        "expr": "(p+q)^2 + 2*p*q",
+        "why": {
+          "uz": "Belgi xatosi: 2x₁x₂ qo'shilmaydi, ayiriladi."
+        }
+      },
+      {
+        "expr": "2*p*q",
+        "why": {
+          "uz": "Bu — faqat 2x₁x₂ ko'paytmasi, kvadratlar yig'indisi emas."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "x² + bx + c = 0 tenglamaning ildizlari x₁ va x₂ bo'lib, b = {b}, c = {c}. x₁² + x₂² ifodaning qiymatini toping."
+    },
+    "solution": {
+      "uz": "Viet teoremasi: x₁+x₂ = −b = {p} + {q}, x₁x₂ = c = {c}.\nx₁²+x₂² = (x₁+x₂)² − 2x₁x₂ = ({p}+{q})² − 2·{c} = {ans}."
+    },
+    "hints": [
+      {
+        "uz": "Viet teoremasidan foydalaning: ildizlar yig'indisi −b, ko'paytmasi c."
+      },
+      {
+        "uz": "(x₁+x₂)² = x₁² + 2x₁x₂ + x₂² ayniyatini qayta yozing."
+      }
+    ],
+    "tags": [
+      "viet teoremasi",
+      "kvadrat tenglama"
+    ]
+  },
+  {
+    "id": "mat-arifmetik-progressiya-yigindi-01",
+    "subject": "matematika",
+    "topic": "Algebra",
+    "subtopic": "Arifmetik progressiya",
+    "grade": [
+      9,
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab",
+      "milliy"
+    ],
+    "difficulty": 2,
+    "params": [
+      {
+        "name": "a1",
+        "type": "int",
+        "min": -10,
+        "max": 15
+      },
+      {
+        "name": "d",
+        "type": "int",
+        "min": 2,
+        "max": 9
+      },
+      {
+        "name": "n",
+        "type": "choice",
+        "values": [
+          10,
+          12,
+          15,
+          20,
+          25,
+          30,
+          40
+        ]
+      }
+    ],
+    "derived": {
+      "an": "a1 + (n-1)*d",
+      "S": "n/2*(2*a1 + (n-1)*d)"
+    },
+    "constraints": [
+      "isInteger(S)",
+      "a1 != 0"
+    ],
+    "answer": {
+      "expr": "S",
+      "round": 0
+    },
+    "distractors": [
+      {
+        "expr": "n*(2*a1 + (n-1)*d)",
+        "why": {
+          "uz": "Formulada n/2 bor — 2 ga bo'lish unutilgan."
+        }
+      },
+      {
+        "expr": "n/2*(2*a1 + n*d)",
+        "why": {
+          "uz": "(n−1) o'rniga n ishlatilgan. n-hadgacha ayirma (n−1) marta qo'shiladi."
+        }
+      },
+      {
+        "expr": "an",
+        "why": {
+          "uz": "Bu — n-hadning o'zi, dastlabki n ta hadning yig'indisi emas."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "Arifmetik progressiyaning birinchi hadi a₁ = {a1}, ayirmasi d = {d}. Progressiyaning dastlabki {n} ta hadi yig'indisini toping."
+    },
+    "solution": {
+      "uz": "Sₙ = n/2·(2a₁ + (n−1)d)\nS = {n}/2·(2·{a1} + ({n}−1)·{d}) = {ans}.\nTekshirish: aₙ = a₁ + (n−1)d = {an}, ya'ni S = n(a₁+aₙ)/2 ham shu natijani beradi."
+    },
+    "hints": [
+      {
+        "uz": "Sₙ = n/2·(2a₁ + (n−1)d) formulasidan foydalaning."
+      },
+      {
+        "uz": "Avval n-hadni toping: aₙ = a₁ + (n−1)d, so'ng Sₙ = n(a₁+aₙ)/2."
+      }
+    ],
+    "tags": [
+      "arifmetik progressiya",
+      "yigindi"
+    ]
+  },
+  {
+    "id": "mat-geometrik-progressiya-cheksiz-01",
+    "subject": "matematika",
+    "topic": "Algebra",
+    "subtopic": "Cheksiz kamayuvchi geometrik progressiya",
+    "grade": [
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "milliy"
+    ],
+    "difficulty": 3,
+    "params": [
+      {
+        "name": "b1",
+        "type": "choice",
+        "values": [
+          6,
+          12,
+          18,
+          24,
+          36,
+          48
+        ]
+      },
+      {
+        "name": "qn",
+        "type": "choice",
+        "values": [
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "name": "qd",
+        "type": "choice",
+        "values": [
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    ],
+    "derived": {
+      "q": "qn/qd",
+      "S": "b1/(1-q)"
+    },
+    "constraints": [
+      "q < 1",
+      "isInteger(S)"
+    ],
+    "answer": {
+      "expr": "S",
+      "round": 0
+    },
+    "distractors": [
+      {
+        "expr": "b1/(1+q)",
+        "why": {
+          "uz": "Maxrajda 1−q bo'lishi kerak, 1+q emas."
+        }
+      },
+      {
+        "expr": "b1*(1-q)",
+        "why": {
+          "uz": "Bo'lish o'rniga ko'paytirilgan."
+        }
+      },
+      {
+        "expr": "b1/q",
+        "why": {
+          "uz": "Formulada b₁/(1−q) bor, b₁/q emas."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "Cheksiz kamayuvchi geometrik progressiyaning birinchi hadi b₁ = {b1}, maxraji q = {qn}/{qd}. Progressiya hadlari yig'indisini toping."
+    },
+    "solution": {
+      "uz": "|q| < 1 bo'lgani uchun S = b₁/(1−q).\nS = {b1}/(1 − {q}) = {ans}."
+    },
+    "hints": [
+      {
+        "uz": "Cheksiz kamayuvchi progressiya uchun S = b₁/(1−q)."
+      },
+      {
+        "uz": "Avval 1 − q ni hisoblang, keyin b₁ ni shunga bo'ling."
+      }
+    ],
+    "tags": [
+      "geometrik progressiya",
+      "cheksiz yigindi"
+    ]
+  },
+  {
+    "id": "mat-logarifmik-tenglama-01",
+    "subject": "matematika",
+    "topic": "Algebra",
+    "subtopic": "Logarifmik tenglama",
+    "grade": [
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "milliy"
+    ],
+    "difficulty": 2,
+    "params": [
+      {
+        "name": "a",
+        "type": "choice",
+        "values": [
+          2,
+          3,
+          5
+        ]
+      },
+      {
+        "name": "m",
+        "type": "choice",
+        "values": [
+          2,
+          3,
+          4
+        ]
+      },
+      {
+        "name": "k",
+        "type": "int",
+        "min": 1,
+        "max": 12
+      }
+    ],
+    "derived": {
+      "x": "a^m - k"
+    },
+    "constraints": [
+      "x > 0",
+      "a^m <= 125"
+    ],
+    "answer": {
+      "expr": "x",
+      "round": 0
+    },
+    "distractors": [
+      {
+        "expr": "a*m - k",
+        "why": {
+          "uz": "aᵐ daraja, a·m ko'paytma emas."
+        }
+      },
+      {
+        "expr": "a^m + k",
+        "why": {
+          "uz": "Belgi xatosi: x + k = aᵐ dan x = aᵐ − k kelib chiqadi."
+        }
+      },
+      {
+        "expr": "a^m",
+        "why": {
+          "uz": "k ni ayirish unutilgan — logarifm ichida x + k turibdi."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "log_{a}(x + {k}) = {m} tenglamani yeching (logarifm asosi a = {a})."
+    },
+    "solution": {
+      "uz": "Logarifm ta'rifiga ko'ra x + {k} = {a}^{m}.\nx = {a}^{m} − {k} = {ans}.\nAniqlanish sohasi: x + {k} > 0 — javob shartni qanoatlantiradi."
+    },
+    "hints": [
+      {
+        "uz": "log_a(N) = m ⟺ N = aᵐ ta'rifidan foydalaning."
+      },
+      {
+        "uz": "aᵐ ni hisoblang, so'ng ikkala tomondan {k} ni ayiring."
+      }
+    ],
+    "tags": [
+      "logarifm",
+      "tenglama"
+    ]
+  },
+  {
+    "id": "mat-trig-ikkilangan-burchak-01",
+    "subject": "matematika",
+    "topic": "Trigonometriya",
+    "subtopic": "Ikkilangan burchak formulalari",
+    "grade": [
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "milliy"
+    ],
+    "difficulty": 3,
+    "params": [
+      {
+        "name": "triple",
+        "type": "set",
+        "names": [
+          "a",
+          "b",
+          "c"
+        ],
+        "rows": [
+          [
+            3,
+            4,
+            5
+          ],
+          [
+            4,
+            3,
+            5
+          ],
+          [
+            5,
+            12,
+            13
+          ],
+          [
+            12,
+            5,
+            13
+          ],
+          [
+            8,
+            15,
+            17
+          ],
+          [
+            15,
+            8,
+            17
+          ],
+          [
+            7,
+            24,
+            25
+          ],
+          [
+            24,
+            7,
+            25
+          ],
+          [
+            20,
+            21,
+            29
+          ],
+          [
+            21,
+            20,
+            29
+          ],
+          [
+            9,
+            40,
+            41
+          ],
+          [
+            40,
+            9,
+            41
+          ],
+          [
+            12,
+            35,
+            37
+          ],
+          [
+            35,
+            12,
+            37
+          ],
+          [
+            28,
+            45,
+            53
+          ],
+          [
+            45,
+            28,
+            53
+          ],
+          [
+            33,
+            56,
+            65
+          ],
+          [
+            56,
+            33,
+            65
+          ],
+          [
+            16,
+            63,
+            65
+          ],
+          [
+            63,
+            16,
+            65
+          ],
+          [
+            48,
+            55,
+            73
+          ],
+          [
+            55,
+            48,
+            73
+          ],
+          [
+            13,
+            84,
+            85
+          ],
+          [
+            84,
+            13,
+            85
+          ],
+          [
+            36,
+            77,
+            85
+          ],
+          [
+            77,
+            36,
+            85
+          ],
+          [
+            39,
+            80,
+            89
+          ],
+          [
+            80,
+            39,
+            89
+          ],
+          [
+            65,
+            72,
+            97
+          ],
+          [
+            72,
+            65,
+            97
+          ],
+          [
+            20,
+            99,
+            101
+          ],
+          [
+            99,
+            20,
+            101
+          ]
+        ]
+      }
+    ],
+    "derived": {
+      "sn": "a/c",
+      "cs": "b/c"
+    },
+    "constraints": [],
+    "answer": {
+      "expr": "1 - 2*sn^2",
+      "round": 4
+    },
+    "distractors": [
+      {
+        "expr": "2*sn*cs",
+        "why": {
+          "uz": "Bu — sin 2α formulasi. cos 2α = 1 − 2sin²α."
+        }
+      },
+      {
+        "expr": "2*sn^2 - 1",
+        "why": {
+          "uz": "Belgi almashtirilgan: cos 2α = 1 − 2sin²α (yoki 2cos²α − 1)."
+        }
+      },
+      {
+        "expr": "1 - 2*cs^2",
+        "why": {
+          "uz": "sin va cos o'rni almashtirilgan."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "O'tkir burchak α uchun sin α = {a}/{c}. cos 2α ning qiymatini toping."
+    },
+    "solution": {
+      "uz": "cos 2α = 1 − 2sin²α = 1 − 2·({a}/{c})² = {ans}.\n(Tekshirish: cos α = {b}/{c}, chunki α o'tkir burchak.)"
+    },
+    "hints": [
+      {
+        "uz": "cos 2α ning uchta ko'rinishi bor: cos²α − sin²α, 1 − 2sin²α, 2cos²α − 1."
+      },
+      {
+        "uz": "sin α berilgan — 1 − 2sin²α ko'rinishi eng qulay."
+      }
+    ],
+    "tags": [
+      "trigonometriya",
+      "ikkilangan burchak"
+    ]
+  },
+  {
+    "id": "fiz-kinematika-tekis-tezlanuvchan-01",
+    "subject": "fizika",
+    "topic": "Kinematika",
+    "subtopic": "Tekis tezlanuvchan to'g'ri chiziqli harakat",
+    "grade": [
+      9,
+      10
+    ],
+    "exams": [
+      "dtm",
+      "maktab"
+    ],
+    "difficulty": 2,
+    "params": [
+      {
+        "name": "v0",
+        "type": "int",
+        "min": 0,
+        "max": 20,
+        "step": 2
+      },
+      {
+        "name": "a",
+        "type": "choice",
+        "values": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      {
+        "name": "t",
+        "type": "choice",
+        "values": [
+          2,
+          4,
+          6,
+          8,
+          10
+        ]
+      }
+    ],
+    "derived": {
+      "S": "v0*t + a*t^2/2"
+    },
+    "constraints": [],
+    "answer": {
+      "expr": "S",
+      "unit": "m",
+      "round": 1
+    },
+    "distractors": [
+      {
+        "expr": "v0*t",
+        "why": {
+          "uz": "Faqat tekis harakat qismi hisoblangan, tezlanish tufayli qo'shiladigan at²/2 unutilgan."
+        }
+      },
+      {
+        "expr": "a*t^2/2",
+        "why": {
+          "uz": "Boshlang'ich tezlik v₀ hisobga olinmagan — bu faqat v₀=0 holatiga to'g'ri keladi."
+        }
+      },
+      {
+        "expr": "v0*t + a*t^2",
+        "why": {
+          "uz": "at²/2 dagi 2 ga bo'lish unutilgan."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "Jism boshlang'ich {v0} m/s tezlik bilan, {a} m/s² doimiy tezlanish bilan to'g'ri chiziqli harakatlanmoqda. {t} soniyadan keyin jism bosib o'tgan masofani toping."
+    },
+    "solution": {
+      "uz": "S = v₀t + at²/2 = {v0}·{t} + {a}·{t}²/2 = {ans} m."
+    },
+    "hints": [
+      {
+        "uz": "Tekis tezlanuvchan harakat formulasi: S = v₀t + at²/2 dan foydalaning."
+      },
+      {
+        "uz": "Avval v₀t ni, keyin at²/2 ni alohida hisoblab, qo'shing."
+      }
+    ],
+    "tags": [
+      "kinematika",
+      "tekis tezlanuvchan harakat"
+    ]
+  },
+  {
+    "id": "fiz-dinamika-atvud-01",
+    "subject": "fizika",
+    "topic": "Dinamika",
+    "subtopic": "Nyuton qonunlari — bog'langan jismlar (Atvud mashinasi)",
+    "grade": [
+      10,
+      11
+    ],
+    "exams": [
+      "dtm"
+    ],
+    "difficulty": 4,
+    "params": [
+      {
+        "name": "m1",
+        "type": "choice",
+        "values": [
+          3,
+          4,
+          5,
+          6,
+          8,
+          10
+        ]
+      },
+      {
+        "name": "m2",
+        "type": "choice",
+        "values": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      {
+        "name": "g",
+        "type": "const",
+        "value": 10
+      }
+    ],
+    "derived": {
+      "a": "(m1-m2)*g/(m1+m2)"
+    },
+    "constraints": [
+      "m1 > m2",
+      "isInteger(a*10)"
+    ],
+    "answer": {
+      "expr": "a",
+      "unit": "m/s²",
+      "round": 1
+    },
+    "distractors": [
+      {
+        "expr": "(m1+m2)*g/(m1-m2)",
+        "why": {
+          "uz": "Surat va maxraj almashtirilgan — to'g'ri formula a=(m1−m2)g/(m1+m2)."
+        }
+      },
+      {
+        "expr": "(m1-m2)*g/m1",
+        "why": {
+          "uz": "Maxrajda umumiy harakatlanuvchi massa (m1+m2) bo'lishi kerak, faqat m1 emas."
+        }
+      },
+      {
+        "expr": "m1*g/(m1+m2)",
+        "why": {
+          "uz": "Natijaviy kuchdan m2 ning og'irlik kuchi ayirilmagan."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "Ip orqali bloк ustidan bog'langan {m1} kg va {m2} kg massali ikkita yuk erkin osilgan (ishqalanish va ipning massasi hisobga olinmaydi). Sistemaning tezlanishini toping (g = {g} m/s²)."
+    },
+    "solution": {
+      "uz": "Katta massali yuk pastga, kichik massali yuk yuqoriga tortiladi.\na = (m1 − m2)g/(m1 + m2) = ({m1} − {m2})·{g}/({m1} + {m2}) = {ans} m/s²."
+    },
+    "hints": [
+      {
+        "uz": "Nyutonning II qonunini har ikki yuk uchun alohida yozib, ip tarangligi T ni tenglamalardan yo'qoting."
+      },
+      {
+        "uz": "Natijaviy kuch (m1−m2)g ga, harakatlanuvchi umumiy massa (m1+m2) ga teng."
+      }
+    ],
+    "tags": [
+      "nyuton qonunlari",
+      "atvud mashinasi",
+      "tezlanish"
+    ]
+  },
+  {
+    "id": "fiz-statika-richag-01",
+    "subject": "fizika",
+    "topic": "Statika",
+    "subtopic": "Kuch momenti va richag muvozanati",
+    "grade": [
+      10
+    ],
+    "exams": [
+      "dtm",
+      "maktab"
+    ],
+    "difficulty": 2,
+    "params": [
+      {
+        "name": "F1",
+        "type": "choice",
+        "values": [
+          10,
+          20,
+          30,
+          40,
+          50,
+          60
+        ]
+      },
+      {
+        "name": "d1",
+        "type": "choice",
+        "values": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      {
+        "name": "d2",
+        "type": "choice",
+        "values": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ]
+      }
+    ],
+    "derived": {
+      "M": "F1*d1",
+      "F2": "F1*d1/d2"
+    },
+    "constraints": [
+      "d1 != d2",
+      "isInteger(F2)"
+    ],
+    "answer": {
+      "expr": "F2",
+      "unit": "N",
+      "round": 0
+    },
+    "distractors": [
+      {
+        "expr": "F1*d2/d1",
+        "why": {
+          "uz": "d1 va d2 o'rni almashtirilgan — to'g'ri nisbat F2=F1·d1/d2."
+        }
+      },
+      {
+        "expr": "F1*d1*d2",
+        "why": {
+          "uz": "Bo'lish o'rniga ko'paytirilgan — moment tengligidan F2=F1d1/d2 kelib chiqadi."
+        }
+      },
+      {
+        "expr": "F1",
+        "why": {
+          "uz": "Yelka uzunliklari (d1, d2) turlicha bo'lsa, kuchlar ham teng bo'lmaydi."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "Richagning bir uchiga tayanch nuqtasidan {d1} m masofada {F1} N kuch, ikkinchi uchiga tayanch nuqtasidan {d2} m masofada F₂ kuch qo'yilgan. Richag muvozanatda turishi uchun F₂ qanday bo'lishi kerak?"
+    },
+    "solution": {
+      "uz": "Moment muvozanati sharti: F₁·d₁ = F₂·d₂.\nF₂ = F₁·d₁/d₂ = {F1}·{d1}/{d2} = {ans} N."
+    },
+    "hints": [
+      {
+        "uz": "Richag muvozanatda bo'lishi uchun ikkala tomondagi kuch momentlari teng bo'lishi kerak: F₁d₁ = F₂d₂."
+      },
+      {
+        "uz": "Avval M = F₁·d₁ momentini toping, so'ng uni d₂ ga bo'ling."
+      }
+    ],
+    "tags": [
+      "statika",
+      "moment",
+      "richag",
+      "muvozanat"
+    ]
+  },
+  {
+    "id": "fiz-saqlanish-prujina-01",
+    "subject": "fizika",
+    "topic": "Saqlanish qonunlari",
+    "subtopic": "Mexanik energiyaning saqlanishi — prujina",
+    "grade": [
+      10,
+      11
+    ],
+    "exams": [
+      "dtm"
+    ],
+    "difficulty": 3,
+    "params": [
+      {
+        "name": "k",
+        "type": "choice",
+        "values": [
+          100,
+          150,
+          200,
+          250,
+          300,
+          400
+        ]
+      },
+      {
+        "name": "x",
+        "type": "choice",
+        "values": [
+          0.1,
+          0.15,
+          0.2,
+          0.25,
+          0.3
+        ]
+      },
+      {
+        "name": "m",
+        "type": "choice",
+        "values": [
+          0.5,
+          1,
+          1.5,
+          2
+        ]
+      }
+    ],
+    "derived": {
+      "v": "x*sqrt(k/m)"
+    },
+    "constraints": [],
+    "answer": {
+      "expr": "v",
+      "unit": "m/s",
+      "round": 2
+    },
+    "distractors": [
+      {
+        "expr": "sqrt(k/m)/x",
+        "why": {
+          "uz": "x formulaning maxrajiga tushib qolgan — to'g'ri formula v=x√(k/m)."
+        }
+      },
+      {
+        "expr": "x*sqrt(m/k)",
+        "why": {
+          "uz": "k va m o'rni almashtirilgan ildiz ostida."
+        }
+      },
+      {
+        "expr": "x*(k/m)",
+        "why": {
+          "uz": "Kvadrat ildiz olish unutilgan."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "Prujina konstantasi k = {k} N/m bo'lgan prujina Δx = {x} m siqilgan holda {m} kg massali jismni tutib turibdi (gorizontal, ishqalanishsiz sirt). Prujina bo'shatilganda jism qanday tezlik bilan uchib ketadi?"
+    },
+    "solution": {
+      "uz": "Energiyaning saqlanish qonuni: kΔx²/2 = mv²/2.\nv = Δx·√(k/m) = {x}·√({k}/{m}) = {ans} m/s."
+    },
+    "hints": [
+      {
+        "uz": "Prujinaning potensial energiyasi to'liq jismning kinetik energiyasiga aylanadi: kΔx²/2 = mv²/2."
+      },
+      {
+        "uz": "v ni ifodalang: v = Δx·√(k/m)."
+      }
+    ],
+    "tags": [
+      "energiya saqlanishi",
+      "prujina",
+      "kinetik energiya"
+    ]
+  },
+  {
+    "id": "fiz-tebranish-mayatnik-01",
+    "subject": "fizika",
+    "topic": "Mexanik tebranishlar va to'lqinlar",
+    "subtopic": "Matematik mayatnik davri",
+    "grade": [
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab"
+    ],
+    "difficulty": 2,
+    "params": [
+      {
+        "name": "l",
+        "type": "choice",
+        "values": [
+          0.1,
+          0.2,
+          0.4,
+          0.5,
+          0.6,
+          0.8,
+          1,
+          1.5,
+          2,
+          2.5
+        ]
+      },
+      {
+        "name": "g",
+        "type": "const",
+        "value": 10
+      }
+    ],
+    "derived": {
+      "T": "2*pi*sqrt(l/g)"
+    },
+    "constraints": [],
+    "answer": {
+      "expr": "T",
+      "unit": "s",
+      "round": 2
+    },
+    "distractors": [
+      {
+        "expr": "2*pi*sqrt(g/l)",
+        "why": {
+          "uz": "Ildiz ostidagi kasr teskari olingan — to'g'ri formula T=2π√(l/g)."
+        }
+      },
+      {
+        "expr": "pi*sqrt(l/g)",
+        "why": {
+          "uz": "Formuladagi 2 koeffitsienti tushirib qoldirilgan."
+        }
+      },
+      {
+        "expr": "2*pi*(l/g)",
+        "why": {
+          "uz": "Kvadrat ildiz olish unutilgan."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "Uzunligi l = {l} m bo'lgan matematik mayatnikning tebranish davrini toping (g = {g} m/s², π ≈ 3.14)."
+    },
+    "solution": {
+      "uz": "Matematik mayatnik davri: T = 2π√(l/g) = 2·3.14·√({l}/{g}) ≈ {ans} s."
+    },
+    "hints": [
+      {
+        "uz": "Matematik mayatnik davri formulasi: T = 2π√(l/g)."
+      },
+      {
+        "uz": "Avval l/g nisbatini, keyin undan kvadrat ildizni toping, oxirida 2π ga ko'paytiring."
+      }
+    ],
+    "tags": [
+      "tebranish",
+      "mayatnik",
+      "davr"
+    ]
+  },
+  {
+    "id": "fiz-mkt-boyl-mariott-01",
+    "subject": "fizika",
+    "topic": "Molekulyar fizika va termodinamika",
+    "subtopic": "Ideal gaz qonunlari — Boyl-Mariott",
+    "grade": [
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab"
+    ],
+    "difficulty": 2,
+    "params": [
+      {
+        "name": "P1",
+        "type": "choice",
+        "values": [
+          100,
+          150,
+          200,
+          250,
+          300
+        ]
+      },
+      {
+        "name": "V1",
+        "type": "choice",
+        "values": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          8,
+          10
+        ]
+      },
+      {
+        "name": "V2",
+        "type": "choice",
+        "values": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          8,
+          10
+        ]
+      }
+    ],
+    "derived": {
+      "P2": "P1*V1/V2"
+    },
+    "constraints": [
+      "V1 != V2",
+      "isInteger(P2)"
+    ],
+    "answer": {
+      "expr": "P2",
+      "unit": "kPa",
+      "round": 0
+    },
+    "distractors": [
+      {
+        "expr": "P1*V2/V1",
+        "why": {
+          "uz": "V1 va V2 o'rni almashtirilgan — to'g'ri nisbat P2=P1V1/V2."
+        }
+      },
+      {
+        "expr": "P1*V1*V2",
+        "why": {
+          "uz": "Boyl-Mariott qonuni P1V1=P2V2 ko'rinishida, bo'lish o'rniga ko'paytirilgan."
+        }
+      },
+      {
+        "expr": "P1",
+        "why": {
+          "uz": "Hajm o'zgarishi butunlay hisobga olinmagan."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "Doimiy temperaturada gazning boshlang'ich bosimi P₁ = {P1} kPa, hajmi V₁ = {V1} l. Gaz hajmi V₂ = {V2} l gacha o'zgartirilsa, gazning yangi bosimini toping (Boyl-Mariott qonuni)."
+    },
+    "solution": {
+      "uz": "Boyl-Mariott qonuni: P₁V₁ = P₂V₂.\nP₂ = P₁V₁/V₂ = {P1}·{V1}/{V2} = {ans} kPa."
+    },
+    "hints": [
+      {
+        "uz": "Doimiy temperaturada P₁V₁ = P₂V₂ munosabati bajariladi."
+      },
+      {
+        "uz": "P₂ ni toping: P₂ = P₁V₁/V₂."
+      }
+    ],
+    "tags": [
+      "ideal gaz",
+      "boyl-mariott",
+      "bosim"
+    ]
+  },
+  {
+    "id": "fiz-termodinamika-issiqlik-01",
+    "subject": "fizika",
+    "topic": "Molekulyar fizika va termodinamika",
+    "subtopic": "Issiqlik miqdori va solishli issiqlik sig'imi",
+    "grade": [
+      8,
+      10
+    ],
+    "exams": [
+      "dtm",
+      "maktab"
+    ],
+    "difficulty": 2,
+    "params": [
+      {
+        "name": "c",
+        "type": "choice",
+        "values": [
+          400,
+          900,
+          2100,
+          4200
+        ]
+      },
+      {
+        "name": "m",
+        "type": "choice",
+        "values": [
+          0.5,
+          1,
+          2,
+          3,
+          5
+        ]
+      },
+      {
+        "name": "dT",
+        "type": "choice",
+        "values": [
+          10,
+          20,
+          30,
+          40,
+          50
+        ]
+      }
+    ],
+    "derived": {
+      "Q": "c*m*dT/1000"
+    },
+    "constraints": [],
+    "answer": {
+      "expr": "Q",
+      "unit": "kJ",
+      "round": 1
+    },
+    "distractors": [
+      {
+        "expr": "c*m*dT",
+        "why": {
+          "uz": "Natija Joulda qolib ketgan — kiloJoulga o'tkazish (1000 ga bo'lish) unutilgan."
+        }
+      },
+      {
+        "expr": "c*dT/m",
+        "why": {
+          "uz": "Massaga ko'paytirish o'rniga bo'lingan."
+        }
+      },
+      {
+        "expr": "c*m/dT",
+        "why": {
+          "uz": "Harorat o'zgarishiga ko'paytirish o'rniga bo'lingan."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "{m} kg massali jismni {dT}°C ga qizdirish uchun zarur issiqlik miqdorini toping. Jismning solishli issiqlik sig'imi c = {c} J/(kg·°C)."
+    },
+    "solution": {
+      "uz": "Q = cmΔT = {c}·{m}·{dT} J = {ans} kJ."
+    },
+    "hints": [
+      {
+        "uz": "Issiqlik miqdori formulasi: Q = cmΔT."
+      },
+      {
+        "uz": "Hisoblangan qiymatni Jouldan kiloJoulga o'tkazishni unutmang (1000 ga bo'ling)."
+      }
+    ],
+    "tags": [
+      "termodinamika",
+      "issiqlik miqdori",
+      "kalorimetriya"
+    ]
+  },
+  {
+    "id": "fiz-suyuqlik-gidrostatik-bosim-01",
+    "subject": "fizika",
+    "topic": "Suyuqliklar, qattiq jismlar va ularning xossalari",
+    "subtopic": "Gidrostatik bosim",
+    "grade": [
+      7,
+      10
+    ],
+    "exams": [
+      "dtm",
+      "maktab"
+    ],
+    "difficulty": 1,
+    "params": [
+      {
+        "name": "rho",
+        "type": "choice",
+        "values": [
+          800,
+          1000,
+          1300,
+          13600
+        ]
+      },
+      {
+        "name": "h",
+        "type": "choice",
+        "values": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          8,
+          10
+        ]
+      },
+      {
+        "name": "g",
+        "type": "const",
+        "value": 10
+      }
+    ],
+    "derived": {
+      "P": "rho*g*h/1000"
+    },
+    "constraints": [],
+    "answer": {
+      "expr": "P",
+      "unit": "kPa",
+      "round": 1
+    },
+    "distractors": [
+      {
+        "expr": "rho*h/1000",
+        "why": {
+          "uz": "Erkin tushish tezlanishi g formulaga kiritilmagan."
+        }
+      },
+      {
+        "expr": "rho*g/(h*1000)",
+        "why": {
+          "uz": "h ga ko'paytirish o'rniga bo'lingan."
+        }
+      },
+      {
+        "expr": "g*h/1000",
+        "why": {
+          "uz": "Suyuqlik zichligi ρ hisobga olinmagan."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "Zichligi ρ = {rho} kg/m³ bo'lgan suyuqlik ichida h = {h} m chuqurlikdagi gidrostatik bosimni toping (g = {g} m/s²)."
+    },
+    "solution": {
+      "uz": "Gidrostatik bosim: P = ρgh = {rho}·{g}·{h} Pa = {ans} kPa."
+    },
+    "hints": [
+      {
+        "uz": "Gidrostatik bosim formulasi: P = ρgh."
+      },
+      {
+        "uz": "Natijani Paskaldan kiloPaskalga o'tkazing (1000 ga bo'ling)."
+      }
+    ],
+    "tags": [
+      "gidrostatika",
+      "bosim",
+      "zichlik"
+    ]
+  },
+  {
+    "id": "fiz-elektrostatika-kulon-01",
+    "subject": "fizika",
+    "topic": "Elektrostatika",
+    "subtopic": "Kulon qonuni",
+    "grade": [
+      10,
+      11
+    ],
+    "exams": [
+      "dtm"
+    ],
+    "difficulty": 3,
+    "params": [
+      {
+        "name": "q1",
+        "type": "choice",
+        "values": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          8,
+          10
+        ]
+      },
+      {
+        "name": "q2",
+        "type": "choice",
+        "values": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          8,
+          10
+        ]
+      },
+      {
+        "name": "r",
+        "type": "choice",
+        "values": [
+          1,
+          2,
+          3
+        ]
+      }
+    ],
+    "derived": {
+      "F": "0.009*q1*q2/r^2"
+    },
+    "constraints": [],
+    "answer": {
+      "expr": "F",
+      "unit": "N",
+      "round": 3
+    },
+    "distractors": [
+      {
+        "expr": "0.009*q1*q2*r^2",
+        "why": {
+          "uz": "r² maxrajda emas, xato ravishda surat sifatida ko'paytirilgan."
+        }
+      },
+      {
+        "expr": "0.009*(q1+q2)/r^2",
+        "why": {
+          "uz": "Zaryadlar ko'paytirish o'rniga qo'shilgan."
+        }
+      },
+      {
+        "expr": "0.009*q1*q2/r",
+        "why": {
+          "uz": "Masofa kvadratga ko'tarilmagan — Kulon qonunida r² turadi."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "Bir-biridan r = {r} m masofada joylashgan q₁ = {q1} mkKl va q₂ = {q2} mkKl zaryadlar orasidagi Kulon kuchini toping (k = 9·10⁹ N·m²/Kl²)."
+    },
+    "solution": {
+      "uz": "Kulon qonuni: F = kq₁q₂/r² = 9·10⁹·{q1}·10⁻⁶·{q2}·10⁻⁶/{r}² = {ans} N."
+    },
+    "hints": [
+      {
+        "uz": "Kulon qonuni: F = kq₁q₂/r² (zaryadlarni mikroKulondan Kulonga o'tkazishni unutmang: 1 mkKl = 10⁻⁶ Kl)."
+      },
+      {
+        "uz": "k = 9·10⁹, q1 va q2 ni 10⁻⁶ ga ko'paytirilgan holda oling, so'ng r² ga bo'ling."
+      }
+    ],
+    "tags": [
+      "elektrostatika",
+      "kulon qonuni",
+      "zaryad"
+    ]
+  },
+  {
+    "id": "fiz-elektr-ketma-ket-quvvat-01",
+    "subject": "fizika",
+    "topic": "O'zgarmas elektr toki",
+    "subtopic": "Ketma-ket ulanish va quvvat",
+    "grade": [
+      8,
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab"
+    ],
+    "difficulty": 2,
+    "params": [
+      {
+        "name": "R1",
+        "type": "choice",
+        "values": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          8,
+          10
+        ]
+      },
+      {
+        "name": "R2",
+        "type": "choice",
+        "values": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          8,
+          10
+        ]
+      },
+      {
+        "name": "U",
+        "type": "choice",
+        "values": [
+          6,
+          12,
+          18,
+          24,
+          36,
+          48,
+          60
+        ]
+      }
+    ],
+    "derived": {
+      "R": "R1+R2",
+      "I": "U/(R1+R2)",
+      "P": "U*U/(R1+R2)"
+    },
+    "constraints": [
+      "R1 != R2",
+      "isInteger(I*10)"
+    ],
+    "answer": {
+      "expr": "P",
+      "unit": "W",
+      "round": 1
+    },
+    "distractors": [
+      {
+        "expr": "U^2*(R1+R2)/(R1*R2)",
+        "why": {
+          "uz": "Qarshiliklar parallel deb hisoblangan. Ketma-ket ulanishda R=R1+R2."
+        }
+      },
+      {
+        "expr": "(U/(R1+R2))*R1",
+        "why": {
+          "uz": "Bu — faqat R1 dagi kuchlanish (U=IR1), quvvat emas."
+        }
+      },
+      {
+        "expr": "U^2/R1",
+        "why": {
+          "uz": "Ikkinchi qarshilik R2 butunlay hisobga olinmagan."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "{R1} Ω va {R2} Ω qarshiliklar ketma-ket ulangan zanjirga U = {U} V kuchlanish berilgan. Zanjirda ajraladigan umumiy quvvatni toping."
+    },
+    "solution": {
+      "uz": "Ketma-ket ulanishda R = R₁+R₂ = {R} Ω.\nOm qonuni: I = U/R = {I} A.\nQuvvat: P = UI = {U}·{I} = {ans} W."
+    },
+    "hints": [
+      {
+        "uz": "Ketma-ket ulanishda umumiy qarshilik R = R₁+R₂."
+      },
+      {
+        "uz": "Avval tok kuchini (I=U/R), so'ng quvvatni (P=UI) toping."
+      }
+    ],
+    "tags": [
+      "om qonuni",
+      "ketma-ket ulanish",
+      "quvvat"
+    ]
+  },
+  {
+    "id": "fiz-induksiya-emf-01",
+    "subject": "fizika",
+    "topic": "Elektromagnit induksiya va magnit maydoni",
+    "subtopic": "Harakatlanuvchi o'tkazgichda EYUK",
+    "grade": [
+      11
+    ],
+    "exams": [
+      "dtm"
+    ],
+    "difficulty": 3,
+    "params": [
+      {
+        "name": "B",
+        "type": "choice",
+        "values": [
+          0.1,
+          0.2,
+          0.5,
+          1,
+          1.5,
+          2
+        ]
+      },
+      {
+        "name": "l",
+        "type": "choice",
+        "values": [
+          0.2,
+          0.5,
+          1,
+          1.5,
+          2
+        ]
+      },
+      {
+        "name": "v",
+        "type": "choice",
+        "values": [
+          2,
+          4,
+          5,
+          8,
+          10,
+          15,
+          20
+        ]
+      }
+    ],
+    "derived": {
+      "E": "B*l*v"
+    },
+    "constraints": [],
+    "answer": {
+      "expr": "E",
+      "unit": "V",
+      "round": 2
+    },
+    "distractors": [
+      {
+        "expr": "B*l/v",
+        "why": {
+          "uz": "Ko'paytirish o'rniga bo'lingan — to'g'ri formula E=Blv."
+        }
+      },
+      {
+        "expr": "B*v/l",
+        "why": {
+          "uz": "l va v formulada noto'g'ri joylashtirilgan."
+        }
+      },
+      {
+        "expr": "l*v",
+        "why": {
+          "uz": "Magnit induksiya B hisobga olinmagan."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "Magnit induksiyasi B = {B} Tl bo'lgan bir jinsli magnit maydonda uzunligi l = {l} m bo'lgan to'g'ri o'tkazgich maydon chizig'lariga perpendikulyar v = {v} m/s tezlik bilan harakatlanmoqda. O'tkazgichda hosil bo'lgan EYUKni toping."
+    },
+    "solution": {
+      "uz": "Induksiyalangan EYUK: E = Blv = {B}·{l}·{v} = {ans} V."
+    },
+    "hints": [
+      {
+        "uz": "Harakatlanuvchi o'tkazgichda EYUK formulasi: E = Blv."
+      },
+      {
+        "uz": "Barcha kattaliklarni to'g'ridan-to'g'ri ko'paytiring."
+      }
+    ],
+    "tags": [
+      "induksiya",
+      "eyuk",
+      "magnit maydon"
+    ]
+  },
+  {
+    "id": "fiz-optika-linza-01",
+    "subject": "fizika",
+    "topic": "Geometrik va to'lqin optikasi",
+    "subtopic": "Yupqa linza formulasi",
+    "grade": [
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab"
+    ],
+    "difficulty": 3,
+    "params": [
+      {
+        "name": "pair",
+        "type": "set",
+        "names": [
+          "F",
+          "d"
+        ],
+        "rows": [
+          [
+            5,
+            10
+          ],
+          [
+            8,
+            16
+          ],
+          [
+            8,
+            24
+          ],
+          [
+            10,
+            15
+          ],
+          [
+            10,
+            20
+          ],
+          [
+            10,
+            30
+          ],
+          [
+            15,
+            30
+          ],
+          [
+            20,
+            30
+          ],
+          [
+            20,
+            40
+          ],
+          [
+            20,
+            60
+          ],
+          [
+            25,
+            50
+          ]
+        ]
+      }
+    ],
+    "derived": {
+      "f": "F*d/(d-F)"
+    },
+    "constraints": [
+      "isInteger(f)"
+    ],
+    "answer": {
+      "expr": "f",
+      "unit": "sm",
+      "round": 0
+    },
+    "distractors": [
+      {
+        "expr": "F*d/(d+F)",
+        "why": {
+          "uz": "Maxrajda ayirish o'rniga qo'shish bajarilgan — to'g'ri formula f=Fd/(d−F)."
+        }
+      },
+      {
+        "expr": "d - F",
+        "why": {
+          "uz": "Linza formulasi butunlay qo'llanilmagan."
+        }
+      },
+      {
+        "expr": "F*(d-F)/d",
+        "why": {
+          "uz": "Formula noto'g'ri qayta tuzilgan."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "Fokus masofasi F = {F} sm bo'lgan yig'uvchi linzadan d = {d} sm masofada jism joylashtirilgan. Tasvirning linzadan qanday masofada hosil bo'lishini toping."
+    },
+    "solution": {
+      "uz": "Linza formulasi: 1/F = 1/d + 1/f.\nf = Fd/(d − F) = {F}·{d}/({d} − {F}) = {ans} sm."
+    },
+    "hints": [
+      {
+        "uz": "Yupqa linza formulasi: 1/F = 1/d + 1/f."
+      },
+      {
+        "uz": "f ni ifodalang: f = Fd/(d−F)."
+      }
+    ],
+    "tags": [
+      "optika",
+      "linza",
+      "tasvir"
+    ]
+  },
+  {
+    "id": "fiz-atom-yarim-yemirilish-01",
+    "subject": "fizika",
+    "topic": "Atom va yadro fizikasi",
+    "subtopic": "Radioaktiv yemirilish — yarim yemirilish davri",
+    "grade": [
+      11
+    ],
+    "exams": [
+      "dtm"
+    ],
+    "difficulty": 2,
+    "params": [
+      {
+        "name": "N0",
+        "type": "choice",
+        "values": [
+          800,
+          1600,
+          3200,
+          6400
+        ]
+      },
+      {
+        "name": "n",
+        "type": "choice",
+        "values": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    ],
+    "derived": {
+      "N": "N0/2^n"
+    },
+    "constraints": [
+      "isInteger(N)"
+    ],
+    "answer": {
+      "expr": "N",
+      "unit": "g",
+      "round": 0
+    },
+    "distractors": [
+      {
+        "expr": "N0/n",
+        "why": {
+          "uz": "Yemirilish eksponensial (2 ga ko'tarilgan darajada), chiziqli emas."
+        }
+      },
+      {
+        "expr": "N0*(1/2)*n",
+        "why": {
+          "uz": "Chiziqli kamayish deb noto'g'ri hisoblangan, to'g'risi N=N₀·(1/2)ⁿ."
+        }
+      },
+      {
+        "expr": "N0/(2*n)",
+        "why": {
+          "uz": "Yemirilish 2ⁿ ga (eksponensial), 2n ga (chiziqli) bo'lish orqali topilmaydi."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "Radioaktiv moddaning boshlang'ich massasi N₀ = {N0} g. Moddaning yarim yemirilish davri T ga teng vaqt {n} marta o'tgach, moddaning necha grammi yemirilmay qolganini toping."
+    },
+    "solution": {
+      "uz": "Yemirilish qonuni: N = N₀·(1/2)ⁿ, bu yerda n — o'tgan yarim yemirilish davrlari soni.\nN = {N0}/2^{n} = {ans} g."
+    },
+    "hints": [
+      {
+        "uz": "Har bir yarim yemirilish davridan so'ng modda miqdori 2 marta kamayadi: N = N₀·(1/2)ⁿ."
+      },
+      {
+        "uz": "N₀ ni 2 ga {n} marta ketma-ket bo'ling (yoki 2ⁿ ga bo'ling)."
+      }
+    ],
+    "tags": [
+      "yadro fizikasi",
+      "radioaktivlik",
+      "yarim yemirilish davri"
+    ]
+  }
+]
