@@ -306,6 +306,7 @@ model CourseLesson {
   videoUrl        String?    // YouTube — SecureYouTubePlayer orqali ko'rsatiladi
   content         String?    // LaTeX/matn — LatexRenderer qayta ishlatiladi
   testId          String?    // MAVJUD Test'ga ishora — QUIZ turi uchun, qayta qurilmaydi
+  fileUrl         String?    // PDF turi uchun — /api/upload?endpoint=aiImportFile orqali yuklanadi
   durationMinutes Int?
   isPreviewable   Boolean    @default(false) // yozilmagan foydalanuvchi ham ko'ra oladigan bepul namuna (MVP-B)
   createdAt       DateTime   @default(now())

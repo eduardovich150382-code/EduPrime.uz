@@ -63,6 +63,7 @@ export async function GET(
           videoUrl: l.videoUrl,
           content: l.content,
           test: l.test,
+          fileUrl: l.fileUrl,
           completed: p?.completed || false,
           lastPositionSeconds: p?.lastPositionSeconds || 0,
         };
