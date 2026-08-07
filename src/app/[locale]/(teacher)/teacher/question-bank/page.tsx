@@ -14,8 +14,10 @@ import {
   FILL_BLANK_MARKER, countFillBlanks, encodeFillBlankCorrectAnswer, parseFillBlankCorrectAnswer,
 } from '@/lib/fill-blank';
 import FillBlankEditor from '@/components/ui/FillBlankEditor';
+import MatchingEditor, { type MatchingPairInput } from '@/components/ui/MatchingEditor';
+import { parseMatchingPairs } from '@/lib/matching';
 
-type QType = 'MULTIPLE_CHOICE' | 'OPEN_ENDED' | 'TRUE_FALSE' | 'MULTI_SELECT' | 'FILL_BLANK';
+type QType = 'MULTIPLE_CHOICE' | 'OPEN_ENDED' | 'TRUE_FALSE' | 'MULTI_SELECT' | 'FILL_BLANK' | 'MATCHING';
 
 interface BankOption { label: string; text: string; image: string | null }
 
@@ -24,7 +26,7 @@ interface BankQuestionItem {
   subjectId: string;
   text: string;
   images: string[];
-  options: BankOption[];
+  options: BankOption[] | { left: string[]; right: string[] };
   correctAnswer: string;
   type: QType;
   explanation: string | null;
@@ -59,6 +61,7 @@ const emptyForm = {
   bloomLevel: '',
   difficulty: null as number | null,
   blankAnswers: [''] as string[],
+  matchingPairs: [{ left: '', right: '' }, { left: '', right: '' }] as MatchingPairInput[],
 };
 
 // FILL_BLANK: matndagi "___" soniga mos ravishda blankAnswers ro'yxatini hisoblaydi.
@@ -70,7 +73,16 @@ function fillBlankCorrectAnswer(text: string, blankAnswers: string[]): string {
   return encodeFillBlankCorrectAnswer(perBlank);
 }
 
-function isBankFormValid(form: { text: string; type: QType; correctAnswer: string; blankAnswers: string[] }): boolean {
+// MATCHING: juftliklarni Question.options (Json) kutayotgan {left, right} shakliga o'giradi.
+function matchingOptionsFromPairs(pairs: MatchingPairInput[]): { left: string[]; right: string[] } {
+  const filled = pairs.filter((p) => p.left.trim() && p.right.trim());
+  return {
+    left: filled.map((p) => p.left.trim()),
+    right: filled.map((p) => p.right.trim()),
+  };
+}
+
+function isBankFormValid(form: { text: string; type: QType; correctAnswer: string; blankAnswers: string[]; matchingPairs: MatchingPairInput[] }): boolean {
   if (!form.text) return false;
   if (form.type === 'FILL_BLANK') {
     const blankCount = countFillBlanks(form.text);
@@ -79,6 +91,9 @@ function isBankFormValid(form: { text: string; type: QType; correctAnswer: strin
       if (!(form.blankAnswers[i] || '').trim()) return false;
     }
     return true;
+  }
+  if (form.type === 'MATCHING') {
+    return form.matchingPairs.filter((p) => p.left.trim() && p.right.trim()).length >= 2;
   }
   return !!form.correctAnswer;
 }
@@ -131,13 +146,14 @@ export default function QuestionBankPage() {
           { label: 'C', text: '', image: null }, { label: 'D', text: '', image: null },
         ];
         correctAnswer = '';
-      } else if (newType === 'OPEN_ENDED' || newType === 'FILL_BLANK') {
+      } else if (newType === 'OPEN_ENDED' || newType === 'FILL_BLANK' || newType === 'MATCHING') {
         correctAnswer = '';
       } else if (newType === 'MULTIPLE_CHOICE' && correctAnswer.includes(',')) {
         correctAnswer = correctAnswer.split(',')[0] || '';
       }
       const blankAnswers = newType === 'FILL_BLANK' ? [''] : prev.blankAnswers;
-      return { ...prev, type: newType, options, correctAnswer, blankAnswers };
+      const matchingPairs = newType === 'MATCHING' ? [{ left: '', right: '' }, { left: '', right: '' }] : prev.matchingPairs;
+      return { ...prev, type: newType, options, correctAnswer, blankAnswers, matchingPairs };
     });
   };
 
@@ -188,6 +204,7 @@ export default function QuestionBankPage() {
     setSaving(true);
     try {
       const isFillBlank = form.type === 'FILL_BLANK';
+      const isMatching = form.type === 'MATCHING';
       const res = await fetch('/api/teacher/question-bank', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -195,8 +212,8 @@ export default function QuestionBankPage() {
           subjectId: form.subjectId,
           text: form.text,
           images: form.images,
-          options: (form.type === 'OPEN_ENDED' || isFillBlank) ? [] : form.options.filter(o => o.text),
-          correctAnswer: isFillBlank ? fillBlankCorrectAnswer(form.text, form.blankAnswers) : form.correctAnswer,
+          options: isMatching ? matchingOptionsFromPairs(form.matchingPairs) : (form.type === 'OPEN_ENDED' || isFillBlank) ? [] : form.options.filter(o => o.text),
+          correctAnswer: isFillBlank ? fillBlankCorrectAnswer(form.text, form.blankAnswers) : isMatching ? '' : form.correctAnswer,
           type: form.type,
           explanation: form.explanation || null,
           topic: form.topic || null,
@@ -309,6 +326,7 @@ export default function QuestionBankPage() {
                 { key: 'TRUE_FALSE' as const, label: "To'g'ri/Noto'g'ri" },
                 { key: 'OPEN_ENDED' as const, label: 'Ochiq' },
                 { key: 'FILL_BLANK' as const, label: "Bo'shliqni to'ldirish" },
+                { key: 'MATCHING' as const, label: 'Moslashtirish' },
               ]).map((opt) => (
                 <button
                   key={opt.key}
@@ -328,6 +346,11 @@ export default function QuestionBankPage() {
               question={form}
               onInsertBlank={insertBlankMarker}
               onBlankAnswersChange={(blankAnswers) => setForm({ ...form, blankAnswers })}
+            />
+          ) : form.type === 'MATCHING' ? (
+            <MatchingEditor
+              pairs={form.matchingPairs}
+              onChange={(matchingPairs) => setForm({ ...form, matchingPairs })}
             />
           ) : form.type === 'OPEN_ENDED' ? (
             <div>
@@ -491,6 +514,7 @@ export default function QuestionBankPage() {
                     {q.type === 'MULTI_SELECT' && <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">Ko&apos;p tanlovli</span>}
                     {q.type === 'TRUE_FALSE' && <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">T/N</span>}
                     {q.type === 'FILL_BLANK' && <span className="text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">Bo&apos;shliq</span>}
+                    {q.type === 'MATCHING' && <span className="text-xs px-2 py-0.5 rounded-full bg-teal-100 text-teal-700">Moslashtirish</span>}
                   </div>
                   <div className="text-sm text-text-primary">
                     <LatexRenderer content={q.text} />

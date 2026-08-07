@@ -10,6 +10,7 @@ import PremiumCTA from '@/components/ui/PremiumCTA';
 import {
   splitFillBlankText, parseFillBlankAnswer, parseFillBlankCorrectAnswer, isFillBlankIndexCorrect,
 } from '@/lib/fill-blank';
+import { parseMatchingPairs, parseMatchingAnswer, isMatchingRowCorrect } from '@/lib/matching';
 import {
   CheckCircle, XCircle, SkipForward, Clock, Trophy,
   Video, FileText, ArrowLeft, Share2, RotateCcw,
@@ -27,7 +28,7 @@ interface QuestionData {
   id: string;
   text: string;
   images: string[];
-  options: QuestionOption[];
+  options: QuestionOption[] | { left: string[]; right: string[] };
   correctAnswer: string;
   explanation: string | null;
   explanationImages: string[];
@@ -775,6 +776,52 @@ export default function ResultPage() {
                           </div>
                         )}
                       </div>
+                    ) : question.type === 'MATCHING' ? (
+                      /* MATCHING: har bir chap qatorni tanlangan/to'g'ri o'ng element bilan solishtirib ko'rsatadi */
+                      (() => {
+                        const pairs = parseMatchingPairs(question.options);
+                        const canonicalMatches = parseMatchingAnswer(userAnswer);
+                        return (
+                          <div className="space-y-2">
+                            {pairs.left.map((left, i) => {
+                              const rowCorrect = isMatchingRowCorrect(canonicalMatches, i);
+                              const chosen = canonicalMatches[i];
+                              const chosenText = chosen !== null && chosen !== undefined && chosen >= 0 && chosen < pairs.right.length
+                                ? pairs.right[chosen]
+                                : null;
+                              return (
+                                <div
+                                  key={i}
+                                  className={`flex items-center gap-3 p-3 rounded-xl border-2 ${
+                                    rowCorrect ? 'border-green-400 bg-green-50' : isSkipped ? 'border-gray-200 bg-gray-50' : 'border-red-400 bg-red-50'
+                                  }`}
+                                >
+                                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 border-2 ${
+                                    rowCorrect
+                                      ? 'border-green-500 bg-green-500 text-white'
+                                      : isSkipped
+                                      ? 'border-gray-300 bg-gray-200 text-gray-500'
+                                      : 'border-red-500 bg-red-500 text-white'
+                                  }`}>
+                                    {rowCorrect ? <CheckCircle size={14} /> : isSkipped ? '?' : <XCircle size={14} />}
+                                  </div>
+                                  <div className="flex-1 min-w-0 text-sm text-text-primary">
+                                    <LatexRenderer content={left} />
+                                  </div>
+                                  <div className="text-sm text-right flex-shrink-0">
+                                    <p className={`font-medium ${rowCorrect ? 'text-green-700' : chosenText ? 'text-red-700' : 'text-gray-500'}`}>
+                                      {chosenText || 'Tanlanmagan'}
+                                    </p>
+                                    {!rowCorrect && (
+                                      <p className="text-xs text-green-600 mt-0.5">To&apos;g&apos;ri: {pairs.right[i]}</p>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      })()
                     ) : (
                       /* MULTIPLE_CHOICE / TRUE_FALSE / MULTI_SELECT: show options without A/B/C/D labels */
                     <div className="space-y-2">

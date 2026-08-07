@@ -32,7 +32,7 @@ type QuestionCandidate = {
   images: string[];
   options: unknown;
   correctAnswer: string;
-  type: 'MULTIPLE_CHOICE' | 'OPEN_ENDED' | 'TRUE_FALSE' | 'MULTI_SELECT' | 'FILL_BLANK';
+  type: 'MULTIPLE_CHOICE' | 'OPEN_ENDED' | 'TRUE_FALSE' | 'MULTI_SELECT' | 'FILL_BLANK' | 'MATCHING';
   explanation: string | null;
   explanationImages: string[];
   topic: string | null;

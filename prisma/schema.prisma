@@ -177,6 +177,7 @@ enum QuestionType {
   TRUE_FALSE
   MULTI_SELECT
   FILL_BLANK
+  MATCHING
 }
 
 model Test {
