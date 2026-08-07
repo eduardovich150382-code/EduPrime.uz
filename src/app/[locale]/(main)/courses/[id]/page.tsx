@@ -3,13 +3,14 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { Link } from '@/i18n/routing';
 import BackButton from '@/components/ui/BackButton';
 import LatexRenderer from '@/components/ui/LatexRenderer';
 import SecureYouTubePlayer from '@/components/ui/SecureYouTubePlayer';
 import {
   GraduationCap, Clock, Layers, Loader2, User, Lock, Play, FileText,
-  ListChecks, Sparkles, AlertCircle, ArrowRight,
+  ListChecks, Sparkles, AlertCircle, ArrowRight, Star, Trash2, Send,
 } from 'lucide-react';
 
 interface LessonItem {
@@ -45,6 +46,17 @@ interface CourseDetail {
   sections: SectionItem[];
   isEnrolled: boolean;
   hasAccess: boolean;
+  avgRating: number | null;
+  reviewCount: number;
+}
+
+interface ReviewItem {
+  id: string;
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+  userId: string;
+  userName: string;
 }
 
 const LESSON_ICONS = { VIDEO: Play, TEXT: FileText, QUIZ: ListChecks, PDF: FileText };
@@ -60,12 +72,23 @@ const ACCESS_LABELS: Record<string, string> = {
 export default function CourseDetailPage() {
   const params = useParams();
   const courseId = params.id as string;
+  const { data: session } = useSession();
+  const userId = (session?.user as any)?.id;
+  const userRole = (session?.user as any)?.role;
 
   const [course, setCourse] = useState<CourseDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [enrolling, setEnrolling] = useState(false);
   const [expandedLessonId, setExpandedLessonId] = useState<string | null>(null);
+
+  const [reviews, setReviews] = useState<ReviewItem[]>([]);
+  const [myReview, setMyReview] = useState<ReviewItem | null>(null);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [ratingInput, setRatingInput] = useState(0);
+  const [commentInput, setCommentInput] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [deletingReviewId, setDeletingReviewId] = useState<string | null>(null);
 
   const fetchCourse = () => {
     fetch(`/api/courses/${courseId}`)
@@ -81,10 +104,70 @@ export default function CourseDetailPage() {
       .finally(() => setLoading(false));
   };
 
+  const fetchReviews = () => {
+    fetch(`/api/courses/${courseId}/reviews`)
+      .then((res) => res.json())
+      .then((data) => {
+        setReviews(data.reviews || []);
+        setMyReview(data.myReview || null);
+        if (data.myReview) {
+          setRatingInput(data.myReview.rating);
+          setCommentInput(data.myReview.comment || '');
+        }
+      })
+      .catch(() => {})
+      .finally(() => setReviewsLoading(false));
+  };
+
   useEffect(() => {
     fetchCourse();
+    fetchReviews();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseId]);
+
+  const handleSubmitReview = async () => {
+    if (ratingInput < 1 || ratingInput > 5) return;
+    setSubmittingReview(true);
+    try {
+      const res = await fetch(`/api/courses/${courseId}/reviews`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rating: ratingInput, comment: commentInput }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        fetchReviews();
+        fetchCourse();
+      } else {
+        alert(data.error || 'Xatolik yuz berdi');
+      }
+    } catch {
+      alert('Server xatolik');
+    }
+    setSubmittingReview(false);
+  };
+
+  const handleDeleteReview = async (reviewId: string) => {
+    if (!confirm("Sharhni o'chirishni tasdiqlaysizmi?")) return;
+    setDeletingReviewId(reviewId);
+    try {
+      const res = await fetch(`/api/courses/${courseId}/reviews/${reviewId}`, { method: 'DELETE' });
+      if (res.ok) {
+        if (myReview?.id === reviewId) {
+          setMyReview(null);
+          setRatingInput(0);
+          setCommentInput('');
+        }
+        fetchReviews();
+        fetchCourse();
+      } else {
+        alert("O'chirishda xatolik yuz berdi");
+      }
+    } catch {
+      alert('Server xatolik');
+    }
+    setDeletingReviewId(null);
+  };
 
   const handleEnroll = async () => {
     setEnrolling(true);
@@ -139,11 +222,19 @@ export default function CourseDetailPage() {
         <div className="p-6">
           <span className="text-xs text-text-secondary">{course.subject.icon} {course.subject.nameUz}</span>
           <h1 className="text-xl sm:text-2xl font-bold text-text-primary mt-1 mb-2">{course.titleUz}</h1>
-          {course.teacherName && (
-            <p className="text-sm text-text-secondary flex items-center gap-1.5 mb-3">
-              <User size={14} /> {course.teacherName}
-            </p>
-          )}
+          <div className="flex flex-wrap items-center gap-4 mb-3">
+            {course.teacherName && (
+              <p className="text-sm text-text-secondary flex items-center gap-1.5">
+                <User size={14} /> {course.teacherName}
+              </p>
+            )}
+            {course.avgRating !== null && (
+              <p className="text-sm text-amber-600 flex items-center gap-1.5">
+                <Star size={14} className="fill-amber-500 text-amber-500" /> {course.avgRating}
+                <span className="text-text-secondary">({course.reviewCount} sharh)</span>
+              </p>
+            )}
+          </div>
           {course.description && <p className="text-sm text-text-secondary mb-4">{course.description}</p>}
           <div className="flex flex-wrap items-center gap-4 text-sm text-text-secondary">
             <span className="flex items-center gap-1.5"><Layers size={14} /> {course.sections.length} bo&apos;lim, {totalLessons} dars</span>
@@ -249,6 +340,82 @@ export default function CourseDetailPage() {
             </div>
           ))}
         </div>
+      </motion.div>
+
+      {/* Reviews */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="card p-6 space-y-5">
+        <h2 className="font-semibold text-text-primary">
+          Sharhlar {course.reviewCount > 0 && <span className="text-text-secondary font-normal">({course.reviewCount})</span>}
+        </h2>
+
+        {course.isEnrolled && (
+          <div className="p-4 rounded-xl border border-border bg-gray-50/50 space-y-3">
+            <p className="text-sm font-medium text-text-primary">{myReview ? 'Sharhingizni tahrirlash' : 'Sharh qoldiring'}</p>
+            <div className="flex items-center gap-1">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <button key={n} type="button" onClick={() => setRatingInput(n)} className="p-0.5">
+                  <Star size={22} className={n <= ratingInput ? 'fill-amber-500 text-amber-500' : 'text-gray-300'} />
+                </button>
+              ))}
+            </div>
+            <textarea
+              value={commentInput}
+              onChange={(e) => setCommentInput(e.target.value)}
+              placeholder="Kurs haqida fikringiz (ixtiyoriy)..."
+              rows={3}
+              maxLength={1000}
+              className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all resize-none"
+            />
+            <button
+              onClick={handleSubmitReview}
+              disabled={submittingReview || ratingInput < 1}
+              className="btn-primary flex items-center gap-2 !py-2 !px-4 text-sm disabled:opacity-50"
+            >
+              {submittingReview ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+              {myReview ? 'Yangilash' : 'Yuborish'}
+            </button>
+          </div>
+        )}
+
+        {reviewsLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 size={24} className="animate-spin text-primary-600" />
+          </div>
+        ) : reviews.length === 0 ? (
+          <p className="text-sm text-text-secondary text-center py-6">
+            Hali sharh yo&apos;q. {course.isEnrolled ? 'Birinchi bo\'lib fikr bildiring!' : ''}
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {reviews.map((r) => (
+              <div key={r.id} className="p-3 rounded-xl border border-border">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-medium text-text-primary">{r.userName}</span>
+                      <div className="flex items-center gap-0.5">
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <Star key={n} size={12} className={n <= r.rating ? 'fill-amber-500 text-amber-500' : 'text-gray-300'} />
+                        ))}
+                      </div>
+                    </div>
+                    {r.comment && <p className="text-sm text-text-secondary mt-1">{r.comment}</p>}
+                  </div>
+                  {(r.userId === userId || userRole === 'ADMIN') && (
+                    <button
+                      onClick={() => handleDeleteReview(r.id)}
+                      disabled={deletingReviewId === r.id}
+                      className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition-colors flex-shrink-0"
+                      title="O'chirish"
+                    >
+                      {deletingReviewId === r.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </motion.div>
     </div>
   );

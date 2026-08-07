@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import {
-  GraduationCap, Search, Clock, Layers, Loader2, User, Lock,
+  GraduationCap, Search, Clock, Layers, Loader2, User, Lock, Star,
 } from 'lucide-react';
 
 interface CourseItem {
@@ -20,6 +20,8 @@ interface CourseItem {
   difficulty: number | null;
   estimatedHours: number | null;
   lessonCount: number;
+  avgRating: number | null;
+  reviewCount: number;
 }
 
 interface SubjectItem {
@@ -168,11 +170,18 @@ export default function CoursesCatalogPage() {
                       <span>{course.subject.icon} {course.subject.nameUz}</span>
                     </div>
                     <h3 className="font-semibold text-text-primary text-sm mb-2 line-clamp-2">{course.titleUz}</h3>
-                    {course.teacherName && (
-                      <p className="text-xs text-text-secondary flex items-center gap-1 mb-3">
-                        <User size={11} /> {course.teacherName}
-                      </p>
-                    )}
+                    <div className="flex items-center gap-3 mb-3">
+                      {course.teacherName && (
+                        <p className="text-xs text-text-secondary flex items-center gap-1">
+                          <User size={11} /> {course.teacherName}
+                        </p>
+                      )}
+                      {course.avgRating !== null && (
+                        <p className="text-xs text-amber-600 flex items-center gap-1">
+                          <Star size={11} className="fill-amber-500 text-amber-500" /> {course.avgRating} ({course.reviewCount})
+                        </p>
+                      )}
+                    </div>
                     <div className="mt-auto flex items-center justify-between">
                       <div className="flex items-center gap-3 text-xs text-text-secondary">
                         <span className="flex items-center gap-1"><Layers size={12} /> {course.lessonCount} dars</span>
