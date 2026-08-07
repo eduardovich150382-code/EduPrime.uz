@@ -20,6 +20,7 @@ interface SectionSpec {
   count: number;
   pointsPerQuestion: number;
   bias: DifficultyBias;
+  topicFilter?: (topic: string | null) => boolean;
 }
 
 export type DtmGenerationError =
@@ -42,6 +43,28 @@ type QuestionCandidate = {
 };
 
 type DifficultyBucket = 'easy' | 'medium' | 'hard';
+
+/** Lotin apostrof variantlarini (', ', ʻ, ʼ, `) olib tashlab, kichik harfga o'tkazadi — mavzu tegini taqqoslash uchun. */
+function normalizeUzText(s: string | null): string {
+  return (s ?? '').toLowerCase().replace(/[‘’ʻʼ'`]/g, '');
+}
+
+/**
+ * MAJBURIY (10 ta) bo'lim uchun tor mavzu filtri — real DTM tuzilishiga mos:
+ * Tarixda majburiy qismga faqat O'zbekiston tarixi, Ona tili va adabiyotda
+ * faqat ona tili (grammatika) kiradi, adabiyot emas. MUTAXASSISLIK (30 ta)
+ * bo'limida bu cheklov qo'llanilmaydi — ikkala yo'nalishdan ham (Jahon
+ * tarixi / adabiyot) savol kelishi mumkin. `topic` tegi mos kelmasa yoki
+ * bo'sh bo'lsa, savol majburiy havzaga kiritilmaydi (faqat mutaxassislikda
+ * ko'rinadi) — noto'g'ri tasniflanishning oldini olish uchun ataylab qattiq.
+ */
+const MANDATORY_TOPIC_FILTERS: Partial<Record<string, (topic: string | null) => boolean>> = {
+  'Tarix': (topic) => normalizeUzText(topic).includes('ozbekiston'),
+  'Ona tili va adabiyot': (topic) => {
+    const t = normalizeUzText(topic);
+    return t.includes('til') && !t.includes('adabiy');
+  },
+};
 
 // Tegsiz (difficulty=null) savollar "medium" ga tushadi — bu ma'lumot hali
 // oz bo'lgan davrda amaldagi mavzu-asosidagi tanlovga yaqin xatti-harakatni
@@ -104,19 +127,15 @@ function pickByTopicRoundRobin(pool: QuestionCandidate[], want: number): Questio
 type DifficultyBias = 'easy' | 'advanced';
 
 /**
- * Bitta bo'lim uchun savol tanlaydi: bias'ga qarab avval mos qiyinlik
- * havzasidan, yetmasa qolganidan to'ldiradi; har guruh ichida mavzu bo'yicha
- * diversifikatsiya qilinadi (pickByTopicRoundRobin). excludeIds — boshqa
- * bo'lim allaqachon olib qo'ygan savollarni takrorlamaslik uchun (bir xil
- * fan ikki bo'limda ishtirok etganda). Umumiy havza yetarli bo'lmasa null
- * qaytaradi.
+ * Berilgan fan uchun nomzod savollarni yig'adi: nashr etilgan, boshqa
+ * bo'lim allaqachon olgan (excludeIds) va mavzu filtriga (topicFilter,
+ * agar berilgan bo'lsa) mos kelmagan savollar chiqarib tashlanadi.
  */
-async function pickSectionQuestions(
+async function fetchSubjectCandidates(
   subjectId: string,
-  count: number,
   excludeIds: Set<string>,
-  bias: DifficultyBias
-): Promise<QuestionCandidate[] | null> {
+  topicFilter?: (topic: string | null) => boolean
+): Promise<QuestionCandidate[]> {
   const all = await db.question.findMany({
     where: { test: { subjectId, isPublished: true } },
     select: {
@@ -124,7 +143,26 @@ async function pickSectionQuestions(
       explanation: true, explanationImages: true, topic: true, bloomLevel: true, difficulty: true,
     },
   });
-  const candidates = all.filter((q) => !excludeIds.has(q.id));
+  return all.filter((q) => !excludeIds.has(q.id) && (!topicFilter || topicFilter(q.topic)));
+}
+
+/**
+ * Bitta bo'lim uchun savol tanlaydi: bias'ga qarab avval mos qiyinlik
+ * havzasidan, yetmasa qolganidan to'ldiradi; har guruh ichida mavzu bo'yicha
+ * diversifikatsiya qilinadi (pickByTopicRoundRobin). excludeIds — boshqa
+ * bo'lim allaqachon olib qo'ygan savollarni takrorlamaslik uchun (bir xil
+ * fan ikki bo'limda ishtirok etganda). topicFilter — majburiy bo'lim uchun
+ * tor mavzu cheklovi (masalan faqat O'zbekiston tarixi). Umumiy havza
+ * yetarli bo'lmasa null qaytaradi.
+ */
+async function pickSectionQuestions(
+  subjectId: string,
+  count: number,
+  excludeIds: Set<string>,
+  bias: DifficultyBias,
+  topicFilter?: (topic: string | null) => boolean
+): Promise<QuestionCandidate[] | null> {
+  const candidates = await fetchSubjectCandidates(subjectId, excludeIds, topicFilter);
 
   if (candidates.length < count) return null;
 
@@ -172,27 +210,28 @@ export async function generateDtmOnlineExam(params: {
     return { ok: false, error: { code: 'MANDATORY_SUBJECT_MISSING', subjectName: 'Mutaxassislik fani' } };
   }
 
-  // Mutaxassislik bo'limlari 'advanced' (asosan o'rta+qiyin), majburiy
-  // bo'limlar 'easy' (asosan oson) og'irlik bilan tanlanadi. Agar bitta fan
-  // (masalan Matematika) ham mutaxassislik, ham majburiy sifatida ishtirok
-  // etsa — bu ikki bo'lim shu tufayli boshqa-boshqa qiyinlikdagi savollar
-  // oladi, va usedIds ularning takrorlanishining oldini oladi (pastda).
+  // Mutaxassislik bo'limlari 'advanced' (asosan o'rta+qiyin, mavzu
+  // cheklovsiz), majburiy bo'limlar 'easy' (asosan oson) og'irlik bilan,
+  // ba'zilarida (Tarix, Ona tili va adabiyot) qo'shimcha tor mavzu filtri
+  // bilan tanlanadi (MANDATORY_TOPIC_FILTERS). Agar bitta fan (masalan
+  // Matematika yoki Tarix) ham mutaxassislik, ham majburiy sifatida
+  // ishtirok etsa — bu ikki bo'lim shu tufayli boshqa-boshqa qiyinlik/mavzu
+  // savollarni oladi, va usedIds ularning takrorlanishining oldini oladi.
   const sections: SectionSpec[] = [
     { subjectId: specialty1.id, subjectName: specialty1.nameUz, count: 30, pointsPerQuestion: 3.1, bias: 'advanced' },
     { subjectId: specialty2.id, subjectName: specialty2.nameUz, count: 30, pointsPerQuestion: 2.1, bias: 'advanced' },
     ...mandatorySubjects.map((s) => ({
       subjectId: s.id, subjectName: s.nameUz, count: 10, pointsPerQuestion: 1.1, bias: 'easy' as const,
+      topicFilter: MANDATORY_TOPIC_FILTERS[s.nameUz],
     })),
   ];
 
   const usedIds = new Set<string>();
   const picks: { section: SectionSpec; questions: QuestionCandidate[] }[] = [];
   for (const section of sections) {
-    const picked = await pickSectionQuestions(section.subjectId, section.count, usedIds, section.bias);
+    const picked = await pickSectionQuestions(section.subjectId, section.count, usedIds, section.bias, section.topicFilter);
     if (!picked) {
-      const available = await db.question.count({
-        where: { test: { subjectId: section.subjectId, isPublished: true }, id: { notIn: [...usedIds] } },
-      });
+      const available = (await fetchSubjectCandidates(section.subjectId, usedIds, section.topicFilter)).length;
       return {
         ok: false,
         error: { code: 'INSUFFICIENT_POOL', subjectName: section.subjectName, available, required: section.count },
