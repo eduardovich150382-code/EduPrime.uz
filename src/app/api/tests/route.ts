@@ -122,6 +122,7 @@ export async function POST(request: NextRequest) {
             videoUrl: q.videoUrl || null,
             topic: q.topic || null,
             bloomLevel: q.bloomLevel || null,
+            difficulty: Number.isInteger(q.difficulty) && q.difficulty >= 1 && q.difficulty <= 5 ? q.difficulty : null,
             points: q.points || 1,
             order: index,
           })),

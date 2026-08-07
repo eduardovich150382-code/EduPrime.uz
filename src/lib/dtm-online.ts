@@ -27,6 +27,7 @@ export type DtmGenerationError =
   | { code: 'INSUFFICIENT_POOL'; subjectName: string; available: number; required: number };
 
 type QuestionCandidate = {
+  id: string;
   text: string;
   images: string[];
   options: unknown;
@@ -36,27 +37,34 @@ type QuestionCandidate = {
   explanationImages: string[];
   topic: string | null;
   bloomLevel: string | null;
+  difficulty: number | null;
 };
 
-/**
- * Bitta bo'lim uchun savol tanlaydi: mavzu tegiga ko'ra guruhlab, guruhlar
- * orasida aylanma tartibda oladi (bitta mavzudan hammasi kelib qolmasligi
- * uchun), so'ng har chaqiruvda boshqacha tartib chiqishi uchun ichki
- * tasodifiy aralashtiradi. Havza yetarli bo'lmasa null qaytaradi.
- */
-async function pickSectionQuestions(subjectId: string, count: number): Promise<QuestionCandidate[] | null> {
-  const candidates = await db.question.findMany({
-    where: { test: { subjectId, isPublished: true } },
-    select: {
-      text: true, images: true, options: true, correctAnswer: true, type: true,
-      explanation: true, explanationImages: true, topic: true, bloomLevel: true,
-    },
-  });
+type DifficultyBucket = 'easy' | 'medium' | 'hard';
+const DIFFICULTY_BUCKET_ORDER: DifficultyBucket[] = ['easy', 'medium', 'hard'];
 
-  if (candidates.length < count) return null;
+// Tegsiz (difficulty=null) savollar "medium" ga tushadi — bu ma'lumot hali
+// oz bo'lgan davrda amaldagi mavzu-asosidagi tanlovga yaqin xatti-harakatni
+// saqlaydi (aksariyat savollar shu guruhga tushadi), tegli savollar ko'payishi
+// bilan balanslash asta-sekin kuchayadi.
+function difficultyBucketOf(difficulty: number | null): DifficultyBucket {
+  if (difficulty === null) return 'medium';
+  if (difficulty <= 2) return 'easy';
+  if (difficulty >= 4) return 'hard';
+  return 'medium';
+}
+
+/**
+ * Berilgan havzadan `want` ta savol tanlaydi: mavzu tegiga ko'ra guruhlab,
+ * guruhlar orasida aylanma tartibda oladi (bitta mavzudan hammasi kelib
+ * qolmasligi uchun), so'ng har chaqiruvda boshqacha tartib chiqishi uchun
+ * ichki tasodifiy aralashtiradi.
+ */
+function pickByTopicRoundRobin(pool: QuestionCandidate[], want: number): QuestionCandidate[] {
+  if (want <= 0 || pool.length === 0) return [];
 
   const byTopic = new Map<string, QuestionCandidate[]>();
-  for (const q of candidates) {
+  for (const q of pool) {
     const key = q.topic || '__umumiy__';
     const list = byTopic.get(key) || [];
     list.push(q);
@@ -67,10 +75,10 @@ async function pickSectionQuestions(subjectId: string, count: number): Promise<Q
   const topicKeys = Array.from(byTopic.keys()).sort(() => Math.random() - 0.5);
   const picked: QuestionCandidate[] = [];
   let round = 0;
-  while (picked.length < count) {
+  while (picked.length < want) {
     let addedThisRound = false;
     for (const key of topicKeys) {
-      if (picked.length >= count) break;
+      if (picked.length >= want) break;
       const list = byTopic.get(key)!;
       if (round < list.length) {
         picked.push(list[round]);
@@ -82,6 +90,49 @@ async function pickSectionQuestions(subjectId: string, count: number): Promise<Q
   }
 
   return picked;
+}
+
+/**
+ * Bitta bo'lim uchun savol tanlaydi: avval qiyinlik darajasiga ko'ra
+ * (oson/o'rta/qiyin) taxminan teng ulushga bo'lib, har guruh ichida mavzu
+ * bo'yicha diversifikatsiya qilinadi (yuqoridagi pickByTopicRoundRobin).
+ * Biror guruh yetarli bo'lmasa, qolgan savollar qolgan havzadan to'ldiriladi
+ * — shu sababli balanslash "iloji boricha teng", qat'iy shart emas. Umumiy
+ * havza yetarli bo'lmasa null qaytaradi.
+ */
+async function pickSectionQuestions(subjectId: string, count: number): Promise<QuestionCandidate[] | null> {
+  const candidates = await db.question.findMany({
+    where: { test: { subjectId, isPublished: true } },
+    select: {
+      id: true, text: true, images: true, options: true, correctAnswer: true, type: true,
+      explanation: true, explanationImages: true, topic: true, bloomLevel: true, difficulty: true,
+    },
+  });
+
+  if (candidates.length < count) return null;
+
+  const buckets: Record<DifficultyBucket, QuestionCandidate[]> = { easy: [], medium: [], hard: [] };
+  for (const q of candidates) buckets[difficultyBucketOf(q.difficulty)].push(q);
+
+  const perBucketTarget = Math.ceil(count / DIFFICULTY_BUCKET_ORDER.length);
+  const pickedIds = new Set<string>();
+  const picked: QuestionCandidate[] = [];
+
+  for (const bucket of DIFFICULTY_BUCKET_ORDER) {
+    const chunk = pickByTopicRoundRobin(buckets[bucket], perBucketTarget);
+    for (const q of chunk) {
+      if (picked.length >= count) break;
+      picked.push(q);
+      pickedIds.add(q.id);
+    }
+  }
+
+  if (picked.length < count) {
+    const leftover = candidates.filter((q) => !pickedIds.has(q.id));
+    picked.push(...pickByTopicRoundRobin(leftover, count - picked.length));
+  }
+
+  return picked.sort(() => Math.random() - 0.5).slice(0, count);
 }
 
 export async function generateDtmOnlineExam(params: {
@@ -145,6 +196,7 @@ export async function generateDtmOnlineExam(params: {
       explanationImages: q.explanationImages,
       topic: q.topic,
       bloomLevel: q.bloomLevel,
+      difficulty: q.difficulty,
       subjectId: section.subjectId,
       points: section.pointsPerQuestion,
       order: order++,

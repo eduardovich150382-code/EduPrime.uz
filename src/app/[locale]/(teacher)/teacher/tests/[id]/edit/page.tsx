@@ -28,6 +28,7 @@ interface QuestionForm {
   points: number;
   topic: string;
   bloomLevel: string;
+  difficulty: number | null;
 }
 
 interface SubjectItem {
@@ -54,6 +55,7 @@ const emptyQuestion: QuestionForm = {
   points: 1,
   topic: '',
   bloomLevel: '',
+  difficulty: null,
 };
 
 export default function EditTestPage() {
@@ -149,6 +151,7 @@ export default function EditTestPage() {
             points: q.points || 1,
             topic: q.topic || '',
             bloomLevel: q.bloomLevel || '',
+            difficulty: q.difficulty ?? null,
           }));
           setQuestions(loadedQuestions);
         }
@@ -293,6 +296,7 @@ export default function EditTestPage() {
             points: q.points || 1,
             topic: q.topic || null,
             bloomLevel: q.bloomLevel || null,
+            difficulty: q.difficulty || null,
             order: index,
           })),
         }),
@@ -788,8 +792,8 @@ export default function EditTestPage() {
             </div>
             )}
 
-            {/* Topic tag & Bloom level */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-gray-50 border border-border">
+            {/* Topic tag, Bloom level & difficulty */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 rounded-xl bg-gray-50 border border-border">
               <div>
                 <label className="text-xs font-medium text-text-secondary block mb-1.5">Mavzu tegi (ixtiyoriy)</label>
                 <input
@@ -819,6 +823,25 @@ export default function EditTestPage() {
                   {BLOOM_LEVELS.map((b) => (
                     <option key={b.value} value={b.value}>{b.label}</option>
                   ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-text-secondary block mb-1.5">Qiyinlik darajasi (ixtiyoriy)</label>
+                <select
+                  value={questions[activeQuestion]?.difficulty ?? ''}
+                  onChange={(e) => {
+                    const updated = [...questions];
+                    updated[activeQuestion] = { ...updated[activeQuestion], difficulty: e.target.value ? Number(e.target.value) : null };
+                    setQuestions(updated);
+                  }}
+                  className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all"
+                >
+                  <option value="">Tanlanmagan</option>
+                  <option value="1">1 — Juda oson</option>
+                  <option value="2">2 — Oson</option>
+                  <option value="3">3 — O&apos;rta</option>
+                  <option value="4">4 — Qiyin</option>
+                  <option value="5">5 — Juda qiyin</option>
                 </select>
               </div>
             </div>

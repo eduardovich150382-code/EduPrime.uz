@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { subjectId, text, images, options, correctAnswer, type, explanation, explanationImages, topic, bloomLevel } = body;
+    const { subjectId, text, images, options, correctAnswer, type, explanation, explanationImages, topic, bloomLevel, difficulty } = body;
 
     if (!subjectId || !text || !correctAnswer) {
       return NextResponse.json({ error: 'subjectId, text, correctAnswer required' }, { status: 400 });
@@ -69,6 +69,7 @@ export async function POST(request: NextRequest) {
         explanationImages: explanationImages || [],
         topic: topic || null,
         bloomLevel: bloomLevel || null,
+        difficulty: Number.isInteger(difficulty) && difficulty >= 1 && difficulty <= 5 ? difficulty : null,
       },
     });
 

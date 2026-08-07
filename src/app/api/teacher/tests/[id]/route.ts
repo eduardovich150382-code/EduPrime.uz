@@ -40,6 +40,7 @@ export async function GET(
             videoUrl: true,
             topic: true,
             bloomLevel: true,
+            difficulty: true,
             points: true,
             order: true,
           },

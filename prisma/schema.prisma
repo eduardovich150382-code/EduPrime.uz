@@ -223,6 +223,7 @@ model Question {
   aiExplanations     Json?        // AI tutor explanation cache, keyed by lang: {uz, ru, en}
   topic              String?      // Mavzu tegi, masalan: "Kvadrat tenglama"
   bloomLevel         String?      // BILISH, TUSHUNISH, QOLLASH, TAHLIL, BAHOLASH, YARATISH
+  difficulty         Int?         // 1 (oson) - 5 (qiyin), ixtiyoriy — DTM Online balanslashda ishlatiladi
   subjectId          String?      // Faqat generatsiya qilingan (masalan DTM Online) savollarda — bo'lim tegi
   points             Float        @default(1) // Float — DTM Online kabi qismli ball (3.1/2.1/1.1) uchun
   order              Int          @default(0)
@@ -247,6 +248,7 @@ model BankQuestion {
   explanationImages String[]
   topic             String?
   bloomLevel        String?
+  difficulty        Int?         // 1 (oson) - 5 (qiyin), ixtiyoriy
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
 
