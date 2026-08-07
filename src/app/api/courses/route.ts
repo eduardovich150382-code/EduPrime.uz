@@ -41,20 +41,35 @@ export async function GET(request: NextRequest) {
       db.course.count({ where }),
     ]);
 
-    const result = courses.map((c) => ({
-      id: c.id,
-      titleUz: c.titleUz,
-      description: c.description,
-      coverImage: c.coverImage,
-      subject: c.subject,
-      teacherName: c.teacher.user.name,
-      accessType: c.accessType,
-      price: c.price,
-      isFree: c.isFree,
-      difficulty: c.difficulty,
-      estimatedHours: c.estimatedHours,
-      lessonCount: c.sections.reduce((sum, s) => sum + s.lessons.length, 0),
-    }));
+    const ratingAggregates = courses.length > 0
+      ? await db.courseReview.groupBy({
+          by: ['courseId'],
+          where: { courseId: { in: courses.map((c) => c.id) } },
+          _avg: { rating: true },
+          _count: true,
+        })
+      : [];
+    const ratingMap = new Map(ratingAggregates.map((r) => [r.courseId, r]));
+
+    const result = courses.map((c) => {
+      const rating = ratingMap.get(c.id);
+      return {
+        id: c.id,
+        titleUz: c.titleUz,
+        description: c.description,
+        coverImage: c.coverImage,
+        subject: c.subject,
+        teacherName: c.teacher.user.name,
+        accessType: c.accessType,
+        price: c.price,
+        isFree: c.isFree,
+        difficulty: c.difficulty,
+        estimatedHours: c.estimatedHours,
+        lessonCount: c.sections.reduce((sum, s) => sum + s.lessons.length, 0),
+        avgRating: rating?._avg.rating ? Math.round(rating._avg.rating * 10) / 10 : null,
+        reviewCount: rating?._count || 0,
+      };
+    });
 
     return NextResponse.json({ courses: result, total, page, limit });
   } catch (error) {

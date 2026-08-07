@@ -38,6 +38,12 @@ export async function GET(
     const session = await auth();
     const userId = session?.user?.id;
 
+    const ratingAggregate = await db.courseReview.aggregate({
+      where: { courseId: id },
+      _avg: { rating: true },
+      _count: true,
+    });
+
     let isEnrolled = false;
     let hasAccess = course.isFree;
 
@@ -93,6 +99,8 @@ export async function GET(
         sections,
         isEnrolled,
         hasAccess,
+        avgRating: ratingAggregate._avg.rating ? Math.round(ratingAggregate._avg.rating * 10) / 10 : null,
+        reviewCount: ratingAggregate._count,
       },
     });
   } catch (error) {

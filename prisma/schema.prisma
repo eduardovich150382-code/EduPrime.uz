@@ -51,6 +51,7 @@ model User {
   generatedTests    Test[]       @relation("GeneratedTests")
   courseEnrollments CourseEnrollment[]
   lessonProgress    LessonProgress[]
+  courseReviews     CourseReview[]
 }
 
 model Referral {
@@ -284,6 +285,7 @@ model Course {
   subject     Subject            @relation(fields: [subjectId], references: [id])
   sections    CourseSection[]
   enrollments CourseEnrollment[]
+  reviews     CourseReview[]
 }
 
 model CourseSection {
@@ -342,6 +344,21 @@ model LessonProgress {
   lesson CourseLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
 
   @@unique([userId, lessonId])
+}
+
+model CourseReview {
+  id        String   @id @default(cuid())
+  userId    String
+  courseId  String
+  rating    Int      // 1-5
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
 }
 
 // ===================== RESULTS =====================
