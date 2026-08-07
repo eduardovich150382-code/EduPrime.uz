@@ -43,7 +43,7 @@ export async function POST(
       include: {
         questions: {
           orderBy: { order: 'asc' },
-          select: { id: true, text: true, correctAnswer: true, points: true, type: true, options: true },
+          select: { id: true, text: true, correctAnswer: true, points: true, type: true, options: true, subjectId: true },
         },
       },
     });
@@ -63,9 +63,12 @@ export async function POST(
       }
     }
 
-    // Recreate the same shuffle order used when serving the test
+    // Recreate the same shuffle order used when serving the test — must
+    // match GET /api/tests/[id]'s preserveOrder logic exactly, or grading
+    // will unshuffle against the wrong option positions.
     const baseSeed = generateSeed(userId, id);
-    const shuffledQuestions = shuffleArray(test.questions, baseSeed);
+    const preserveOrder = test.questions.some((q) => q.subjectId);
+    const shuffledQuestions = preserveOrder ? test.questions : shuffleArray(test.questions, baseSeed);
 
     // Build a map: questionId -> shuffleIndex (position in shuffled array)
     const shuffleIndexMap: Record<string, number> = {};

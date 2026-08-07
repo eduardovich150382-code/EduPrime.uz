@@ -16,6 +16,7 @@ import {
   Crown,
   Loader2,
   Compass,
+  GraduationCap,
 } from 'lucide-react';
 import PremiumCTA from '@/components/ui/PremiumCTA';
 
@@ -97,6 +98,7 @@ export default function DashboardPage() {
   const recentResults = statsData?.recentResults || [];
 
   const quickActions = [
+    { label: 'DTM Online simulyatsiya', href: '/dashboard/dtm-online', icon: GraduationCap },
     { label: 'DTM test yechish', href: '/tests?type=DTM', icon: BookOpen },
     { label: 'Maktab testi', href: '/tests?type=SCHOOL', icon: BookOpen },
     { label: 'Reyting ko\'rish', href: '/rating', icon: Trophy },
