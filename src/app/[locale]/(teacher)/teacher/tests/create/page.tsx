@@ -19,6 +19,8 @@ import {
   FILL_BLANK_MARKER, countFillBlanks, encodeFillBlankCorrectAnswer, parseFillBlankCorrectAnswer,
 } from '@/lib/fill-blank';
 import FillBlankEditor from '@/components/ui/FillBlankEditor';
+import MatchingEditor, { type MatchingPairInput } from '@/components/ui/MatchingEditor';
+import { parseMatchingPairs } from '@/lib/matching';
 
 interface QuestionForm {
   text: string;
@@ -28,12 +30,13 @@ interface QuestionForm {
   explanation: string;
   explanationImages: string[];
   videoUrl: string;
-  type: 'MULTIPLE_CHOICE' | 'OPEN_ENDED' | 'TRUE_FALSE' | 'MULTI_SELECT' | 'FILL_BLANK';
+  type: 'MULTIPLE_CHOICE' | 'OPEN_ENDED' | 'TRUE_FALSE' | 'MULTI_SELECT' | 'FILL_BLANK' | 'MATCHING';
   points: number;
   topic: string;
   bloomLevel: string;
   difficulty: number | null;
   blankAnswers: string[]; // FILL_BLANK uchun — matndagi har bir "___" o'rniga mos, vergul bilan ajratilgan qabul qilinadigan javoblar
+  matchingPairs: MatchingPairInput[]; // MATCHING uchun — chap/o'ng ustun juftliklari
 }
 
 interface SubjectItem {
@@ -62,6 +65,7 @@ const emptyQuestion: QuestionForm = {
   bloomLevel: '',
   difficulty: null,
   blankAnswers: [''],
+  matchingPairs: [{ left: '', right: '' }, { left: '', right: '' }],
 };
 
 // FILL_BLANK: matndagi "___" soniga mos ravishda blankAnswers ro'yxatini
@@ -74,16 +78,27 @@ function fillBlankCorrectAnswer(q: QuestionForm): string {
   return encodeFillBlankCorrectAnswer(perBlank);
 }
 
+// MATCHING: juftliklarni Question.options (Json) kutayotgan {left, right}
+// shakliga o'giradi — bo'sh (matnsiz) juftliklar chetlab o'tiladi.
+function matchingOptions(q: QuestionForm): { left: string[]; right: string[] } {
+  const filled = q.matchingPairs.filter((p) => p.left.trim() && p.right.trim());
+  return {
+    left: filled.map((p) => p.left.trim()),
+    right: filled.map((p) => p.right.trim()),
+  };
+}
+
 // Bitta savolni API kutayotgan formatga o'giradi — qoralamani serverga
 // avtosaqlash va aniq "Saqlash"/"Nashr qilish" tugmalari bir xil mapping'dan
 // foydalanadi, shu sababli ikkalasi sinxronsizlanmaydi.
 function mapQuestionForApi(q: QuestionForm) {
   const isFillBlank = q.type === 'FILL_BLANK';
+  const isMatching = q.type === 'MATCHING';
   return {
     text: q.text,
     images: q.images,
-    options: (q.type === 'OPEN_ENDED' || isFillBlank) ? [] : q.options.filter((o) => o.text),
-    correctAnswer: isFillBlank ? fillBlankCorrectAnswer(q) : q.correctAnswer,
+    options: isMatching ? matchingOptions(q) : (q.type === 'OPEN_ENDED' || isFillBlank) ? [] : q.options.filter((o) => o.text),
+    correctAnswer: isFillBlank ? fillBlankCorrectAnswer(q) : isMatching ? '' : q.correctAnswer,
     explanation: q.explanation || null,
     explanationImages: q.explanationImages,
     videoUrl: q.videoUrl || null,
@@ -96,8 +111,9 @@ function mapQuestionForApi(q: QuestionForm) {
 }
 
 // Savol yaroqli hisoblanishi uchun: matn bo'lishi, va turiga qarab yoki
-// to'g'ri javob (correctAnswer) yoki FILL_BLANK uchun har bir bo'shliqqa
-// kamida bitta qabul qilinadigan javob to'ldirilgan bo'lishi kerak.
+// to'g'ri javob (correctAnswer), yoki FILL_BLANK uchun har bir bo'shliqqa
+// kamida bitta qabul qilinadigan javob, yoki MATCHING uchun kamida 2 ta
+// to'liq (chap+o'ng) juftlik to'ldirilgan bo'lishi kerak.
 function isQuestionValid(q: QuestionForm): boolean {
   if (!q.text) return false;
   if (q.type === 'FILL_BLANK') {
@@ -107,6 +123,10 @@ function isQuestionValid(q: QuestionForm): boolean {
       if (!(q.blankAnswers[i] || '').trim()) return false;
     }
     return true;
+  }
+  if (q.type === 'MATCHING') {
+    const filled = q.matchingPairs.filter((p) => p.left.trim() && p.right.trim());
+    return filled.length >= 2;
   }
   return !!q.correctAnswer;
 }
@@ -167,11 +187,13 @@ export default function CreateTestPage() {
 
   const insertFromBank = (bq: any) => {
     const isFillBlank = bq.type === 'FILL_BLANK';
+    const isMatching = bq.type === 'MATCHING';
+    const bankPairs = isMatching ? parseMatchingPairs(bq.options) : null;
     const imported: QuestionForm = {
       text: bq.text || '',
       images: bq.images || [],
-      options: (bq.type === 'OPEN_ENDED' || isFillBlank) ? [...emptyQuestion.options] : (bq.options?.length ? bq.options : [...emptyQuestion.options]),
-      correctAnswer: isFillBlank ? '' : (bq.correctAnswer || ''),
+      options: (bq.type === 'OPEN_ENDED' || isFillBlank || isMatching) ? [...emptyQuestion.options] : (bq.options?.length ? bq.options : [...emptyQuestion.options]),
+      correctAnswer: (isFillBlank || isMatching) ? '' : (bq.correctAnswer || ''),
       explanation: bq.explanation || '',
       explanationImages: [],
       videoUrl: '',
@@ -183,6 +205,9 @@ export default function CreateTestPage() {
       blankAnswers: isFillBlank
         ? parseFillBlankCorrectAnswer(bq.correctAnswer).map((accepted) => accepted.join(', '))
         : [''],
+      matchingPairs: bankPairs && bankPairs.left.length >= 2
+        ? bankPairs.left.map((left, i) => ({ left, right: bankPairs.right[i] }))
+        : [{ left: '', right: '' }, { left: '', right: '' }],
     };
     setQuestions((prev) => {
       const isOnlyEmpty = prev.length === 1 && !prev[0].text;
@@ -206,6 +231,7 @@ export default function CreateTestPage() {
     setSavingToBank(true);
     try {
       const isFillBlank = q.type === 'FILL_BLANK';
+      const isMatching = q.type === 'MATCHING';
       const res = await fetch('/api/teacher/question-bank', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -213,8 +239,8 @@ export default function CreateTestPage() {
           subjectId: testInfo.subjectId,
           text: q.text,
           images: q.images,
-          options: (q.type === 'OPEN_ENDED' || isFillBlank) ? [] : q.options.filter((o) => o.text),
-          correctAnswer: isFillBlank ? fillBlankCorrectAnswer(q) : q.correctAnswer,
+          options: isMatching ? matchingOptions(q) : (q.type === 'OPEN_ENDED' || isFillBlank) ? [] : q.options.filter((o) => o.text),
+          correctAnswer: isFillBlank ? fillBlankCorrectAnswer(q) : isMatching ? '' : q.correctAnswer,
           type: q.type,
           explanation: q.explanation || null,
           explanationImages: q.explanationImages,
@@ -410,15 +436,16 @@ export default function CreateTestPage() {
           { label: 'D', text: '', image: null },
         ];
         correctAnswer = '';
-      } else if (newType === 'OPEN_ENDED' || newType === 'FILL_BLANK') {
+      } else if (newType === 'OPEN_ENDED' || newType === 'FILL_BLANK' || newType === 'MATCHING') {
         correctAnswer = '';
       } else if (newType === 'MULTIPLE_CHOICE' && correctAnswer.includes(',')) {
         correctAnswer = correctAnswer.split(',')[0] || '';
       }
 
       const blankAnswers = newType === 'FILL_BLANK' ? [''] : q.blankAnswers;
+      const matchingPairs = newType === 'MATCHING' ? [{ left: '', right: '' }, { left: '', right: '' }] : q.matchingPairs;
 
-      updated[qIndex] = { ...q, type: newType, options, correctAnswer, blankAnswers };
+      updated[qIndex] = { ...q, type: newType, options, correctAnswer, blankAnswers, matchingPairs };
       return updated;
     });
   };
@@ -595,6 +622,7 @@ export default function CreateTestPage() {
           bloomLevel: '',
           difficulty: null,
           blankAnswers: [''],
+          matchingPairs: [{ left: '', right: '' }, { left: '', right: '' }],
         }));
         setQuestions(imported);
         setActiveQuestion(0);
@@ -990,6 +1018,9 @@ export default function CreateTestPage() {
                   {q.type === 'FILL_BLANK' && (
                     <span className="text-[10px] px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 font-medium">Bo&apos;shliq</span>
                   )}
+                  {q.type === 'MATCHING' && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-teal-100 text-teal-700 font-medium">Moslashtirish</span>
+                  )}
                 </span>
                 {isQuestionValid(q) && <CheckCircle size={12} className="text-green-500" />}
               </button>
@@ -1138,6 +1169,7 @@ export default function CreateTestPage() {
                     { key: 'TRUE_FALSE' as const, label: "To'g'ri/Noto'g'ri" },
                     { key: 'OPEN_ENDED' as const, label: 'Ochiq' },
                     { key: 'FILL_BLANK' as const, label: "Bo'shliqni to'ldirish" },
+                    { key: 'MATCHING' as const, label: 'Moslashtirish' },
                   ]).map((opt) => (
                     <button
                       key={opt.key}
@@ -1158,6 +1190,7 @@ export default function CreateTestPage() {
                   {questions[activeQuestion]?.type === 'MULTI_SELECT' && "Ko'p tanlovli savol — foydalanuvchi bir nechta to'g'ri variantni belgilashi mumkin"}
                   {questions[activeQuestion]?.type === 'TRUE_FALSE' && "To'g'ri/Noto'g'ri savol — ikkita variantdan biri tanlanadi"}
                   {questions[activeQuestion]?.type === 'FILL_BLANK' && "Bo'shliqni to'ldirish — savol matni ichiga uchta pastki chiziqcha (___) qo'yiladi, talaba shu joyga javob yozadi"}
+                  {questions[activeQuestion]?.type === 'MATCHING' && "Moslashtirish — talaba chap ustundagi har bir elementga mos o'ng ustun elementini tanlaydi"}
                 </p>
               </div>
 
@@ -1169,6 +1202,15 @@ export default function CreateTestPage() {
                   onBlankAnswersChange={(blankAnswers) => {
                     const updated = [...questions];
                     updated[activeQuestion] = { ...updated[activeQuestion], blankAnswers };
+                    setQuestions(updated);
+                  }}
+                />
+              ) : questions[activeQuestion]?.type === 'MATCHING' ? (
+                <MatchingEditor
+                  pairs={questions[activeQuestion].matchingPairs}
+                  onChange={(matchingPairs) => {
+                    const updated = [...questions];
+                    updated[activeQuestion] = { ...updated[activeQuestion], matchingPairs };
                     setQuestions(updated);
                   }}
                 />
@@ -1590,6 +1632,13 @@ export default function CreateTestPage() {
                           <p className="text-xs text-text-secondary mb-1">Bo&apos;shliqlar:</p>
                           {q.blankAnswers.filter(Boolean).map((b, bi) => (
                             <p key={bi} className="text-sm font-medium text-green-700">{bi + 1}. {b}</p>
+                          ))}
+                        </div>
+                      ) : q.type === 'MATCHING' ? (
+                        <div className="p-3 rounded-lg bg-gray-50 border border-border space-y-1">
+                          <p className="text-xs text-text-secondary mb-1">Juftliklar:</p>
+                          {q.matchingPairs.filter((p) => p.left && p.right).map((p, pi) => (
+                            <p key={pi} className="text-sm font-medium text-green-700">{p.left} &harr; {p.right}</p>
                           ))}
                         </div>
                       ) : q.type === 'OPEN_ENDED' ? (

@@ -67,12 +67,33 @@ export function shuffleTest(
 
   // Shuffle options within each question (only for MULTIPLE_CHOICE)
   return shuffledQuestions.map((question, index) => {
+    // Use a different seed for each question's options
+    const optionSeed = baseSeed + index + 1;
+
+    // MATCHING: chap ustun o'zgarishsiz qoladi, o'ng ustun urug'langan
+    // tartibda aralashtiriladi — qaysi pozitsiya qaysi original juftlikdan
+    // kelganini bildiruvchi indexOrder hech qachon mijozga yuborilmaydi
+    // (faqat submit/route.ts xuddi shu formula bilan qayta hisoblaydi).
+    if (question.type === 'MATCHING') {
+      const opts = question.options as any;
+      if (!opts || !Array.isArray(opts.left) || !Array.isArray(opts.right) || opts.left.length !== opts.right.length) {
+        return question;
+      }
+      const indices: number[] = opts.left.map((_: unknown, i: number) => i);
+      const indexOrder = shuffleArray<number>(indices, optionSeed);
+      return {
+        ...question,
+        options: {
+          left: opts.left,
+          right: indexOrder.map((origIdx) => opts.right[origIdx]),
+        },
+      };
+    }
+
     if (question.type === 'OPEN_ENDED' || question.type === 'FILL_BLANK' || !question.options || !Array.isArray(question.options)) {
       return question;
     }
 
-    // Use a different seed for each question's options
-    const optionSeed = baseSeed + index + 1;
     const shuffledOptions = shuffleArray(question.options, optionSeed);
 
     // Keep A,B,C,D labels in original order — only swap content

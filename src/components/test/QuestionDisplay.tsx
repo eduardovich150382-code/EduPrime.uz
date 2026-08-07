@@ -8,13 +8,14 @@ import type { QuestionOption } from '@/types';
 import {
   splitFillBlankText, parseFillBlankAnswer, parseFillBlankCorrectAnswer, isFillBlankIndexCorrect,
 } from '@/lib/fill-blank';
+import { parseMatchingAnswer, encodeMatchingAnswer } from '@/lib/matching';
 
 interface QuestionDisplayProps {
   questionNumber: number;
   totalQuestions: number;
   text: string;
   images?: string[];
-  options: QuestionOption[];
+  options: QuestionOption[] | { left: string[]; right: string[] };
   selectedAnswer: string | null;
   onAnswer: (answer: string) => void;
   isReview?: boolean;
@@ -52,6 +53,11 @@ export default function QuestionDisplay({
           {questionType === 'FILL_BLANK' && (
             <span className="text-xs font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">
               Bo&apos;sh joyni to&apos;ldiring
+            </span>
+          )}
+          {questionType === 'MATCHING' && (
+            <span className="text-xs font-medium text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full">
+              Moslashtiring
             </span>
           )}
           {questionType === 'MULTI_SELECT' && (
@@ -125,10 +131,18 @@ export default function QuestionDisplay({
             </p>
           )}
         </div>
+      ) : questionType === 'MATCHING' ? (
+        <MatchingInput
+          leftItems={(options as { left: string[]; right: string[] })?.left || []}
+          rightItems={(options as { left: string[]; right: string[] })?.right || []}
+          selectedAnswer={selectedAnswer}
+          onAnswer={onAnswer}
+          isReview={isReview}
+        />
       ) : (
       /* MULTIPLE_CHOICE / TRUE_FALSE / MULTI_SELECT: Options */
       <div className="space-y-3">
-        {options
+        {(options as QuestionOption[])
           .filter((option) => option.text || option.image) // Bo'sh variantlarni ko'rsatmaslik
           .map((option, index) => {
           const isMulti = questionType === 'MULTI_SELECT';
@@ -289,6 +303,63 @@ function FillBlankInput({
           To&apos;g&apos;ri javob(lar): {acceptedPerBlank.map((accepted) => accepted[0] || '').join(', ')}
         </p>
       )}
+    </div>
+  );
+}
+
+/**
+ * MATCHING: chap ustunni tartib bo'yicha ko'rsatib, har bir qator uchun
+ * (aralashtirilgan) o'ng ustundan tanlash mumkin bo'lgan dropdown chizadi.
+ * Bitta o'ng element faqat bitta chap qatorga tanlanishi mumkin.
+ */
+function MatchingInput({
+  leftItems,
+  rightItems,
+  selectedAnswer,
+  onAnswer,
+  isReview,
+}: {
+  leftItems: string[];
+  rightItems: string[];
+  selectedAnswer: string | null;
+  onAnswer: (answer: string) => void;
+  isReview: boolean;
+}) {
+  const matches = parseMatchingAnswer(selectedAnswer);
+  const usedPositions = new Set(matches.filter((m): m is number => m !== null && m !== undefined));
+
+  const setMatch = (rowIndex: number, rightPos: number | null) => {
+    const next = [...matches];
+    while (next.length <= rowIndex) next.push(null);
+    next[rowIndex] = rightPos;
+    onAnswer(encodeMatchingAnswer(next));
+  };
+
+  return (
+    <div className="space-y-2.5">
+      {leftItems.map((left, i) => (
+        <div key={i} className="flex items-center gap-3 p-3 rounded-xl border-2 border-border">
+          <span className="w-7 h-7 flex-shrink-0 rounded-full bg-primary-50 text-primary-600 text-xs font-bold flex items-center justify-center">
+            {i + 1}
+          </span>
+          <div className="flex-1 text-sm text-text-primary min-w-0">
+            <LatexRenderer content={left} />
+          </div>
+          <select
+            value={matches[i] ?? ''}
+            onChange={(e) => setMatch(i, e.target.value === '' ? null : Number(e.target.value))}
+            disabled={isReview}
+            className="w-36 sm:w-56 flex-shrink-0 px-3 py-2 rounded-lg border-2 border-border text-sm outline-none transition-all duration-200 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400"
+          >
+            <option value="">— Tanlang —</option>
+            {rightItems.map((right, j) => (
+              (matches[i] === j || !usedPositions.has(j)) && (
+                <option key={j} value={j}>{right}</option>
+              )
+            ))}
+          </select>
+        </div>
+      ))}
     </div>
   );
 }

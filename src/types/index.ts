@@ -18,7 +18,7 @@ export interface User {
 // ===================== TEST TYPES =====================
 
 export type TestType = 'DTM' | 'SCHOOL' | 'ATTESTATION' | 'SAT' | 'GRE' | 'CERTIFICATE' | 'PRESIDENT_SCHOOL';
-export type QuestionType = 'MULTIPLE_CHOICE' | 'OPEN_ENDED' | 'TRUE_FALSE' | 'MULTI_SELECT' | 'FILL_BLANK';
+export type QuestionType = 'MULTIPLE_CHOICE' | 'OPEN_ENDED' | 'TRUE_FALSE' | 'MULTI_SELECT' | 'FILL_BLANK' | 'MATCHING';
 export type PlanType = 'FREE' | 'PREMIUM' | 'TEACHER_PLAN';
 
 export interface TestCategory {

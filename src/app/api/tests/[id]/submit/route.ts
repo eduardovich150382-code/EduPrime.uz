@@ -6,6 +6,10 @@ import { generateSeed, shuffleArray } from '@/lib/shuffle';
 import { checkTestAccess } from '@/lib/access';
 import { checkOpenEndedEquivalence } from '@/lib/gemini';
 import { parseFillBlankAnswer, parseFillBlankCorrectAnswer, isFillBlankCorrect, isFillBlankIndexCorrect } from '@/lib/fill-blank';
+import {
+  parseMatchingPairs, parseMatchingAnswer, shuffleMatchingIndexOrder, translateMatchingToCanonical,
+  encodeMatchingAnswer, isMatchingCorrect,
+} from '@/lib/matching';
 
 // POST /api/tests/[id]/submit — test javoblarini yuborish va natija olish
 export async function POST(
@@ -102,6 +106,26 @@ export async function POST(
         const acceptedPerBlank = parseFillBlankCorrectAnswer(question.correctAnswer);
         isCorrect = isFillBlankCorrect(userBlanks, acceptedPerBlank);
         originalAnswerLabel = userAnswerValue;
+      } else if (question.type === 'MATCHING') {
+        // Talaba har bir chap qator uchun (aralashtirilgan) o'ng ustundan
+        // tanlagan pozitsiyani JSON son massivi sifatida yuboradi — GET
+        // paytida ishlatilgan xuddi shu formula bilan indexOrder qayta
+        // hisoblanadi, tanlangan pozitsiya canonical (asl) indeksga
+        // tarjima qilinadi va SHU holatda saqlanadi — natija sahifasi
+        // hech qanday shuffle qayta hisoblamasdan to'g'ridan-to'g'ri
+        // solishtira oladi (MC/MULTI_SELECT bilan bir xil yondashuv).
+        if (userAnswerValue.trim()) {
+          const pairs = parseMatchingPairs(question.options);
+          const shuffleIndex = shuffleIndexMap[question.id];
+          const optionSeed = baseSeed + (shuffleIndex ?? 0) + 1;
+          const indexOrder = shuffleMatchingIndexOrder(pairs.left.length, optionSeed);
+          const shuffledMatches = parseMatchingAnswer(userAnswerValue);
+          const canonicalMatches = translateMatchingToCanonical(shuffledMatches, indexOrder);
+          isCorrect = shuffleIndex !== undefined && isMatchingCorrect(canonicalMatches, pairs.left.length);
+          originalAnswerLabel = encodeMatchingAnswer(canonicalMatches);
+        } else {
+          originalAnswerLabel = '';
+        }
       } else if (question.type === 'MULTI_SELECT') {
         // Multiple correct labels, comma-separated (e.g. "A,C") — unshuffle
         // each selected label independently, then compare as sets so order

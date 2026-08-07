@@ -18,6 +18,8 @@ import {
   FILL_BLANK_MARKER, countFillBlanks, encodeFillBlankCorrectAnswer, parseFillBlankCorrectAnswer,
 } from '@/lib/fill-blank';
 import FillBlankEditor from '@/components/ui/FillBlankEditor';
+import MatchingEditor, { type MatchingPairInput } from '@/components/ui/MatchingEditor';
+import { parseMatchingPairs } from '@/lib/matching';
 
 interface QuestionForm {
   id?: string;
@@ -28,12 +30,13 @@ interface QuestionForm {
   explanation: string;
   explanationImages: string[];
   videoUrl: string;
-  type: 'MULTIPLE_CHOICE' | 'OPEN_ENDED' | 'TRUE_FALSE' | 'MULTI_SELECT' | 'FILL_BLANK';
+  type: 'MULTIPLE_CHOICE' | 'OPEN_ENDED' | 'TRUE_FALSE' | 'MULTI_SELECT' | 'FILL_BLANK' | 'MATCHING';
   points: number;
   topic: string;
   bloomLevel: string;
   difficulty: number | null;
   blankAnswers: string[];
+  matchingPairs: MatchingPairInput[];
 }
 
 interface SubjectItem {
@@ -62,6 +65,7 @@ const emptyQuestion: QuestionForm = {
   bloomLevel: '',
   difficulty: null,
   blankAnswers: [''],
+  matchingPairs: [{ left: '', right: '' }, { left: '', right: '' }],
 };
 
 // FILL_BLANK: matndagi "___" soniga mos ravishda blankAnswers ro'yxatini hisoblaydi.
@@ -73,9 +77,19 @@ function fillBlankCorrectAnswer(q: QuestionForm): string {
   return encodeFillBlankCorrectAnswer(perBlank);
 }
 
+// MATCHING: juftliklarni Question.options (Json) kutayotgan {left, right} shakliga o'giradi.
+function matchingOptions(q: QuestionForm): { left: string[]; right: string[] } {
+  const filled = q.matchingPairs.filter((p) => p.left.trim() && p.right.trim());
+  return {
+    left: filled.map((p) => p.left.trim()),
+    right: filled.map((p) => p.right.trim()),
+  };
+}
+
 // Savol yaroqli hisoblanishi uchun: matn bo'lishi, va turiga qarab yoki
-// to'g'ri javob (correctAnswer) yoki FILL_BLANK uchun har bir bo'shliqqa
-// kamida bitta qabul qilinadigan javob to'ldirilgan bo'lishi kerak.
+// to'g'ri javob (correctAnswer), yoki FILL_BLANK uchun har bir bo'shliqqa
+// kamida bitta qabul qilinadigan javob, yoki MATCHING uchun kamida 2 ta
+// to'liq juftlik to'ldirilgan bo'lishi kerak.
 function isQuestionValid(q: QuestionForm): boolean {
   if (!q.text) return false;
   if (q.type === 'FILL_BLANK') {
@@ -85,6 +99,10 @@ function isQuestionValid(q: QuestionForm): boolean {
       if (!(q.blankAnswers[i] || '').trim()) return false;
     }
     return true;
+  }
+  if (q.type === 'MATCHING') {
+    const filled = q.matchingPairs.filter((p) => p.left.trim() && p.right.trim());
+    return filled.length >= 2;
   }
   return !!q.correctAnswer;
 }
@@ -174,7 +192,7 @@ export default function EditTestPage() {
                   { label: 'C', text: '', image: null },
                   { label: 'D', text: '', image: null },
                 ],
-            correctAnswer: q.type === 'FILL_BLANK' ? '' : (q.correctAnswer || ''),
+            correctAnswer: (q.type === 'FILL_BLANK' || q.type === 'MATCHING') ? '' : (q.correctAnswer || ''),
             explanation: q.explanation || '',
             explanationImages: q.explanationImages || [],
             videoUrl: q.videoUrl || '',
@@ -186,6 +204,13 @@ export default function EditTestPage() {
             blankAnswers: q.type === 'FILL_BLANK'
               ? parseFillBlankCorrectAnswer(q.correctAnswer).map((accepted: string[]) => accepted.join(', '))
               : [''],
+            matchingPairs: (() => {
+              if (q.type !== 'MATCHING') return [{ left: '', right: '' }, { left: '', right: '' }];
+              const pairs = parseMatchingPairs(q.options);
+              return pairs.left.length >= 2
+                ? pairs.left.map((left, i) => ({ left, right: pairs.right[i] }))
+                : [{ left: '', right: '' }, { left: '', right: '' }];
+            })(),
           }));
           setQuestions(loadedQuestions);
         }
@@ -246,15 +271,16 @@ export default function EditTestPage() {
           { label: 'D', text: '', image: null },
         ];
         correctAnswer = '';
-      } else if (newType === 'OPEN_ENDED' || newType === 'FILL_BLANK') {
+      } else if (newType === 'OPEN_ENDED' || newType === 'FILL_BLANK' || newType === 'MATCHING') {
         correctAnswer = '';
       } else if (newType === 'MULTIPLE_CHOICE' && correctAnswer.includes(',')) {
         correctAnswer = correctAnswer.split(',')[0] || '';
       }
 
       const blankAnswers = newType === 'FILL_BLANK' ? [''] : q.blankAnswers;
+      const matchingPairs = newType === 'MATCHING' ? [{ left: '', right: '' }, { left: '', right: '' }] : q.matchingPairs;
 
-      updated[qIndex] = { ...q, type: newType, options, correctAnswer, blankAnswers };
+      updated[qIndex] = { ...q, type: newType, options, correctAnswer, blankAnswers, matchingPairs };
       return updated;
     });
   };
@@ -345,12 +371,13 @@ export default function EditTestPage() {
         body: JSON.stringify({
           questions: validQuestions.map((q, index) => {
             const isFillBlank = q.type === 'FILL_BLANK';
+            const isMatching = q.type === 'MATCHING';
             return {
             id: q.id || undefined,
             text: q.text,
             images: q.images,
-            options: (q.type === 'OPEN_ENDED' || isFillBlank) ? [] : q.options.filter(o => o.text),
-            correctAnswer: isFillBlank ? fillBlankCorrectAnswer(q) : q.correctAnswer,
+            options: isMatching ? matchingOptions(q) : (q.type === 'OPEN_ENDED' || isFillBlank) ? [] : q.options.filter(o => o.text),
+            correctAnswer: isFillBlank ? fillBlankCorrectAnswer(q) : isMatching ? '' : q.correctAnswer,
             explanation: q.explanation || null,
             explanationImages: q.explanationImages,
             videoUrl: q.videoUrl || null,
@@ -602,6 +629,9 @@ export default function EditTestPage() {
                   {q.type === 'FILL_BLANK' && (
                     <span className="text-[10px] px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 font-medium">Bo&apos;shliq</span>
                   )}
+                  {q.type === 'MATCHING' && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-teal-100 text-teal-700 font-medium">Moslashtirish</span>
+                  )}
                 </span>
                 {isQuestionValid(q) && <CheckCircle size={12} className="text-green-500" />}
               </button>
@@ -733,6 +763,7 @@ export default function EditTestPage() {
                   { key: 'TRUE_FALSE' as const, label: "To'g'ri/Noto'g'ri" },
                   { key: 'OPEN_ENDED' as const, label: 'Ochiq' },
                   { key: 'FILL_BLANK' as const, label: "Bo'shliqni to'ldirish" },
+                  { key: 'MATCHING' as const, label: 'Moslashtirish' },
                 ]).map((opt) => (
                   <button
                     key={opt.key}
@@ -757,6 +788,15 @@ export default function EditTestPage() {
                 onBlankAnswersChange={(blankAnswers) => {
                   const updated = [...questions];
                   updated[activeQuestion] = { ...updated[activeQuestion], blankAnswers };
+                  setQuestions(updated);
+                }}
+              />
+            ) : questions[activeQuestion]?.type === 'MATCHING' ? (
+              <MatchingEditor
+                pairs={questions[activeQuestion].matchingPairs}
+                onChange={(matchingPairs) => {
+                  const updated = [...questions];
+                  updated[activeQuestion] = { ...updated[activeQuestion], matchingPairs };
                   setQuestions(updated);
                 }}
               />

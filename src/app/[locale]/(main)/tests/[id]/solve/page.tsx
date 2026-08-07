@@ -13,7 +13,7 @@ interface QuestionData {
   id: string;
   text: string;
   images: string[];
-  options: { label: string; text: string; image: string | null }[];
+  options: { label: string; text: string; image: string | null }[] | { left: string[]; right: string[] };
   type: string;
   points: number;
   order: number;
@@ -85,7 +85,7 @@ export default function TestSolvePage() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!test) return;
       // Ignore if typing in input
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) return;
       
       const totalQ = test.questions.length;
       switch (e.key) {
