@@ -83,6 +83,7 @@ export async function GET(
         totalLessons,
         completedLessons,
         isCompleted: !!enrollment.completedAt,
+        enrollmentId: enrollment.id,
       },
     });
   } catch (error) {

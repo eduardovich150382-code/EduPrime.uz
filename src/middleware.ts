@@ -18,7 +18,7 @@ const protectedPaths = [
 ];
 
 // Public paths (no auth needed)
-const publicPaths = ['/', '/login', '/auth', '/share'];
+const publicPaths = ['/', '/login', '/auth', '/share', '/certificate'];
 
 function getCleanPath(pathname: string): string {
   return pathname.replace(/^\/(uz|ru|en)/, '') || '/';
