@@ -49,6 +49,8 @@ model User {
   referralsReceived Referral[]   @relation("ReferralsReceived")
   notifications     Notification[]
   generatedTests    Test[]       @relation("GeneratedTests")
+  courseEnrollments CourseEnrollment[]
+  lessonProgress    LessonProgress[]
 }
 
 model Referral {
@@ -112,6 +114,7 @@ model Teacher {
   subject Subject @relation(fields: [subjectId], references: [id])
   tests   Test[]
   bankQuestions BankQuestion[]
+  courses Course[]
 }
 
 // ===================== SUBJECTS & CATEGORIES =====================
@@ -162,6 +165,7 @@ model Subject {
   teachers Teacher[]
   tests    Test[]
   bankQuestions BankQuestion[]
+  courses  Course[]
 }
 
 // ===================== TESTS & QUESTIONS =====================
@@ -201,6 +205,7 @@ model Test {
   user      User?         @relation("GeneratedTests", fields: [userId], references: [id], onDelete: Cascade)
   questions Question[]
   results   TestResult[]
+  courseLessons CourseLesson[]
 }
 
 model Question {
@@ -246,6 +251,96 @@ model BankQuestion {
 
   teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
   subject Subject @relation(fields: [subjectId], references: [id])
+}
+
+// ===================== COURSES (kurs yaratish, MVP-A: sxema + muallif tomoni) =====================
+
+enum LessonType {
+  VIDEO
+  TEXT
+  QUIZ
+  PDF
+}
+
+model Course {
+  id             String   @id @default(cuid())
+  titleUz        String
+  titleRu        String?
+  titleEn        String?
+  description    String?
+  coverImage     String?
+  teacherId      String
+  subjectId      String
+  accessType     String   @default("free") // free, premium, teacher, premium_teacher, paid — Test bilan bir xil
+  price          Int      @default(0)
+  isFree         Boolean  @default(false)
+  isPublished    Boolean  @default(false)
+  difficulty     Int?     // 1-5, ixtiyoriy
+  estimatedHours Float?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  teacher     Teacher            @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  subject     Subject            @relation(fields: [subjectId], references: [id])
+  sections    CourseSection[]
+  enrollments CourseEnrollment[]
+}
+
+model CourseSection {
+  id        String   @id @default(cuid())
+  courseId  String
+  titleUz   String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  course  Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons CourseLesson[]
+}
+
+model CourseLesson {
+  id              String     @id @default(cuid())
+  sectionId       String
+  titleUz         String
+  order           Int        @default(0)
+  type            LessonType @default(VIDEO)
+  videoUrl        String?    // YouTube — SecureYouTubePlayer orqali ko'rsatiladi
+  content         String?    // LaTeX/matn — LatexRenderer qayta ishlatiladi
+  testId          String?    // MAVJUD Test'ga ishora — QUIZ turi uchun, qayta qurilmaydi
+  durationMinutes Int?
+  isPreviewable   Boolean    @default(false) // yozilmagan foydalanuvchi ham ko'ra oladigan bepul namuna (MVP-B)
+  createdAt       DateTime   @default(now())
+
+  section  CourseSection    @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  test     Test?            @relation(fields: [testId], references: [id])
+  progress LessonProgress[]
+}
+
+model CourseEnrollment {
+  id          String    @id @default(cuid())
+  userId      String
+  courseId    String
+  enrolledAt  DateTime  @default(now())
+  completedAt DateTime?
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+}
+
+model LessonProgress {
+  id                  String    @id @default(cuid())
+  userId              String
+  lessonId            String
+  completed           Boolean   @default(false)
+  lastPositionSeconds Int?
+  completedAt         DateTime?
+  updatedAt           DateTime  @updatedAt
+
+  user   User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson CourseLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
 }
 
 // ===================== RESULTS =====================

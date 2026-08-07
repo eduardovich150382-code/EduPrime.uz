@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import {
   BookOpen, Plus, Eye, Users, DollarSign,
-  ArrowRight, FileText, Loader2, Pencil, Trash2, Copy, Library,
+  ArrowRight, FileText, Loader2, Pencil, Trash2, Copy, Library, GraduationCap,
 } from 'lucide-react';
 
 interface StatsData {
@@ -135,7 +135,11 @@ export default function TeacherDashboard() {
           </h1>
           <p className="text-text-secondary mt-1 text-sm sm:text-base">Testlaringizni boshqaring va natijalarni kuzating</p>
         </div>
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+        <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+          <Link href="/teacher/courses" className="btn-secondary flex items-center gap-2">
+            <GraduationCap size={18} />
+            Kurslarim
+          </Link>
           <Link href="/teacher/question-bank" className="btn-secondary flex items-center gap-2">
             <Library size={18} />
             Savollar bazasi
