@@ -5,6 +5,7 @@ import { sanitizeText, sanitizeInt } from '@/lib/sanitize';
 import { generateSeed, shuffleArray } from '@/lib/shuffle';
 import { checkTestAccess } from '@/lib/access';
 import { checkOpenEndedEquivalence } from '@/lib/gemini';
+import { parseFillBlankAnswer, parseFillBlankCorrectAnswer, isFillBlankCorrect, isFillBlankIndexCorrect } from '@/lib/fill-blank';
 
 // POST /api/tests/[id]/submit — test javoblarini yuborish va natija olish
 export async function POST(
@@ -93,6 +94,14 @@ export async function POST(
         // For open-ended: case-insensitive comparison (no shuffle involved)
         isCorrect = userAnswerValue.trim().toLowerCase() === (question.correctAnswer || '').trim().toLowerCase();
         originalAnswerLabel = userAnswerValue;
+      } else if (question.type === 'FILL_BLANK') {
+        // Bo'shliqlar JSON string[] sifatida yuboriladi (no shuffle involved,
+        // options bo'sh) — har bir bo'shliq alohida taqqoslanadi, hammasi
+        // to'g'ri bo'lgandagina savol to'g'ri hisoblanadi.
+        const userBlanks = parseFillBlankAnswer(userAnswerValue);
+        const acceptedPerBlank = parseFillBlankCorrectAnswer(question.correctAnswer);
+        isCorrect = isFillBlankCorrect(userBlanks, acceptedPerBlank);
+        originalAnswerLabel = userAnswerValue;
       } else if (question.type === 'MULTI_SELECT') {
         // Multiple correct labels, comma-separated (e.g. "A,C") — unshuffle
         // each selected label independently, then compare as sets so order
@@ -165,14 +174,37 @@ export async function POST(
     let aiChecksUsed = 0;
     await Promise.all(
       test.questions.map(async (question, idx) => {
-        if (question.type !== 'OPEN_ENDED') return;
+        if (question.type !== 'OPEN_ENDED' && question.type !== 'FILL_BLANK') return;
         const r = answerResults[idx];
         if (r.isCorrect || !r.answer.trim()) return;
         if (aiChecksUsed >= MAX_AI_CHECKS) return;
         aiChecksUsed++;
         try {
-          const equivalent = await checkOpenEndedEquivalence(question.text, question.correctAnswer, r.answer);
-          if (equivalent) answerResults[idx] = { ...answerResults[idx], isCorrect: true };
+          if (question.type === 'OPEN_ENDED') {
+            const equivalent = await checkOpenEndedEquivalence(question.text, question.correctAnswer, r.answer);
+            if (equivalent) answerResults[idx] = { ...answerResults[idx], isCorrect: true };
+            return;
+          }
+
+          // FILL_BLANK: har bir mos kelmagan bo'shliqni alohida AI orqali
+          // tekshiradi (imlo/sinonim farqi uchun) — max 6 bo'shliq, aks holda
+          // ortiqcha AI so'rovlariga olib kelishi mumkin.
+          const userBlanks = parseFillBlankAnswer(r.answer);
+          const acceptedPerBlank = parseFillBlankCorrectAnswer(question.correctAnswer).slice(0, 6);
+          if (acceptedPerBlank.length === 0) return;
+          const blankResults = await Promise.all(
+            acceptedPerBlank.map(async (accepted, i) => {
+              if (isFillBlankIndexCorrect(userBlanks, acceptedPerBlank, i)) return true;
+              const userVal = (userBlanks[i] || '').trim();
+              if (!userVal || !accepted.length) return false;
+              try {
+                return await checkOpenEndedEquivalence(`${question.text} (bo'shliq ${i + 1})`, accepted[0], userVal);
+              } catch {
+                return false;
+              }
+            })
+          );
+          if (blankResults.every(Boolean)) answerResults[idx] = { ...answerResults[idx], isCorrect: true };
         } catch {
           // Keep exact-match result on failure
         }

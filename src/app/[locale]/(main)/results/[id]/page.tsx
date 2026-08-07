@@ -8,6 +8,9 @@ import LatexRenderer from '@/components/ui/LatexRenderer';
 import SecureYouTubePlayer from '@/components/ui/SecureYouTubePlayer';
 import PremiumCTA from '@/components/ui/PremiumCTA';
 import {
+  splitFillBlankText, parseFillBlankAnswer, parseFillBlankCorrectAnswer, isFillBlankIndexCorrect,
+} from '@/lib/fill-blank';
+import {
   CheckCircle, XCircle, SkipForward, Clock, Trophy,
   Video, FileText, ArrowLeft, Share2, RotateCcw,
   Loader2, AlertCircle, Play,
@@ -687,7 +690,50 @@ export default function ResultPage() {
 
                   {/* All options - always visible */}
                   <div className="space-y-2 mt-4">
-                    {question.type === 'OPEN_ENDED' ? (
+                    {question.type === 'FILL_BLANK' ? (
+                      /* FILL_BLANK: matnni bo'shliqlar bilan qayta ko'rsatib, har birini alohida baholaydi */
+                      (() => {
+                        const segments = splitFillBlankText(question.text);
+                        const blankCount = segments.length - 1;
+                        const userBlanks = parseFillBlankAnswer(userAnswer);
+                        const acceptedPerBlank = parseFillBlankCorrectAnswer(question.correctAnswer);
+                        return (
+                          <div className="space-y-3">
+                            <div className="text-sm text-text-primary leading-relaxed flex flex-wrap items-center gap-x-1 gap-y-2 p-3 rounded-xl bg-white border border-border">
+                              {segments.map((seg, si) => (
+                                <span key={si} className="inline-flex items-center flex-wrap">
+                                  {seg && <LatexRenderer content={seg} />}
+                                  {si < blankCount && (
+                                    <span
+                                      className={`inline-block mx-1 px-2 py-0.5 rounded-md text-xs font-semibold border ${
+                                        isFillBlankIndexCorrect(userBlanks, acceptedPerBlank, si)
+                                          ? 'border-green-400 bg-green-50 text-green-700'
+                                          : userBlanks[si]
+                                          ? 'border-red-400 bg-red-50 text-red-700'
+                                          : 'border-gray-300 bg-gray-50 text-gray-500'
+                                      }`}
+                                    >
+                                      {userBlanks[si] || '—'}
+                                    </span>
+                                  )}
+                                </span>
+                              ))}
+                            </div>
+                            {!isCorrect && acceptedPerBlank.length > 0 && (
+                              <div className="flex items-start gap-3 p-3 rounded-xl border-2 border-green-400 bg-green-50">
+                                <CheckCircle size={16} className="text-green-600 flex-shrink-0 mt-0.5" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs text-text-secondary mb-1">To&apos;g&apos;ri javob(lar):</p>
+                                  <p className="text-sm font-medium text-green-700">
+                                    {acceptedPerBlank.map((accepted) => accepted[0] || '').join(', ')}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()
+                    ) : question.type === 'OPEN_ENDED' ? (
                       /* OPEN_ENDED: show text-based answer comparison */
                       <div className="space-y-3">
                         <div className={`flex items-start gap-3 p-3 rounded-xl border-2 transition-all ${

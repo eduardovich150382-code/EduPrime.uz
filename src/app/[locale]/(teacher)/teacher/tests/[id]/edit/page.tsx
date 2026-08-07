@@ -14,6 +14,10 @@ import {
 import ImageUploadButton, {
   ImagePreviewList, uploadImageFile, extractPastedImageFile, extractDroppedImageFile,
 } from '@/components/ui/ImageUploadButton';
+import {
+  FILL_BLANK_MARKER, countFillBlanks, encodeFillBlankCorrectAnswer, parseFillBlankCorrectAnswer,
+} from '@/lib/fill-blank';
+import FillBlankEditor from '@/components/ui/FillBlankEditor';
 
 interface QuestionForm {
   id?: string;
@@ -24,11 +28,12 @@ interface QuestionForm {
   explanation: string;
   explanationImages: string[];
   videoUrl: string;
-  type: 'MULTIPLE_CHOICE' | 'OPEN_ENDED' | 'TRUE_FALSE' | 'MULTI_SELECT';
+  type: 'MULTIPLE_CHOICE' | 'OPEN_ENDED' | 'TRUE_FALSE' | 'MULTI_SELECT' | 'FILL_BLANK';
   points: number;
   topic: string;
   bloomLevel: string;
   difficulty: number | null;
+  blankAnswers: string[];
 }
 
 interface SubjectItem {
@@ -56,7 +61,33 @@ const emptyQuestion: QuestionForm = {
   topic: '',
   bloomLevel: '',
   difficulty: null,
+  blankAnswers: [''],
 };
+
+// FILL_BLANK: matndagi "___" soniga mos ravishda blankAnswers ro'yxatini hisoblaydi.
+function fillBlankCorrectAnswer(q: QuestionForm): string {
+  const blankCount = countFillBlanks(q.text);
+  const perBlank = Array.from({ length: blankCount }, (_, i) =>
+    (q.blankAnswers[i] || '').split(',').map((s) => s.trim()).filter(Boolean)
+  );
+  return encodeFillBlankCorrectAnswer(perBlank);
+}
+
+// Savol yaroqli hisoblanishi uchun: matn bo'lishi, va turiga qarab yoki
+// to'g'ri javob (correctAnswer) yoki FILL_BLANK uchun har bir bo'shliqqa
+// kamida bitta qabul qilinadigan javob to'ldirilgan bo'lishi kerak.
+function isQuestionValid(q: QuestionForm): boolean {
+  if (!q.text) return false;
+  if (q.type === 'FILL_BLANK') {
+    const blankCount = countFillBlanks(q.text);
+    if (blankCount === 0) return false;
+    for (let i = 0; i < blankCount; i++) {
+      if (!(q.blankAnswers[i] || '').trim()) return false;
+    }
+    return true;
+  }
+  return !!q.correctAnswer;
+}
 
 export default function EditTestPage() {
   const router = useRouter();
@@ -143,7 +174,7 @@ export default function EditTestPage() {
                   { label: 'C', text: '', image: null },
                   { label: 'D', text: '', image: null },
                 ],
-            correctAnswer: q.correctAnswer || '',
+            correctAnswer: q.type === 'FILL_BLANK' ? '' : (q.correctAnswer || ''),
             explanation: q.explanation || '',
             explanationImages: q.explanationImages || [],
             videoUrl: q.videoUrl || '',
@@ -152,6 +183,9 @@ export default function EditTestPage() {
             topic: q.topic || '',
             bloomLevel: q.bloomLevel || '',
             difficulty: q.difficulty ?? null,
+            blankAnswers: q.type === 'FILL_BLANK'
+              ? parseFillBlankCorrectAnswer(q.correctAnswer).map((accepted: string[]) => accepted.join(', '))
+              : [''],
           }));
           setQuestions(loadedQuestions);
         }
@@ -212,14 +246,40 @@ export default function EditTestPage() {
           { label: 'D', text: '', image: null },
         ];
         correctAnswer = '';
-      } else if (newType === 'OPEN_ENDED') {
+      } else if (newType === 'OPEN_ENDED' || newType === 'FILL_BLANK') {
         correctAnswer = '';
       } else if (newType === 'MULTIPLE_CHOICE' && correctAnswer.includes(',')) {
         correctAnswer = correctAnswer.split(',')[0] || '';
       }
 
-      updated[qIndex] = { ...q, type: newType, options, correctAnswer };
+      const blankAnswers = newType === 'FILL_BLANK' ? [''] : q.blankAnswers;
+
+      updated[qIndex] = { ...q, type: newType, options, correctAnswer, blankAnswers };
       return updated;
+    });
+  };
+
+  // "Bo'shliq qo'shish" tugmasi — savol matni ichiga kursor turgan joyga
+  // "___" belgisini qo'yadi.
+  const insertBlankMarker = (qIndex: number) => {
+    const el = questionTextRef.current;
+    const text = questions[qIndex]?.text || '';
+    const start = el?.selectionStart ?? text.length;
+    const end = el?.selectionEnd ?? text.length;
+    const before = text.slice(0, start);
+    const after = text.slice(end);
+
+    setQuestions((prev) => {
+      const updated = [...prev];
+      updated[qIndex] = { ...updated[qIndex], text: `${before}${FILL_BLANK_MARKER}${after}` };
+      return updated;
+    });
+
+    requestAnimationFrame(() => {
+      if (!el) return;
+      el.focus();
+      const caret = before.length + FILL_BLANK_MARKER.length;
+      el.setSelectionRange(caret, caret);
     });
   };
 
@@ -246,7 +306,7 @@ export default function EditTestPage() {
       return;
     }
 
-    const validQuestions = questions.filter(q => q.text && q.correctAnswer);
+    const validQuestions = questions.filter(isQuestionValid);
     if (validQuestions.length === 0) {
       alert("Kamida 1 ta savol kiritilishi kerak (matn + to'g'ri javob)!");
       setCurrentStep('questions');
@@ -283,12 +343,14 @@ export default function EditTestPage() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          questions: validQuestions.map((q, index) => ({
+          questions: validQuestions.map((q, index) => {
+            const isFillBlank = q.type === 'FILL_BLANK';
+            return {
             id: q.id || undefined,
             text: q.text,
             images: q.images,
-            options: q.type === 'OPEN_ENDED' ? [] : q.options.filter(o => o.text),
-            correctAnswer: q.correctAnswer,
+            options: (q.type === 'OPEN_ENDED' || isFillBlank) ? [] : q.options.filter(o => o.text),
+            correctAnswer: isFillBlank ? fillBlankCorrectAnswer(q) : q.correctAnswer,
             explanation: q.explanation || null,
             explanationImages: q.explanationImages,
             videoUrl: q.videoUrl || null,
@@ -298,7 +360,8 @@ export default function EditTestPage() {
             bloomLevel: q.bloomLevel || null,
             difficulty: q.difficulty || null,
             order: index,
-          })),
+            };
+          }),
         }),
       });
 
@@ -536,8 +599,11 @@ export default function EditTestPage() {
                   {q.type === 'TRUE_FALSE' && (
                     <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 font-medium">T/N</span>
                   )}
+                  {q.type === 'FILL_BLANK' && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 font-medium">Bo&apos;shliq</span>
+                  )}
                 </span>
-                {q.text && q.correctAnswer && <CheckCircle size={12} className="text-green-500" />}
+                {isQuestionValid(q) && <CheckCircle size={12} className="text-green-500" />}
               </button>
             ))}
             <button
@@ -666,6 +732,7 @@ export default function EditTestPage() {
                   { key: 'MULTI_SELECT' as const, label: "Ko'p tanlovli" },
                   { key: 'TRUE_FALSE' as const, label: "To'g'ri/Noto'g'ri" },
                   { key: 'OPEN_ENDED' as const, label: 'Ochiq' },
+                  { key: 'FILL_BLANK' as const, label: "Bo'shliqni to'ldirish" },
                 ]).map((opt) => (
                   <button
                     key={opt.key}
@@ -682,8 +749,18 @@ export default function EditTestPage() {
               </div>
             </div>
 
-            {/* OPEN_ENDED: text input for correct answer */}
-            {questions[activeQuestion]?.type === 'OPEN_ENDED' ? (
+            {/* FILL_BLANK: per-blank accepted answers */}
+            {questions[activeQuestion]?.type === 'FILL_BLANK' ? (
+              <FillBlankEditor
+                question={questions[activeQuestion]}
+                onInsertBlank={() => insertBlankMarker(activeQuestion)}
+                onBlankAnswersChange={(blankAnswers) => {
+                  const updated = [...questions];
+                  updated[activeQuestion] = { ...updated[activeQuestion], blankAnswers };
+                  setQuestions(updated);
+                }}
+              />
+            ) : questions[activeQuestion]?.type === 'OPEN_ENDED' ? (
               <div>
                 <label className="text-sm font-medium text-text-primary block mb-2">
                   To&apos;g&apos;ri javob (matn) *

@@ -5,6 +5,9 @@ import { cn } from '@/lib/utils';
 import { ZoomIn } from 'lucide-react';
 import LatexRenderer from '@/components/ui/LatexRenderer';
 import type { QuestionOption } from '@/types';
+import {
+  splitFillBlankText, parseFillBlankAnswer, parseFillBlankCorrectAnswer, isFillBlankIndexCorrect,
+} from '@/lib/fill-blank';
 
 interface QuestionDisplayProps {
   questionNumber: number;
@@ -46,6 +49,11 @@ export default function QuestionDisplay({
               Ochiq savol
             </span>
           )}
+          {questionType === 'FILL_BLANK' && (
+            <span className="text-xs font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">
+              Bo&apos;sh joyni to&apos;ldiring
+            </span>
+          )}
           {questionType === 'MULTI_SELECT' && (
             <span className="text-xs font-medium text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">
               Bir nechtasini tanlang
@@ -53,10 +61,12 @@ export default function QuestionDisplay({
           )}
         </div>
 
-        {/* LaTeX rendered text */}
-        <div className="text-lg text-text-primary leading-relaxed">
-          <LatexRenderer content={text} />
-        </div>
+        {/* LaTeX rendered text — FILL_BLANK renders text inline with input blanks below instead */}
+        {questionType !== 'FILL_BLANK' && (
+          <div className="text-lg text-text-primary leading-relaxed">
+            <LatexRenderer content={text} />
+          </div>
+        )}
 
         {/* Question images */}
         {images.length > 0 && (
@@ -81,8 +91,16 @@ export default function QuestionDisplay({
         )}
       </div>
 
-      {/* OPEN_ENDED: Text input */}
-      {questionType === 'OPEN_ENDED' ? (
+      {/* FILL_BLANK: text with inline input blanks */}
+      {questionType === 'FILL_BLANK' ? (
+        <FillBlankInput
+          text={text}
+          selectedAnswer={selectedAnswer}
+          onAnswer={onAnswer}
+          isReview={isReview}
+          correctAnswer={correctAnswer}
+        />
+      ) : questionType === 'OPEN_ENDED' ? (
         <div className="space-y-3">
           <label className="text-sm font-medium text-text-secondary block">
             Javobingizni yozing:
@@ -205,6 +223,71 @@ export default function QuestionDisplay({
             className="max-w-full max-h-full object-contain rounded-lg"
           />
         </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * FILL_BLANK: savol matnini "___" bo'yicha bo'laklarga bo'lib, har bir
+ * bo'shliq o'rniga inline matn maydoni chizadi. Har bo'lak (LaTeX bo'lishi
+ * mumkin bo'lgan matn) LatexRenderer orqali, bo'shliqlar esa oddiy <input>
+ * sifatida ko'rsatiladi.
+ */
+function FillBlankInput({
+  text,
+  selectedAnswer,
+  onAnswer,
+  isReview,
+  correctAnswer,
+}: {
+  text: string;
+  selectedAnswer: string | null;
+  onAnswer: (answer: string) => void;
+  isReview: boolean;
+  correctAnswer?: string;
+}) {
+  const segments = splitFillBlankText(text);
+  const blankCount = segments.length - 1;
+  const userBlanks = parseFillBlankAnswer(selectedAnswer);
+  const acceptedPerBlank = parseFillBlankCorrectAnswer(correctAnswer);
+
+  const setBlank = (i: number, value: string) => {
+    const next = [...userBlanks];
+    while (next.length <= i) next.push('');
+    next[i] = value;
+    onAnswer(JSON.stringify(next));
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="text-lg text-text-primary leading-relaxed flex flex-wrap items-center gap-x-1 gap-y-3">
+        {segments.map((seg, i) => (
+          <span key={i} className="inline-flex items-center flex-wrap">
+            {seg && <LatexRenderer content={seg} />}
+            {i < blankCount && (
+              <input
+                type="text"
+                value={userBlanks[i] || ''}
+                onChange={(e) => setBlank(i, e.target.value)}
+                disabled={isReview}
+                placeholder={`${i + 1}`}
+                className={cn(
+                  'inline-block w-28 sm:w-36 mx-1.5 px-2 py-1.5 rounded-lg border-2 text-center text-base align-middle outline-none transition-all duration-200 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400',
+                  !isReview && 'border-border hover:border-primary-300',
+                  isReview && isFillBlankIndexCorrect(userBlanks, acceptedPerBlank, i) && 'border-green-500 bg-green-50',
+                  isReview && !isFillBlankIndexCorrect(userBlanks, acceptedPerBlank, i) && 'border-red-500 bg-red-50',
+                  isReview && 'cursor-not-allowed'
+                )}
+              />
+            )}
+          </span>
+        ))}
+      </div>
+      {isReview && acceptedPerBlank.length > 0 && (
+        <p className="text-sm text-green-600 font-medium">
+          To&apos;g&apos;ri javob(lar): {acceptedPerBlank.map((accepted) => accepted[0] || '').join(', ')}
+        </p>
       )}
     </div>
   );

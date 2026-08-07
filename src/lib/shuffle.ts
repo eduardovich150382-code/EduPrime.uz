@@ -67,7 +67,7 @@ export function shuffleTest(
 
   // Shuffle options within each question (only for MULTIPLE_CHOICE)
   return shuffledQuestions.map((question, index) => {
-    if (question.type === 'OPEN_ENDED' || !question.options || !Array.isArray(question.options)) {
+    if (question.type === 'OPEN_ENDED' || question.type === 'FILL_BLANK' || !question.options || !Array.isArray(question.options)) {
       return question;
     }
 

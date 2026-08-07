@@ -176,6 +176,7 @@ enum QuestionType {
   OPEN_ENDED
   TRUE_FALSE
   MULTI_SELECT
+  FILL_BLANK
 }
 
 model Test {
