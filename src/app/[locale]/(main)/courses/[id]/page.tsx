@@ -9,7 +9,7 @@ import LatexRenderer from '@/components/ui/LatexRenderer';
 import SecureYouTubePlayer from '@/components/ui/SecureYouTubePlayer';
 import {
   GraduationCap, Clock, Layers, Loader2, User, Lock, Play, FileText,
-  ListChecks, CheckCircle2, Sparkles, AlertCircle, ArrowRight,
+  ListChecks, Sparkles, AlertCircle, ArrowRight,
 } from 'lucide-react';
 
 interface LessonItem {
@@ -154,13 +154,9 @@ export default function CourseDetailPage() {
       {/* Enrollment CTA */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="card p-5">
         {course.isEnrolled ? (
-          <div className="flex items-center gap-3 text-green-700 bg-green-50 rounded-xl p-4">
-            <CheckCircle2 size={22} className="flex-shrink-0" />
-            <div>
-              <p className="font-semibold text-sm">Siz bu kursga yozilgansiz</p>
-              <p className="text-xs text-green-600 mt-0.5">To&apos;liq dars pleyeri tez orada qo&apos;shiladi — hozircha bepul namuna darslarni pastda ko&apos;rishingiz mumkin.</p>
-            </div>
-          </div>
+          <Link href={`/courses/${course.id}/learn`} className="btn-primary w-full flex items-center justify-center gap-2">
+            <Play size={18} /> O&apos;rganishni boshlash
+          </Link>
         ) : course.hasAccess ? (
           <button onClick={handleEnroll} disabled={enrolling} className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50">
             {enrolling ? <Loader2 size={18} className="animate-spin" /> : <ArrowRight size={18} />}

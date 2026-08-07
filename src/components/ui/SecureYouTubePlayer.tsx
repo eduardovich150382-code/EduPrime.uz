@@ -10,6 +10,12 @@ interface SecureYouTubePlayerProps {
   videoUrl: string;
   title?: string;
   onClose?: () => void;
+  /** Video shu pozitsiyadan boshlanadi (soniyada) — "davom ettirish" uchun. */
+  startPositionSeconds?: number;
+  /** Har ~5 soniyada joriy pozitsiya bilan chaqiriladi — progress saqlash uchun (UI yangilanish tezligiga ta'sir qilmaydi). */
+  onProgress?: (currentTime: number, duration: number) => void;
+  /** Video oxiriga yetganda bir marta chaqiriladi. */
+  onEnded?: () => void;
 }
 
 declare global {
@@ -25,7 +31,9 @@ declare global {
  * Kanal nomi, reklamalar va boshqa videolar ko'rinmaydi
  * Error 153 muammosi hal qilingan (origin parametri)
  */
-export default function SecureYouTubePlayer({ videoUrl, title, onClose }: SecureYouTubePlayerProps) {
+export default function SecureYouTubePlayer({
+  videoUrl, title, onClose, startPositionSeconds, onProgress, onEnded,
+}: SecureYouTubePlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -39,6 +47,7 @@ export default function SecureYouTubePlayer({ videoUrl, title, onClose }: Secure
   const playerRef = useRef<any>(null);
   const playerDivRef = useRef<HTMLDivElement>(null);
   const timeUpdateRef = useRef<NodeJS.Timeout | null>(null);
+  const progressReportRef = useRef<NodeJS.Timeout | null>(null);
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const playerIdRef = useRef(`yt-player-${Math.random().toString(36).slice(2, 9)}`);
 
@@ -93,6 +102,7 @@ export default function SecureYouTubePlayer({ videoUrl, title, onClose }: Secure
 
     return () => {
       if (timeUpdateRef.current) clearInterval(timeUpdateRef.current);
+      if (progressReportRef.current) clearInterval(progressReportRef.current);
       if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
       if (playerRef.current) {
         try {
@@ -137,12 +147,28 @@ export default function SecureYouTubePlayer({ videoUrl, title, onClose }: Secure
     setIsReady(true);
     setDuration(event.target.getDuration());
 
-    // Start time tracking
+    if (startPositionSeconds && startPositionSeconds > 0) {
+      event.target.seekTo(startPositionSeconds, true);
+      setCurrentTime(startPositionSeconds);
+    }
+
+    // Start time tracking (UI progress bar — frequent, local only)
     timeUpdateRef.current = setInterval(() => {
       if (playerRef.current && playerRef.current.getCurrentTime) {
         setCurrentTime(playerRef.current.getCurrentTime());
       }
     }, 500);
+
+    // Separate, coarser interval for reporting progress upstream (e.g. to
+    // save watch position) — decoupled from the UI tick so callers aren't
+    // flooded with a callback twice a second.
+    if (onProgress) {
+      progressReportRef.current = setInterval(() => {
+        if (playerRef.current && playerRef.current.getCurrentTime) {
+          onProgress(playerRef.current.getCurrentTime(), playerRef.current.getDuration?.() || duration);
+        }
+      }, 5000);
+    }
   };
 
   const onPlayerStateChange = (event: any) => {
@@ -151,8 +177,11 @@ export default function SecureYouTubePlayer({ videoUrl, title, onClose }: Secure
         setIsPlaying(true);
         break;
       case window.YT.PlayerState.PAUSED:
+        setIsPlaying(false);
+        break;
       case window.YT.PlayerState.ENDED:
         setIsPlaying(false);
+        onEnded?.();
         break;
     }
   };
