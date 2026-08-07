@@ -19,6 +19,7 @@ interface SectionSpec {
   subjectName: string;
   count: number;
   pointsPerQuestion: number;
+  bias: DifficultyBias;
 }
 
 export type DtmGenerationError =
@@ -41,7 +42,6 @@ type QuestionCandidate = {
 };
 
 type DifficultyBucket = 'easy' | 'medium' | 'hard';
-const DIFFICULTY_BUCKET_ORDER: DifficultyBucket[] = ['easy', 'medium', 'hard'];
 
 // Tegsiz (difficulty=null) savollar "medium" ga tushadi — bu ma'lumot hali
 // oz bo'lgan davrda amaldagi mavzu-asosidagi tanlovga yaqin xatti-harakatni
@@ -93,42 +93,51 @@ function pickByTopicRoundRobin(pool: QuestionCandidate[], want: number): Questio
 }
 
 /**
- * Bitta bo'lim uchun savol tanlaydi: avval qiyinlik darajasiga ko'ra
- * (oson/o'rta/qiyin) taxminan teng ulushga bo'lib, har guruh ichida mavzu
- * bo'yicha diversifikatsiya qilinadi (yuqoridagi pickByTopicRoundRobin).
- * Biror guruh yetarli bo'lmasa, qolgan savollar qolgan havzadan to'ldiriladi
- * — shu sababli balanslash "iloji boricha teng", qat'iy shart emas. Umumiy
- * havza yetarli bo'lmasa null qaytaradi.
+ * Bo'lim qiyinlik og'irligi: mutaxassislik fani (30 savol) uchun 'advanced'
+ * (avval o'rta+qiyin havzadan, yetmasa osondan to'ldiriladi), majburiy fan
+ * (10 savol) uchun 'easy' (avval oson havzadan, yetmasa o'rta/qiyindan
+ * to'ldiriladi). Bitta fan (masalan Matematika) ham majburiy, ham
+ * mutaxassislik sifatida tanlangan bo'lsa, ikkala bo'lim shu tufayli har
+ * xil qiyinlikdagi savollarni oladi — va excludeIds orqali bir xil savol
+ * ikki marta chiqmasligi kafolatlanadi.
  */
-async function pickSectionQuestions(subjectId: string, count: number): Promise<QuestionCandidate[] | null> {
-  const candidates = await db.question.findMany({
+type DifficultyBias = 'easy' | 'advanced';
+
+/**
+ * Bitta bo'lim uchun savol tanlaydi: bias'ga qarab avval mos qiyinlik
+ * havzasidan, yetmasa qolganidan to'ldiradi; har guruh ichida mavzu bo'yicha
+ * diversifikatsiya qilinadi (pickByTopicRoundRobin). excludeIds — boshqa
+ * bo'lim allaqachon olib qo'ygan savollarni takrorlamaslik uchun (bir xil
+ * fan ikki bo'limda ishtirok etganda). Umumiy havza yetarli bo'lmasa null
+ * qaytaradi.
+ */
+async function pickSectionQuestions(
+  subjectId: string,
+  count: number,
+  excludeIds: Set<string>,
+  bias: DifficultyBias
+): Promise<QuestionCandidate[] | null> {
+  const all = await db.question.findMany({
     where: { test: { subjectId, isPublished: true } },
     select: {
       id: true, text: true, images: true, options: true, correctAnswer: true, type: true,
       explanation: true, explanationImages: true, topic: true, bloomLevel: true, difficulty: true,
     },
   });
+  const candidates = all.filter((q) => !excludeIds.has(q.id));
 
   if (candidates.length < count) return null;
 
   const buckets: Record<DifficultyBucket, QuestionCandidate[]> = { easy: [], medium: [], hard: [] };
   for (const q of candidates) buckets[difficultyBucketOf(q.difficulty)].push(q);
 
-  const perBucketTarget = Math.ceil(count / DIFFICULTY_BUCKET_ORDER.length);
-  const pickedIds = new Set<string>();
-  const picked: QuestionCandidate[] = [];
+  const primaryPool = bias === 'easy' ? buckets.easy : [...buckets.medium, ...buckets.hard];
+  const fallbackPool = bias === 'easy' ? [...buckets.medium, ...buckets.hard] : buckets.easy;
 
-  for (const bucket of DIFFICULTY_BUCKET_ORDER) {
-    const chunk = pickByTopicRoundRobin(buckets[bucket], perBucketTarget);
-    for (const q of chunk) {
-      if (picked.length >= count) break;
-      picked.push(q);
-      pickedIds.add(q.id);
-    }
-  }
-
+  const picked = pickByTopicRoundRobin(primaryPool, count);
   if (picked.length < count) {
-    const leftover = candidates.filter((q) => !pickedIds.has(q.id));
+    const pickedIds = new Set(picked.map((q) => q.id));
+    const leftover = fallbackPool.filter((q) => !pickedIds.has(q.id));
     picked.push(...pickByTopicRoundRobin(leftover, count - picked.length));
   }
 
@@ -163,24 +172,33 @@ export async function generateDtmOnlineExam(params: {
     return { ok: false, error: { code: 'MANDATORY_SUBJECT_MISSING', subjectName: 'Mutaxassislik fani' } };
   }
 
+  // Mutaxassislik bo'limlari 'advanced' (asosan o'rta+qiyin), majburiy
+  // bo'limlar 'easy' (asosan oson) og'irlik bilan tanlanadi. Agar bitta fan
+  // (masalan Matematika) ham mutaxassislik, ham majburiy sifatida ishtirok
+  // etsa — bu ikki bo'lim shu tufayli boshqa-boshqa qiyinlikdagi savollar
+  // oladi, va usedIds ularning takrorlanishining oldini oladi (pastda).
   const sections: SectionSpec[] = [
-    { subjectId: specialty1.id, subjectName: specialty1.nameUz, count: 30, pointsPerQuestion: 3.1 },
-    { subjectId: specialty2.id, subjectName: specialty2.nameUz, count: 30, pointsPerQuestion: 2.1 },
+    { subjectId: specialty1.id, subjectName: specialty1.nameUz, count: 30, pointsPerQuestion: 3.1, bias: 'advanced' },
+    { subjectId: specialty2.id, subjectName: specialty2.nameUz, count: 30, pointsPerQuestion: 2.1, bias: 'advanced' },
     ...mandatorySubjects.map((s) => ({
-      subjectId: s.id, subjectName: s.nameUz, count: 10, pointsPerQuestion: 1.1,
+      subjectId: s.id, subjectName: s.nameUz, count: 10, pointsPerQuestion: 1.1, bias: 'easy' as const,
     })),
   ];
 
+  const usedIds = new Set<string>();
   const picks: { section: SectionSpec; questions: QuestionCandidate[] }[] = [];
   for (const section of sections) {
-    const picked = await pickSectionQuestions(section.subjectId, section.count);
+    const picked = await pickSectionQuestions(section.subjectId, section.count, usedIds, section.bias);
     if (!picked) {
-      const available = await db.question.count({ where: { test: { subjectId: section.subjectId, isPublished: true } } });
+      const available = await db.question.count({
+        where: { test: { subjectId: section.subjectId, isPublished: true }, id: { notIn: [...usedIds] } },
+      });
       return {
         ok: false,
         error: { code: 'INSUFFICIENT_POOL', subjectName: section.subjectName, available, required: section.count },
       };
     }
+    for (const q of picked) usedIds.add(q.id);
     picks.push({ section, questions: picked });
   }
 
@@ -225,12 +243,18 @@ export async function generateDtmOnlineExam(params: {
   return { ok: true, testId: test.id, titleUz: test.titleUz };
 }
 
-/** DTM kategoriyasidagi mutaxassislik sifatida tanlash mumkin bo'lgan fanlar — majburiy 3 tasi bundan tashqarida. */
+/**
+ * DTM kategoriyasidagi mutaxassislik sifatida tanlash mumkin bo'lgan barcha
+ * fanlar — majburiy 3 fan (Matematika, Ona tili va adabiyot, Tarix) ham shu
+ * ro'yxatda: ular mutaxassislik sifatida tanlansa, majburiy 10 ta oson
+ * savoldan tashqari, alohida 30 ta nisbatan o'rtacha/qiyin savol oladi
+ * (generateDtmOnlineExam dagi bias + usedIds mexanizmi orqali).
+ */
 export async function getDtmSpecialtySubjects() {
   const category = await db.testCategory.findFirst({ where: { type: 'DTM' }, select: { id: true } });
   if (!category) return [];
   return db.subject.findMany({
-    where: { categoryId: category.id, nameUz: { notIn: [...DTM_MANDATORY_SUBJECTS] } },
+    where: { categoryId: category.id },
     select: { id: true, nameUz: true, icon: true },
     orderBy: { order: 'asc' },
   });
