@@ -21,6 +21,7 @@ interface LessonItem {
   videoUrl?: string | null;
   content?: string | null;
   test?: { id: string; titleUz: string; questionCount: number; duration: number } | null;
+  fileUrl?: string | null;
 }
 
 interface SectionItem {
@@ -233,6 +234,11 @@ export default function CourseDetailPage() {
                             <Link href={`/tests/${lesson.test.id}/solve`} className="btn-primary inline-flex items-center gap-2 text-sm !py-2 !px-4">
                               <ListChecks size={14} /> Tekshiruvni boshlash ({lesson.test.questionCount} savol)
                             </Link>
+                          )}
+                          {lesson.type === 'PDF' && lesson.fileUrl && (
+                            <a href={lesson.fileUrl} target="_blank" rel="noopener noreferrer" className="btn-primary inline-flex items-center gap-2 text-sm !py-2 !px-4">
+                              <FileText size={14} /> PDF'ni ochish
+                            </a>
                           )}
                         </div>
                       )}

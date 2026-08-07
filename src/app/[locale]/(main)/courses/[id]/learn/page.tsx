@@ -20,6 +20,7 @@ interface LessonItem {
   videoUrl: string | null;
   content: string | null;
   test: { id: string; titleUz: string; questionCount: number; duration: number } | null;
+  fileUrl: string | null;
   completed: boolean;
   lastPositionSeconds: number;
 }
@@ -190,6 +191,12 @@ export default function CourseLearnPage() {
                 <Link href={`/tests/${currentLesson.test.id}/solve`} className="btn-primary inline-flex items-center gap-2 text-sm">
                   <ListChecks size={16} /> Tekshiruvni boshlash ({currentLesson.test.questionCount} savol)
                 </Link>
+              )}
+
+              {currentLesson.type === 'PDF' && currentLesson.fileUrl && (
+                <a href={currentLesson.fileUrl} target="_blank" rel="noopener noreferrer" className="btn-primary inline-flex items-center gap-2 text-sm">
+                  <FileText size={16} /> PDF&apos;ni ochish
+                </a>
               )}
 
               <div className="flex items-center justify-between pt-4 border-t border-border">

@@ -6,7 +6,7 @@ import { Link } from '@/i18n/routing';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeft, Plus, Trash2, Save, Loader2, Send, FileUp, Layers,
-  ChevronUp, ChevronDown, Video, FileText, ListChecks, GraduationCap,
+  ChevronUp, ChevronDown, Video, FileText, ListChecks, GraduationCap, Sparkles,
 } from 'lucide-react';
 import ImageUploadButton from '@/components/ui/ImageUploadButton';
 
@@ -19,6 +19,7 @@ interface LessonForm {
   videoUrl: string;
   content: string;
   testId: string;
+  fileUrl: string;
   durationMinutes: number | '';
   isPreviewable: boolean;
 }
@@ -42,7 +43,7 @@ interface TeacherTestItem {
 }
 
 const emptyLesson: LessonForm = {
-  titleUz: '', type: 'VIDEO', videoUrl: '', content: '', testId: '', durationMinutes: '', isPreviewable: false,
+  titleUz: '', type: 'VIDEO', videoUrl: '', content: '', testId: '', fileUrl: '', durationMinutes: '', isPreviewable: false,
 };
 
 const LESSON_TYPE_META: Record<LessonType, { label: string; icon: typeof Video }> = {
@@ -59,6 +60,8 @@ export default function CreateCoursePage() {
   const [saving, setSaving] = useState(false);
   const [currentStep, setCurrentStep] = useState<'info' | 'curriculum'>('info');
   const [courseId, setCourseId] = useState<string | null>(null);
+  const [uploadingPdfKey, setUploadingPdfKey] = useState<string | null>(null);
+  const [generatingQuizKey, setGeneratingQuizKey] = useState<string | null>(null);
 
   const [courseInfo, setCourseInfo] = useState({
     titleUz: '',
@@ -144,6 +147,82 @@ export default function CreateCoursePage() {
     setSections(updated);
   };
 
+  const insertLessonAfter = (sIdx: number, lIdx: number, lesson: LessonForm) => {
+    const updated = [...sections];
+    const lessons = [...updated[sIdx].lessons];
+    lessons.splice(lIdx + 1, 0, lesson);
+    updated[sIdx] = { ...updated[sIdx], lessons };
+    setSections(updated);
+  };
+
+  const handlePdfUpload = async (sIdx: number, lIdx: number, file: File) => {
+    const key = `${sIdx}-${lIdx}`;
+    if (file.size > 8 * 1024 * 1024) {
+      alert("Fayl hajmi 8 MB dan oshmasligi kerak");
+      return;
+    }
+    setUploadingPdfKey(key);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/upload?endpoint=aiImportFile', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        updateLesson(sIdx, lIdx, { fileUrl: data.url });
+      } else {
+        alert(data.error || 'Faylni yuklashda xatolik');
+      }
+    } catch {
+      alert('Faylni yuklashda xatolik');
+    }
+    setUploadingPdfKey(null);
+  };
+
+  // Dars matnidan AI orqali tekshiruv (Test) yasaydi va shu darsdan keyin
+  // avtomatik QUIZ dars sifatida qo'shadi — o'qituvchi qo'lda test
+  // yaratib, dropdown'dan qayta tanlashi shart bo'lmaydi.
+  const handleGenerateQuiz = async (sIdx: number, lIdx: number) => {
+    const lesson = sections[sIdx].lessons[lIdx];
+    if (!lesson.content || lesson.content.trim().length < 20) {
+      alert("Avval dars matnini kiriting (kamida bir necha jumla)!");
+      return;
+    }
+    if (!courseInfo.subjectId) {
+      alert("Avval 'Kurs ma'lumotlari' qadamida fanni tanlang!");
+      return;
+    }
+    const key = `${sIdx}-${lIdx}`;
+    setGeneratingQuizKey(key);
+    try {
+      const res = await fetch('/api/ai/quiz-from-text', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: lesson.content,
+          subjectId: courseInfo.subjectId,
+          titleUz: `AI tekshiruv: ${lesson.titleUz || 'dars'}`,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || 'Xatolik yuz berdi');
+        setGeneratingQuizKey(null);
+        return;
+      }
+      setTeacherTests((prev) => [...prev, { id: data.test.id, titleUz: data.test.titleUz }]);
+      insertLessonAfter(sIdx, lIdx, {
+        ...emptyLesson,
+        titleUz: data.test.titleUz,
+        type: 'QUIZ',
+        testId: data.test.id,
+      });
+      alert(`✅ ${data.test.questionCount} ta savolli tekshiruv yaratildi va shu darsdan keyin qo'shildi!`);
+    } catch {
+      alert("AI xatolik. Qayta urinib ko'ring.");
+    }
+    setGeneratingQuizKey(null);
+  };
+
   // ---- Save ----
   const handleSaveInfo = async () => {
     if (!courseInfo.titleUz || !courseInfo.subjectId) {
@@ -208,6 +287,7 @@ export default function CreateCoursePage() {
             videoUrl: l.type === 'VIDEO' ? l.videoUrl || null : null,
             content: l.type === 'TEXT' ? l.content || null : null,
             testId: l.type === 'QUIZ' ? l.testId || null : null,
+            fileUrl: l.type === 'PDF' ? l.fileUrl || null : null,
             durationMinutes: l.durationMinutes === '' ? null : l.durationMinutes,
             isPreviewable: l.isPreviewable,
           })),
@@ -456,7 +536,7 @@ export default function CreateCoursePage() {
 
                       <div className="flex flex-wrap items-center gap-3 pl-6">
                         <div className="inline-flex rounded-lg border border-border overflow-hidden">
-                          {(Object.keys(LESSON_TYPE_META) as LessonType[]).filter((t) => t !== 'PDF').map((t) => (
+                          {(Object.keys(LESSON_TYPE_META) as LessonType[]).map((t) => (
                             <button
                               key={t}
                               onClick={() => updateLesson(sIdx, lIdx, { type: t })}
@@ -507,13 +587,24 @@ export default function CreateCoursePage() {
                           />
                         )}
                         {lesson.type === 'TEXT' && (
-                          <textarea
-                            value={lesson.content}
-                            onChange={(e) => updateLesson(sIdx, lIdx, { content: e.target.value })}
-                            placeholder="Dars matni... (LaTeX: $formula$)"
-                            rows={3}
-                            className="w-full px-3 py-2 rounded-lg border border-border focus:ring-2 focus:ring-primary-500/20 text-sm resize-none font-mono"
-                          />
+                          <div className="space-y-2">
+                            <textarea
+                              value={lesson.content}
+                              onChange={(e) => updateLesson(sIdx, lIdx, { content: e.target.value })}
+                              placeholder="Dars matni... (LaTeX: $formula$)"
+                              rows={3}
+                              className="w-full px-3 py-2 rounded-lg border border-border focus:ring-2 focus:ring-primary-500/20 text-sm resize-none font-mono"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleGenerateQuiz(sIdx, lIdx)}
+                              disabled={generatingQuizKey === `${sIdx}-${lIdx}` || !lesson.content.trim()}
+                              className="text-xs font-medium text-primary-600 hover:text-primary-700 flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+                            >
+                              {generatingQuizKey === `${sIdx}-${lIdx}` ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                              AI bilan tekshiruv yasash
+                            </button>
+                          </div>
                         )}
                         {lesson.type === 'QUIZ' && (
                           <select
@@ -524,6 +615,33 @@ export default function CreateCoursePage() {
                             <option value="">Test tanlang...</option>
                             {teacherTests.map((t) => <option key={t.id} value={t.id}>{t.titleUz}</option>)}
                           </select>
+                        )}
+                        {lesson.type === 'PDF' && (
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="file"
+                              accept="application/pdf"
+                              id={`pdf-upload-${sIdx}-${lIdx}`}
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) handlePdfUpload(sIdx, lIdx, file);
+                                e.target.value = '';
+                              }}
+                            />
+                            <label
+                              htmlFor={`pdf-upload-${sIdx}-${lIdx}`}
+                              className="text-xs font-medium px-3 py-2 rounded-lg border border-border bg-white text-text-secondary hover:bg-gray-50 cursor-pointer flex items-center gap-1.5"
+                            >
+                              {uploadingPdfKey === `${sIdx}-${lIdx}` ? <Loader2 size={12} className="animate-spin" /> : <FileUp size={12} />}
+                              PDF yuklash
+                            </label>
+                            {lesson.fileUrl && (
+                              <a href={lesson.fileUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-green-600 hover:underline">
+                                ✓ Fayl yuklandi — ko&apos;rish
+                              </a>
+                            )}
+                          </div>
                         )}
                       </div>
                     </div>

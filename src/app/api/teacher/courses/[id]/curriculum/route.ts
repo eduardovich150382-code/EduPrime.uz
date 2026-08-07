@@ -92,9 +92,10 @@ export async function PUT(
             titleUz: l.titleUz,
             order: lIndex,
             type: l.type || 'VIDEO',
-            videoUrl: l.videoUrl || null,
-            content: l.content || null,
+            videoUrl: l.type === 'VIDEO' ? (l.videoUrl || null) : null,
+            content: l.type === 'TEXT' ? (l.content || null) : null,
             testId: l.type === 'QUIZ' ? (l.testId || null) : null,
+            fileUrl: l.type === 'PDF' ? (l.fileUrl || null) : null,
             durationMinutes: l.durationMinutes || null,
             isPreviewable: !!l.isPreviewable,
           };

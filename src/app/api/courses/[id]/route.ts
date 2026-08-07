@@ -72,6 +72,7 @@ export async function GET(
           videoUrl: l.type === 'VIDEO' ? l.videoUrl : null,
           content: l.type === 'TEXT' ? l.content : null,
           test: l.type === 'QUIZ' ? l.test : null,
+          fileUrl: l.type === 'PDF' ? l.fileUrl : null,
         };
       }),
     }));
