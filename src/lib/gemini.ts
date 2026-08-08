@@ -69,6 +69,10 @@ QOIDALAR:
 function parseImportResponse(responseText: string, fallbackWarning: string): AIImportResult {
   const jsonMatch = responseText.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {
+    // Gemini nima deb javob berganini serverga (Vercel loglariga) yozib
+    // qo'yamiz — aks holda "nega ajratib bo'lmadi" sababini keyin aniqlash
+    // imkonsiz bo'lib qoladi (foydalanuvchiga faqat umumiy xabar ko'rinadi).
+    console.error(`[gemini] JSON topilmadi. Xom javob (birinchi 500 belgi): ${responseText.slice(0, 500)}`);
     return { questions: [], totalFound: 0, warnings: [fallbackWarning] };
   }
 
@@ -161,8 +165,15 @@ export async function importTestFromImage(imageBase64: string, mimeType: string)
  */
 export async function importTestFromFile(fileUrl: string, fileName: string): Promise<AIImportResult> {
   try {
-    // Fetch file content
+    // Fetch file content — javob muvaffaqiyatli ekanini tekshirish shart,
+    // aks holda (masalan URL muddati o'tgan/404 bo'lsa) xato sahifasining
+    // baytlarini "fayl" deb Gemini'ga yuborib qo'yamiz — Gemini bunga
+    // tushunarsiz, JSON bo'lmagan matn bilan javob beradi (natijada "ajratib
+    // bo'lmadi" degan chalg'ituvchi xabar chiqadi, aslida sabab fayl olinmagan).
     const response = await fetch(fileUrl);
+    if (!response.ok) {
+      throw new Error(`Faylni yuklab bo'lmadi (HTTP ${response.status})`);
+    }
     const buffer = await response.arrayBuffer();
     const base64 = Buffer.from(buffer).toString('base64');
 

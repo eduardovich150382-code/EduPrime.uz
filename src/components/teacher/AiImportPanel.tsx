@@ -37,8 +37,16 @@ export default function AiImportPanel({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      const data: AIImportResult = await res.json();
-      setAiResult(data);
+      const data = await res.json();
+      // Route xato bilan javob bergan bo'lsa (masalan 401/403/429/500), buni
+      // "0 ta savol topildi" deb sokin ko'rsatish o'rniga aniq xato sifatida
+      // chiqaramiz — aks holda haqiqiy sabab (masalan avtorizatsiya yoki
+      // limit) foydalanuvchidan yashiringan bo'lardi.
+      if (!res.ok) {
+        alert((data as any)?.error || 'AI import xatolik. Qayta urinib ko\'ring.');
+        return;
+      }
+      setAiResult(data as AIImportResult);
       if (data.questions?.length > 0) onImported(data.questions);
     } catch {
       alert("AI xatolik. Qayta urinib ko'ring.");
