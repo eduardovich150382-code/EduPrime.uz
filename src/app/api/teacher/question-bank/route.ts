@@ -52,8 +52,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { subjectId, text, images, options, correctAnswer, type, explanation, explanationImages, topic, bloomLevel, difficulty } = body;
 
-    if (!subjectId || !text || !correctAnswer) {
-      return NextResponse.json({ error: 'subjectId, text, correctAnswer required' }, { status: 400 });
+    // MATCHING uchun to'g'ri javob correctAnswer'da emas, options.left/right
+    // juftliklarida saqlanadi — shu sababli bu tur uchun alohida tekshiriladi.
+    const hasValidAnswer = type === 'MATCHING'
+      ? Array.isArray(options?.left) && options.left.length >= 2 && Array.isArray(options?.right) && options.right.length >= 2
+      : !!correctAnswer;
+
+    if (!subjectId || !text || !hasValidAnswer) {
+      return NextResponse.json({ error: 'subjectId, text, correctAnswer (yoki MATCHING uchun kamida 2 ta juftlik) required' }, { status: 400 });
     }
 
     const question = await db.bankQuestion.create({
