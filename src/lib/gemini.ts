@@ -122,7 +122,7 @@ export async function importTestFromText(text: string): Promise<AIImportResult> 
   try {
     const model = genAI.getGenerativeModel({
       model: 'gemini-3.5-flash',
-      generationConfig: { maxOutputTokens: 65536 },
+      generationConfig: { maxOutputTokens: 65536, responseMimeType: 'application/json' },
     });
 
     const result = await model.generateContent([
@@ -148,7 +148,7 @@ export async function importTestFromImage(imageBase64: string, mimeType: string)
   try {
     const model = genAI.getGenerativeModel({
       model: 'gemini-3.5-flash',
-      generationConfig: { maxOutputTokens: 65536 },
+      generationConfig: { maxOutputTokens: 65536, responseMimeType: 'application/json' },
     });
 
     const result = await model.generateContent([
@@ -200,7 +200,7 @@ export async function importTestFromFile(fileUrl: string, fileName: string): Pro
 
     const model = genAI.getGenerativeModel({
       model: 'gemini-3.5-flash',
-      generationConfig: { maxOutputTokens: 65536 },
+      generationConfig: { maxOutputTokens: 65536, responseMimeType: 'application/json' },
     });
 
     const result = await model.generateContent([
