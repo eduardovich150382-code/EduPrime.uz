@@ -147,6 +147,28 @@ async function fetchSubjectCandidates(
 }
 
 /**
+ * fetchSubjectCandidates bilan bir xil, lekin topicFilter berilgan va
+ * filtrlangan havza `count`dan kam chiqsa, to'liq (filtrsiz) havzaga
+ * qaytadi. Kerak: o'qituvchilar mavzu teglarini MANDATORY_TOPIC_FILTERS
+ * kutayotgan kalit so'zlar (masalan "til") bilan mos kelmaydigan
+ * nomlar bilan yozishi mumkin (masalan "Grammatika", "Morfologiya") —
+ * bunday holda tor filtr ataylab qilingan yaxshilanish (majburiy=oson
+ * mavzu) tufayli butun DTM Online'ni ishlamay qo'ymasligi kerak.
+ */
+async function fetchCandidatesWithFallback(
+  subjectId: string,
+  excludeIds: Set<string>,
+  count: number,
+  topicFilter?: (topic: string | null) => boolean
+): Promise<QuestionCandidate[]> {
+  const filtered = await fetchSubjectCandidates(subjectId, excludeIds, topicFilter);
+  if (topicFilter && filtered.length < count) {
+    return fetchSubjectCandidates(subjectId, excludeIds);
+  }
+  return filtered;
+}
+
+/**
  * Bitta bo'lim uchun savol tanlaydi: bias'ga qarab avval mos qiyinlik
  * havzasidan, yetmasa qolganidan to'ldiradi; har guruh ichida mavzu bo'yicha
  * diversifikatsiya qilinadi (pickByTopicRoundRobin). excludeIds — boshqa
@@ -162,7 +184,7 @@ async function pickSectionQuestions(
   bias: DifficultyBias,
   topicFilter?: (topic: string | null) => boolean
 ): Promise<QuestionCandidate[] | null> {
-  const candidates = await fetchSubjectCandidates(subjectId, excludeIds, topicFilter);
+  const candidates = await fetchCandidatesWithFallback(subjectId, excludeIds, count, topicFilter);
 
   if (candidates.length < count) return null;
 
@@ -231,7 +253,7 @@ export async function generateDtmOnlineExam(params: {
   for (const section of sections) {
     const picked = await pickSectionQuestions(section.subjectId, section.count, usedIds, section.bias, section.topicFilter);
     if (!picked) {
-      const available = (await fetchSubjectCandidates(section.subjectId, usedIds, section.topicFilter)).length;
+      const available = (await fetchCandidatesWithFallback(section.subjectId, usedIds, section.count, section.topicFilter)).length;
       return {
         ok: false,
         error: { code: 'INSUFFICIENT_POOL', subjectName: section.subjectName, available, required: section.count },
