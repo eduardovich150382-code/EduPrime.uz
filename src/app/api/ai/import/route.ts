@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { importTestFromText, importTestFromImage, importTestFromFile } from '@/lib/gemini';
-import { requireTeacher } from '@/lib/api-auth';
+import { requireTeacher, applyRateLimit } from '@/lib/api-auth';
 
 export async function POST(request: NextRequest) {
   try {
     // Requires TEACHER/ADMIN — this calls a paid/rate-limited AI API and must
     // not be reachable by anonymous visitors.
-    const { error } = await requireTeacher();
+    const { user, error } = await requireTeacher();
     if (error) return error;
+
+    const rateLimited = applyRateLimit(user.id, 20, 60000);
+    if (rateLimited) return rateLimited;
 
     const body = await request.json();
     const { type, content, fileUrl, fileName, mimeType } = body;

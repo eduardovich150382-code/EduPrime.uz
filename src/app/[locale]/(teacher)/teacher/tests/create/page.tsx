@@ -664,9 +664,9 @@ export default function CreateTestPage() {
           videoUrl: '',
           type: q.type === 'OPEN_ENDED' ? 'OPEN_ENDED' : 'MULTIPLE_CHOICE',
           points: 1,
-          topic: '',
-          bloomLevel: '',
-          difficulty: null,
+          topic: q.topic || '',
+          bloomLevel: q.bloomLevel || '',
+          difficulty: q.difficulty ?? null,
           blankAnswers: [''],
           matchingPairs: [{ left: '', right: '' }, { left: '', right: '' }],
         }));

@@ -189,6 +189,9 @@ export interface AIImportedQuestion {
   explanation?: string;
   images?: string[];
   type?: QuestionType;
+  topic?: string;
+  bloomLevel?: string;
+  difficulty?: number | null;
   confidence: number; // 0-1 how confident AI is
 }
 
