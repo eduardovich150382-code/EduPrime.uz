@@ -2,12 +2,22 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireTeacher } from '@/lib/api-auth';
 
+// Bitta elementning bazaga yozish uchun yaroqli ekanini tekshiradi. MATCHING
+// uchun to'g'ri javob correctAnswer'da emas, options.left/right juftliklarida
+// saqlanadi — shu sababli bu tur uchun alohida shart qo'llaniladi.
+function isValidBankItem(q: any): boolean {
+  if (!q || typeof q !== 'object' || !q.subjectId || !q.text) return false;
+  if (q.type === 'MATCHING') {
+    return Array.isArray(q.options?.left) && q.options.left.length >= 2 && Array.isArray(q.options?.right) && q.options.right.length >= 2;
+  }
+  return q.correctAnswer !== undefined && q.correctAnswer !== '';
+}
+
 // POST /api/teacher/question-bank/bulk — bir nechta savolni bitta so'rovda
-// bazaga qo'shadi (masalan test yaratishda kiritilgan savollarni "Hammasini
-// bazaga saqlash" tugmasi orqali). Har bir element yakka POST /api/teacher/
-// question-bank bilan bir xil talablarga bo'ysunadi (subjectId, text,
-// correctAnswer majburiy) — yaroqsizlari o'tkazib yuboriladi, jarayon
-// to'xtamaydi.
+// bazaga qo'shadi (masalan test yaratishda yoki Savollar bazasi sahifasida
+// "Hammasini saqlash" tugmasi orqali). Har bir element yakka POST /api/
+// teacher/question-bank bilan bir xil talablarga bo'ysunadi — yaroqsizlari
+// o'tkazib yuboriladi, jarayon to'xtamaydi.
 export async function POST(request: NextRequest) {
   try {
     const { user, error } = await requireTeacher();
@@ -24,9 +34,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Saqlash uchun savol topilmadi" }, { status: 400 });
     }
 
-    const valid = items.filter(
-      (q: any) => q && typeof q === 'object' && q.subjectId && q.text && q.correctAnswer !== undefined && q.correctAnswer !== ''
-    );
+    const valid = items.filter(isValidBankItem);
     const skipped = items.length - valid.length;
     if (valid.length === 0) {
       return NextResponse.json({ error: "Hech bir savol yaroqli emas (matn va to'g'ri javob to'ldirilishi kerak)" }, { status: 400 });

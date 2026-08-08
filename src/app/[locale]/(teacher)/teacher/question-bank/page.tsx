@@ -1,23 +1,17 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import LatexRenderer from '@/components/ui/LatexRenderer';
-import LatexToolbar from '@/components/ui/LatexToolbar';
-import { BLOOM_LEVELS } from '@/types';
 import {
-  ArrowLeft, Plus, Trash2, Search, Loader2, Library, X,
+  ArrowLeft, Plus, Trash2, Search, Loader2, Library, X, Bot, Eye, CheckCircle,
 } from 'lucide-react';
-import ImageUploadButton, { ImagePreviewList } from '@/components/ui/ImageUploadButton';
-import {
-  FILL_BLANK_MARKER, countFillBlanks, encodeFillBlankCorrectAnswer, parseFillBlankCorrectAnswer,
-} from '@/lib/fill-blank';
-import FillBlankEditor from '@/components/ui/FillBlankEditor';
-import MatchingEditor, { type MatchingPairInput } from '@/components/ui/MatchingEditor';
-import { parseMatchingPairs } from '@/lib/matching';
-
-type QType = 'MULTIPLE_CHOICE' | 'OPEN_ENDED' | 'TRUE_FALSE' | 'MULTI_SELECT' | 'FILL_BLANK' | 'MATCHING';
+import type { AIImportedQuestion, QuestionCoreFields, QuestionType } from '@/types';
+import { isQuestionValid, mapQuestionForBank } from '@/lib/question-form';
+import QuestionEditorForm from '@/components/teacher/QuestionEditorForm';
+import AiImportPanel from '@/components/teacher/AiImportPanel';
+import QuestionPreviewList from '@/components/teacher/QuestionPreviewList';
 
 interface BankOption { label: string; text: string; image: string | null }
 
@@ -28,7 +22,7 @@ interface BankQuestionItem {
   images: string[];
   options: BankOption[] | { left: string[]; right: string[] };
   correctAnswer: string;
-  type: QType;
+  type: QuestionType;
   explanation: string | null;
   topic: string | null;
   bloomLevel: string | null;
@@ -44,71 +38,43 @@ interface SubjectItem {
   category: { nameUz: string; type: string };
 }
 
-const emptyForm = {
-  subjectId: '',
+const emptyDraft: QuestionCoreFields = {
   text: '',
-  images: [] as string[],
+  images: [],
   options: [
-    { label: 'A', text: '', image: null as string | null },
-    { label: 'B', text: '', image: null as string | null },
-    { label: 'C', text: '', image: null as string | null },
-    { label: 'D', text: '', image: null as string | null },
+    { label: 'A', text: '', image: null },
+    { label: 'B', text: '', image: null },
+    { label: 'C', text: '', image: null },
+    { label: 'D', text: '', image: null },
   ],
   correctAnswer: '',
-  type: 'MULTIPLE_CHOICE' as QType,
   explanation: '',
+  explanationImages: [],
+  type: 'MULTIPLE_CHOICE',
   topic: '',
   bloomLevel: '',
-  difficulty: null as number | null,
-  blankAnswers: [''] as string[],
-  matchingPairs: [{ left: '', right: '' }, { left: '', right: '' }] as MatchingPairInput[],
+  difficulty: null,
+  blankAnswers: [''],
+  matchingPairs: [{ left: '', right: '' }, { left: '', right: '' }],
 };
 
-// FILL_BLANK: matndagi "___" soniga mos ravishda blankAnswers ro'yxatini hisoblaydi.
-function fillBlankCorrectAnswer(text: string, blankAnswers: string[]): string {
-  const blankCount = countFillBlanks(text);
-  const perBlank = Array.from({ length: blankCount }, (_, i) =>
-    (blankAnswers[i] || '').split(',').map((s) => s.trim()).filter(Boolean)
-  );
-  return encodeFillBlankCorrectAnswer(perBlank);
-}
-
-// MATCHING: juftliklarni Question.options (Json) kutayotgan {left, right} shakliga o'giradi.
-function matchingOptionsFromPairs(pairs: MatchingPairInput[]): { left: string[]; right: string[] } {
-  const filled = pairs.filter((p) => p.left.trim() && p.right.trim());
-  return {
-    left: filled.map((p) => p.left.trim()),
-    right: filled.map((p) => p.right.trim()),
-  };
-}
-
-function isBankFormValid(form: { text: string; type: QType; correctAnswer: string; blankAnswers: string[]; matchingPairs: MatchingPairInput[] }): boolean {
-  if (!form.text) return false;
-  if (form.type === 'FILL_BLANK') {
-    const blankCount = countFillBlanks(form.text);
-    if (blankCount === 0) return false;
-    for (let i = 0; i < blankCount; i++) {
-      if (!(form.blankAnswers[i] || '').trim()) return false;
-    }
-    return true;
-  }
-  if (form.type === 'MATCHING') {
-    return form.matchingPairs.filter((p) => p.left.trim() && p.right.trim()).length >= 2;
-  }
-  return !!form.correctAnswer;
-}
-
 export default function QuestionBankPage() {
+  // Mavjud savollarni ko'rib chiqish/qidirish
   const [subjects, setSubjects] = useState<SubjectItem[]>([]);
   const [questions, setQuestions] = useState<BankQuestionItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterSubject, setFilterSubject] = useState('');
   const [search, setSearch] = useState('');
-  const [showForm, setShowForm] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
-  const [form, setForm] = useState({ ...emptyForm });
-  const textRef = useRef<HTMLTextAreaElement | null>(null);
+
+  // Yangi savol(lar) qo'shish — Test yaratish sahifasidagi kabi
+  // "Savollar / AI import / Ko'rib chiqish" bosqichli qoralama
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const [wizardSubjectId, setWizardSubjectId] = useState('');
+  const [wizardStep, setWizardStep] = useState<'questions' | 'ai-import' | 'review'>('questions');
+  const [drafts, setDrafts] = useState<QuestionCoreFields[]>([{ ...emptyDraft }]);
+  const [activeDraft, setActiveDraft] = useState(0);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     fetch('/api/subjects').then(r => r.json()).then(data => {
@@ -133,108 +99,6 @@ export default function QuestionBankPage() {
     return () => clearTimeout(timer);
   }, [filterSubject, search]);
 
-  const switchType = (newType: QType) => {
-    setForm((prev) => {
-      let options = prev.options;
-      let correctAnswer = prev.correctAnswer;
-      if (newType === 'TRUE_FALSE') {
-        options = [{ label: 'A', text: "To'g'ri", image: null }, { label: 'B', text: "Noto'g'ri", image: null }];
-        correctAnswer = '';
-      } else if (prev.type === 'TRUE_FALSE' && newType !== 'OPEN_ENDED') {
-        options = [
-          { label: 'A', text: '', image: null }, { label: 'B', text: '', image: null },
-          { label: 'C', text: '', image: null }, { label: 'D', text: '', image: null },
-        ];
-        correctAnswer = '';
-      } else if (newType === 'OPEN_ENDED' || newType === 'FILL_BLANK' || newType === 'MATCHING') {
-        correctAnswer = '';
-      } else if (newType === 'MULTIPLE_CHOICE' && correctAnswer.includes(',')) {
-        correctAnswer = correctAnswer.split(',')[0] || '';
-      }
-      const blankAnswers = newType === 'FILL_BLANK' ? [''] : prev.blankAnswers;
-      const matchingPairs = newType === 'MATCHING' ? [{ left: '', right: '' }, { left: '', right: '' }] : prev.matchingPairs;
-      return { ...prev, type: newType, options, correctAnswer, blankAnswers, matchingPairs };
-    });
-  };
-
-  // "Bo'shliq qo'shish" tugmasi — savol matni ichiga kursor turgan joyga "___" belgisini qo'yadi.
-  const insertBlankMarker = () => {
-    const el = textRef.current;
-    const text = form.text;
-    const start = el?.selectionStart ?? text.length;
-    const end = el?.selectionEnd ?? text.length;
-    const before = text.slice(0, start);
-    const after = text.slice(end);
-    setForm((prev) => ({ ...prev, text: `${before}${FILL_BLANK_MARKER}${after}` }));
-    requestAnimationFrame(() => {
-      if (!el) return;
-      el.focus();
-      const caret = before.length + FILL_BLANK_MARKER.length;
-      el.setSelectionRange(caret, caret);
-    });
-  };
-
-  const toggleAnswer = (label: string) => {
-    setForm((prev) => {
-      if (prev.type === 'MULTI_SELECT') {
-        const set = new Set(prev.correctAnswer.split(',').filter(Boolean));
-        if (set.has(label)) set.delete(label); else set.add(label);
-        return { ...prev, correctAnswer: Array.from(set).sort().join(',') };
-      }
-      return { ...prev, correctAnswer: label };
-    });
-  };
-
-  const addOption = () => {
-    if (form.options.length >= 5) return;
-    const label = String.fromCharCode(65 + form.options.length);
-    setForm((prev) => ({ ...prev, options: [...prev.options, { label, text: '', image: null }] }));
-  };
-
-  const removeOption = (idx: number) => {
-    if (form.options.length <= 4) return;
-    setForm((prev) => ({ ...prev, options: prev.options.filter((_, i) => i !== idx) }));
-  };
-
-  const handleSubmit = async () => {
-    if (!form.subjectId || !isBankFormValid(form)) {
-      alert("Fan, savol matni va to'g'ri javob majburiy!");
-      return;
-    }
-    setSaving(true);
-    try {
-      const isFillBlank = form.type === 'FILL_BLANK';
-      const isMatching = form.type === 'MATCHING';
-      const res = await fetch('/api/teacher/question-bank', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          subjectId: form.subjectId,
-          text: form.text,
-          images: form.images,
-          options: isMatching ? matchingOptionsFromPairs(form.matchingPairs) : (form.type === 'OPEN_ENDED' || isFillBlank) ? [] : form.options.filter(o => o.text),
-          correctAnswer: isFillBlank ? fillBlankCorrectAnswer(form.text, form.blankAnswers) : isMatching ? '' : form.correctAnswer,
-          type: form.type,
-          explanation: form.explanation || null,
-          topic: form.topic || null,
-          bloomLevel: form.bloomLevel || null,
-          difficulty: form.difficulty || null,
-        }),
-      });
-      if (res.ok) {
-        setForm({ ...emptyForm });
-        setShowForm(false);
-        fetchQuestions();
-      } else {
-        const data = await res.json();
-        alert(data.error || 'Xatolik yuz berdi');
-      }
-    } catch {
-      alert('Server xatolik');
-    }
-    setSaving(false);
-  };
-
   const handleDelete = async (id: string) => {
     if (!confirm("Bu savolni bazadan o'chirishni tasdiqlaysizmi?")) return;
     setDeleting(id);
@@ -246,6 +110,89 @@ export default function QuestionBankPage() {
       alert('Server xatolik');
     }
     setDeleting(null);
+  };
+
+  const openWizard = () => {
+    setWizardSubjectId(filterSubject);
+    setDrafts([{ ...emptyDraft }]);
+    setActiveDraft(0);
+    setWizardStep('questions');
+    setWizardOpen(true);
+  };
+
+  const addDraft = () => {
+    setDrafts((prev) => [...prev, { ...emptyDraft }]);
+    setActiveDraft(drafts.length);
+  };
+
+  const removeDraft = (index: number) => {
+    if (drafts.length <= 1) return;
+    setDrafts((prev) => prev.filter((_, i) => i !== index));
+    if (activeDraft >= drafts.length - 1) setActiveDraft(Math.max(0, drafts.length - 2));
+  };
+
+  // AiImportPanel savol topganda chaqiradi — AIImportedQuestion[] ni
+  // qoralama massiviga o'giradi.
+  const handleAiImported = (imported: AIImportedQuestion[]) => {
+    const mapped: QuestionCoreFields[] = imported.map((q) => ({
+      text: q.text || '',
+      images: q.images || [],
+      options: q.type === 'OPEN_ENDED' ? [] : (q.options?.length ? q.options : [
+        { label: 'A', text: '', image: null },
+        { label: 'B', text: '', image: null },
+        { label: 'C', text: '', image: null },
+        { label: 'D', text: '', image: null },
+      ]),
+      correctAnswer: q.correctAnswer || '',
+      explanation: q.explanation || '',
+      explanationImages: [],
+      type: q.type === 'OPEN_ENDED' ? 'OPEN_ENDED' : 'MULTIPLE_CHOICE',
+      topic: q.topic || '',
+      bloomLevel: q.bloomLevel || '',
+      difficulty: q.difficulty ?? null,
+      blankAnswers: [''],
+      matchingPairs: [{ left: '', right: '' }, { left: '', right: '' }],
+    }));
+    setDrafts(mapped);
+    setActiveDraft(0);
+    setWizardStep('questions');
+  };
+
+  const handleSaveAll = async () => {
+    if (!wizardSubjectId) {
+      alert('Avval fan tanlang!');
+      return;
+    }
+    const validDrafts = drafts.filter(isQuestionValid);
+    if (validDrafts.length === 0) {
+      alert("Bazaga saqlash uchun kamida bitta to'liq to'ldirilgan savol bo'lishi kerak!");
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await fetch('/api/teacher/question-bank/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          questions: validDrafts.map((d) => mapQuestionForBank(d, wizardSubjectId)),
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        const skippedNote = drafts.length - validDrafts.length;
+        alert(
+          `${data.count} ta savol bazaga saqlandi!` +
+            (skippedNote > 0 ? `\n${skippedNote} ta to'ldirilmagan savol o'tkazib yuborildi.` : '')
+        );
+        setWizardOpen(false);
+        fetchQuestions();
+      } else {
+        alert(data.error || 'Xatolik yuz berdi');
+      }
+    } catch {
+      alert('Server xatolik');
+    }
+    setSaving(false);
   };
 
   return (
@@ -264,20 +211,38 @@ export default function QuestionBankPage() {
             </p>
           </div>
         </div>
-        <button onClick={() => setShowForm((v) => !v)} className="btn-primary flex items-center gap-2 !py-2 !px-4 text-sm">
-          {showForm ? <X size={16} /> : <Plus size={16} />}
-          {showForm ? 'Bekor qilish' : 'Yangi savol'}
-        </button>
+        {!wizardOpen && (
+          <button onClick={openWizard} className="btn-primary flex items-center gap-2 !py-2 !px-4 text-sm">
+            <Plus size={16} /> Yangi savol(lar)
+          </button>
+        )}
       </motion.div>
 
-      {/* Add form */}
-      {showForm && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="card p-6 space-y-5">
+      {/* Savol(lar) qo'shish qoralamasi */}
+      {wizardOpen && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="card p-6 space-y-6">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <h2 className="font-semibold text-text-primary">Yangi savol(lar) qo&apos;shish</h2>
+            <div className="flex items-center gap-2">
+              <button onClick={() => setWizardOpen(false)} className="btn-secondary flex items-center gap-2 !py-2 !px-4 text-sm">
+                <X size={14} /> Bekor qilish
+              </button>
+              <button
+                onClick={handleSaveAll}
+                disabled={saving}
+                className="btn-primary flex items-center gap-2 !py-2 !px-4 text-sm disabled:opacity-50"
+              >
+                {saving ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
+                Hammasini saqlash
+              </button>
+            </div>
+          </div>
+
           <div>
             <label className="text-sm font-medium text-text-primary block mb-2">Fan *</label>
             <select
-              value={form.subjectId}
-              onChange={(e) => setForm({ ...form, subjectId: e.target.value })}
+              value={wizardSubjectId}
+              onChange={(e) => setWizardSubjectId(e.target.value)}
               className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all"
             >
               <option value="">Fan tanlang...</option>
@@ -285,185 +250,95 @@ export default function QuestionBankPage() {
                 <option key={s.id} value={s.id}>{s.icon} {s.nameUz} ({s.category.nameUz})</option>
               ))}
             </select>
+            <p className="text-xs text-text-secondary mt-1">Shu qoralamadagi barcha savollar shu fanga saqlanadi.</p>
           </div>
 
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-sm font-medium text-text-primary">Savol matni * <span className="text-xs text-text-secondary">(LaTeX: $formula$)</span></label>
-              <ImageUploadButton
-                endpoint="questionImage"
-                label="Rasm qo'shish"
-                onUpload={(url) => setForm((prev) => ({ ...prev, images: [...prev.images, url] }))}
-              />
-            </div>
-            <LatexToolbar targetRef={textRef} value={form.text} onChange={(text) => setForm({ ...form, text })} className="mb-1.5" />
-            <textarea
-              ref={textRef}
-              value={form.text}
-              onChange={(e) => setForm({ ...form, text: e.target.value })}
-              placeholder="Savolni kiriting..."
-              rows={3}
-              className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all resize-none font-mono text-sm"
-            />
-            <ImagePreviewList
-              images={form.images}
-              onRemove={(idx) => setForm((prev) => ({ ...prev, images: prev.images.filter((_, i) => i !== idx) }))}
-            />
-            {form.text && (
-              <div className="mt-2 p-3 rounded-lg bg-blue-50 border border-blue-100">
-                <LatexRenderer content={form.text} className="text-sm text-text-primary" />
-              </div>
-            )}
+          {/* Step tabs */}
+          <div className="flex gap-2 flex-wrap">
+            {[
+              { id: 'questions' as const, label: `Savollar (${drafts.length})`, icon: Plus },
+              { id: 'ai-import' as const, label: 'AI Import', icon: Bot },
+              { id: 'review' as const, label: "Ko'rib chiqish", icon: Eye },
+            ].map((step) => (
+              <button
+                key={step.id}
+                onClick={() => setWizardStep(step.id)}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                  wizardStep === step.id
+                    ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/25'
+                    : 'bg-white border border-border text-text-secondary hover:border-primary-200'
+                }`}
+              >
+                <step.icon size={16} />
+                {step.label}
+              </button>
+            ))}
           </div>
 
-          {/* Type toggle */}
-          <div>
-            <label className="text-sm font-medium text-text-primary block mb-2">Savol turi</label>
-            <div className="inline-flex flex-wrap rounded-xl border border-border overflow-hidden">
-              {([
-                { key: 'MULTIPLE_CHOICE' as const, label: 'Variantli' },
-                { key: 'MULTI_SELECT' as const, label: "Ko'p tanlovli" },
-                { key: 'TRUE_FALSE' as const, label: "To'g'ri/Noto'g'ri" },
-                { key: 'OPEN_ENDED' as const, label: 'Ochiq' },
-                { key: 'FILL_BLANK' as const, label: "Bo'shliqni to'ldirish" },
-                { key: 'MATCHING' as const, label: 'Moslashtirish' },
-              ]).map((opt) => (
-                <button
-                  key={opt.key}
-                  onClick={() => switchType(opt.key)}
-                  className={`px-4 py-2 text-sm font-medium transition-all ${
-                    form.type === opt.key ? 'bg-primary-600 text-white' : 'bg-white text-text-secondary hover:bg-gray-50'
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {form.type === 'FILL_BLANK' ? (
-            <FillBlankEditor
-              question={form}
-              onInsertBlank={insertBlankMarker}
-              onBlankAnswersChange={(blankAnswers) => setForm({ ...form, blankAnswers })}
-            />
-          ) : form.type === 'MATCHING' ? (
-            <MatchingEditor
-              pairs={form.matchingPairs}
-              onChange={(matchingPairs) => setForm({ ...form, matchingPairs })}
-            />
-          ) : form.type === 'OPEN_ENDED' ? (
-            <div>
-              <label className="text-sm font-medium text-text-primary block mb-2">To&apos;g&apos;ri javob (matn) *</label>
-              <input
-                type="text"
-                value={form.correctAnswer}
-                onChange={(e) => setForm({ ...form, correctAnswer: e.target.value })}
-                placeholder="Javobni kiriting"
-                className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all text-sm"
-              />
-            </div>
-          ) : (
-            <div>
-              <label className="text-sm font-medium text-text-primary block mb-3">Javob variantlari *</label>
-              <div className="space-y-2">
-                {form.options.map((opt, idx) => {
-                  const isMulti = form.type === 'MULTI_SELECT';
-                  const isChecked = isMulti ? form.correctAnswer.split(',').includes(opt.label) : form.correctAnswer === opt.label;
-                  return (
-                    <div key={idx} className="flex items-center gap-3">
-                      <button
-                        onClick={() => toggleAnswer(opt.label)}
-                        className={`w-8 h-8 flex items-center justify-center flex-shrink-0 border-2 text-xs font-bold transition-all ${isMulti ? 'rounded-md' : 'rounded-full'} ${
-                          isChecked ? 'border-green-500 bg-green-500 text-white' : 'border-border text-text-secondary hover:border-primary-300'
-                        }`}
-                      >
-                        {opt.label}
-                      </button>
-                      <input
-                        type="text"
-                        value={opt.text}
-                        onChange={(e) => {
-                          const updated = [...form.options];
-                          updated[idx] = { ...updated[idx], text: e.target.value };
-                          setForm({ ...form, options: updated });
-                        }}
-                        placeholder={`${opt.label} variantini kiriting`}
-                        className="flex-1 px-4 py-2.5 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all text-sm"
-                      />
-                      {idx === 4 && (
-                        <button onClick={() => removeOption(idx)} className="p-2 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50">
-                          <Trash2 size={14} />
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
-                {form.type !== 'TRUE_FALSE' && form.options.length < 5 && (
-                  <button onClick={addOption} className="text-xs text-primary-600 hover:text-primary-700 flex items-center gap-1 ml-11">
-                    <Plus size={12} /> E variantini qo&apos;shish
+          {/* STEP: SAVOLLAR */}
+          {wizardStep === 'questions' && (
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              <div className="card p-4 space-y-2 h-fit">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-semibold text-text-primary">Savollar</h3>
+                  <span className="text-xs text-text-secondary">{drafts.length} ta</span>
+                </div>
+                {drafts.map((d, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setActiveDraft(i)}
+                    className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center justify-between transition-all ${
+                      i === activeDraft ? 'bg-primary-100 text-primary-700 font-medium' : 'hover:bg-gray-50 text-text-secondary'
+                    }`}
+                  >
+                    <span>{i + 1}-savol</span>
+                    {isQuestionValid(d) && <CheckCircle size={12} className="text-green-500" />}
                   </button>
+                ))}
+                <button
+                  onClick={addDraft}
+                  className="w-full px-3 py-2 rounded-lg text-sm text-primary-600 hover:bg-primary-50 flex items-center gap-2 transition-colors border border-dashed border-primary-200"
+                >
+                  <Plus size={14} /> Savol qo&apos;shish
+                </button>
+              </div>
+
+              <div className="lg:col-span-3 card p-6 space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-text-primary">{activeDraft + 1}-savol</h3>
+                  <button onClick={() => removeDraft(activeDraft)} className="p-2 rounded-lg text-red-500 hover:bg-red-50">
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+                {drafts[activeDraft] && (
+                  <QuestionEditorForm
+                    question={drafts[activeDraft]}
+                    onChange={(updater) => {
+                      setDrafts((prev) => {
+                        const next = [...prev];
+                        next[activeDraft] = updater(next[activeDraft]);
+                        return next;
+                      });
+                    }}
+                  />
                 )}
               </div>
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label className="text-xs font-medium text-text-secondary block mb-1.5">Mavzu tegi (ixtiyoriy)</label>
-              <input
-                type="text"
-                value={form.topic}
-                onChange={(e) => setForm({ ...form, topic: e.target.value })}
-                placeholder="Masalan: Kvadrat tenglama"
-                className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300"
-              />
-            </div>
-            <div>
-              <label className="text-xs font-medium text-text-secondary block mb-1.5">Bloom darajasi (ixtiyoriy)</label>
-              <select
-                value={form.bloomLevel}
-                onChange={(e) => setForm({ ...form, bloomLevel: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300"
-              >
-                <option value="">Tanlanmagan</option>
-                {BLOOM_LEVELS.map((b) => <option key={b.value} value={b.value}>{b.label}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-text-secondary block mb-1.5">Qiyinlik darajasi (ixtiyoriy)</label>
-              <select
-                value={form.difficulty ?? ''}
-                onChange={(e) => setForm({ ...form, difficulty: e.target.value ? Number(e.target.value) : null })}
-                className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300"
-              >
-                <option value="">Tanlanmagan</option>
-                <option value="1">1 — Juda oson</option>
-                <option value="2">2 — Oson</option>
-                <option value="3">3 — O&apos;rta</option>
-                <option value="4">4 — Qiyin</option>
-                <option value="5">5 — Juda qiyin</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-text-primary block mb-2">Yechim (ixtiyoriy)</label>
-            <textarea
-              value={form.explanation}
-              onChange={(e) => setForm({ ...form, explanation: e.target.value })}
-              rows={2}
-              placeholder="Yechimni kiriting..."
-              className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all resize-none text-sm"
+          {/* STEP: AI IMPORT */}
+          {wizardStep === 'ai-import' && (
+            <AiImportPanel
+              onImported={handleAiImported}
+              title="AI bilan savol import qilish"
+              subtitle="Matn kiriting yoki rasm/fayl yuklang — AI savollarni mavzu/Bloom/qiyinlik darajasi bilan birga ajratib beradi"
             />
-          </div>
+          )}
 
-          <div className="flex justify-end">
-            <button onClick={handleSubmit} disabled={saving} className="btn-primary flex items-center gap-2 disabled:opacity-50">
-              {saving ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
-              Bazaga saqlash
-            </button>
-          </div>
+          {/* STEP: KO'RIB CHIQISH */}
+          {wizardStep === 'review' && (
+            <QuestionPreviewList questions={drafts} emptyMessage="Hali savollar kiritilmagan." />
+          )}
         </motion.div>
       )}
 
