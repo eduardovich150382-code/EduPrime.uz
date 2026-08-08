@@ -3,7 +3,9 @@ import type { AIImportResult, QuestionOption } from '@/types';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
-const IMPORT_PROMPT = `Sen test savollarini tahlil qiluvchi AI assistantsan. 
+const BLOOM_VALUES = ['BILISH', 'TUSHUNISH', 'QOLLASH', 'TAHLIL', 'BAHOLASH', 'YARATISH'];
+
+const IMPORT_PROMPT = `Sen test savollarini tahlil qiluvchi AI assistantsan.
 
 Berilgan matndan/fayldan test savollarini ajratib ol va quyidagi JSON formatda qaytar:
 
@@ -20,6 +22,9 @@ Berilgan matndan/fayldan test savollarini ajratib ol va quyidagi JSON formatda q
       ],
       "correctAnswer": "A",
       "explanation": "Yechim (LaTeX formatda, ixtiyoriy)",
+      "topic": "qisqa mavzu tegi (2-4 so'z, masalan: Kvadrat tenglama)",
+      "bloomLevel": "QOLLASH",
+      "difficulty": 3,
       "confidence": 0.95
     },
     {
@@ -28,6 +33,9 @@ Berilgan matndan/fayldan test savollarini ajratib ol va quyidagi JSON formatda q
       "options": [],
       "correctAnswer": "1024",
       "explanation": "$2^{10} = 1024$",
+      "topic": "Darajali ifodalar",
+      "bloomLevel": "BILISH",
+      "difficulty": 1,
       "confidence": 0.99
     }
   ],
@@ -47,34 +55,65 @@ QOIDALAR:
 9. "type" maydoni: "MULTIPLE_CHOICE" (variantli savol) yoki "OPEN_ENDED" (ochiq savol)
 10. Agar savolda variantlar bo'lmasa va javob son, formula natijasi yoki qisqa matn bo'lsa — bu OPEN_ENDED savol. options bo'sh massiv [], correctAnswer esa to'g'ri javob matni bo'lsin
 11. SAT, milliy sertifikat kabi testlarda ochiq savollar ko'p uchraydi (masalan: "Javobni kiriting", "Natijani yozing")
-12. Agar savolda A), B), C), D) variantlar berilgan bo'lsa — bu MULTIPLE_CHOICE`;
+12. Agar savolda A), B), C), D) variantlar berilgan bo'lsa — bu MULTIPLE_CHOICE
+13. Har bir savol uchun "topic", "bloomLevel" va "difficulty" maydonlarini ALBATTA to'ldir — bo'sh qoldirma
+14. difficulty — 1 dan 5 gacha butun son: bir bosqichli hisob/eslab qolish = 1-2, ko'p bosqichli fikrlash yoki chuqur tahlil = 4-5
+15. bloomLevel faqat quyidagilardan biri bo'lishi kerak: ${BLOOM_VALUES.join(', ')}`;
+
+/**
+ * Uchala importTestFrom* funksiya bir xil "JSON ajratib olish + parse qilish +
+ * yangi maydonlarni tekshirish" mantig'idan foydalanadi — shu yerda bitta
+ * joyda. topic/bloomLevel/difficulty AI'dan noto'g'ri/kutilmagan qiymatda
+ * kelsa, faqat o'sha maydon bo'sh/null qoladi — butun savol yo'qolmaydi.
+ */
+function parseImportResponse(responseText: string, fallbackWarning: string): AIImportResult {
+  const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) {
+    return { questions: [], totalFound: 0, warnings: [fallbackWarning] };
+  }
+
+  const parsed = JSON.parse(jsonMatch[0]);
+  const rawQuestions = Array.isArray(parsed.questions) ? parsed.questions : [];
+
+  const questions = rawQuestions.map((q: any) => {
+    const difficultyNum = Number(q.difficulty);
+    return {
+      text: typeof q.text === 'string' ? q.text : '',
+      options: Array.isArray(q.options) ? q.options : [],
+      correctAnswer: typeof q.correctAnswer === 'string' ? q.correctAnswer : '',
+      explanation: typeof q.explanation === 'string' ? q.explanation : undefined,
+      images: Array.isArray(q.images) ? q.images : undefined,
+      type: q.type === 'OPEN_ENDED' ? 'OPEN_ENDED' : 'MULTIPLE_CHOICE',
+      topic: typeof q.topic === 'string' ? q.topic.slice(0, 100) : '',
+      bloomLevel: BLOOM_VALUES.includes(q.bloomLevel) ? q.bloomLevel : '',
+      difficulty: Number.isInteger(difficultyNum) && difficultyNum >= 1 && difficultyNum <= 5 ? difficultyNum : null,
+      confidence: typeof q.confidence === 'number' ? q.confidence : 0.5,
+    };
+  });
+
+  return {
+    questions,
+    totalFound: typeof parsed.totalFound === 'number' ? parsed.totalFound : questions.length,
+    warnings: Array.isArray(parsed.warnings) ? parsed.warnings : [],
+  };
+}
 
 /**
  * Matndan testlarni AI yordamida import qilish
  */
 export async function importTestFromText(text: string): Promise<AIImportResult> {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash' });
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-3.5-flash',
+      generationConfig: { maxOutputTokens: 8000 },
+    });
 
     const result = await model.generateContent([
       IMPORT_PROMPT,
       `\n\nQuyidagi matndan testlarni ajratib ber:\n\n${text}`,
     ]);
 
-    const response = result.response.text();
-    
-    // Extract JSON from response
-    const jsonMatch = response.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      return {
-        questions: [],
-        totalFound: 0,
-        warnings: ['AI javobini parse qilib bo\'lmadi'],
-      };
-    }
-
-    const parsed = JSON.parse(jsonMatch[0]);
-    return parsed as AIImportResult;
+    return parseImportResponse(result.response.text(), "AI javobini parse qilib bo'lmadi");
   } catch (error) {
     console.error('Gemini AI error:', error);
     return {
@@ -90,7 +129,10 @@ export async function importTestFromText(text: string): Promise<AIImportResult> 
  */
 export async function importTestFromImage(imageBase64: string, mimeType: string): Promise<AIImportResult> {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash' });
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-3.5-flash',
+      generationConfig: { maxOutputTokens: 8000 },
+    });
 
     const result = await model.generateContent([
       IMPORT_PROMPT,
@@ -103,19 +145,7 @@ export async function importTestFromImage(imageBase64: string, mimeType: string)
       },
     ]);
 
-    const response = result.response.text();
-    
-    const jsonMatch = response.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      return {
-        questions: [],
-        totalFound: 0,
-        warnings: ['Rasmdan savollarni ajratib bo\'lmadi'],
-      };
-    }
-
-    const parsed = JSON.parse(jsonMatch[0]);
-    return parsed as AIImportResult;
+    return parseImportResponse(result.response.text(), "Rasmdan savollarni ajratib bo'lmadi");
   } catch (error) {
     console.error('Gemini Vision error:', error);
     return {
@@ -144,7 +174,10 @@ export async function importTestFromFile(fileUrl: string, fileName: string): Pro
     else if (ext === 'jpg' || ext === 'jpeg') mimeType = 'image/jpeg';
     else if (ext === 'txt') mimeType = 'text/plain';
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash' });
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-3.5-flash',
+      generationConfig: { maxOutputTokens: 8000 },
+    });
 
     const result = await model.generateContent([
       IMPORT_PROMPT,
@@ -157,19 +190,7 @@ export async function importTestFromFile(fileUrl: string, fileName: string): Pro
       },
     ]);
 
-    const responseText = result.response.text();
-    
-    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      return {
-        questions: [],
-        totalFound: 0,
-        warnings: ['Fayldan savollarni ajratib bo\'lmadi'],
-      };
-    }
-
-    const parsed = JSON.parse(jsonMatch[0]);
-    return parsed as AIImportResult;
+    return parseImportResponse(result.response.text(), "Fayldan savollarni ajratib bo'lmadi");
   } catch (error) {
     console.error('File import error:', error);
     return {
@@ -193,8 +214,6 @@ export interface SuggestMetadataResult {
   bloomLevel: string;
   difficulty: number | null;
 }
-
-const BLOOM_VALUES = ['BILISH', 'TUSHUNISH', 'QOLLASH', 'TAHLIL', 'BAHOLASH', 'YARATISH'];
 
 /**
  * Bilim xaritasi — shaxsiy o'sish rejasidagi har bir mavzu uchun qisqa
