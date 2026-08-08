@@ -200,3 +200,24 @@ export interface AIImportResult {
   totalFound: number;
   warnings: string[];
 }
+
+// ===================== SHARED QUESTION EDITOR TYPES =====================
+// Bir nechta sahifada (test yaratish, savollar bazasi) qayta ishlatiladigan
+// savol muharriri/AI import/ko'rib chiqish komponentlari uchun umumiy "core"
+// shakl. Sahifaga xos maydonlar (masalan Test uchun points/videoUrl)
+// bunga kirmaydi — har sahifa o'z interfeysida shuni extend qiladi.
+
+export interface QuestionCoreFields {
+  text: string;
+  images: string[];
+  options: QuestionOption[];
+  correctAnswer: string;
+  explanation: string;
+  explanationImages: string[];
+  type: QuestionType;
+  topic: string;
+  bloomLevel: string;
+  difficulty: number | null;
+  blankAnswers: string[];
+  matchingPairs: { left: string; right: string }[];
+}

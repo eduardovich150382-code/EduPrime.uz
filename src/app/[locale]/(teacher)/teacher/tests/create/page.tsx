@@ -5,38 +5,23 @@ import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import { useRouter } from 'next/navigation';
 import LatexRenderer from '@/components/ui/LatexRenderer';
-import LatexToolbar from '@/components/ui/LatexToolbar';
-import { BLOOM_LEVELS } from '@/types';
+import type { AIImportedQuestion, QuestionCoreFields } from '@/types';
 import {
-  ArrowLeft, Plus, Trash2, Image, Upload, Bot,
-  Save, FileUp, CheckCircle, Loader2, Send, Eye, Clock, Paperclip,
-  Library, BookmarkPlus, X, PenLine,
+  ArrowLeft, Plus, Trash2, Bot,
+  Save, FileUp, CheckCircle, Loader2, Send, Eye, Clock,
+  Library, BookmarkPlus, X,
 } from 'lucide-react';
-import ImageUploadButton, {
-  ImagePreviewList, uploadImageFile, extractPastedImageFile, extractDroppedImageFile,
-} from '@/components/ui/ImageUploadButton';
-import {
-  FILL_BLANK_MARKER, countFillBlanks, encodeFillBlankCorrectAnswer, parseFillBlankCorrectAnswer,
-} from '@/lib/fill-blank';
-import FillBlankEditor from '@/components/ui/FillBlankEditor';
-import MatchingEditor, { type MatchingPairInput } from '@/components/ui/MatchingEditor';
+import ImageUploadButton from '@/components/ui/ImageUploadButton';
+import { parseFillBlankCorrectAnswer } from '@/lib/fill-blank';
 import { parseMatchingPairs } from '@/lib/matching';
+import { isQuestionValid, fillBlankCorrectAnswer, matchingOptions, mapQuestionForBank } from '@/lib/question-form';
+import QuestionEditorForm from '@/components/teacher/QuestionEditorForm';
+import AiImportPanel from '@/components/teacher/AiImportPanel';
+import QuestionPreviewList from '@/components/teacher/QuestionPreviewList';
 
-interface QuestionForm {
-  text: string;
-  images: string[];
-  options: { label: string; text: string; image: string | null }[];
-  correctAnswer: string;
-  explanation: string;
-  explanationImages: string[];
+interface QuestionForm extends QuestionCoreFields {
   videoUrl: string;
-  type: 'MULTIPLE_CHOICE' | 'OPEN_ENDED' | 'TRUE_FALSE' | 'MULTI_SELECT' | 'FILL_BLANK' | 'MATCHING';
   points: number;
-  topic: string;
-  bloomLevel: string;
-  difficulty: number | null;
-  blankAnswers: string[]; // FILL_BLANK uchun — matndagi har bir "___" o'rniga mos, vergul bilan ajratilgan qabul qilinadigan javoblar
-  matchingPairs: MatchingPairInput[]; // MATCHING uchun — chap/o'ng ustun juftliklari
 }
 
 interface SubjectItem {
@@ -68,26 +53,6 @@ const emptyQuestion: QuestionForm = {
   matchingPairs: [{ left: '', right: '' }, { left: '', right: '' }],
 };
 
-// FILL_BLANK: matndagi "___" soniga mos ravishda blankAnswers ro'yxatini
-// hisoblaydi (mapping/render vaqtida uzunlik mos kelishi uchun).
-function fillBlankCorrectAnswer(q: QuestionForm): string {
-  const blankCount = countFillBlanks(q.text);
-  const perBlank = Array.from({ length: blankCount }, (_, i) =>
-    (q.blankAnswers[i] || '').split(',').map((s) => s.trim()).filter(Boolean)
-  );
-  return encodeFillBlankCorrectAnswer(perBlank);
-}
-
-// MATCHING: juftliklarni Question.options (Json) kutayotgan {left, right}
-// shakliga o'giradi — bo'sh (matnsiz) juftliklar chetlab o'tiladi.
-function matchingOptions(q: QuestionForm): { left: string[]; right: string[] } {
-  const filled = q.matchingPairs.filter((p) => p.left.trim() && p.right.trim());
-  return {
-    left: filled.map((p) => p.left.trim()),
-    right: filled.map((p) => p.right.trim()),
-  };
-}
-
 // Bitta savolni API kutayotgan formatga o'giradi — qoralamani serverga
 // avtosaqlash va aniq "Saqlash"/"Nashr qilish" tugmalari bir xil mapping'dan
 // foydalanadi, shu sababli ikkalasi sinxronsizlanmaydi.
@@ -110,48 +75,6 @@ function mapQuestionForApi(q: QuestionForm) {
   };
 }
 
-// Bitta savolni Savollar bazasi (BankQuestion) API kutayotgan formatga
-// o'giradi — yakka "Bu savolni bazaga saqlash" va ko'p "Hammasini bazaga
-// saqlash" tugmalari bir xil mapping'dan foydalanadi.
-function mapQuestionForBank(q: QuestionForm, subjectId: string) {
-  const isFillBlank = q.type === 'FILL_BLANK';
-  const isMatching = q.type === 'MATCHING';
-  return {
-    subjectId,
-    text: q.text,
-    images: q.images,
-    options: isMatching ? matchingOptions(q) : (q.type === 'OPEN_ENDED' || isFillBlank) ? [] : q.options.filter((o) => o.text),
-    correctAnswer: isFillBlank ? fillBlankCorrectAnswer(q) : isMatching ? '' : q.correctAnswer,
-    type: q.type,
-    explanation: q.explanation || null,
-    explanationImages: q.explanationImages,
-    topic: q.topic || null,
-    bloomLevel: q.bloomLevel || null,
-    difficulty: q.difficulty || null,
-  };
-}
-
-// Savol yaroqli hisoblanishi uchun: matn bo'lishi, va turiga qarab yoki
-// to'g'ri javob (correctAnswer), yoki FILL_BLANK uchun har bir bo'shliqqa
-// kamida bitta qabul qilinadigan javob, yoki MATCHING uchun kamida 2 ta
-// to'liq (chap+o'ng) juftlik to'ldirilgan bo'lishi kerak.
-function isQuestionValid(q: QuestionForm): boolean {
-  if (!q.text) return false;
-  if (q.type === 'FILL_BLANK') {
-    const blankCount = countFillBlanks(q.text);
-    if (blankCount === 0) return false;
-    for (let i = 0; i < blankCount; i++) {
-      if (!(q.blankAnswers[i] || '').trim()) return false;
-    }
-    return true;
-  }
-  if (q.type === 'MATCHING') {
-    const filled = q.matchingPairs.filter((p) => p.left.trim() && p.right.trim());
-    return filled.length >= 2;
-  }
-  return !!q.correctAnswer;
-}
-
 export default function CreateTestPage() {
   const router = useRouter();
   const [subjects, setSubjects] = useState<SubjectItem[]>([]);
@@ -171,25 +94,15 @@ export default function CreateTestPage() {
   const [questions, setQuestions] = useState<QuestionForm[]>([{ ...emptyQuestion }]);
   const [currentStep, setCurrentStep] = useState<'info' | 'questions' | 'ai-import' | 'preview'>('info');
   const [activeQuestion, setActiveQuestion] = useState(0);
-  const [aiText, setAiText] = useState('');
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiResult, setAiResult] = useState<any>(null);
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [draftTestId, setDraftTestId] = useState<string | null>(null);
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const draftSaveInFlightRef = useRef(false);
-  const questionTextRef = useRef<HTMLTextAreaElement | null>(null);
-  const explanationRef = useRef<HTMLTextAreaElement | null>(null);
-  const [dropUploading, setDropUploading] = useState<'question' | 'explanation' | null>(null);
-  const [aiFileLoading, setAiFileLoading] = useState(false);
-  const aiImageInputRef = useRef<HTMLInputElement | null>(null);
-  const aiFileInputRef = useRef<HTMLInputElement | null>(null);
   const [bankPickerOpen, setBankPickerOpen] = useState(false);
   const [bankQuestions, setBankQuestions] = useState<any[]>([]);
   const [bankLoading, setBankLoading] = useState(false);
   const [savingToBank, setSavingToBank] = useState(false);
   const [savingAllToBank, setSavingAllToBank] = useState(false);
-  const [aiSuggestLoading, setAiSuggestLoading] = useState(false);
 
   // Savollar bazasidan tanlash uchun ro'yxatni yuklaydi (test fani bo'yicha filtrlaydi)
   const openBankPicker = async () => {
@@ -307,31 +220,6 @@ export default function CreateTestPage() {
     setSavingAllToBank(false);
   };
 
-  // Savol matni / yechim maydonlariga rasmni sudrab tashlash yoki
-  // clipboard'dan (Ctrl+V) joylash orqali yuklash
-  const handleImageDropOrPaste = async (
-    file: File,
-    target: 'question' | 'explanation'
-  ) => {
-    setDropUploading(target);
-    try {
-      const endpoint = target === 'question' ? 'questionImage' : 'solutionImage';
-      const url = await uploadImageFile(file, endpoint);
-      setQuestions((prev) => {
-        const updated = [...prev];
-        const key = target === 'question' ? 'images' : 'explanationImages';
-        updated[activeQuestion] = {
-          ...updated[activeQuestion],
-          [key]: [...updated[activeQuestion][key], url],
-        };
-        return updated;
-      });
-    } catch (error) {
-      alert(error instanceof Error ? error.message : 'Rasm yuklashda xatolik');
-    }
-    setDropUploading(null);
-  };
-
   // Qoralamani serverga jim tarzda saqlaydi — birinchi marta test yaratadi
   // (POST), keyingi chaqiruvlar o'sha bitta qatorni yangilaydi (PUT), shu
   // sababli har 30 soniyada yangi-yangi test yaratilmaydi. Faqat sarlavha va
@@ -437,104 +325,9 @@ export default function CreateTestPage() {
     ? subjects.filter(s => s.category.type === testInfo.categoryType)
     : subjects;
 
-  const addOption = (qIndex: number) => {
-    const q = questions[qIndex];
-    if (q.options.length >= 5) return;
-    const label = String.fromCharCode(65 + q.options.length);
-    const updated = [...questions];
-    updated[qIndex] = { ...q, options: [...q.options, { label, text: '', image: null }] };
-    setQuestions(updated);
-  };
-
-  const removeOption = (qIndex: number, optIndex: number) => {
-    const q = questions[qIndex];
-    if (q.options.length <= 4) return;
-    const updated = [...questions];
-    updated[qIndex] = { ...q, options: q.options.filter((_, i) => i !== optIndex) };
-    setQuestions(updated);
-  };
-
   const addQuestion = () => {
     setQuestions([...questions, { ...emptyQuestion }]);
     setActiveQuestion(questions.length);
-  };
-
-  // Savol turini almashtirish — TRUE_FALSE uchun variantlarni 2 taga
-  // qat'iylashtiradi, boshqa turlarga qaytishda esa bo'sh 4 variant tiklaydi.
-  const switchQuestionType = (qIndex: number, newType: QuestionForm['type']) => {
-    setQuestions((prev) => {
-      const updated = [...prev];
-      const q = updated[qIndex];
-      let options = q.options;
-      let correctAnswer = q.correctAnswer;
-
-      if (newType === 'TRUE_FALSE') {
-        options = [
-          { label: 'A', text: "To'g'ri", image: null },
-          { label: 'B', text: "Noto'g'ri", image: null },
-        ];
-        correctAnswer = '';
-      } else if (q.type === 'TRUE_FALSE' && newType !== 'OPEN_ENDED') {
-        options = [
-          { label: 'A', text: '', image: null },
-          { label: 'B', text: '', image: null },
-          { label: 'C', text: '', image: null },
-          { label: 'D', text: '', image: null },
-        ];
-        correctAnswer = '';
-      } else if (newType === 'OPEN_ENDED' || newType === 'FILL_BLANK' || newType === 'MATCHING') {
-        correctAnswer = '';
-      } else if (newType === 'MULTIPLE_CHOICE' && correctAnswer.includes(',')) {
-        correctAnswer = correctAnswer.split(',')[0] || '';
-      }
-
-      const blankAnswers = newType === 'FILL_BLANK' ? [''] : q.blankAnswers;
-      const matchingPairs = newType === 'MATCHING' ? [{ left: '', right: '' }, { left: '', right: '' }] : q.matchingPairs;
-
-      updated[qIndex] = { ...q, type: newType, options, correctAnswer, blankAnswers, matchingPairs };
-      return updated;
-    });
-  };
-
-  // "Bo'shliq qo'shish" tugmasi — savol matni ichiga kursor turgan joyga
-  // "___" belgisini qo'yadi (LatexToolbar bilan bir xil insert-at-cursor naqsh).
-  const insertBlankMarker = (qIndex: number) => {
-    const el = questionTextRef.current;
-    const text = questions[qIndex]?.text || '';
-    const start = el?.selectionStart ?? text.length;
-    const end = el?.selectionEnd ?? text.length;
-    const before = text.slice(0, start);
-    const after = text.slice(end);
-
-    setQuestions((prev) => {
-      const updated = [...prev];
-      updated[qIndex] = { ...updated[qIndex], text: `${before}${FILL_BLANK_MARKER}${after}` };
-      return updated;
-    });
-
-    requestAnimationFrame(() => {
-      if (!el) return;
-      el.focus();
-      const caret = before.length + FILL_BLANK_MARKER.length;
-      el.setSelectionRange(caret, caret);
-    });
-  };
-
-  // MULTIPLE_CHOICE/TRUE_FALSE: bitta javobni belgilaydi.
-  // MULTI_SELECT: belgilarni to'plamga qo'shadi/olib tashlaydi (vergul bilan ajratilgan saqlanadi).
-  const toggleCorrectAnswer = (qIndex: number, label: string) => {
-    setQuestions((prev) => {
-      const updated = [...prev];
-      const q = updated[qIndex];
-      if (q.type === 'MULTI_SELECT') {
-        const set = new Set((q.correctAnswer || '').split(',').filter(Boolean));
-        if (set.has(label)) set.delete(label); else set.add(label);
-        updated[qIndex] = { ...q, correctAnswer: Array.from(set).sort().join(',') };
-      } else {
-        updated[qIndex] = { ...q, correctAnswer: label };
-      }
-      return updated;
-    });
   };
 
   const removeQuestion = (index: number) => {
@@ -635,143 +428,34 @@ export default function CreateTestPage() {
     setSaving(false);
   };
 
-  // AI IMPORT — matn, rasm yoki fayl (PDF/DOCX/TXT) qaysi biri bo'lishidan
-  // qat'i nazar, bitta umumiy oqim orqali /api/ai/import ga yuboriladi
-  const runAiImport = async (payload: Record<string, unknown>) => {
-    setAiResult(null);
-    try {
-      const res = await fetch('/api/ai/import', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      setAiResult(data);
-
-      if (data.questions?.length > 0) {
-        const imported: QuestionForm[] = data.questions.map((q: any) => ({
-          text: q.text || '',
-          images: q.images || [],
-          options: q.type === 'OPEN_ENDED' ? [] : (q.options || [
-            { label: 'A', text: '', image: null },
-            { label: 'B', text: '', image: null },
-            { label: 'C', text: '', image: null },
-            { label: 'D', text: '', image: null },
-          ]),
-          correctAnswer: q.correctAnswer || '',
-          explanation: q.explanation || '',
-          explanationImages: [],
-          videoUrl: '',
-          type: q.type === 'OPEN_ENDED' ? 'OPEN_ENDED' : 'MULTIPLE_CHOICE',
-          points: 1,
-          topic: q.topic || '',
-          bloomLevel: q.bloomLevel || '',
-          difficulty: q.difficulty ?? null,
-          blankAnswers: [''],
-          matchingPairs: [{ left: '', right: '' }, { left: '', right: '' }],
-        }));
-        setQuestions(imported);
-        setActiveQuestion(0);
-        setCurrentStep('questions');
-      }
-    } catch (error) {
-      alert("AI xatolik. Qayta urinib ko'ring.");
-    }
-  };
-
-  const handleAiImport = async () => {
-    if (!aiText.trim()) {
-      alert("Matn kiriting!");
-      return;
-    }
-    setAiLoading(true);
-    await runAiImport({ type: 'text', content: aiText });
-    setAiLoading(false);
-  };
-
-  const handleAiImageImport = async (file: File) => {
-    setAiLoading(true);
-    try {
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve((reader.result as string).split(',')[1] || '');
-        reader.onerror = () => reject(new Error("Rasmni o'qib bo'lmadi"));
-        reader.readAsDataURL(file);
-      });
-      await runAiImport({ type: 'image', content: base64, mimeType: file.type });
-    } catch (error) {
-      alert(error instanceof Error ? error.message : 'Rasmni yuklashda xatolik');
-    }
-    setAiLoading(false);
-  };
-
-  const handleAiFileImport = async (file: File) => {
-    setAiFileLoading(true);
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const uploadRes = await fetch('/api/upload?endpoint=aiImportFile', { method: 'POST', body: formData });
-      const uploadData = await uploadRes.json();
-      if (!uploadRes.ok || !uploadData.url) {
-        alert(uploadData.error || 'Faylni yuklashda xatolik');
-        setAiFileLoading(false);
-        return;
-      }
-      setAiLoading(true);
-      await runAiImport({ type: 'file', fileUrl: uploadData.url, fileName: file.name });
-    } catch {
-      alert('Faylni yuklashda xatolik');
-    }
-    setAiFileLoading(false);
-    setAiLoading(false);
-  };
-
-  // AI orqali bo'sh variantlarga distraktor va mavzu/Bloom darajasi taklif qilish.
-  // Faqat bo'sh maydonlarni to'ldiradi — o'qituvchi allaqachon yozgan narsani bosib o'tmaydi.
-  const handleAiSuggest = async () => {
-    const q = questions[activeQuestion];
-    if (!q.text || !q.correctAnswer) return;
-    setAiSuggestLoading(true);
-    try {
-      const res = await fetch('/api/ai/suggest', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          text: q.text,
-          correctAnswer: q.correctAnswer,
-          type: q.type,
-          existingOptionTexts: q.options.filter((o) => o.text).map((o) => o.text),
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        alert(data.error || 'Xatolik yuz berdi');
-        return;
-      }
-      setQuestions((prev) => {
-        const updated = [...prev];
-        const current = updated[activeQuestion];
-        let options = current.options;
-        if ((current.type === 'MULTIPLE_CHOICE' || current.type === 'MULTI_SELECT') && data.distractors?.length) {
-          let di = 0;
-          options = current.options.map((o) => {
-            if (!o.text && di < data.distractors.length) return { ...o, text: data.distractors[di++] };
-            return o;
-          });
-        }
-        updated[activeQuestion] = {
-          ...current,
-          options,
-          topic: current.topic || data.topic || current.topic,
-          bloomLevel: current.bloomLevel || data.bloomLevel || current.bloomLevel,
-          difficulty: current.difficulty ?? data.difficulty ?? current.difficulty,
-        };
-        return updated;
-      });
-    } catch {
-      alert("AI xatolik. Qayta urinib ko'ring.");
-    }
-    setAiSuggestLoading(false);
+  // AiImportPanel savol topganda chaqiradi — AIImportedQuestion[] ni
+  // to'liq QuestionForm[] ga (points/videoUrl kabi sahifaga xos maydonlar
+  // bilan) o'giradi.
+  const handleAiImported = (imported: AIImportedQuestion[]) => {
+    const mapped: QuestionForm[] = imported.map((q) => ({
+      text: q.text || '',
+      images: q.images || [],
+      options: q.type === 'OPEN_ENDED' ? [] : (q.options?.length ? q.options : [
+        { label: 'A', text: '', image: null },
+        { label: 'B', text: '', image: null },
+        { label: 'C', text: '', image: null },
+        { label: 'D', text: '', image: null },
+      ]),
+      correctAnswer: q.correctAnswer || '',
+      explanation: q.explanation || '',
+      explanationImages: [],
+      videoUrl: '',
+      type: q.type === 'OPEN_ENDED' ? 'OPEN_ENDED' : 'MULTIPLE_CHOICE',
+      points: 1,
+      topic: q.topic || '',
+      bloomLevel: q.bloomLevel || '',
+      difficulty: q.difficulty ?? null,
+      blankAnswers: [''],
+      matchingPairs: [{ left: '', right: '' }, { left: '', right: '' }],
+    }));
+    setQuestions(mapped);
+    setActiveQuestion(0);
+    setCurrentStep('questions');
   };
 
   return (
@@ -1131,421 +815,34 @@ export default function CreateTestPage() {
               </div>
             </div>
 
-            {/* Question text */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium text-text-primary">
-                  Savol matni * <span className="text-xs text-text-secondary">(LaTeX: $formula$)</span>
-                </label>
-                <ImageUploadButton
-                  endpoint="questionImage"
-                  label="Rasm qo'shish"
-                  onUpload={(url) => {
-                    const updated = [...questions];
-                    updated[activeQuestion] = {
-                      ...updated[activeQuestion],
-                      images: [...updated[activeQuestion].images, url],
-                    };
-                    setQuestions(updated);
-                  }}
-                />
-              </div>
-              <LatexToolbar
-                targetRef={questionTextRef}
-                value={questions[activeQuestion]?.text || ''}
-                onChange={(text) => {
-                  const updated = [...questions];
-                  updated[activeQuestion] = { ...updated[activeQuestion], text };
-                  setQuestions(updated);
+            {questions[activeQuestion] && (
+              <QuestionEditorForm
+                question={questions[activeQuestion]}
+                onChange={(updater) => {
+                  setQuestions((prev) => {
+                    const next = [...prev];
+                    next[activeQuestion] = updater(next[activeQuestion]);
+                    return next;
+                  });
                 }}
-                className="mb-1.5"
-              />
-              <textarea
-                ref={questionTextRef}
-                value={questions[activeQuestion]?.text || ''}
-                onChange={(e) => {
-                  const updated = [...questions];
-                  updated[activeQuestion] = { ...updated[activeQuestion], text: e.target.value };
-                  setQuestions(updated);
-                }}
-                onPaste={(e) => {
-                  const file = extractPastedImageFile(e);
-                  if (file) {
-                    e.preventDefault();
-                    handleImageDropOrPaste(file, 'question');
-                  }
-                }}
-                onDrop={(e) => {
-                  const file = extractDroppedImageFile(e);
-                  if (file) {
-                    e.preventDefault();
-                    handleImageDropOrPaste(file, 'question');
-                  }
-                }}
-                onDragOver={(e) => e.preventDefault()}
-                placeholder="Savolni kiriting... (rasmni shu yerga sudrab tashlashingiz yoki joylashingiz mumkin)"
-                rows={3}
-                className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all resize-none font-mono text-sm"
-              />
-              {dropUploading === 'question' && (
-                <p className="text-xs text-primary-600 mt-1 flex items-center gap-1.5">
-                  <Loader2 size={12} className="animate-spin" /> Rasm yuklanmoqda...
-                </p>
-              )}
-              {/* Question images preview */}
-              <ImagePreviewList
-                images={questions[activeQuestion]?.images || []}
-                onRemove={(index) => {
-                  const updated = [...questions];
-                  updated[activeQuestion] = {
-                    ...updated[activeQuestion],
-                    images: updated[activeQuestion].images.filter((_, i) => i !== index),
-                  };
-                  setQuestions(updated);
-                }}
-              />
-              {questions[activeQuestion]?.text && (
-                <div className="mt-2 p-3 rounded-lg bg-blue-50 border border-blue-100">
-                  <p className="text-xs text-blue-600 mb-1 font-medium">Ko&apos;rinishi:</p>
-                  <LatexRenderer content={questions[activeQuestion].text} className="text-sm text-text-primary" />
-                </div>
-              )}
-            </div>
-
-            {/* Options */}
-            <div>
-              {/* Question type toggle */}
-              <div className="mb-4">
-                <label className="text-sm font-medium text-text-primary block mb-2">Savol turi</label>
-                <div className="inline-flex flex-wrap rounded-xl border border-border overflow-hidden">
-                  {([
-                    { key: 'MULTIPLE_CHOICE' as const, label: 'Variantli' },
-                    { key: 'MULTI_SELECT' as const, label: "Ko'p tanlovli" },
-                    { key: 'TRUE_FALSE' as const, label: "To'g'ri/Noto'g'ri" },
-                    { key: 'OPEN_ENDED' as const, label: 'Ochiq' },
-                    { key: 'FILL_BLANK' as const, label: "Bo'shliqni to'ldirish" },
-                    { key: 'MATCHING' as const, label: 'Moslashtirish' },
-                  ]).map((opt) => (
-                    <button
-                      key={opt.key}
-                      onClick={() => switchQuestionType(activeQuestion, opt.key)}
-                      className={`px-4 py-2 text-sm font-medium transition-all ${
-                        questions[activeQuestion]?.type === opt.key
-                          ? 'bg-primary-600 text-white'
-                          : 'bg-white text-text-secondary hover:bg-gray-50'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-                <p className="text-xs text-text-secondary mt-1">
-                  {questions[activeQuestion]?.type === 'OPEN_ENDED' && "Ochiq savol — foydalanuvchi javobni qo'lda kiritadi (masalan: son, formula natijasi)"}
-                  {questions[activeQuestion]?.type === 'MULTIPLE_CHOICE' && 'Variantli savol — foydalanuvchi bitta to\'g\'ri variantni tanlaydi'}
-                  {questions[activeQuestion]?.type === 'MULTI_SELECT' && "Ko'p tanlovli savol — foydalanuvchi bir nechta to'g'ri variantni belgilashi mumkin"}
-                  {questions[activeQuestion]?.type === 'TRUE_FALSE' && "To'g'ri/Noto'g'ri savol — ikkita variantdan biri tanlanadi"}
-                  {questions[activeQuestion]?.type === 'FILL_BLANK' && "Bo'shliqni to'ldirish — savol matni ichiga uchta pastki chiziqcha (___) qo'yiladi, talaba shu joyga javob yozadi"}
-                  {questions[activeQuestion]?.type === 'MATCHING' && "Moslashtirish — talaba chap ustundagi har bir elementga mos o'ng ustun elementini tanlaydi"}
-                </p>
-              </div>
-
-              {/* FILL_BLANK: per-blank accepted answers */}
-              {questions[activeQuestion]?.type === 'FILL_BLANK' ? (
-                <FillBlankEditor
-                  question={questions[activeQuestion]}
-                  onInsertBlank={() => insertBlankMarker(activeQuestion)}
-                  onBlankAnswersChange={(blankAnswers) => {
-                    const updated = [...questions];
-                    updated[activeQuestion] = { ...updated[activeQuestion], blankAnswers };
-                    setQuestions(updated);
-                  }}
-                />
-              ) : questions[activeQuestion]?.type === 'MATCHING' ? (
-                <MatchingEditor
-                  pairs={questions[activeQuestion].matchingPairs}
-                  onChange={(matchingPairs) => {
-                    const updated = [...questions];
-                    updated[activeQuestion] = { ...updated[activeQuestion], matchingPairs };
-                    setQuestions(updated);
-                  }}
-                />
-              ) : questions[activeQuestion]?.type === 'OPEN_ENDED' ? (
-                <div>
-                  <label className="text-sm font-medium text-text-primary block mb-2">
-                    To&apos;g&apos;ri javob (matn) *
-                  </label>
-                  <input
-                    type="text"
-                    value={questions[activeQuestion]?.correctAnswer || ''}
-                    onChange={(e) => {
-                      const updated = [...questions];
-                      updated[activeQuestion] = { ...updated[activeQuestion], correctAnswer: e.target.value };
-                      setQuestions(updated);
-                    }}
-                    placeholder="Javobni kiriting (masalan: 42, 3.14)"
-                    className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all text-sm"
-                  />
-                  <p className="text-xs text-text-secondary mt-2">
-                    Javobni talaba yozishi kerak bo&apos;lgan shaklda kiriting. Katta-kichik harf farq qilmaydi, lekin formatga e&apos;tibor bering (masalan: 3.14, emas 3,14).
-                  </p>
-                </div>
-              ) : (
-              /* MULTIPLE_CHOICE / TRUE_FALSE / MULTI_SELECT: options */
-              <div>
-              <label className="text-sm font-medium text-text-primary block mb-3">Javob variantlari *</label>
-              <div className="space-y-3">
-                {questions[activeQuestion]?.options.map((opt, optIndex) => {
-                  const isMulti = questions[activeQuestion]?.type === 'MULTI_SELECT';
-                  const isChecked = isMulti
-                    ? (questions[activeQuestion]?.correctAnswer || '').split(',').includes(opt.label)
-                    : questions[activeQuestion]?.correctAnswer === opt.label;
-                  return (
-                  <div key={optIndex} className="space-y-1">
-                    <div className="flex items-start gap-3">
-                      <button
-                        onClick={() => toggleCorrectAnswer(activeQuestion, opt.label)}
-                        className={`w-8 h-8 flex items-center justify-center flex-shrink-0 border-2 text-xs font-bold mt-2 transition-all ${isMulti ? 'rounded-md' : 'rounded-full'} ${
-                          isChecked
-                            ? 'border-green-500 bg-green-500 text-white'
-                            : 'border-border text-text-secondary hover:border-primary-300'
-                        }`}
-                      >
-                        {opt.label}
-                      </button>
-                        <div className="flex-1 space-y-1">
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="text"
-                            value={opt.text}
-                            onChange={(e) => {
-                              const updated = [...questions];
-                              updated[activeQuestion].options[optIndex].text = e.target.value;
-                              setQuestions(updated);
-                            }}
-                            placeholder={`${opt.label} variantini kiriting`}
-                            className="flex-1 px-4 py-2.5 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all text-sm"
-                          />
-                          {questions[activeQuestion]?.type !== 'TRUE_FALSE' && (
-                            <ImageUploadButton
-                              endpoint="optionImage"
-                              label="Rasm"
-                              onUpload={(url) => {
-                                const updated = [...questions];
-                                updated[activeQuestion].options[optIndex].image = url;
-                                setQuestions(updated);
-                              }}
-                            />
-                          )}
-                          {optIndex === 4 && (
-                            <button onClick={() => removeOption(activeQuestion, optIndex)} className="p-2 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50">
-                              <Trash2 size={14} />
-                            </button>
-                          )}
-                        </div>
-                        {/* LaTeX preview for option */}
-                        {opt.text && opt.text.includes('$') && (
-                          <div className="ml-1 px-2 py-1 rounded bg-blue-50 text-xs">
-                            <LatexRenderer content={opt.text} className="text-text-primary" />
-                          </div>
-                        )}
-                        {/* Option image preview */}
-                        {opt.image && (
-                          <div className="relative inline-block ml-1">
-                            <img
-                              src={opt.image}
-                              alt={`${opt.label} rasmi`}
-                              className="h-12 w-auto object-contain rounded-lg border border-border"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const updated = [...questions];
-                                updated[activeQuestion].options[optIndex].image = null;
-                                setQuestions(updated);
-                              }}
-                              className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[8px]"
-                            >
-                              &times;
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                footerSlot={
+                  <div>
+                    <label className="text-sm font-medium text-text-primary block mb-2">Video yechim URL (ixtiyoriy)</label>
+                    <input
+                      type="url"
+                      value={questions[activeQuestion]?.videoUrl || ''}
+                      onChange={(e) => {
+                        const updated = [...questions];
+                        updated[activeQuestion] = { ...updated[activeQuestion], videoUrl: e.target.value };
+                        setQuestions(updated);
+                      }}
+                      placeholder="https://youtube.com/watch?v=..."
+                      className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all text-sm"
+                    />
                   </div>
-                  );
-                })}
-                {questions[activeQuestion]?.type !== 'TRUE_FALSE' && questions[activeQuestion]?.options.length < 5 && (
-                  <button onClick={() => addOption(activeQuestion)} className="text-xs text-primary-600 hover:text-primary-700 flex items-center gap-1 ml-11">
-                    <Plus size={12} /> E variantini qo&apos;shish
-                  </button>
-                )}
-              </div>
-              <p className="text-xs text-text-secondary mt-2 ml-11">
-                {questions[activeQuestion]?.type === 'MULTI_SELECT'
-                  ? "Yashil kvadrat = to'g'ri javob. Bir nechtasini belgilashingiz mumkin."
-                  : "Yashil doira = to'g'ri javob. Belgilash uchun harf tugmasini bosing."}
-              </p>
-              </div>
-              )}
-            </div>
-
-            {/* Topic tag, Bloom level & difficulty */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 rounded-xl bg-gray-50 border border-border">
-              <div className="sm:col-span-3 flex items-center justify-between">
-                <p className="text-xs font-medium text-text-secondary">Mavzu, daraja va variantlarni AI to&apos;ldirsin</p>
-                <button
-                  type="button"
-                  onClick={handleAiSuggest}
-                  disabled={aiSuggestLoading || !questions[activeQuestion]?.text || !questions[activeQuestion]?.correctAnswer}
-                  className="text-xs font-medium text-primary-600 hover:text-primary-700 flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  {aiSuggestLoading ? <Loader2 size={12} className="animate-spin" /> : <Bot size={12} />}
-                  AI bilan to&apos;ldirish
-                </button>
-              </div>
-              <div>
-                <label className="text-xs font-medium text-text-secondary block mb-1.5">Mavzu tegi (ixtiyoriy)</label>
-                <input
-                  type="text"
-                  value={questions[activeQuestion]?.topic || ''}
-                  onChange={(e) => {
-                    const updated = [...questions];
-                    updated[activeQuestion] = { ...updated[activeQuestion], topic: e.target.value };
-                    setQuestions(updated);
-                  }}
-                  placeholder="Masalan: Kvadrat tenglama"
-                  className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-medium text-text-secondary block mb-1.5">Bloom darajasi (ixtiyoriy)</label>
-                <select
-                  value={questions[activeQuestion]?.bloomLevel || ''}
-                  onChange={(e) => {
-                    const updated = [...questions];
-                    updated[activeQuestion] = { ...updated[activeQuestion], bloomLevel: e.target.value };
-                    setQuestions(updated);
-                  }}
-                  className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all"
-                >
-                  <option value="">Tanlanmagan</option>
-                  {BLOOM_LEVELS.map((b) => (
-                    <option key={b.value} value={b.value}>{b.label}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-medium text-text-secondary block mb-1.5">Qiyinlik darajasi (ixtiyoriy)</label>
-                <select
-                  value={questions[activeQuestion]?.difficulty ?? ''}
-                  onChange={(e) => {
-                    const updated = [...questions];
-                    updated[activeQuestion] = { ...updated[activeQuestion], difficulty: e.target.value ? Number(e.target.value) : null };
-                    setQuestions(updated);
-                  }}
-                  className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all"
-                >
-                  <option value="">Tanlanmagan</option>
-                  <option value="1">1 — Juda oson</option>
-                  <option value="2">2 — Oson</option>
-                  <option value="3">3 — O&apos;rta</option>
-                  <option value="4">4 — Qiyin</option>
-                  <option value="5">5 — Juda qiyin</option>
-                </select>
-              </div>
-              <p className="text-xs text-text-secondary sm:col-span-3">
-                Bu teglar savol darajasidagi tahlil, shaxsiylashtirilgan tavsiyalar va DTM Online&apos;dagi qiyinlik balanslash uchun ishlatiladi.
-              </p>
-            </div>
-
-            {/* Explanation */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium text-text-primary">Yozma yechim (ixtiyoriy)</label>
-                <ImageUploadButton
-                  endpoint="solutionImage"
-                  label="Yechim rasmi"
-                  onUpload={(url) => {
-                    const updated = [...questions];
-                    updated[activeQuestion] = {
-                      ...updated[activeQuestion],
-                      explanationImages: [...updated[activeQuestion].explanationImages, url],
-                    };
-                    setQuestions(updated);
-                  }}
-                />
-              </div>
-              <LatexToolbar
-                targetRef={explanationRef}
-                value={questions[activeQuestion]?.explanation || ''}
-                onChange={(explanation) => {
-                  const updated = [...questions];
-                  updated[activeQuestion] = { ...updated[activeQuestion], explanation };
-                  setQuestions(updated);
-                }}
-                className="mb-1.5"
+                }
               />
-              <textarea
-                ref={explanationRef}
-                value={questions[activeQuestion]?.explanation || ''}
-                onChange={(e) => {
-                  const updated = [...questions];
-                  updated[activeQuestion] = { ...updated[activeQuestion], explanation: e.target.value };
-                  setQuestions(updated);
-                }}
-                onPaste={(e) => {
-                  const file = extractPastedImageFile(e);
-                  if (file) {
-                    e.preventDefault();
-                    handleImageDropOrPaste(file, 'explanation');
-                  }
-                }}
-                onDrop={(e) => {
-                  const file = extractDroppedImageFile(e);
-                  if (file) {
-                    e.preventDefault();
-                    handleImageDropOrPaste(file, 'explanation');
-                  }
-                }}
-                onDragOver={(e) => e.preventDefault()}
-                placeholder="Yechimni kiriting... (rasmni shu yerga sudrab tashlashingiz yoki joylashingiz mumkin)"
-                rows={2}
-                className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all resize-none text-sm"
-              />
-              {dropUploading === 'explanation' && (
-                <p className="text-xs text-primary-600 mt-1 flex items-center gap-1.5">
-                  <Loader2 size={12} className="animate-spin" /> Rasm yuklanmoqda...
-                </p>
-              )}
-              {/* Explanation images preview */}
-              <ImagePreviewList
-                images={questions[activeQuestion]?.explanationImages || []}
-                onRemove={(index) => {
-                  const updated = [...questions];
-                  updated[activeQuestion] = {
-                    ...updated[activeQuestion],
-                    explanationImages: updated[activeQuestion].explanationImages.filter((_, i) => i !== index),
-                  };
-                  setQuestions(updated);
-                }}
-              />
-            </div>
-
-            {/* Video */}
-            <div>
-              <label className="text-sm font-medium text-text-primary block mb-2">Video yechim URL (ixtiyoriy)</label>
-              <input
-                type="url"
-                value={questions[activeQuestion]?.videoUrl || ''}
-                onChange={(e) => {
-                  const updated = [...questions];
-                  updated[activeQuestion] = { ...updated[activeQuestion], videoUrl: e.target.value };
-                  setQuestions(updated);
-                }}
-                placeholder="https://youtube.com/watch?v=..."
-                className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all text-sm"
-              />
-            </div>
+            )}
           </div>
         </motion.div>
       )}
@@ -1553,99 +850,7 @@ export default function CreateTestPage() {
       {/* STEP: AI IMPORT */}
       {currentStep === 'ai-import' && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="card p-6 space-y-6">
-          <div className="text-center mb-4">
-            <Bot size={32} className="text-primary-600 mx-auto mb-2" />
-            <h2 className="text-lg font-bold text-text-primary">AI bilan import qilish</h2>
-            <p className="text-sm text-text-secondary">Test matnini kiriting — AI savollarni avtomatik ajratib beradi</p>
-          </div>
-
-          <textarea
-            value={aiText}
-            onChange={(e) => setAiText(e.target.value)}
-            placeholder={`Test matnini shu yerga kiriting yoki paste qiling...\n\nMasalan:\n1. 2+2=?\nA) 3\nB) 4\nC) 5\nD) 6\nJavob: B\n\n2. Uchburchak ichki burchaklari yig'indisi?\nA) 90°\nB) 180°\nC) 270°\nD) 360°\nJavob: B`}
-            rows={12}
-            className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all resize-none font-mono text-sm"
-          />
-
-          <div className="flex items-center justify-between">
-            <p className="text-xs text-text-secondary">
-              💡 AI (Gemini Flash) bepul. Formulalarni LaTeX ga o&apos;giradi.
-            </p>
-            <button
-              onClick={handleAiImport}
-              disabled={aiLoading || !aiText.trim()}
-              className="btn-primary flex items-center gap-2 disabled:opacity-50"
-            >
-              {aiLoading ? <Loader2 size={16} className="animate-spin" /> : <Bot size={16} />}
-              {aiLoading ? 'Tahlil qilinmoqda...' : 'AI bilan import'}
-            </button>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <div className="h-px flex-1 bg-border" />
-            <span className="text-xs text-text-secondary flex-shrink-0">yoki rasm/fayl yuklang</span>
-            <div className="h-px flex-1 bg-border" />
-          </div>
-
-          <div className="flex flex-wrap gap-3">
-            <input
-              ref={aiImageInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) handleAiImageImport(file);
-                e.target.value = '';
-              }}
-            />
-            <button
-              type="button"
-              onClick={() => aiImageInputRef.current?.click()}
-              disabled={aiLoading || aiFileLoading}
-              className="btn-secondary flex items-center gap-2 !py-2.5 !px-4 text-sm disabled:opacity-50"
-            >
-              {aiLoading ? <Loader2 size={16} className="animate-spin" /> : <Image size={16} />}
-              Rasmdan import (skan/skrinshot)
-            </button>
-
-            <input
-              ref={aiFileInputRef}
-              type="file"
-              accept=".pdf,.doc,.docx,.txt"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) handleAiFileImport(file);
-                e.target.value = '';
-              }}
-            />
-            <button
-              type="button"
-              onClick={() => aiFileInputRef.current?.click()}
-              disabled={aiLoading || aiFileLoading}
-              className="btn-secondary flex items-center gap-2 !py-2.5 !px-4 text-sm disabled:opacity-50"
-            >
-              {aiFileLoading ? <Loader2 size={16} className="animate-spin" /> : <Paperclip size={16} />}
-              Fayldan import (PDF, DOCX, TXT)
-            </button>
-          </div>
-
-          {aiResult && (
-            <div className="p-4 rounded-xl bg-green-50 border border-green-200">
-              <p className="text-sm text-green-700 font-medium">
-                ✅ {aiResult.totalFound || aiResult.questions?.length || 0} ta savol topildi va import qilindi!
-              </p>
-              {aiResult.warnings?.length > 0 && (
-                <p className="text-xs text-yellow-700 mt-1">
-                  ⚠️ {aiResult.warnings.join(', ')}
-                </p>
-              )}
-              <p className="text-xs text-green-600 mt-2">
-                &quot;Savollar&quot; tabiga o&apos;tib tekshiring va tasdiqlang.
-              </p>
-            </div>
-          )}
+          <AiImportPanel onImported={handleAiImported} />
         </motion.div>
       )}
 
@@ -1670,86 +875,10 @@ export default function CreateTestPage() {
               </div>
             </div>
 
-            {/* Questions preview */}
-            <div className="space-y-4">
-              {questions.filter(q => q.text).map((q, i) => (
-                <div key={i} className="p-4 rounded-xl border border-border">
-                  <div className="flex items-start gap-3">
-                    <span className="text-sm font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full">
-                      {i + 1}
-                    </span>
-                    <div className="flex-1">
-                      <div className="text-sm text-text-primary mb-3">
-                        <LatexRenderer content={q.text} />
-                      </div>
-                      {q.type === 'FILL_BLANK' ? (
-                        <div className="p-3 rounded-lg bg-gray-50 border border-border space-y-1">
-                          <p className="text-xs text-text-secondary mb-1">Bo&apos;shliqlar:</p>
-                          {q.blankAnswers.filter(Boolean).map((b, bi) => (
-                            <p key={bi} className="text-sm font-medium text-green-700">{bi + 1}. {b}</p>
-                          ))}
-                        </div>
-                      ) : q.type === 'MATCHING' ? (
-                        <div className="p-3 rounded-lg bg-gray-50 border border-border space-y-1">
-                          <p className="text-xs text-text-secondary mb-1">Juftliklar:</p>
-                          {q.matchingPairs.filter((p) => p.left && p.right).map((p, pi) => (
-                            <p key={pi} className="text-sm font-medium text-green-700">{p.left} &harr; {p.right}</p>
-                          ))}
-                        </div>
-                      ) : q.type === 'OPEN_ENDED' ? (
-                        <div className="p-3 rounded-lg bg-gray-50 border border-border">
-                          <p className="text-xs text-text-secondary mb-1">Javob:</p>
-                          <p className="text-sm font-medium text-green-700">{q.correctAnswer}</p>
-                        </div>
-                      ) : (
-                        <div className="space-y-2">
-                          {q.options.filter(o => o.text).map((opt) => {
-                            const isCorrectOpt = q.type === 'MULTI_SELECT'
-                              ? q.correctAnswer.split(',').includes(opt.label)
-                              : opt.label === q.correctAnswer;
-                            return (
-                            <div
-                              key={opt.label}
-                              className={`flex items-start gap-2 p-2.5 rounded-lg text-sm ${
-                                isCorrectOpt
-                                  ? 'bg-green-50 border border-green-200'
-                                  : 'bg-gray-50 border border-gray-100'
-                              }`}
-                            >
-                              <span className={`w-6 h-6 flex items-center justify-center text-xs font-bold flex-shrink-0 ${q.type === 'MULTI_SELECT' ? 'rounded-md' : 'rounded-full'} ${
-                                isCorrectOpt
-                                  ? 'bg-green-500 text-white'
-                                  : 'bg-gray-200 text-gray-600'
-                              }`}>
-                                {opt.label}
-                              </span>
-                              <span className="flex-1 pt-0.5">
-                                <LatexRenderer content={opt.text} />
-                              </span>
-                            </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                      {q.explanation && (
-                        <div className="mt-3 p-3 rounded-lg bg-blue-50 border border-blue-100">
-                          <p className="text-xs text-blue-600 font-medium mb-1">Yechim:</p>
-                          <div className="text-xs text-text-primary">
-                            <LatexRenderer content={q.explanation} />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {questions.filter(q => q.text).length === 0 && (
-              <div className="text-center py-8 text-text-secondary">
-                <p>Hali savollar kiritilmagan. &quot;Savollar&quot; tabiga o&apos;ting.</p>
-              </div>
-            )}
+            <QuestionPreviewList
+              questions={questions}
+              emptyMessage={'Hali savollar kiritilmagan. "Savollar" tabiga o\'ting.'}
+            />
           </div>
         </motion.div>
       )}
