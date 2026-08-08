@@ -76,7 +76,20 @@ function parseImportResponse(responseText: string, fallbackWarning: string): AII
     return { questions: [], totalFound: 0, warnings: [fallbackWarning] };
   }
 
-  const parsed = JSON.parse(jsonMatch[0]);
+  let parsed: any;
+  try {
+    parsed = JSON.parse(jsonMatch[0]);
+  } catch (e) {
+    // Odatda javob javob uzunligi chegarasidan (maxOutputTokens) oshib,
+    // JSON o'rtada kesilib qolganda yuz beradi — ko'p savolli katta
+    // fayl/matn importida uchraydi. Aniq sabab bilan ogohlantiramiz.
+    console.error(`[gemini] JSON parse xatosi (ehtimol javob kesilgan): ${e instanceof Error ? e.message : e}. Uzunlik: ${jsonMatch[0].length} belgi.`);
+    return {
+      questions: [],
+      totalFound: 0,
+      warnings: ["AI javobi to'liq kelmadi (juda ko'p savol bir yo'la so'ralgan bo'lishi mumkin) — kamroq savol bilan yoki qismlarga bo'lib qayta urinib ko'ring"],
+    };
+  }
   const rawQuestions = Array.isArray(parsed.questions) ? parsed.questions : [];
 
   const questions = rawQuestions.map((q: any) => {
@@ -109,7 +122,7 @@ export async function importTestFromText(text: string): Promise<AIImportResult> 
   try {
     const model = genAI.getGenerativeModel({
       model: 'gemini-3.5-flash',
-      generationConfig: { maxOutputTokens: 8000 },
+      generationConfig: { maxOutputTokens: 65536, responseMimeType: 'application/json' },
     });
 
     const result = await model.generateContent([
@@ -135,7 +148,7 @@ export async function importTestFromImage(imageBase64: string, mimeType: string)
   try {
     const model = genAI.getGenerativeModel({
       model: 'gemini-3.5-flash',
-      generationConfig: { maxOutputTokens: 8000 },
+      generationConfig: { maxOutputTokens: 65536, responseMimeType: 'application/json' },
     });
 
     const result = await model.generateContent([
@@ -187,7 +200,7 @@ export async function importTestFromFile(fileUrl: string, fileName: string): Pro
 
     const model = genAI.getGenerativeModel({
       model: 'gemini-3.5-flash',
-      generationConfig: { maxOutputTokens: 8000 },
+      generationConfig: { maxOutputTokens: 65536, responseMimeType: 'application/json' },
     });
 
     const result = await model.generateContent([
