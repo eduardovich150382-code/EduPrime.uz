@@ -24,7 +24,13 @@ export async function GET(
           include: {
             lessons: {
               orderBy: { order: 'asc' },
-              include: { test: { select: { id: true, titleUz: true, questionCount: true, duration: true } } },
+              include: {
+                test: { select: { id: true, titleUz: true, questionCount: true, duration: true } },
+                blocks: {
+                  orderBy: { order: 'asc' },
+                  include: { test: { select: { id: true, titleUz: true, questionCount: true, duration: true } } },
+                },
+              },
             },
           },
         },
@@ -79,6 +85,16 @@ export async function GET(
           content: l.type === 'TEXT' ? l.content : null,
           test: l.type === 'QUIZ' ? l.test : null,
           fileUrl: l.type === 'PDF' ? l.fileUrl : null,
+          // Qo'shimcha materiallar — faqat namuna sifatida ochilgan darsda,
+          // asosiy kontent bilan bir xil qoida (isPreviewable).
+          blocks: l.blocks.map((b) => ({
+            id: b.id,
+            type: b.type,
+            labelUz: b.labelUz,
+            fileUrl: b.fileUrl,
+            videoUrl: b.videoUrl,
+            test: b.test,
+          })),
         };
       }),
     }));

@@ -209,6 +209,7 @@ model Test {
   questions Question[]
   results   TestResult[]
   courseLessons CourseLesson[]
+  lessonBlocks  LessonBlock[]
 }
 
 model Question {
@@ -335,6 +336,35 @@ model CourseLesson {
   section  CourseSection    @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   test     Test?            @relation(fields: [testId], references: [id])
   progress LessonProgress[]
+  blocks   LessonBlock[]
+}
+
+// Darsning asosiy kontentiga (yuqoridagi type/videoUrl/content/testId/fileUrl)
+// QO'SHIMCHA ravishda biriktiriladigan ixtiyoriy materiallar — fayl(lar),
+// qo'shimcha mashq testi, video-yechim. Ataylab alohida jadval: asosiy dars
+// maydonlariga hech qanday ta'sir qilmaydi, shu sababli eski (bloksiz)
+// darslar butunlay o'zgarishsiz qoladi. Sof qo'shimcha material — dars
+// tugatish/qulflash (LessonProgress, course-lock.ts, creditQuizLessonProgress)
+// mantig'iga umuman ta'sir qilmaydi.
+enum LessonBlockType {
+  FILE
+  QUIZ
+  VIDEO_SOLUTION
+}
+
+model LessonBlock {
+  id        String          @id @default(cuid())
+  lessonId  String
+  type      LessonBlockType
+  order     Int             @default(0)
+  labelUz   String?         // Ko'rinadigan nom (masalan "Mashq varag'i"); bo'sh bo'lsa turga qarab standart nom ishlatiladi
+  fileUrl   String?         // FILE
+  videoUrl  String?         // VIDEO_SOLUTION
+  testId    String?         // QUIZ — mavjud Test'ga ishora (CourseLesson.testId bilan bir xil naqsh)
+  createdAt DateTime        @default(now())
+
+  lesson CourseLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  test   Test?        @relation(fields: [testId], references: [id])
 }
 
 model CourseEnrollment {

@@ -12,6 +12,15 @@ import {
   Circle, PartyPopper, ArrowRight, GraduationCap, Award, Lock,
 } from 'lucide-react';
 
+interface LessonBlockItem {
+  id: string;
+  type: 'FILE' | 'QUIZ' | 'VIDEO_SOLUTION';
+  labelUz: string | null;
+  fileUrl: string | null;
+  videoUrl: string | null;
+  test: { id: string; titleUz: string; questionCount: number; duration: number } | null;
+}
+
 interface LessonItem {
   id: string;
   titleUz: string;
@@ -26,6 +35,7 @@ interface LessonItem {
   completed: boolean;
   bestScorePercent: number | null;
   lastPositionSeconds: number;
+  blocks: LessonBlockItem[];
 }
 
 interface SectionItem {
@@ -57,6 +67,7 @@ export default function CourseLearnPage() {
   const [error, setError] = useState<string | null>(null);
   const [currentLessonId, setCurrentLessonId] = useState<string | null>(null);
   const [marking, setMarking] = useState(false);
+  const [revealedSolutions, setRevealedSolutions] = useState<Set<string>>(new Set());
   const lastSavedPositionRef = useRef<number>(-1);
 
   const allLessons = useMemo(() => course?.sections.flatMap((s) => s.lessons) || [], [course]);
@@ -245,6 +256,57 @@ export default function CourseLearnPage() {
                 <a href={currentLesson.fileUrl} target="_blank" rel="noopener noreferrer" className="btn-primary inline-flex items-center gap-2 text-sm">
                   <FileText size={16} /> PDF&apos;ni ochish
                 </a>
+              )}
+
+              {currentLesson.blocks.length > 0 && (
+                <div className="space-y-2.5">
+                  <p className="text-xs font-semibold text-text-secondary">Qo&apos;shimcha materiallar</p>
+                  {currentLesson.blocks.map((block) => {
+                    if (block.type === 'FILE' && block.fileUrl) {
+                      return (
+                        <a
+                          key={block.id}
+                          href={block.fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-sm text-primary-600 hover:underline w-fit"
+                        >
+                          <FileText size={14} className="flex-shrink-0" /> {block.labelUz || 'Fayl'}
+                        </a>
+                      );
+                    }
+                    if (block.type === 'QUIZ' && block.test) {
+                      return (
+                        <Link
+                          key={block.id}
+                          href={`/tests/${block.test.id}/solve`}
+                          className="flex items-center gap-2 text-sm text-primary-600 hover:underline w-fit"
+                        >
+                          <ListChecks size={14} className="flex-shrink-0" /> {block.labelUz || "Qo'shimcha mashq"} ({block.test.questionCount} savol)
+                        </Link>
+                      );
+                    }
+                    if (block.type === 'VIDEO_SOLUTION' && block.videoUrl) {
+                      const revealed = revealedSolutions.has(block.id);
+                      return (
+                        <div key={block.id}>
+                          {revealed ? (
+                            <SecureYouTubePlayer videoUrl={block.videoUrl} title={block.labelUz || 'Yechim videosi'} />
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => setRevealedSolutions((prev) => new Set(prev).add(block.id))}
+                              className="flex items-center gap-2 text-sm text-primary-600 hover:underline"
+                            >
+                              <Play size={14} className="flex-shrink-0" /> {block.labelUz || 'Yechim videosi'}ni ko&apos;rsatish
+                            </button>
+                          )}
+                        </div>
+                      );
+                    }
+                    return null;
+                  })}
+                </div>
               )}
 
               <div className="flex items-center justify-between pt-4 border-t border-border">
