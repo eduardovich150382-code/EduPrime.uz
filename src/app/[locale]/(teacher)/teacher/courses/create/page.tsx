@@ -9,6 +9,7 @@ import {
   ChevronUp, ChevronDown, Video, FileText, ListChecks, GraduationCap, Sparkles,
 } from 'lucide-react';
 import ImageUploadButton from '@/components/ui/ImageUploadButton';
+import LessonBlocksEditor, { type LessonBlockForm } from '@/components/teacher/LessonBlocksEditor';
 
 type LessonType = 'VIDEO' | 'TEXT' | 'QUIZ' | 'PDF';
 
@@ -23,6 +24,7 @@ interface LessonForm {
   minPassPercent: number | '';
   durationMinutes: number | '';
   isPreviewable: boolean;
+  blocks: LessonBlockForm[];
 }
 
 interface SectionForm {
@@ -44,7 +46,7 @@ interface TeacherTestItem {
 }
 
 const emptyLesson: LessonForm = {
-  titleUz: '', type: 'VIDEO', videoUrl: '', content: '', testId: '', fileUrl: '', minPassPercent: '', durationMinutes: '', isPreviewable: false,
+  titleUz: '', type: 'VIDEO', videoUrl: '', content: '', testId: '', fileUrl: '', minPassPercent: '', durationMinutes: '', isPreviewable: false, blocks: [],
 };
 
 const LESSON_TYPE_META: Record<LessonType, { label: string; icon: typeof Video }> = {
@@ -294,6 +296,14 @@ export default function CreateCoursePage() {
             minPassPercent: l.type === 'QUIZ' && l.minPassPercent !== '' ? l.minPassPercent : null,
             durationMinutes: l.durationMinutes === '' ? null : l.durationMinutes,
             isPreviewable: l.isPreviewable,
+            blocks: l.blocks.map((b) => ({
+              id: b.id,
+              type: b.type,
+              labelUz: b.labelUz || null,
+              fileUrl: b.type === 'FILE' ? b.fileUrl || null : null,
+              videoUrl: b.type === 'VIDEO_SOLUTION' ? b.videoUrl || null : null,
+              testId: b.type === 'QUIZ' ? b.testId || null : null,
+            })),
           })),
         })),
       };
@@ -680,6 +690,14 @@ export default function CreateCoursePage() {
                             )}
                           </div>
                         )}
+                      </div>
+
+                      <div className="pl-6 pt-1">
+                        <LessonBlocksEditor
+                          blocks={lesson.blocks}
+                          onChange={(blocks) => updateLesson(sIdx, lIdx, { blocks })}
+                          teacherTests={teacherTests}
+                        />
                       </div>
                     </div>
                   );

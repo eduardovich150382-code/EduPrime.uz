@@ -29,7 +29,13 @@ export async function GET(
           include: {
             lessons: {
               orderBy: { order: 'asc' },
-              include: { test: { select: { id: true, titleUz: true, questionCount: true, duration: true } } },
+              include: {
+                test: { select: { id: true, titleUz: true, questionCount: true, duration: true } },
+                blocks: {
+                  orderBy: { order: 'asc' },
+                  include: { test: { select: { id: true, titleUz: true, questionCount: true, duration: true } } },
+                },
+              },
             },
           },
         },
@@ -78,6 +84,17 @@ export async function GET(
           completed: p?.completed || false,
           bestScorePercent: p?.bestScorePercent ?? null,
           lastPositionSeconds: p?.lastPositionSeconds || 0,
+          // Qo'shimcha materiallar — asosiy kontent bilan bir xil qulf qoidasi:
+          // dars qulflangan bo'lsa, hech qanday blok kontenti (fayl/video/test)
+          // chiqmaydi.
+          blocks: locked ? [] : l.blocks.map((b) => ({
+            id: b.id,
+            type: b.type,
+            labelUz: b.labelUz,
+            fileUrl: b.fileUrl,
+            videoUrl: b.videoUrl,
+            test: b.test,
+          })),
         };
       }),
     }));

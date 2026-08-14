@@ -23,7 +23,10 @@ export async function GET(
           include: {
             lessons: {
               orderBy: { order: 'asc' },
-              include: { test: { select: { id: true, titleUz: true } } },
+              include: {
+                test: { select: { id: true, titleUz: true } },
+                blocks: { orderBy: { order: 'asc' } },
+              },
             },
           },
         },

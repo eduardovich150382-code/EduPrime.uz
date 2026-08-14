@@ -13,6 +13,15 @@ import {
   ListChecks, Sparkles, AlertCircle, ArrowRight, Star, Trash2, Send,
 } from 'lucide-react';
 
+interface LessonBlockItem {
+  id: string;
+  type: 'FILE' | 'QUIZ' | 'VIDEO_SOLUTION';
+  labelUz: string | null;
+  fileUrl: string | null;
+  videoUrl: string | null;
+  test: { id: string; titleUz: string; questionCount: number; duration: number } | null;
+}
+
 interface LessonItem {
   id: string;
   titleUz: string;
@@ -23,6 +32,7 @@ interface LessonItem {
   content?: string | null;
   test?: { id: string; titleUz: string; questionCount: number; duration: number } | null;
   fileUrl?: string | null;
+  blocks?: LessonBlockItem[];
 }
 
 interface SectionItem {
@@ -81,6 +91,7 @@ export default function CourseDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [enrolling, setEnrolling] = useState(false);
   const [expandedLessonId, setExpandedLessonId] = useState<string | null>(null);
+  const [revealedSolutions, setRevealedSolutions] = useState<Set<string>>(new Set());
 
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
   const [myReview, setMyReview] = useState<ReviewItem | null>(null);
@@ -330,6 +341,57 @@ export default function CourseDetailPage() {
                             <a href={lesson.fileUrl} target="_blank" rel="noopener noreferrer" className="btn-primary inline-flex items-center gap-2 text-sm !py-2 !px-4">
                               <FileText size={14} /> PDF'ni ochish
                             </a>
+                          )}
+
+                          {lesson.blocks && lesson.blocks.length > 0 && (
+                            <div className="mt-3 pt-3 border-t border-border space-y-2">
+                              <p className="text-xs font-semibold text-text-secondary">Qo&apos;shimcha materiallar</p>
+                              {lesson.blocks.map((block) => {
+                                if (block.type === 'FILE' && block.fileUrl) {
+                                  return (
+                                    <a
+                                      key={block.id}
+                                      href={block.fileUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="flex items-center gap-2 text-sm text-primary-600 hover:underline w-fit"
+                                    >
+                                      <FileText size={13} className="flex-shrink-0" /> {block.labelUz || 'Fayl'}
+                                    </a>
+                                  );
+                                }
+                                if (block.type === 'QUIZ' && block.test) {
+                                  return (
+                                    <Link
+                                      key={block.id}
+                                      href={`/tests/${block.test.id}/solve`}
+                                      className="flex items-center gap-2 text-sm text-primary-600 hover:underline w-fit"
+                                    >
+                                      <ListChecks size={13} className="flex-shrink-0" /> {block.labelUz || "Qo'shimcha mashq"} ({block.test.questionCount} savol)
+                                    </Link>
+                                  );
+                                }
+                                if (block.type === 'VIDEO_SOLUTION' && block.videoUrl) {
+                                  const revealed = revealedSolutions.has(block.id);
+                                  return (
+                                    <div key={block.id}>
+                                      {revealed ? (
+                                        <SecureYouTubePlayer videoUrl={block.videoUrl} title={block.labelUz || 'Yechim videosi'} />
+                                      ) : (
+                                        <button
+                                          type="button"
+                                          onClick={() => setRevealedSolutions((prev) => new Set(prev).add(block.id))}
+                                          className="flex items-center gap-2 text-sm text-primary-600 hover:underline"
+                                        >
+                                          <Play size={13} className="flex-shrink-0" /> {block.labelUz || 'Yechim videosi'}ni ko&apos;rsatish
+                                        </button>
+                                      )}
+                                    </div>
+                                  );
+                                }
+                                return null;
+                              })}
+                            </div>
                           )}
                         </div>
                       )}
