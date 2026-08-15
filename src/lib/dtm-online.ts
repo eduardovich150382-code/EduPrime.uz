@@ -40,6 +40,8 @@ type QuestionCandidate = {
   topic: string | null;
   bloomLevel: string | null;
   difficulty: number | null;
+  /** Paramgen shablon id'si — bir xil shablonning ko'p variantini bitta imtihonda ketma-ket bermaslik uchun (pastda pickByTopicRoundRobin'ga qarang). Savollar bazasidan kelgan savollarda doim null. */
+  templateId: string | null;
 };
 
 type DifficultyBucket = 'easy' | 'medium' | 'hard';
@@ -78,10 +80,55 @@ function difficultyBucketOf(difficulty: number | null): DifficultyBucket {
 }
 
 /**
- * Berilgan havzadan `want` ta savol tanlaydi: mavzu tegiga ko'ra guruhlab,
- * guruhlar orasida aylanma tartibda oladi (bitta mavzudan hammasi kelib
- * qolmasligi uchun), so'ng har chaqiruvda boshqacha tartib chiqishi uchun
- * ichki tasodifiy aralashtiradi.
+ * `items`ni `keyFn` bo'yicha guruhlab, guruhlar orasida aylanma tartibda
+ * ("round-robin") tekislaydi — bitta guruhdan hammasi ketma-ket kelib
+ * qolmasligi uchun. Har guruh ichi ham tasodifiy aralashtiriladi, shu
+ * sababli har chaqiruvda boshqacha tartib chiqadi. Natija — guruh
+ * chegaralarisiz, oddiy tekis massiv (guruh ichidagi "round=0" elementlar
+ * birinchi, "round=1" elementlar keyin va h.k.).
+ */
+function roundRobinFlatten<T>(items: T[], keyFn: (item: T) => string): T[] {
+  const byKey = new Map<string, T[]>();
+  for (const item of items) {
+    const key = keyFn(item);
+    const list = byKey.get(key) || [];
+    list.push(item);
+    byKey.set(key, list);
+  }
+  for (const list of byKey.values()) list.sort(() => Math.random() - 0.5);
+
+  const keys = Array.from(byKey.keys()).sort(() => Math.random() - 0.5);
+  const flat: T[] = [];
+  let round = 0;
+  let addedThisRound = true;
+  while (addedThisRound) {
+    addedThisRound = false;
+    for (const key of keys) {
+      const list = byKey.get(key)!;
+      if (round < list.length) {
+        flat.push(list[round]);
+        addedThisRound = true;
+      }
+    }
+    round++;
+  }
+  return flat;
+}
+
+/**
+ * Berilgan havzadan `want` ta savol tanlaydi — IKKI QAVATLI diversifikatsiya:
+ * 1) Tashqi qavat — mavzu (`topic`) bo'yicha aylanma tartib, mavzular
+ *    orasidagi balansni saqlaydi (avvalgi xatti-harakat).
+ * 2) Ichki qavat — har bir mavzu guruhi o'zi ham shablon/savol
+ *    (`templateId ?? id`) bo'yicha aylanma tartibga keltiriladi. Kerak:
+ *    bitta paramgen shabloni bitta mavzuda 150-200 ta variant beradi —
+ *    shablonsiz, faqat mavzu bo'yicha guruhlashda, "want" mavjud mavzular
+ *    sonidan ko'p bo'lganda keyingi "round"lar xuddi shu (yagona) shablondan
+ *    yana bir variant tortib olardi, natijada bitta imtihonda bir xil
+ *    tuzilishdagi savollar ketma-ket chiqib qolardi. Endi har mavzu ichida
+ *    turli shablon/qo'lda yozilgan savollar birinchi navbatda tanlanadi,
+ *    bitta shablonning ikkinchi-uchinchi varianti faqat o'sha mavzudagi
+ *    BOSHQA barcha shablonlar/savollar hammasi bir marta ishlatilgach keladi.
  */
 function pickByTopicRoundRobin(pool: QuestionCandidate[], want: number): QuestionCandidate[] {
   if (want <= 0 || pool.length === 0) return [];
@@ -93,7 +140,9 @@ function pickByTopicRoundRobin(pool: QuestionCandidate[], want: number): Questio
     list.push(q);
     byTopic.set(key, list);
   }
-  for (const list of byTopic.values()) list.sort(() => Math.random() - 0.5);
+  for (const [key, list] of byTopic) {
+    byTopic.set(key, roundRobinFlatten(list, (q) => q.templateId || q.id));
+  }
 
   const topicKeys = Array.from(byTopic.keys()).sort(() => Math.random() - 0.5);
   const picked: QuestionCandidate[] = [];
@@ -127,22 +176,41 @@ function pickByTopicRoundRobin(pool: QuestionCandidate[], want: number): Questio
 type DifficultyBias = 'easy' | 'advanced';
 
 /**
- * Berilgan fan uchun nomzod savollarni yig'adi: nashr etilgan, boshqa
- * bo'lim allaqachon olgan (excludeIds) va mavzu filtriga (topicFilter,
- * agar berilgan bo'lsa) mos kelmagan savollar chiqarib tashlanadi.
+ * Berilgan fan uchun nomzod savollarni yig'adi: nashr etilgan Test'lardagi
+ * savollar VA Savollar bazasidagi (BankQuestion) shu fanga tegishli barcha
+ * savollar birlashtiriladi — bank savollari uchun alohida "nashr qilish"
+ * bosqichi yo'q, fanga bog'langan bo'lishi kifoya (foydalanuvchi bilan
+ * kelishilgan qaror: yagona o'qituvchi, moderatsiya hozircha keraksiz).
+ * Boshqa bo'lim allaqachon olgan (excludeIds) va mavzu filtriga
+ * (topicFilter, agar berilgan bo'lsa) mos kelmagan savollar chiqarib
+ * tashlanadi.
  */
 async function fetchSubjectCandidates(
   subjectId: string,
   excludeIds: Set<string>,
   topicFilter?: (topic: string | null) => boolean
 ): Promise<QuestionCandidate[]> {
-  const all = await db.question.findMany({
-    where: { test: { subjectId, isPublished: true } },
-    select: {
-      id: true, text: true, images: true, options: true, correctAnswer: true, type: true,
-      explanation: true, explanationImages: true, topic: true, bloomLevel: true, difficulty: true,
-    },
-  });
+  const [fromTests, fromBank] = await Promise.all([
+    db.question.findMany({
+      where: { test: { subjectId, isPublished: true } },
+      select: {
+        id: true, text: true, images: true, options: true, correctAnswer: true, type: true,
+        explanation: true, explanationImages: true, topic: true, bloomLevel: true, difficulty: true, templateId: true,
+      },
+    }),
+    db.bankQuestion.findMany({
+      where: { subjectId },
+      select: {
+        id: true, text: true, images: true, options: true, correctAnswer: true, type: true,
+        explanation: true, explanationImages: true, topic: true, bloomLevel: true, difficulty: true,
+      },
+    }),
+  ]);
+
+  const all: QuestionCandidate[] = [
+    ...fromTests,
+    ...fromBank.map((q) => ({ ...q, templateId: null })),
+  ];
   return all.filter((q) => !excludeIds.has(q.id) && (!topicFilter || topicFilter(q.topic)));
 }
 
