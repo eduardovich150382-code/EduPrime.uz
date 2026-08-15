@@ -55,11 +55,19 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { titleUz, titleRu, titleEn, description, coverImage, subjectId, accessType, price, difficulty, estimatedHours, sequentialUnlock } = body;
+    const {
+      titleUz, titleRu, titleEn, description, coverImage, subjectId, accessType, price, difficulty, estimatedHours,
+      sequentialUnlock, trailerVideoUrl, whatYoullLearn, prerequisites,
+    } = body;
 
     if (!titleUz || !subjectId) {
       return NextResponse.json({ error: 'titleUz, subjectId required' }, { status: 400 });
     }
+
+    // "Nimani o'rganasiz" ro'yxati — bo'sh qatorlar chiqarib tashlanadi, son va uzunlik chegaralanadi
+    const cleanWhatYoullLearn = Array.isArray(whatYoullLearn)
+      ? whatYoullLearn.filter((s: unknown) => typeof s === 'string' && s.trim()).map((s: string) => s.trim().slice(0, 200)).slice(0, 12)
+      : [];
 
     const VALID_ACCESS_TYPES = ['free', 'premium', 'teacher', 'premium_teacher', 'paid'];
     if (accessType !== undefined && !VALID_ACCESS_TYPES.includes(accessType)) {
@@ -88,6 +96,9 @@ export async function POST(request: NextRequest) {
         difficulty: difficulty || null,
         estimatedHours: estimatedHours || null,
         sequentialUnlock: !!sequentialUnlock,
+        trailerVideoUrl: trailerVideoUrl || null,
+        whatYoullLearn: cleanWhatYoullLearn,
+        prerequisites: prerequisites || null,
       },
       include: { subject: { select: { nameUz: true, icon: true } } },
     });

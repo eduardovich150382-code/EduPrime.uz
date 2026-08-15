@@ -11,6 +11,7 @@ import SecureYouTubePlayer from '@/components/ui/SecureYouTubePlayer';
 import {
   GraduationCap, Clock, Layers, Loader2, User, Lock, Play, FileText,
   ListChecks, Sparkles, AlertCircle, ArrowRight, Star, Trash2, Send,
+  ChevronDown, ChevronRight, CheckCircle2, BookOpen,
 } from 'lucide-react';
 
 interface LessonBlockItem {
@@ -46,7 +47,11 @@ interface CourseDetail {
   titleUz: string;
   description: string | null;
   coverImage: string | null;
+  trailerVideoUrl: string | null;
+  whatYoullLearn: string[];
+  prerequisites: string | null;
   subject: { nameUz: string; icon: string | null };
+  teacherId: string;
   teacherName: string | null;
   accessType: string;
   price: number;
@@ -58,6 +63,27 @@ interface CourseDetail {
   hasAccess: boolean;
   avgRating: number | null;
   reviewCount: number;
+}
+
+interface TeacherCourseItem {
+  id: string;
+  titleUz: string;
+  coverImage: string | null;
+  isFree: boolean;
+  accessType: string;
+  price: number;
+  lessonCount: number;
+  avgRating: number | null;
+  reviewCount: number;
+}
+
+interface TeacherProfile {
+  id: string;
+  name: string | null;
+  bio: string | null;
+  rating: number;
+  subject: { nameUz: string; icon: string | null };
+  courses: TeacherCourseItem[];
 }
 
 interface ReviewItem {
@@ -91,6 +117,9 @@ export default function CourseDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [enrolling, setEnrolling] = useState(false);
   const [expandedLessonId, setExpandedLessonId] = useState<string | null>(null);
+  const [teacherPanelOpen, setTeacherPanelOpen] = useState(false);
+  const [teacherProfile, setTeacherProfile] = useState<TeacherProfile | null>(null);
+  const [teacherProfileLoading, setTeacherProfileLoading] = useState(false);
   const [revealedSolutions, setRevealedSolutions] = useState<Set<string>>(new Set());
 
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
@@ -199,6 +228,19 @@ export default function CourseDetailPage() {
     setEnrolling(false);
   };
 
+  const handleToggleTeacherPanel = () => {
+    const opening = !teacherPanelOpen;
+    setTeacherPanelOpen(opening);
+    if (opening && !teacherProfile && course?.teacherId) {
+      setTeacherProfileLoading(true);
+      fetch(`/api/teachers/${course.teacherId}`)
+        .then((res) => res.json())
+        .then((data) => { if (data.teacher) setTeacherProfile(data.teacher); })
+        .catch(() => {})
+        .finally(() => setTeacherProfileLoading(false));
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-24">
@@ -223,21 +265,30 @@ export default function CourseDetailPage() {
       <BackButton />
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="card overflow-hidden">
-        <div className="h-48 sm:h-56 bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center relative">
-          {course.coverImage ? (
-            <img src={course.coverImage} alt="" className="w-full h-full object-cover" />
-          ) : (
-            <GraduationCap size={56} className="text-white/80" />
-          )}
-        </div>
+        {course.trailerVideoUrl ? (
+          <SecureYouTubePlayer videoUrl={course.trailerVideoUrl} title={course.titleUz} />
+        ) : (
+          <div className="h-48 sm:h-56 bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center relative">
+            {course.coverImage ? (
+              <img src={course.coverImage} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <GraduationCap size={56} className="text-white/80" />
+            )}
+          </div>
+        )}
         <div className="p-6">
           <span className="text-xs text-text-secondary">{course.subject.icon} {course.subject.nameUz}</span>
           <h1 className="text-xl sm:text-2xl font-bold text-text-primary mt-1 mb-2">{course.titleUz}</h1>
           <div className="flex flex-wrap items-center gap-4 mb-3">
             {course.teacherName && (
-              <p className="text-sm text-text-secondary flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={handleToggleTeacherPanel}
+                className="text-sm text-text-secondary hover:text-primary-600 flex items-center gap-1.5 transition-colors"
+              >
                 <User size={14} /> {course.teacherName}
-              </p>
+                {teacherPanelOpen ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+              </button>
             )}
             {course.avgRating !== null && (
               <p className="text-sm text-amber-600 flex items-center gap-1.5">
@@ -246,6 +297,49 @@ export default function CourseDetailPage() {
               </p>
             )}
           </div>
+
+          {teacherPanelOpen && (
+            <div className="mb-4 p-4 rounded-xl border border-border bg-gray-50/50">
+              {teacherProfileLoading ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 size={18} className="animate-spin text-primary-600" />
+                </div>
+              ) : teacherProfile ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-text-primary">{teacherProfile.name}</p>
+                    {teacherProfile.rating > 0 && (
+                      <p className="text-xs text-amber-600 flex items-center gap-1">
+                        <Star size={12} className="fill-amber-500 text-amber-500" /> {teacherProfile.rating}
+                      </p>
+                    )}
+                  </div>
+                  {teacherProfile.bio && <p className="text-xs text-text-secondary">{teacherProfile.bio}</p>}
+                  {teacherProfile.courses.length > 0 && (
+                    <div>
+                      <p className="text-xs font-medium text-text-secondary mb-2">Boshqa kurslari</p>
+                      <div className="space-y-1.5">
+                        {teacherProfile.courses.filter((c) => c.id !== course.id).map((c) => (
+                          <Link
+                            key={c.id}
+                            href={`/courses/${c.id}`}
+                            className="flex items-center gap-2 p-2 rounded-lg bg-white border border-border hover:border-primary-200 transition-colors text-xs"
+                          >
+                            <BookOpen size={13} className="text-primary-500 flex-shrink-0" />
+                            <span className="flex-1 text-text-primary truncate">{c.titleUz}</span>
+                            <span className="text-text-secondary flex-shrink-0">{c.lessonCount} dars</span>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-xs text-text-secondary">Ma&apos;lumot topilmadi</p>
+              )}
+            </div>
+          )}
+
           {course.description && <p className="text-sm text-text-secondary mb-4">{course.description}</p>}
           <div className="flex flex-wrap items-center gap-4 text-sm text-text-secondary">
             <span className="flex items-center gap-1.5"><Layers size={14} /> {course.sections.length} bo&apos;lim, {totalLessons} dars</span>
@@ -286,6 +380,31 @@ export default function CourseDetailPage() {
           </div>
         )}
       </motion.div>
+
+      {/* Nimani o'rganasiz + oldindan talab qilinadigan bilim */}
+      {(course.whatYoullLearn.length > 0 || course.prerequisites) && (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }} className="card p-6 space-y-5">
+          {course.whatYoullLearn.length > 0 && (
+            <div>
+              <h2 className="font-semibold text-text-primary mb-3">Nimani o&apos;rganasiz</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {course.whatYoullLearn.map((item, i) => (
+                  <div key={i} className="flex items-start gap-2 text-sm text-text-primary">
+                    <CheckCircle2 size={16} className="text-green-500 flex-shrink-0 mt-0.5" />
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {course.prerequisites && (
+            <div className={course.whatYoullLearn.length > 0 ? 'pt-4 border-t border-border' : ''}>
+              <h3 className="text-sm font-semibold text-text-primary mb-1.5">Kimlar uchun</h3>
+              <p className="text-sm text-text-secondary">{course.prerequisites}</p>
+            </div>
+          )}
+        </motion.div>
+      )}
 
       {/* Curriculum */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="card p-6">

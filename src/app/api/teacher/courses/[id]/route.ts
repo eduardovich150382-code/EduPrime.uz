@@ -80,6 +80,13 @@ export async function PUT(
     if (body.estimatedHours !== undefined) updateData.estimatedHours = body.estimatedHours;
     if (body.isPublished !== undefined) updateData.isPublished = body.isPublished;
     if (body.sequentialUnlock !== undefined) updateData.sequentialUnlock = !!body.sequentialUnlock;
+    if (body.trailerVideoUrl !== undefined) updateData.trailerVideoUrl = body.trailerVideoUrl || null;
+    if (body.prerequisites !== undefined) updateData.prerequisites = body.prerequisites || null;
+    if (body.whatYoullLearn !== undefined) {
+      updateData.whatYoullLearn = Array.isArray(body.whatYoullLearn)
+        ? body.whatYoullLearn.filter((s: unknown) => typeof s === 'string' && s.trim()).map((s: string) => s.trim().slice(0, 200)).slice(0, 12)
+        : [];
+    }
     if (body.accessType !== undefined) {
       updateData.accessType = body.accessType;
       updateData.isFree = body.accessType === 'free';
