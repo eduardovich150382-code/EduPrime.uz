@@ -297,6 +297,9 @@ model Course {
   difficulty     Int?     // 1-5, ixtiyoriy
   estimatedHours Float?
   sequentialUnlock Boolean @default(false) // yoqilsa, dars faqat oldingi dars "o'tilgan" bo'lsagina ochiladi
+  trailerVideoUrl String?  // YouTube tanishtiruv videosi — landing hero'da SecureYouTubePlayer orqali
+  whatYoullLearn  String[] @default([]) // "Nimani o'rganasiz" belgili ro'yxati
+  prerequisites   String?  // "Kimlar uchun / oldindan talab qilinadigan bilim" — erkin matn
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 

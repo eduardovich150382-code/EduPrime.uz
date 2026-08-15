@@ -6,6 +6,7 @@ import { Link } from '@/i18n/routing';
 import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, FileUp, Layers, Save, Loader2, Send, GraduationCap, Eye } from 'lucide-react';
 import ImageUploadButton from '@/components/ui/ImageUploadButton';
+import StringListEditor from '@/components/teacher/StringListEditor';
 import CourseCurriculumEditor, {
   createEmptySection, createEmptyLesson, type SectionForm, type TeacherTestItem,
 } from '@/components/teacher/CourseCurriculumEditor';
@@ -46,6 +47,9 @@ export default function EditCoursePage() {
     estimatedHours: 0,
     isPublished: false,
     sequentialUnlock: false,
+    trailerVideoUrl: '',
+    whatYoullLearn: [] as string[],
+    prerequisites: '',
   });
 
   const [sections, setSections] = useState<SectionForm[]>([createEmptySection()]);
@@ -71,6 +75,9 @@ export default function EditCoursePage() {
           estimatedHours: c.estimatedHours || 0,
           isPublished: c.isPublished || false,
           sequentialUnlock: c.sequentialUnlock || false,
+          trailerVideoUrl: c.trailerVideoUrl || '',
+          whatYoullLearn: c.whatYoullLearn || [],
+          prerequisites: c.prerequisites || '',
         });
         if (c.sections && c.sections.length > 0) {
           setSections(c.sections.map((s: any) => ({
@@ -193,6 +200,9 @@ export default function EditCoursePage() {
           difficulty: courseInfo.difficulty || null,
           estimatedHours: courseInfo.estimatedHours || null,
           sequentialUnlock: courseInfo.sequentialUnlock,
+          trailerVideoUrl: courseInfo.trailerVideoUrl || null,
+          whatYoullLearn: courseInfo.whatYoullLearn,
+          prerequisites: courseInfo.prerequisites || null,
         }),
       });
       if (!res.ok) {
@@ -354,6 +364,39 @@ export default function EditCoursePage() {
               value={courseInfo.description}
               onChange={(e) => setCourseInfo({ ...courseInfo, description: e.target.value })}
               rows={4}
+              className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all resize-none text-sm"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-text-primary block mb-2">Tanishtiruv video (YouTube, ixtiyoriy)</label>
+            <input
+              type="url"
+              value={courseInfo.trailerVideoUrl}
+              onChange={(e) => setCourseInfo({ ...courseInfo, trailerVideoUrl: e.target.value })}
+              placeholder="https://youtube.com/watch?v=..."
+              className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all text-sm"
+            />
+            <p className="text-xs text-text-secondary mt-1.5">Kurs sahifasida muqova rasmi o&apos;rniga ko&apos;rsatiladi.</p>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-text-primary block mb-2">Nimani o&apos;rganasiz (ixtiyoriy)</label>
+            <StringListEditor
+              value={courseInfo.whatYoullLearn}
+              onChange={(whatYoullLearn) => setCourseInfo({ ...courseInfo, whatYoullLearn })}
+              placeholder="Masalan: Kvadrat tenglamalarni yechish"
+              addLabel="Band qo'shish"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-text-primary block mb-2">Kimlar uchun / oldindan talab qilinadigan bilim (ixtiyoriy)</label>
+            <textarea
+              value={courseInfo.prerequisites}
+              onChange={(e) => setCourseInfo({ ...courseInfo, prerequisites: e.target.value })}
+              placeholder="Masalan: 8-sinf matematika darajasi yetarli"
+              rows={2}
               className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all resize-none text-sm"
             />
           </div>
