@@ -3101,5 +3101,2021 @@
       "stereometriya",
       "parallelepiped"
     ]
+  },
+  {
+    "id": "mat-algebra-tenglamalar-sistemasi-01",
+    "subject": "matematika",
+    "topic": "Algebra",
+    "subtopic": "Chiziqli tenglamalar sistemasi",
+    "grade": [
+      8,
+      9,
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab",
+      "milliy"
+    ],
+    "difficulty": 2,
+    "seedCount": 20,
+    "params": [
+      {
+        "name": "x0",
+        "type": "int",
+        "min": -8,
+        "max": 8
+      },
+      {
+        "name": "y0",
+        "type": "int",
+        "min": -8,
+        "max": 8
+      }
+    ],
+    "derived": {
+      "p": "x0+y0",
+      "q2": "2*x0-y0"
+    },
+    "constraints": [
+      "x0 != y0",
+      "y0 != 0"
+    ],
+    "answer": {
+      "expr": "x0",
+      "round": 0
+    },
+    "distractors": [
+      {
+        "expr": "y0",
+        "why": {
+          "uz": "x o'rniga y topilgan."
+        }
+      },
+      {
+        "expr": "p",
+        "why": {
+          "uz": "x+y yig'indisining o'zi x deb olingan."
+        }
+      },
+      {
+        "expr": "q2",
+        "why": {
+          "uz": "Ikkinchi tenglamaning o'ng qismi x deb olingan."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "x + y = {p}\n2x - y = {q2}\ntenglamalar sistemasidan x ni toping."
+    },
+    "solution": {
+      "uz": "Ikkala tenglamani qo'shamiz: (x+y)+(2x-y)={p}+{q2} => 3x={p}+{q2} => x={ans}."
+    },
+    "hints": [
+      {
+        "uz": "Ikkala tenglamani qo'shib, y ni yo'qotishga harakat qiling."
+      }
+    ],
+    "tags": [
+      "tenglamalar sistemasi"
+    ]
+  },
+  {
+    "id": "mat-algebra-kvadrat-tengsizlik-01",
+    "subject": "matematika",
+    "topic": "Algebra",
+    "subtopic": "Kvadrat tengsizlik",
+    "grade": [
+      9,
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab",
+      "milliy"
+    ],
+    "difficulty": 3,
+    "seedCount": 20,
+    "params": [
+      {
+        "name": "r1",
+        "type": "int",
+        "min": -10,
+        "max": 0
+      },
+      {
+        "name": "gap",
+        "type": "choice",
+        "values": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14
+        ]
+      }
+    ],
+    "derived": {
+      "r2": "r1+gap",
+      "B": "-(r1+r1+gap)",
+      "C": "r1*(r1+gap)"
+    },
+    "constraints": [],
+    "answer": {
+      "expr": "gap-1",
+      "round": 0
+    },
+    "distractors": [
+      {
+        "expr": "gap",
+        "why": {
+          "uz": "Chegara nuqtalari (qat'iy tengsizlik) ham hisoblab yuborilgan."
+        }
+      },
+      {
+        "expr": "gap+1",
+        "why": {
+          "uz": "Ikkala chegara nuqtasi ham noto'g'ri qo'shib yuborilgan."
+        }
+      },
+      {
+        "expr": "r2",
+        "why": {
+          "uz": "O'ng chegaraning o'zi javob deb olingan, butun sonlar soni emas."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "x² + {B}x + {C} < 0 tengsizlikni qanoatlantiruvchi nechta butun son mavjud?"
+    },
+    "solution": {
+      "uz": "x² + {B}x + {C} = (x-{r1})(x-{r2}), ildizlar {r1} va {r2}. Tengsizlik yechimi: {r1} < x < {r2}. Bu oraliqdagi butun sonlar soni: {r2}-{r1}-1 = {ans}."
+    },
+    "hints": [
+      {
+        "uz": "Kvadrat uchhad ildizlarini toping, tengsizlik yechimi ular orasidagi ochiq oraliq bo'ladi."
+      }
+    ],
+    "tags": [
+      "kvadrat tengsizlik"
+    ]
+  },
+  {
+    "id": "mat-algebra-modulli-tenglama-01",
+    "subject": "matematika",
+    "topic": "Algebra",
+    "subtopic": "Modul ishtirokidagi tenglama",
+    "grade": [
+      8,
+      9,
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab",
+      "milliy"
+    ],
+    "difficulty": 2,
+    "seedCount": 20,
+    "params": [
+      {
+        "name": "a",
+        "type": "int",
+        "min": -10,
+        "max": 10
+      },
+      {
+        "name": "b",
+        "type": "choice",
+        "values": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ]
+      }
+    ],
+    "derived": {},
+    "constraints": [
+      "a != 0"
+    ],
+    "answer": {
+      "expr": "a*a-b*b",
+      "round": 0
+    },
+    "distractors": [
+      {
+        "expr": "a*a+b*b",
+        "why": {
+          "uz": "(a-b)(a+b) o'rniga a²+b² deb hisoblangan — belgi xatosi."
+        }
+      },
+      {
+        "expr": "a+b",
+        "why": {
+          "uz": "Faqat bitta ildiz (a+b) hisoblangan, ikkala ildiz ko'paytmasi emas."
+        }
+      },
+      {
+        "expr": "b*b-a*a",
+        "why": {
+          "uz": "Ayirma tartibi teskari olingan."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "|x - {a}| = {b} tenglamaning ildizlari ko'paytmasini toping."
+    },
+    "solution": {
+      "uz": "x - {a} = {b} yoki x - {a} = -{b}, ya'ni x₁ = {a}+{b}, x₂ = {a}-{b}. x₁·x₂ = ({a}+{b})({a}-{b}) = {a}² - {b}² = {ans}."
+    },
+    "hints": [
+      {
+        "uz": "|x-a|=b tenglamaning ikkita ildizi bor: x=a+b va x=a-b."
+      },
+      {
+        "uz": "(a+b)(a-b) = a² - b² ayniyatidan foydalaning."
+      }
+    ],
+    "tags": [
+      "modul",
+      "tenglama"
+    ]
+  },
+  {
+    "id": "mat-algebra-korsatkichli-tenglama-01",
+    "subject": "matematika",
+    "topic": "Algebra",
+    "subtopic": "Ko'rsatkichli tenglama",
+    "grade": [
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "milliy"
+    ],
+    "difficulty": 3,
+    "seedCount": 20,
+    "params": [
+      {
+        "name": "a",
+        "type": "choice",
+        "values": [
+          2,
+          3,
+          5
+        ]
+      },
+      {
+        "name": "k",
+        "type": "int",
+        "min": 1,
+        "max": 10
+      },
+      {
+        "name": "x0",
+        "type": "int",
+        "min": -5,
+        "max": 8
+      }
+    ],
+    "derived": {
+      "m": "3*x0-k"
+    },
+    "constraints": [],
+    "answer": {
+      "expr": "(m+k)/3",
+      "round": 2
+    },
+    "distractors": [
+      {
+        "expr": "(m-k)/3",
+        "why": {
+          "uz": "3x - k = m tenglamada k ning belgisi xato ko'chirilgan."
+        }
+      },
+      {
+        "expr": "m/3",
+        "why": {
+          "uz": "k qo'shilishi kerak edi, lekin unutilgan."
+        }
+      },
+      {
+        "expr": "m+k",
+        "why": {
+          "uz": "3 ga bo'linmagan."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "{a}^(3x - {k}) = {a}^{m} tenglamani yeching."
+    },
+    "solution": {
+      "uz": "Asoslar teng bo'lgani uchun ko'rsatkichlar ham teng: 3x - {k} = {m}. Bundan 3x = {m}+{k}, x = ({m}+{k})/3 = {ans}."
+    },
+    "hints": [
+      {
+        "uz": "aᵐ = aⁿ bo'lsa, m = n (asoslar bir xil bo'lganda)."
+      }
+    ],
+    "tags": [
+      "korsatkichli tenglama"
+    ]
+  },
+  {
+    "id": "mat-algebra-ratsional-tenglama-01",
+    "subject": "matematika",
+    "topic": "Algebra",
+    "subtopic": "Ratsional tenglama",
+    "grade": [
+      9,
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab",
+      "milliy"
+    ],
+    "difficulty": 3,
+    "seedCount": 20,
+    "params": [
+      {
+        "name": "x0",
+        "type": "int",
+        "min": -8,
+        "max": 8
+      },
+      {
+        "name": "b",
+        "type": "int",
+        "min": -6,
+        "max": 6
+      },
+      {
+        "name": "c",
+        "type": "choice",
+        "values": [
+          2,
+          3,
+          -2,
+          -3,
+          4,
+          -4
+        ]
+      }
+    ],
+    "derived": {
+      "a": "c*(x0+b)-x0"
+    },
+    "constraints": [
+      "x0+b != 0"
+    ],
+    "answer": {
+      "expr": "x0",
+      "round": 0
+    },
+    "distractors": [
+      {
+        "expr": "-b",
+        "why": {
+          "uz": "Maxrajni nolga tenglashtiruvchi (aniqlanmagan) qiymat javob deb olingan."
+        }
+      },
+      {
+        "expr": "a",
+        "why": {
+          "uz": "Suratdagi son to'g'ridan-to'g'ri javob deb olingan."
+        }
+      },
+      {
+        "expr": "(b-a)/(1-c)",
+        "why": {
+          "uz": "c ni qavs ichiga taqsimlashda xatolik qilingan."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "(x + {a})/(x + {b}) = {c} tenglamani yeching."
+    },
+    "solution": {
+      "uz": "x + {a} = {c}(x + {b}) => x + {a} = {c}x + {c}·{b} => x - {c}x = {c}·{b} - {a} => x(1-{c}) = {c}·{b}-{a}. Bundan x = {ans}."
+    },
+    "hints": [
+      {
+        "uz": "Ikkala tomonni (x+{b}) ga ko'paytirib, kasrdan qutuling (x ≠ -{b})."
+      }
+    ],
+    "tags": [
+      "ratsional tenglama"
+    ]
+  },
+  {
+    "id": "mat-trig-asosiy-ayniyat-cos-01",
+    "subject": "matematika",
+    "topic": "Trigonometriya",
+    "subtopic": "Asosiy trigonometrik ayniyat (sin²+cos²=1)",
+    "grade": [
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "milliy"
+    ],
+    "difficulty": 2,
+    "seedCount": 20,
+    "params": [
+      {
+        "name": "triple",
+        "type": "set",
+        "names": [
+          "a",
+          "b",
+          "c"
+        ],
+        "rows": [
+          [
+            3,
+            4,
+            5
+          ],
+          [
+            4,
+            3,
+            5
+          ],
+          [
+            5,
+            12,
+            13
+          ],
+          [
+            12,
+            5,
+            13
+          ],
+          [
+            8,
+            15,
+            17
+          ],
+          [
+            15,
+            8,
+            17
+          ],
+          [
+            7,
+            24,
+            25
+          ],
+          [
+            24,
+            7,
+            25
+          ],
+          [
+            20,
+            21,
+            29
+          ],
+          [
+            21,
+            20,
+            29
+          ],
+          [
+            9,
+            40,
+            41
+          ],
+          [
+            40,
+            9,
+            41
+          ],
+          [
+            12,
+            35,
+            37
+          ],
+          [
+            35,
+            12,
+            37
+          ],
+          [
+            28,
+            45,
+            53
+          ],
+          [
+            45,
+            28,
+            53
+          ],
+          [
+            11,
+            60,
+            61
+          ],
+          [
+            60,
+            11,
+            61
+          ],
+          [
+            16,
+            30,
+            34
+          ],
+          [
+            30,
+            16,
+            34
+          ],
+          [
+            18,
+            80,
+            82
+          ],
+          [
+            80,
+            18,
+            82
+          ],
+          [
+            14,
+            48,
+            50
+          ],
+          [
+            48,
+            14,
+            50
+          ],
+          [
+            33,
+            56,
+            65
+          ],
+          [
+            56,
+            33,
+            65
+          ],
+          [
+            13,
+            84,
+            85
+          ],
+          [
+            84,
+            13,
+            85
+          ],
+          [
+            36,
+            77,
+            85
+          ],
+          [
+            77,
+            36,
+            85
+          ],
+          [
+            39,
+            80,
+            89
+          ],
+          [
+            80,
+            39,
+            89
+          ],
+          [
+            48,
+            55,
+            73
+          ],
+          [
+            55,
+            48,
+            73
+          ],
+          [
+            65,
+            72,
+            97
+          ],
+          [
+            72,
+            65,
+            97
+          ],
+          [
+            20,
+            99,
+            101
+          ],
+          [
+            99,
+            20,
+            101
+          ],
+          [
+            10,
+            24,
+            26
+          ],
+          [
+            24,
+            10,
+            26
+          ]
+        ]
+      }
+    ],
+    "derived": {},
+    "constraints": [],
+    "answer": {
+      "expr": "b/c",
+      "round": 4
+    },
+    "distractors": [
+      {
+        "expr": "a/c",
+        "why": {
+          "uz": "Bu sin α, cos α emas — sin va cos aralashtirilgan."
+        }
+      },
+      {
+        "expr": "c/b",
+        "why": {
+          "uz": "Nisbat teskari olingan."
+        }
+      },
+      {
+        "expr": "(a+b)/c",
+        "why": {
+          "uz": "Pifagor ayniyati noto'g'ri qo'llanilgan — kataetlar to'g'ridan-to'g'ri qo'shilgan."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "O'tkir burchak α uchun sin α = {a}/{c} ma'lum. sin²α + cos²α = 1 ayniyatidan foydalanib cos α ni toping."
+    },
+    "solution": {
+      "uz": "cos²α = 1 - sin²α = 1 - ({a}/{c})² = ({b}/{c})² (chunki {a}²+{b}²={c}²). α o'tkir bo'lgani uchun cos α > 0, demak cos α = {b}/{c} = {ans}."
+    },
+    "hints": [
+      {
+        "uz": "sin²α + cos²α = 1 ayniyatidan cos²α ni toping, so'ng kvadrat ildiz oling."
+      },
+      {
+        "uz": "{a}, {b}, {c} — Pifagor uchligi: {a}²+{b}²={c}²."
+      }
+    ],
+    "tags": [
+      "trigonometriya",
+      "asosiy ayniyat"
+    ]
+  },
+  {
+    "id": "mat-trig-tangens-01",
+    "subject": "matematika",
+    "topic": "Trigonometriya",
+    "subtopic": "Tangens (sin va cos orqali)",
+    "grade": [
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "milliy"
+    ],
+    "difficulty": 2,
+    "seedCount": 20,
+    "params": [
+      {
+        "name": "triple",
+        "type": "set",
+        "names": [
+          "a",
+          "b",
+          "c"
+        ],
+        "rows": [
+          [
+            3,
+            4,
+            5
+          ],
+          [
+            4,
+            3,
+            5
+          ],
+          [
+            5,
+            12,
+            13
+          ],
+          [
+            12,
+            5,
+            13
+          ],
+          [
+            8,
+            15,
+            17
+          ],
+          [
+            15,
+            8,
+            17
+          ],
+          [
+            7,
+            24,
+            25
+          ],
+          [
+            24,
+            7,
+            25
+          ],
+          [
+            20,
+            21,
+            29
+          ],
+          [
+            21,
+            20,
+            29
+          ],
+          [
+            9,
+            40,
+            41
+          ],
+          [
+            40,
+            9,
+            41
+          ],
+          [
+            12,
+            35,
+            37
+          ],
+          [
+            35,
+            12,
+            37
+          ],
+          [
+            28,
+            45,
+            53
+          ],
+          [
+            45,
+            28,
+            53
+          ],
+          [
+            11,
+            60,
+            61
+          ],
+          [
+            60,
+            11,
+            61
+          ],
+          [
+            16,
+            30,
+            34
+          ],
+          [
+            30,
+            16,
+            34
+          ],
+          [
+            18,
+            80,
+            82
+          ],
+          [
+            80,
+            18,
+            82
+          ],
+          [
+            14,
+            48,
+            50
+          ],
+          [
+            48,
+            14,
+            50
+          ],
+          [
+            33,
+            56,
+            65
+          ],
+          [
+            56,
+            33,
+            65
+          ],
+          [
+            13,
+            84,
+            85
+          ],
+          [
+            84,
+            13,
+            85
+          ],
+          [
+            36,
+            77,
+            85
+          ],
+          [
+            77,
+            36,
+            85
+          ],
+          [
+            39,
+            80,
+            89
+          ],
+          [
+            80,
+            39,
+            89
+          ],
+          [
+            48,
+            55,
+            73
+          ],
+          [
+            55,
+            48,
+            73
+          ],
+          [
+            65,
+            72,
+            97
+          ],
+          [
+            72,
+            65,
+            97
+          ],
+          [
+            20,
+            99,
+            101
+          ],
+          [
+            99,
+            20,
+            101
+          ],
+          [
+            10,
+            24,
+            26
+          ],
+          [
+            24,
+            10,
+            26
+          ]
+        ]
+      }
+    ],
+    "derived": {},
+    "constraints": [],
+    "answer": {
+      "expr": "a/b",
+      "round": 4
+    },
+    "distractors": [
+      {
+        "expr": "b/a",
+        "why": {
+          "uz": "tan α = sin α/cos α, nisbat teskari olingan (bu — kotangens)."
+        }
+      },
+      {
+        "expr": "a/c",
+        "why": {
+          "uz": "Bu sin α ning o'zi, tangens emas."
+        }
+      },
+      {
+        "expr": "b/c",
+        "why": {
+          "uz": "Bu cos α ning o'zi, tangens emas."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "O'tkir burchak α uchun sin α = {a}/{c}, cos α = {b}/{c}. tan α ni toping."
+    },
+    "solution": {
+      "uz": "tan α = sin α / cos α = ({a}/{c}) / ({b}/{c}) = {a}/{b} = {ans}."
+    },
+    "hints": [
+      {
+        "uz": "tan α = sin α / cos α."
+      }
+    ],
+    "tags": [
+      "trigonometriya",
+      "tangens"
+    ]
+  },
+  {
+    "id": "mat-funksiya-kvadrat-uchi-01",
+    "subject": "matematika",
+    "topic": "Funksiyalar",
+    "subtopic": "Kvadrat funksiya uchi (ekstremumi)",
+    "grade": [
+      8,
+      9,
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab",
+      "milliy"
+    ],
+    "difficulty": 2,
+    "seedCount": 20,
+    "params": [
+      {
+        "name": "a",
+        "type": "choice",
+        "values": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      {
+        "name": "x0",
+        "type": "int",
+        "min": -8,
+        "max": 8
+      },
+      {
+        "name": "y0",
+        "type": "int",
+        "min": -15,
+        "max": 15
+      }
+    ],
+    "derived": {
+      "b": "-2*a*x0",
+      "c": "y0+a*x0*x0"
+    },
+    "constraints": [],
+    "answer": {
+      "expr": "y0",
+      "round": 0
+    },
+    "distractors": [
+      {
+        "expr": "x0",
+        "why": {
+          "uz": "Uchining abssissasi (x0) javob deb olingan, ordinata (eng kichik qiymat) emas."
+        }
+      },
+      {
+        "expr": "c",
+        "why": {
+          "uz": "Erkin had (funksiyaning y o'qi bilan kesishmasi) javob deb olingan."
+        }
+      },
+      {
+        "expr": "-y0",
+        "why": {
+          "uz": "Belgi xatosi."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "y = {a}x² + {b}x + {c} funksiyaning eng kichik qiymatini toping (a > 0 bo'lgani uchun funksiya pastdan chegaralangan)."
+    },
+    "solution": {
+      "uz": "Uchi abssissasi x₀ = -b/(2a) = -({b})/(2·{a}) = {x0}. Eng kichik qiymat y₀ = y({x0}) = {a}·{x0}² + {b}·{x0} + {c} = {ans}."
+    },
+    "hints": [
+      {
+        "uz": "Parabola uchi: x₀ = -b/(2a), y₀ = y(x₀)."
+      }
+    ],
+    "tags": [
+      "kvadrat funksiya",
+      "ekstremum"
+    ]
+  },
+  {
+    "id": "mat-funksiya-chiziqli-ikki-nuqta-01",
+    "subject": "matematika",
+    "topic": "Funksiyalar",
+    "subtopic": "Chiziqli funksiya (ikki nuqta orqali)",
+    "grade": [
+      8,
+      9,
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab",
+      "milliy"
+    ],
+    "difficulty": 2,
+    "seedCount": 20,
+    "params": [
+      {
+        "name": "k",
+        "type": "choice",
+        "values": [
+          -4,
+          -3,
+          -2,
+          -1,
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      {
+        "name": "b",
+        "type": "int",
+        "min": -10,
+        "max": 10
+      },
+      {
+        "name": "x1",
+        "type": "int",
+        "min": -6,
+        "max": 6
+      },
+      {
+        "name": "x2",
+        "type": "int",
+        "min": -6,
+        "max": 6
+      }
+    ],
+    "derived": {
+      "y1": "k*x1+b",
+      "y2": "k*x2+b",
+      "slope": "(k*x2+b-(k*x1+b))/(x2-x1)"
+    },
+    "constraints": [
+      "x1 != x2"
+    ],
+    "answer": {
+      "expr": "slope",
+      "round": 2
+    },
+    "distractors": [
+      {
+        "expr": "(y1-y2)/(x2-x1)",
+        "why": {
+          "uz": "Suratdagi ayirma tartibi teskari olingan."
+        }
+      },
+      {
+        "expr": "y2-y1",
+        "why": {
+          "uz": "x lar farqiga bo'linmagan."
+        }
+      },
+      {
+        "expr": "(x2-x1)/(y2-y1)",
+        "why": {
+          "uz": "Nisbat teskari olingan."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "y = kx + b chiziqli funksiya grafigi A({x1}; {y1}) va B({x2}; {y2}) nuqtalardan o'tadi. k ni toping."
+    },
+    "solution": {
+      "uz": "k = (y₂-y₁)/(x₂-x₁) = ({y2}-{y1})/({x2}-{x1}) = {ans}."
+    },
+    "hints": [
+      {
+        "uz": "Ikki nuqta orqali o'tuvchi to'g'ri chiziq burchak koeffitsienti: k=(y₂-y₁)/(x₂-x₁)."
+      }
+    ],
+    "tags": [
+      "chiziqli funksiya"
+    ]
+  },
+  {
+    "id": "mat-hosila-ekstremum-nuqtalari-01",
+    "subject": "matematika",
+    "topic": "Hosila",
+    "subtopic": "Hosila orqali ekstremum nuqtalari",
+    "grade": [
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "milliy"
+    ],
+    "difficulty": 4,
+    "seedCount": 20,
+    "params": [
+      {
+        "name": "x0",
+        "type": "int",
+        "min": -6,
+        "max": 6
+      },
+      {
+        "name": "d",
+        "type": "choice",
+        "values": [
+          -8,
+          -6,
+          -4,
+          -2,
+          2,
+          4,
+          6,
+          8
+        ]
+      }
+    ],
+    "derived": {
+      "x1": "x0+d",
+      "p": "-3*x0-3*d/2",
+      "q": "3*x0*(x0+d)",
+      "twoP": "2*(-3*x0-3*d/2)",
+      "negTwoPOverThree": "-2*(-3*x0-3*d/2)/3"
+    },
+    "constraints": [],
+    "answer": {
+      "expr": "x1",
+      "round": 0
+    },
+    "distractors": [
+      {
+        "expr": "-x1",
+        "why": {
+          "uz": "Belgi xatosi."
+        }
+      },
+      {
+        "expr": "x0",
+        "why": {
+          "uz": "Savolda berilgan nuqtaning o'zi qaytarilgan, IKKINCHI nuqta so'ralgan edi."
+        }
+      },
+      {
+        "expr": "p",
+        "why": {
+          "uz": "Funksiya koeffitsiyenti javob deb olingan, ekstremum nuqtasi emas."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "f(x) = x³ + {p}x² + {q}x funksiyaning hosilasi x = {x0} nuqtada nolga teng. Hosila yana qaysi nuqtada nolga teng ekanini toping."
+    },
+    "solution": {
+      "uz": "f'(x) = 3x² + {twoP}x + {q}. f'(x)=0 ning ildizlaridan biri {x0} bo'lgani uchun, Viet teoremasiga ko'ra ikkala ildiz yig'indisi {negTwoPOverThree} ga teng. Ikkinchi ildiz: {x1} = {ans}."
+    },
+    "hints": [
+      {
+        "uz": "f'(x)=3x²+2px+q kvadrat tenglama — Viet teoremasidan ildizlar yig'indisini toping."
+      }
+    ],
+    "tags": [
+      "hosila",
+      "ekstremum"
+    ]
+  },
+  {
+    "id": "mat-planimetriya-aylana-yoyi-01",
+    "subject": "matematika",
+    "topic": "Planimetriya",
+    "subtopic": "Aylana yoyi uzunligi",
+    "grade": [
+      8,
+      9,
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab",
+      "milliy"
+    ],
+    "difficulty": 2,
+    "seedCount": 20,
+    "params": [
+      {
+        "name": "R",
+        "type": "choice",
+        "values": [
+          3,
+          4,
+          6,
+          8,
+          9,
+          10,
+          12,
+          15
+        ]
+      },
+      {
+        "name": "theta",
+        "type": "choice",
+        "values": [
+          30,
+          45,
+          60,
+          90,
+          120,
+          150,
+          180
+        ]
+      }
+    ],
+    "derived": {},
+    "constraints": [],
+    "answer": {
+      "expr": "pi*R*theta/180",
+      "round": 2
+    },
+    "distractors": [
+      {
+        "expr": "pi*R*theta/360",
+        "why": {
+          "uz": "Bu sektor yuzasi formulasidagi kasr — yoy uzunligiga emas, yuzaga tegishli."
+        }
+      },
+      {
+        "expr": "pi*R^2*theta/180",
+        "why": {
+          "uz": "Radius kvadratga oshirilgan — bu yuza o'lchamiga mos, uzunlikka emas."
+        }
+      },
+      {
+        "expr": "2*pi*R*theta/180",
+        "why": {
+          "uz": "Ikki barobar katta hisoblangan."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "Radiusi R = {R} bo'lgan aylanada markaziy burchagi {theta}° bo'lgan yoy uzunligini toping (π ≈ 3.14 deb hisoblang, natijani 2 xona aniqligida yozing)."
+    },
+    "solution": {
+      "uz": "Yoy uzunligi L = πRθ/180° = π·{R}·{theta}/180 ≈ {ans}."
+    },
+    "hints": [
+      {
+        "uz": "Yoy uzunligi formulasi: L = πRθ/180, θ — gradusda."
+      }
+    ],
+    "tags": [
+      "aylana",
+      "yoy uzunligi"
+    ]
+  },
+  {
+    "id": "mat-planimetriya-geron-01",
+    "subject": "matematika",
+    "topic": "Planimetriya",
+    "subtopic": "Geron formulasi",
+    "grade": [
+      8,
+      9,
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab",
+      "milliy"
+    ],
+    "difficulty": 3,
+    "seedCount": 20,
+    "params": [
+      {
+        "name": "a",
+        "type": "int",
+        "min": 4,
+        "max": 15
+      },
+      {
+        "name": "b",
+        "type": "int",
+        "min": 4,
+        "max": 15
+      },
+      {
+        "name": "c",
+        "type": "int",
+        "min": 4,
+        "max": 15
+      }
+    ],
+    "derived": {
+      "s": "(a+b+c)/2"
+    },
+    "constraints": [
+      "a+b>c",
+      "a+c>b",
+      "b+c>a"
+    ],
+    "answer": {
+      "expr": "sqrt(s*(s-a)*(s-b)*(s-c))",
+      "round": 2
+    },
+    "distractors": [
+      {
+        "expr": "s*(s-a)",
+        "why": {
+          "uz": "Geron formulasining faqat bir qismi hisoblangan, to'liq ko'paytma emas."
+        }
+      },
+      {
+        "expr": "(a+b+c)/2",
+        "why": {
+          "uz": "Yarim perimetrning o'zi yuza deb olingan, ildiz olinmagan."
+        }
+      },
+      {
+        "expr": "a*b*c/(a+b+c)",
+        "why": {
+          "uz": "Geron formulasi emas, boshqa noto'g'ri ifoda."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "Uchburchak tomonlari {a}, {b} va {c} ga teng. Geron formulasi orqali uchburchak yuzasini toping (natijani 2 xona aniqligida yozing)."
+    },
+    "solution": {
+      "uz": "Yarim perimetr s = (a+b+c)/2 = ({a}+{b}+{c})/2 = {s}. Geron formulasi: S = √(s(s-a)(s-b)(s-c)) = {ans}."
+    },
+    "hints": [
+      {
+        "uz": "Avval yarim perimetr s ni toping, so'ng S=√(s(s-a)(s-b)(s-c)) formulasini qo'llang."
+      }
+    ],
+    "tags": [
+      "geron formulasi",
+      "uchburchak yuzasi"
+    ]
+  },
+  {
+    "id": "mat-planimetriya-trapetsiya-01",
+    "subject": "matematika",
+    "topic": "Planimetriya",
+    "subtopic": "Trapetsiya yuzasi",
+    "grade": [
+      8,
+      9,
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab",
+      "milliy"
+    ],
+    "difficulty": 2,
+    "seedCount": 20,
+    "params": [
+      {
+        "name": "a",
+        "type": "int",
+        "min": 4,
+        "max": 20
+      },
+      {
+        "name": "b",
+        "type": "int",
+        "min": 4,
+        "max": 20
+      },
+      {
+        "name": "h",
+        "type": "int",
+        "min": 3,
+        "max": 15
+      }
+    ],
+    "derived": {},
+    "constraints": [
+      "isInteger((a+b)/2)"
+    ],
+    "answer": {
+      "expr": "(a+b)/2*h",
+      "round": 0
+    },
+    "distractors": [
+      {
+        "expr": "(a+b)*h",
+        "why": {
+          "uz": "2 ga bo'linishi kerak edi, unutilgan."
+        }
+      },
+      {
+        "expr": "a*h",
+        "why": {
+          "uz": "Faqat bitta asos (a) ishlatilgan, ikkinchisi (b) hisobga olinmagan."
+        }
+      },
+      {
+        "expr": "(a+b)/2+h",
+        "why": {
+          "uz": "Ko'paytirish o'rniga qo'shish qilingan."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "Trapetsiyaning asoslari {a} va {b} ga, balandligi {h} ga teng. Trapetsiya yuzasini toping."
+    },
+    "solution": {
+      "uz": "S = (a+b)/2 · h = ({a}+{b})/2 · {h} = {ans}."
+    },
+    "hints": [
+      {
+        "uz": "Trapetsiya yuzasi: S = (asoslar yig'indisi)/2 · balandlik."
+      }
+    ],
+    "tags": [
+      "trapetsiya"
+    ]
+  },
+  {
+    "id": "mat-stereometriya-silindr-hajmi-01",
+    "subject": "matematika",
+    "topic": "Stereometriya",
+    "subtopic": "Silindr hajmi",
+    "grade": [
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab",
+      "milliy"
+    ],
+    "difficulty": 2,
+    "seedCount": 20,
+    "params": [
+      {
+        "name": "r",
+        "type": "choice",
+        "values": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
+      },
+      {
+        "name": "h",
+        "type": "choice",
+        "values": [
+          3,
+          5,
+          6,
+          9,
+          10,
+          12,
+          14,
+          15
+        ]
+      }
+    ],
+    "derived": {},
+    "constraints": [],
+    "answer": {
+      "expr": "pi*r^2*h",
+      "round": 2
+    },
+    "distractors": [
+      {
+        "expr": "pi*r*h",
+        "why": {
+          "uz": "Radius kvadratga oshirilmagan."
+        }
+      },
+      {
+        "expr": "2*pi*r*h",
+        "why": {
+          "uz": "Bu yon sirt yuzasi formulasi, hajm emas."
+        }
+      },
+      {
+        "expr": "pi*r^2*h/3",
+        "why": {
+          "uz": "Bu konus hajmi formulasi bilan aralashtirilgan."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "Silindrning asos radiusi {r}, balandligi {h} ga teng. Silindr hajmini toping (π ≈ 3.14, natijani 2 xona aniqligida)."
+    },
+    "solution": {
+      "uz": "V = πr²h = π·{r}²·{h} ≈ {ans}."
+    },
+    "hints": [
+      {
+        "uz": "Silindr hajmi: V = πr²h."
+      }
+    ],
+    "tags": [
+      "silindr",
+      "hajm"
+    ]
+  },
+  {
+    "id": "mat-stereometriya-konus-hajmi-01",
+    "subject": "matematika",
+    "topic": "Stereometriya",
+    "subtopic": "Konus hajmi",
+    "grade": [
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab",
+      "milliy"
+    ],
+    "difficulty": 2,
+    "seedCount": 20,
+    "params": [
+      {
+        "name": "r",
+        "type": "choice",
+        "values": [
+          3,
+          4,
+          6,
+          8,
+          9,
+          12
+        ]
+      },
+      {
+        "name": "h",
+        "type": "choice",
+        "values": [
+          4,
+          6,
+          8,
+          9,
+          10,
+          12,
+          15
+        ]
+      }
+    ],
+    "derived": {},
+    "constraints": [],
+    "answer": {
+      "expr": "pi*r^2*h/3",
+      "round": 2
+    },
+    "distractors": [
+      {
+        "expr": "pi*r^2*h",
+        "why": {
+          "uz": "Bu silindr hajmi formulasi — 3 ga bo'linmagan."
+        }
+      },
+      {
+        "expr": "pi*r*h/3",
+        "why": {
+          "uz": "Radius kvadratga oshirilmagan."
+        }
+      },
+      {
+        "expr": "2*pi*r^2*h/3",
+        "why": {
+          "uz": "Ikki barobar katta hisoblangan."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "Konusning asos radiusi {r}, balandligi {h} ga teng. Konus hajmini toping (π ≈ 3.14, natijani 2 xona aniqligida)."
+    },
+    "solution": {
+      "uz": "V = (1/3)πr²h = (1/3)·π·{r}²·{h} ≈ {ans}."
+    },
+    "hints": [
+      {
+        "uz": "Konus hajmi silindr hajmining uchdan biriga teng: V=(1/3)πr²h."
+      }
+    ],
+    "tags": [
+      "konus",
+      "hajm"
+    ]
+  },
+  {
+    "id": "mat-stereometriya-shar-hajmi-01",
+    "subject": "matematika",
+    "topic": "Stereometriya",
+    "subtopic": "Shar hajmi",
+    "grade": [
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab",
+      "milliy"
+    ],
+    "difficulty": 2,
+    "seedCount": 20,
+    "params": [
+      {
+        "name": "r",
+        "type": "int",
+        "min": 2,
+        "max": 24,
+        "step": 1
+      }
+    ],
+    "derived": {},
+    "constraints": [],
+    "answer": {
+      "expr": "(4/3)*pi*r^3",
+      "round": 2
+    },
+    "distractors": [
+      {
+        "expr": "4*pi*r^2",
+        "why": {
+          "uz": "Bu shar sirt yuzasi formulasi, hajm emas."
+        }
+      },
+      {
+        "expr": "(4/3)*pi*r^2",
+        "why": {
+          "uz": "Radius darajasi noto'g'ri — kub emas, kvadrat olingan."
+        }
+      },
+      {
+        "expr": "(1/3)*pi*r^3",
+        "why": {
+          "uz": "Koeffitsiyent konus formulasi bilan aralashtirilgan."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "Shar radiusi {r} ga teng. Shar hajmini toping (π ≈ 3.14, natijani 2 xona aniqligida)."
+    },
+    "solution": {
+      "uz": "V = (4/3)πr³ = (4/3)·π·{r}³ ≈ {ans}."
+    },
+    "hints": [
+      {
+        "uz": "Shar hajmi: V=(4/3)πr³."
+      }
+    ],
+    "tags": [
+      "shar",
+      "hajm"
+    ]
+  },
+  {
+    "id": "mat-sonlar-ekub-ekuk-01",
+    "subject": "matematika",
+    "topic": "Sonlar nazariyasi",
+    "subtopic": "EKUB va EKUK",
+    "grade": [
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "exams": [
+      "dtm",
+      "maktab",
+      "milliy"
+    ],
+    "difficulty": 2,
+    "seedCount": 20,
+    "params": [
+      {
+        "name": "g",
+        "type": "choice",
+        "values": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ]
+      },
+      {
+        "name": "p",
+        "type": "int",
+        "min": 2,
+        "max": 9
+      },
+      {
+        "name": "q",
+        "type": "int",
+        "min": 2,
+        "max": 9
+      }
+    ],
+    "derived": {
+      "m": "g*p",
+      "n": "g*q"
+    },
+    "constraints": [
+      "p != q"
+    ],
+    "answer": {
+      "expr": "lcm(m,n)",
+      "round": 0
+    },
+    "distractors": [
+      {
+        "expr": "gcd(m,n)",
+        "why": {
+          "uz": "EKUK (eng kichik umumiy karrali) o'rniga EKUB (eng katta umumiy bo'luvchi) topilgan."
+        }
+      },
+      {
+        "expr": "m*n",
+        "why": {
+          "uz": "Sonlarning oddiy ko'paytmasi hisoblangan, EKUK emas."
+        }
+      },
+      {
+        "expr": "m+n",
+        "why": {
+          "uz": "Sonlar qo'shilgan, EKUK topish usuli emas."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "{m} va {n} sonlarining eng kichik umumiy karralisi (EKUK)ni toping."
+    },
+    "solution": {
+      "uz": "{m} = {g}·{p}, {n} = {g}·{q}. EKUK({m}, {n}) = {ans}."
+    },
+    "hints": [
+      {
+        "uz": "Sonlarni tub ko'paytuvchilarga ajratib, EKUK = EKUB·... yoki to'g'ridan-to'g'ri EKUK ta'rifidan foydalaning."
+      }
+    ],
+    "tags": [
+      "ekub",
+      "ekuk"
+    ]
+  },
+  {
+    "id": "mat-masala-harakat-qarama-qarshi-01",
+    "subject": "matematika",
+    "topic": "Matnli masalalar",
+    "subtopic": "Harakat masalalari (qarama-qarshi)",
+    "grade": [
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab",
+      "milliy"
+    ],
+    "difficulty": 2,
+    "seedCount": 20,
+    "params": [
+      {
+        "name": "V1",
+        "type": "int",
+        "min": 30,
+        "max": 90,
+        "step": 5
+      },
+      {
+        "name": "V2",
+        "type": "int",
+        "min": 20,
+        "max": 80,
+        "step": 5
+      },
+      {
+        "name": "t",
+        "type": "choice",
+        "values": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ]
+      }
+    ],
+    "derived": {
+      "D": "(V1+V2)*t",
+      "V1p2": "V1+V2"
+    },
+    "constraints": [
+      "V1 != V2"
+    ],
+    "answer": {
+      "expr": "D/(V1+V2)",
+      "round": 2
+    },
+    "distractors": [
+      {
+        "expr": "D/V1",
+        "why": {
+          "uz": "Faqat bitta avtomobil tezligiga bo'lingan."
+        }
+      },
+      {
+        "expr": "D/(V1-V2)",
+        "why": {
+          "uz": "Qo'shish o'rniga ayirish qilingan — bu quvib yetish masalasi formulasi, qarama-qarshi harakat uchun emas."
+        }
+      },
+      {
+        "expr": "D/V2",
+        "why": {
+          "uz": "Faqat ikkinchi avtomobil tezligiga bo'lingan."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "Ikki shahar orasidagi masofa {D} km. Ikkita avtomobil shu ikki shahardan bir vaqtda bir-biriga qarab mos ravishda {V1} km/soat va {V2} km/soat tezlik bilan yo'lga chiqdi. Necha soatdan keyin uchrashadilar?"
+    },
+    "solution": {
+      "uz": "Yaqinlashish tezligi V1+V2 = {V1}+{V2} = {V1p2} km/soat. Uchrashish vaqti t = D/(V1+V2) = {D}/{V1p2} = {ans} soat."
+    },
+    "hints": [
+      {
+        "uz": "Bir-biriga qarab harakatlanishda tezliklar qo'shiladi: t = D/(V1+V2)."
+      }
+    ],
+    "tags": [
+      "harakat masalasi"
+    ]
+  },
+  {
+    "id": "mat-masala-birgalikda-ishlash-01",
+    "subject": "matematika",
+    "topic": "Matnli masalalar",
+    "subtopic": "Birgalikda ishlash masalalari",
+    "grade": [
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab",
+      "milliy"
+    ],
+    "difficulty": 3,
+    "seedCount": 20,
+    "params": [
+      {
+        "name": "t1",
+        "type": "choice",
+        "values": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          8,
+          10,
+          12
+        ]
+      },
+      {
+        "name": "t2",
+        "type": "choice",
+        "values": [
+          3,
+          4,
+          5,
+          6,
+          8,
+          10,
+          12,
+          15
+        ]
+      }
+    ],
+    "derived": {},
+    "constraints": [
+      "t1 != t2"
+    ],
+    "answer": {
+      "expr": "t1*t2/(t1+t2)",
+      "round": 2
+    },
+    "distractors": [
+      {
+        "expr": "(t1+t2)/2",
+        "why": {
+          "uz": "Vaqtlarning o'rtacha arifmetigi olingan — bu noto'g'ri, ishlash tezliklari qo'shiladi, vaqtlar emas."
+        }
+      },
+      {
+        "expr": "t1+t2",
+        "why": {
+          "uz": "Vaqtlar to'g'ridan-to'g'ri qo'shib yuborilgan."
+        }
+      },
+      {
+        "expr": "t1*t2",
+        "why": {
+          "uz": "Vaqtlar ko'paytirilgan, bu to'g'ri formula emas."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "Birinchi usta bir ishni {t1} kunda, ikkinchi usta xuddi shu ishni {t2} kunda bajaradi. Ular birgalikda ishlasa, ish necha kunda bajariladi?"
+    },
+    "solution": {
+      "uz": "Birinchi usta 1 kunda ishning 1/{t1} qismini, ikkinchisi 1/{t2} qismini bajaradi. Birgalikda 1 kunda 1/{t1}+1/{t2} qism bajariladi. Butun ish uchun kerakli vaqt: t = t1·t2/(t1+t2) = {ans} kun."
+    },
+    "hints": [
+      {
+        "uz": "Ish unumdorliklari (1/t) qo'shiladi, vaqtlarning o'zi emas."
+      }
+    ],
+    "tags": [
+      "ish masalasi"
+    ]
   }
 ]
