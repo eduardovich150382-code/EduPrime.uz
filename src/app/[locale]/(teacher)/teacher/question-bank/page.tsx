@@ -5,13 +5,18 @@ import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import LatexRenderer from '@/components/ui/LatexRenderer';
 import {
-  ArrowLeft, Plus, Trash2, Search, Loader2, Library, X, Bot, Eye, CheckCircle,
+  ArrowLeft, Plus, Trash2, Search, Loader2, Library, X, Bot, Eye, CheckCircle, ShieldAlert,
 } from 'lucide-react';
 import type { AIImportedQuestion, QuestionCoreFields, QuestionType } from '@/types';
 import { isQuestionValid, mapQuestionForBank } from '@/lib/question-form';
 import QuestionEditorForm from '@/components/teacher/QuestionEditorForm';
-import AiImportPanel from '@/components/teacher/AiImportPanel';
+import AiImportPanel, { LOW_CONFIDENCE_THRESHOLD } from '@/components/teacher/AiImportPanel';
 import QuestionPreviewList from '@/components/teacher/QuestionPreviewList';
+
+interface DraftQuestion extends QuestionCoreFields {
+  /** Faqat AI import orqali kelgan qoralamalarda bo'ladi — qo'lda qo'shilganlarda undefined. */
+  aiConfidence?: number;
+}
 
 interface BankOption { label: string; text: string; image: string | null }
 
@@ -38,7 +43,7 @@ interface SubjectItem {
   category: { nameUz: string; type: string };
 }
 
-const emptyDraft: QuestionCoreFields = {
+const emptyDraft: DraftQuestion = {
   text: '',
   images: [],
   options: [
@@ -72,8 +77,9 @@ export default function QuestionBankPage() {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [wizardSubjectId, setWizardSubjectId] = useState('');
   const [wizardStep, setWizardStep] = useState<'questions' | 'ai-import' | 'review'>('questions');
-  const [drafts, setDrafts] = useState<QuestionCoreFields[]>([{ ...emptyDraft }]);
+  const [drafts, setDrafts] = useState<DraftQuestion[]>([{ ...emptyDraft }]);
   const [activeDraft, setActiveDraft] = useState(0);
+  const [showOnlyLowConfidence, setShowOnlyLowConfidence] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -134,7 +140,7 @@ export default function QuestionBankPage() {
   // AiImportPanel savol topganda chaqiradi — AIImportedQuestion[] ni
   // qoralama massiviga o'giradi.
   const handleAiImported = (imported: AIImportedQuestion[]) => {
-    const mapped: QuestionCoreFields[] = imported.map((q) => ({
+    const mapped: DraftQuestion[] = imported.map((q) => ({
       text: q.text || '',
       images: q.images || [],
       options: q.type === 'OPEN_ENDED' ? [] : (q.options?.length ? q.options : [
@@ -152,10 +158,12 @@ export default function QuestionBankPage() {
       difficulty: q.difficulty ?? null,
       blankAnswers: [''],
       matchingPairs: [{ left: '', right: '' }, { left: '', right: '' }],
+      aiConfidence: q.confidence,
     }));
     setDrafts(mapped);
     setActiveDraft(0);
     setWizardStep('questions');
+    setShowOnlyLowConfidence(false);
   };
 
   const handleSaveAll = async () => {
@@ -283,7 +291,25 @@ export default function QuestionBankPage() {
                   <h3 className="text-sm font-semibold text-text-primary">Savollar</h3>
                   <span className="text-xs text-text-secondary">{drafts.length} ta</span>
                 </div>
-                {drafts.map((d, i) => (
+                {(() => {
+                  const lowConfidenceCount = drafts.filter((d) => d.aiConfidence !== undefined && d.aiConfidence < LOW_CONFIDENCE_THRESHOLD).length;
+                  return lowConfidenceCount > 0 ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowOnlyLowConfidence((v) => !v)}
+                      className={`w-full text-left px-3 py-2 rounded-lg text-xs flex items-center gap-1.5 border transition-all ${
+                        showOnlyLowConfidence ? 'bg-amber-100 border-amber-300 text-amber-800 font-medium' : 'bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100'
+                      }`}
+                    >
+                      <ShieldAlert size={12} />
+                      {showOnlyLowConfidence ? `Hammasini ko'rsatish` : `Faqat tekshirish kerakligini ko'rsatish (${lowConfidenceCount})`}
+                    </button>
+                  ) : null;
+                })()}
+                {drafts.map((d, i) => {
+                  const needsReview = d.aiConfidence !== undefined && d.aiConfidence < LOW_CONFIDENCE_THRESHOLD;
+                  if (showOnlyLowConfidence && !needsReview) return null;
+                  return (
                   <button
                     key={i}
                     onClick={() => setActiveDraft(i)}
@@ -291,10 +317,18 @@ export default function QuestionBankPage() {
                       i === activeDraft ? 'bg-primary-100 text-primary-700 font-medium' : 'hover:bg-gray-50 text-text-secondary'
                     }`}
                   >
-                    <span>{i + 1}-savol</span>
+                    <span className="flex items-center gap-1.5">
+                      {i + 1}-savol
+                      {needsReview && (
+                        <span title="AI bu savolga unchalik ishonchli emas — tekshiring">
+                          <ShieldAlert size={12} className="text-amber-600" />
+                        </span>
+                      )}
+                    </span>
                     {isQuestionValid(d) && <CheckCircle size={12} className="text-green-500" />}
                   </button>
-                ))}
+                  );
+                })}
                 <button
                   onClick={addDraft}
                   className="w-full px-3 py-2 rounded-lg text-sm text-primary-600 hover:bg-primary-50 flex items-center gap-2 transition-colors border border-dashed border-primary-200"

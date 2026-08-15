@@ -1,8 +1,11 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { Bot, Loader2, Image, Paperclip } from 'lucide-react';
+import { Bot, Loader2, Image, Paperclip, ShieldCheck, ShieldAlert } from 'lucide-react';
 import type { AIImportedQuestion, AIImportResult } from '@/types';
+
+/** Shundan past ishonchlilikdagi savollar "tekshiring" deb ajratiladi — teacher e'tibori shu tomonga yo'naltirilsin. */
+export const LOW_CONFIDENCE_THRESHOLD = 0.85;
 
 interface AiImportPanelProps {
   /** AI muvaffaqiyatli savol qaytarganda chaqiriladi — natijani qayerga qo'yishni (Test qoralamasi yoki Savollar bazasi qoralamasi) chaqiruvchi hal qiladi. */
@@ -185,13 +188,31 @@ export default function AiImportPanel({
           <p className="text-sm text-green-700 font-medium">
             ✅ {aiResult.totalFound || aiResult.questions?.length || 0} ta savol topildi va import qilindi!
           </p>
+          {aiResult.questions?.length > 0 && (() => {
+            const confident = aiResult.questions.filter((q) => q.confidence >= LOW_CONFIDENCE_THRESHOLD).length;
+            const needsReview = aiResult.questions.length - confident;
+            return (
+              <div className="flex flex-wrap items-center gap-3 mt-2">
+                <span className="text-xs text-green-700 flex items-center gap-1.5">
+                  <ShieldCheck size={13} /> {confident} tasi ishonchli
+                </span>
+                {needsReview > 0 && (
+                  <span className="text-xs text-amber-700 flex items-center gap-1.5">
+                    <ShieldAlert size={13} /> {needsReview} tasini albatta tekshiring
+                  </span>
+                )}
+              </div>
+            );
+          })()}
           {aiResult.warnings?.length > 0 && (
             <p className="text-xs text-yellow-700 mt-1">
               ⚠️ {aiResult.warnings.join(', ')}
             </p>
           )}
           <p className="text-xs text-green-600 mt-2">
-            &quot;Savollar&quot; tabiga o&apos;tib tekshiring va tasdiqlang.
+            &quot;Savollar&quot; tabiga o&apos;tib tekshiring va tasdiqlang — yon panelda kam ishonchli savollar
+            <ShieldAlert size={11} className="inline-block mx-1 -mt-0.5" />
+            belgisi bilan ajratilgan.
           </p>
         </div>
       )}
