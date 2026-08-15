@@ -2377,5 +2377,729 @@
       "radioaktivlik",
       "yarim yemirilish davri"
     ]
+  },
+  {
+    "id": "mat-foiz-murakkab-osish-01",
+    "subject": "matematika",
+    "topic": "Foizlar",
+    "subtopic": "Foiz bo'yicha o'sish (murakkab foiz)",
+    "grade": [
+      9,
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab",
+      "milliy"
+    ],
+    "difficulty": 2,
+    "params": [
+      {
+        "name": "A",
+        "type": "int",
+        "min": 400,
+        "max": 4000,
+        "step": 400
+      },
+      {
+        "name": "p",
+        "type": "choice",
+        "values": [
+          20,
+          25,
+          50
+        ]
+      },
+      {
+        "name": "n",
+        "type": "choice",
+        "values": [
+          1,
+          2
+        ]
+      }
+    ],
+    "derived": {
+      "mult": "(1+p/100)^n",
+      "result": "A*mult"
+    },
+    "constraints": [
+      "A > 0"
+    ],
+    "answer": {
+      "expr": "result",
+      "round": 0
+    },
+    "distractors": [
+      {
+        "expr": "A*(1+p*n/100)",
+        "why": {
+          "uz": "Bu oddiy (bir martalik) foiz — murakkab foizda har yil oldingi yil natijasiga nisbatan o'sadi, yig'indi emas, ko'paytma bo'yicha."
+        }
+      },
+      {
+        "expr": "A*(1+p/100)^(n-1)",
+        "why": {
+          "uz": "Yillar soni bittaga kam olingan — {n} yil davomida {n} marta o'sish qo'llanilishi kerak."
+        }
+      },
+      {
+        "expr": "A + p*n",
+        "why": {
+          "uz": "Foiz butun songa aylantirilib to'g'ridan-to'g'ri qo'shilgan — foiz narxning o'zidan hisoblanishi kerak."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "Mahsulot narxi {A} so'm. Narx har yili {p}% ga oshib boradi. {n} yildan keyin narx qancha bo'ladi?"
+    },
+    "solution": {
+      "uz": "Har yili narx (1 + {p}/100) marta ortadi.\n{n} yildan keyin: {A}·(1+{p}/100)^{n} = {ans} so'm."
+    },
+    "hints": [
+      {
+        "uz": "Murakkab foizda har yilgi o'sish oldingi yil natijasiga nisbatan hisoblanadi."
+      },
+      {
+        "uz": "Formula: A·(1+p/100)ⁿ, bu yerda n — yillar soni."
+      }
+    ],
+    "tags": [
+      "foiz",
+      "murakkab foiz"
+    ]
+  },
+  {
+    "id": "mat-ehtimollik-klassik-01",
+    "subject": "matematika",
+    "topic": "Ehtimollik nazariyasi",
+    "subtopic": "Klassik ehtimollik",
+    "grade": [
+      9,
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab",
+      "milliy"
+    ],
+    "difficulty": 2,
+    "params": [
+      {
+        "name": "T",
+        "type": "choice",
+        "values": [
+          10,
+          20,
+          25,
+          50,
+          100
+        ]
+      },
+      {
+        "name": "red",
+        "type": "int",
+        "min": 1,
+        "max": 12,
+        "step": 1
+      }
+    ],
+    "derived": {
+      "blue": "T-red",
+      "percent": "red*(100/T)"
+    },
+    "constraints": [
+      "red < T"
+    ],
+    "answer": {
+      "expr": "percent",
+      "round": 0
+    },
+    "distractors": [
+      {
+        "expr": "blue*(100/T)",
+        "why": {
+          "uz": "Bu ko'k sharchaning (qarama-qarshi hodisaning) ehtimoli — savolda qizil sharcha so'ralgan."
+        }
+      },
+      {
+        "expr": "red*100/blue",
+        "why": {
+          "uz": "Maxrajga barcha sharchalar soni ({T}) olinishi kerak, faqat ko'k sharchalar soni emas."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "Qutida {T} ta sharcha bor, ulardan {red} tasi qizil, qolgani ko'k. Qutidan tasodifan 1 ta sharcha olinganda, uning qizil bo'lish ehtimoli necha foiz?"
+    },
+    "solution": {
+      "uz": "Ehtimollik = qulay hodisalar soni / barcha hodisalar soni = {red}/{T}.\n{red}/{T}·100% = {ans}%."
+    },
+    "hints": [
+      {
+        "uz": "Klassik ehtimollik = qulay hodisalar / barcha hodisalar."
+      },
+      {
+        "uz": "Maxrajga har doim BARCHA sharchalar soni ({T}) qo'yiladi."
+      }
+    ],
+    "tags": [
+      "ehtimollik",
+      "klassik ehtimollik"
+    ]
+  },
+  {
+    "id": "mat-kombinatorika-guruhlash-01",
+    "subject": "matematika",
+    "topic": "Kombinatorika",
+    "subtopic": "Guruhlash (kombinatsiyalar)",
+    "grade": [
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "milliy"
+    ],
+    "difficulty": 3,
+    "params": [
+      {
+        "name": "n",
+        "type": "int",
+        "min": 5,
+        "max": 15,
+        "step": 1
+      },
+      {
+        "name": "k",
+        "type": "int",
+        "min": 2,
+        "max": 6,
+        "step": 1
+      }
+    ],
+    "derived": {},
+    "constraints": [
+      "k < n",
+      "n - k >= 2"
+    ],
+    "answer": {
+      "expr": "combinations(n,k)",
+      "round": 0
+    },
+    "distractors": [
+      {
+        "expr": "permutations(n,k)",
+        "why": {
+          "uz": "Bu o'rin almashtirish (tartib muhim) formulasi — guruh tuzishda a'zolar tartibi ahamiyatsiz."
+        }
+      },
+      {
+        "expr": "n!/k!",
+        "why": {
+          "uz": "(n−k)! ga bo'lish unutilgan — to'g'ri formula: n!/(k!·(n−k)!)."
+        }
+      },
+      {
+        "expr": "n*k",
+        "why": {
+          "uz": "Guruhlarni tanlash kombinatorika formulasi orqali hisoblanadi, oddiy ko'paytma orqali emas."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "{n} ta o'quvchidan {k} tasini tanlab, sport jamoasi tuzish kerak. Buni necha xil usul bilan bajarish mumkin?"
+    },
+    "solution": {
+      "uz": "Tanlashda tartib muhim emas — kombinatsiyalar formulasi qo'llanadi:\nC({n},{k}) = {n}!/({k}!·({n}−{k})!) = {ans}."
+    },
+    "hints": [
+      {
+        "uz": "\"Guruh\" so'zi — tartib muhim emasligini bildiradi, demak kombinatsiya."
+      },
+      {
+        "uz": "C(n,k) = n!/(k!·(n−k)!)."
+      }
+    ],
+    "tags": [
+      "kombinatorika",
+      "kombinatsiyalar"
+    ]
+  },
+  {
+    "id": "mat-hosila-darajali-nuqtada-01",
+    "subject": "matematika",
+    "topic": "Hosila",
+    "subtopic": "Darajali funksiya hosilasi",
+    "grade": [
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "milliy"
+    ],
+    "difficulty": 3,
+    "params": [
+      {
+        "name": "a",
+        "type": "choice",
+        "values": [
+          1,
+          2,
+          3,
+          4,
+          -1,
+          -2,
+          -3,
+          -4
+        ]
+      },
+      {
+        "name": "b",
+        "type": "choice",
+        "values": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          -1,
+          -2,
+          -3,
+          -4,
+          -5
+        ]
+      },
+      {
+        "name": "x0",
+        "type": "choice",
+        "values": [
+          1,
+          2,
+          3,
+          4,
+          -1,
+          -2,
+          -3,
+          -4
+        ]
+      }
+    ],
+    "derived": {
+      "deriv_at": "3*a*x0^2 + 2*b*x0"
+    },
+    "constraints": [],
+    "answer": {
+      "expr": "deriv_at",
+      "round": 0
+    },
+    "distractors": [
+      {
+        "expr": "a*x0^2 + 2*b*x0",
+        "why": {
+          "uz": "x³ ning hosilasi 3x² — bu yerda 3 koeffitsienti tushib qolgan."
+        }
+      },
+      {
+        "expr": "3*a*x0^2 + 2*b",
+        "why": {
+          "uz": "(bx²)' = 2bx — hosilada x ko'paytuvchisi tushib qolgan."
+        }
+      },
+      {
+        "expr": "a*x0^3 + b*x0^2",
+        "why": {
+          "uz": "Bu f(x₀) ning qiymati, f'(x₀) emas — avval hosila topilishi kerak."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "f(x) = {a}x³ + {b}x² funksiyaning x₀ = {x0} nuqtadagi hosilasini toping."
+    },
+    "solution": {
+      "uz": "f'(x) = 3·{a}x² + 2·{b}x.\nf'({x0}) = 3·{a}·{x0}² + 2·{b}·{x0} = {ans}."
+    },
+    "hints": [
+      {
+        "uz": "Daraja qoidasi: (xⁿ)' = n·xⁿ⁻¹."
+      },
+      {
+        "uz": "Avval f'(x) ni umumiy ko'rinishda toping, so'ng x₀ ni qo'ying."
+      }
+    ],
+    "tags": [
+      "hosila",
+      "darajali funksiya"
+    ]
+  },
+  {
+    "id": "mat-planimetriya-togri-burchakli-yuza-01",
+    "subject": "matematika",
+    "topic": "Planimetriya",
+    "subtopic": "To'g'ri burchakli uchburchak yuzasi",
+    "grade": [
+      8,
+      9,
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab",
+      "milliy"
+    ],
+    "difficulty": 2,
+    "params": [
+      {
+        "name": "triple",
+        "type": "set",
+        "names": [
+          "a",
+          "b",
+          "c"
+        ],
+        "rows": [
+          [
+            3,
+            4,
+            5
+          ],
+          [
+            4,
+            3,
+            5
+          ],
+          [
+            5,
+            12,
+            13
+          ],
+          [
+            12,
+            5,
+            13
+          ],
+          [
+            8,
+            15,
+            17
+          ],
+          [
+            15,
+            8,
+            17
+          ],
+          [
+            7,
+            24,
+            25
+          ],
+          [
+            24,
+            7,
+            25
+          ],
+          [
+            20,
+            21,
+            29
+          ],
+          [
+            21,
+            20,
+            29
+          ],
+          [
+            9,
+            40,
+            41
+          ],
+          [
+            40,
+            9,
+            41
+          ],
+          [
+            12,
+            35,
+            37
+          ],
+          [
+            35,
+            12,
+            37
+          ],
+          [
+            28,
+            45,
+            53
+          ],
+          [
+            45,
+            28,
+            53
+          ],
+          [
+            33,
+            56,
+            65
+          ],
+          [
+            56,
+            33,
+            65
+          ],
+          [
+            16,
+            63,
+            65
+          ],
+          [
+            63,
+            16,
+            65
+          ],
+          [
+            48,
+            55,
+            73
+          ],
+          [
+            55,
+            48,
+            73
+          ],
+          [
+            13,
+            84,
+            85
+          ],
+          [
+            84,
+            13,
+            85
+          ],
+          [
+            36,
+            77,
+            85
+          ],
+          [
+            77,
+            36,
+            85
+          ],
+          [
+            39,
+            80,
+            89
+          ],
+          [
+            80,
+            39,
+            89
+          ],
+          [
+            11,
+            60,
+            61
+          ],
+          [
+            60,
+            11,
+            61
+          ],
+          [
+            16,
+            30,
+            34
+          ],
+          [
+            30,
+            16,
+            34
+          ],
+          [
+            18,
+            80,
+            82
+          ],
+          [
+            80,
+            18,
+            82
+          ],
+          [
+            14,
+            48,
+            50
+          ],
+          [
+            48,
+            14,
+            50
+          ],
+          [
+            10,
+            24,
+            26
+          ],
+          [
+            24,
+            10,
+            26
+          ],
+          [
+            15,
+            20,
+            25
+          ],
+          [
+            20,
+            15,
+            25
+          ]
+        ]
+      }
+    ],
+    "derived": {
+      "area": "a*b/2",
+      "perimeter": "a+b+c"
+    },
+    "constraints": [],
+    "answer": {
+      "expr": "area",
+      "round": 0
+    },
+    "distractors": [
+      {
+        "expr": "a+b+c",
+        "why": {
+          "uz": "Bu perimetr, yuza emas — yuza uchun S = (a·b)/2 formulasidan foydalaning."
+        }
+      },
+      {
+        "expr": "a*b",
+        "why": {
+          "uz": "To'g'ri to'rtburchak yuzasi hisoblangan — uchburchak yuzasi undan 2 marta kichik."
+        }
+      },
+      {
+        "expr": "a*c/2",
+        "why": {
+          "uz": "Yuza formulasida ikkala katet (a va b) ishtirok etadi, gipotenuza (c) emas."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "To'g'ri burchakli uchburchakning katetlari {a} va {b} ga teng (gipotenuza {c}). Uchburchak yuzasini toping."
+    },
+    "solution": {
+      "uz": "To'g'ri burchakli uchburchak yuzasi S = (a·b)/2.\nS = ({a}·{b})/2 = {ans}."
+    },
+    "hints": [
+      {
+        "uz": "To'g'ri burchakli uchburchakda ikkala katet bir-biriga perpendikulyar."
+      },
+      {
+        "uz": "S = (katet₁ · katet₂)/2."
+      }
+    ],
+    "tags": [
+      "planimetriya",
+      "togri burchakli uchburchak"
+    ]
+  },
+  {
+    "id": "mat-stereometriya-parallelepiped-hajmi-01",
+    "subject": "matematika",
+    "topic": "Stereometriya",
+    "subtopic": "To'g'ri burchakli parallelepiped hajmi",
+    "grade": [
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab",
+      "milliy"
+    ],
+    "difficulty": 2,
+    "params": [
+      {
+        "name": "a",
+        "type": "int",
+        "min": 2,
+        "max": 10,
+        "step": 1
+      },
+      {
+        "name": "b",
+        "type": "int",
+        "min": 2,
+        "max": 10,
+        "step": 1
+      },
+      {
+        "name": "c",
+        "type": "int",
+        "min": 2,
+        "max": 10,
+        "step": 1
+      }
+    ],
+    "derived": {
+      "volume": "a*b*c",
+      "surface": "2*(a*b+b*c+a*c)"
+    },
+    "constraints": [
+      "a <= b",
+      "b <= c"
+    ],
+    "answer": {
+      "expr": "volume",
+      "round": 0
+    },
+    "distractors": [
+      {
+        "expr": "surface",
+        "why": {
+          "uz": "Bu sirt yuzasi, hajm emas — hajm uchun V = a·b·c formulasidan foydalaning."
+        }
+      },
+      {
+        "expr": "a*b",
+        "why": {
+          "uz": "Uchinchi o'lcham (c) hisobga olinmagan — hajm uch o'lchamli, V = a·b·c."
+        }
+      },
+      {
+        "expr": "a+b+c",
+        "why": {
+          "uz": "Hajm ko'paytma orqali topiladi, yig'indi orqali emas."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "To'g'ri burchakli parallelepipedning o'lchamlari {a}, {b} va {c} ga teng. Uning hajmini toping."
+    },
+    "solution": {
+      "uz": "To'g'ri burchakli parallelepiped hajmi V = a·b·c.\nV = {a}·{b}·{c} = {ans}."
+    },
+    "hints": [
+      {
+        "uz": "Hajm uch o'lchamning ko'paytmasiga teng."
+      },
+      {
+        "uz": "V = a·b·c."
+      }
+    ],
+    "tags": [
+      "stereometriya",
+      "parallelepiped"
+    ]
   }
 ]
