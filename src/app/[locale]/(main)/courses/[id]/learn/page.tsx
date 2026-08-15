@@ -364,9 +364,21 @@ export default function CourseLearnPage() {
         {/* Curriculum nav */}
         <div className="lg:col-span-1 order-1 lg:order-2">
           <div className="card p-4 space-y-4 lg:sticky lg:top-20">
-            {course.sections.map((section, sIdx) => (
+            {course.sections.map((section, sIdx) => {
+              const sectionCompleted = section.lessons.filter((l) => l.completed).length;
+              const sectionTotal = section.lessons.length;
+              const sectionPct = sectionTotal > 0 ? Math.round((sectionCompleted / sectionTotal) * 100) : 0;
+              return (
               <div key={section.id}>
-                <p className="text-xs font-bold text-text-secondary mb-2">{sIdx + 1}. {section.titleUz}</p>
+                <div className="flex items-center gap-2 mb-2">
+                  <span
+                    className="w-3.5 h-3.5 rounded-full flex-shrink-0"
+                    style={{ background: `conic-gradient(rgb(34 197 94) ${sectionPct}%, rgb(229 231 235) 0)` }}
+                    title={`${sectionCompleted}/${sectionTotal} dars tugallandi`}
+                  />
+                  <p className="text-xs font-bold text-text-secondary truncate">{sIdx + 1}. {section.titleUz}</p>
+                  <span className="text-[10px] text-text-secondary ml-auto flex-shrink-0">{sectionCompleted}/{sectionTotal}</span>
+                </div>
                 <div className="space-y-1">
                   {section.lessons.map((lesson) => {
                     const Icon = LESSON_ICONS[lesson.type];
@@ -397,7 +409,8 @@ export default function CourseLearnPage() {
                   })}
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

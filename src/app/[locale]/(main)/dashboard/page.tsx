@@ -17,6 +17,7 @@ import {
   Loader2,
   Compass,
   GraduationCap,
+  Play,
 } from 'lucide-react';
 import PremiumCTA from '@/components/ui/PremiumCTA';
 
@@ -25,6 +26,16 @@ interface RecentResult {
   testTitle: string;
   percentage: number;
   completedAt: string;
+}
+
+interface ContinueCourse {
+  id: string;
+  titleUz: string;
+  coverImage: string | null;
+  subject: { nameUz: string; icon: string | null };
+  totalLessons: number;
+  completedLessons: number;
+  progressPct: number;
 }
 
 interface DashboardStats {
@@ -49,6 +60,7 @@ export default function DashboardPage() {
   const { data: session } = useSession();
   const [statsData, setStatsData] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [continueCourses, setContinueCourses] = useState<ContinueCourse[]>([]);
 
   const userName = session?.user?.name || 'Foydalanuvchi';
 
@@ -66,6 +78,11 @@ export default function DashboardPage() {
       setLoading(false);
     }
     fetchStats();
+
+    fetch('/api/dashboard/continue-courses')
+      .then((r) => r.json())
+      .then((data) => { if (data.courses) setContinueCourses(data.courses); })
+      .catch(() => {});
   }, []);
 
   const stats = [
@@ -118,6 +135,49 @@ export default function DashboardPage() {
         </h1>
         <p className="text-text-secondary mt-1">Bugungi natijalaringizni ko&apos;ring</p>
       </motion.div>
+
+      {/* Davom ettirish — faqat kamida bitta boshlangan-tugallanmagan kurs bo'lsa ko'rinadi */}
+      {continueCourses.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.05 }}
+        >
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
+              <GraduationCap size={18} className="text-primary-600" /> Davom ettirish
+            </h2>
+            <Link href="/courses" className="text-sm text-primary-600 hover:text-primary-700 flex items-center gap-1">
+              Barcha kurslar <ArrowRight size={14} />
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {continueCourses.map((course) => (
+              <Link
+                key={course.id}
+                href={`/courses/${course.id}/learn`}
+                className="card p-4 flex items-center gap-3 hover:shadow-lg transition-shadow"
+              >
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  {course.coverImage ? (
+                    <img src={course.coverImage} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <GraduationCap size={22} className="text-white/80" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-text-primary truncate">{course.titleUz}</p>
+                  <p className="text-xs text-text-secondary mb-1.5">{course.completedLessons}/{course.totalLessons} dars</p>
+                  <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-primary-500 to-primary-600" style={{ width: `${course.progressPct}%` }} />
+                  </div>
+                </div>
+                <Play size={16} className="text-primary-600 flex-shrink-0" />
+              </Link>
+            ))}
+          </div>
+        </motion.div>
+      )}
 
       {/* Stats grid */}
       <motion.div
