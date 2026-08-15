@@ -87,7 +87,8 @@ async function main() {
   const poolTestCache = new Map<string, Awaited<ReturnType<typeof resolvePoolTest>>>();
 
   for (const t of templates) {
-    const qa = qaTemplate(t, PER_TEMPLATE);
+    const targetCount = t.seedCount ?? PER_TEMPLATE;
+    const qa = qaTemplate(t, targetCount);
     if (qa.problems.some((p) => p.startsWith("Xunuk") || p.startsWith("Stem"))) {
       console.error(`❌ ${t.id} sifat tekshiruvidan o'tmadi:`, qa.problems);
       continue;
@@ -105,7 +106,7 @@ async function main() {
     }
 
     for (const lang of LANGS) {
-      const variants = generateVariants(t, { count: PER_TEMPLATE, seed: 42, lang });
+      const variants = generateVariants(t, { count: targetCount, seed: 42, lang });
 
       for (const v of variants) {
         const correct = v.choices.find((c) => c.correct)!;

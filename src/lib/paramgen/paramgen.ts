@@ -58,6 +58,8 @@ export interface Template {
   solution: LocalizedText;
   hints?: LocalizedText[];
   tags?: string[];
+  /** Bazaga nechta variant seed qilinishi kerak — berilmasa seed.ts'dagi umumiy PER_TEMPLATE ishlatiladi. Kichikroq parametr fazosiga ega yangi mavzular uchun (masalan 20) — 30+ shablon bo'lganda har biridan minglab variant shart emas. */
+  seedCount?: number;
 }
 
 export interface Choice {
