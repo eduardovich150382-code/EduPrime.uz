@@ -9,19 +9,21 @@ import type { AIImportedQuestion, QuestionCoreFields } from '@/types';
 import {
   ArrowLeft, Plus, Trash2, Bot,
   Save, FileUp, CheckCircle, Loader2, Send, Eye, Clock,
-  Library, BookmarkPlus, X,
+  Library, BookmarkPlus, X, ShieldAlert,
 } from 'lucide-react';
 import ImageUploadButton from '@/components/ui/ImageUploadButton';
 import { parseFillBlankCorrectAnswer } from '@/lib/fill-blank';
 import { parseMatchingPairs } from '@/lib/matching';
 import { isQuestionValid, fillBlankCorrectAnswer, matchingOptions, mapQuestionForBank } from '@/lib/question-form';
 import QuestionEditorForm from '@/components/teacher/QuestionEditorForm';
-import AiImportPanel from '@/components/teacher/AiImportPanel';
+import AiImportPanel, { LOW_CONFIDENCE_THRESHOLD } from '@/components/teacher/AiImportPanel';
 import QuestionPreviewList from '@/components/teacher/QuestionPreviewList';
 
 interface QuestionForm extends QuestionCoreFields {
   videoUrl: string;
   points: number;
+  /** Faqat AI import orqali kelgan savollarda bo'ladi — qo'lda qo'shilgan/bazadan tanlangan savollarda undefined (belgi ko'rsatilmaydi). */
+  aiConfidence?: number;
 }
 
 interface SubjectItem {
@@ -94,6 +96,7 @@ export default function CreateTestPage() {
   const [questions, setQuestions] = useState<QuestionForm[]>([{ ...emptyQuestion }]);
   const [currentStep, setCurrentStep] = useState<'info' | 'questions' | 'ai-import' | 'preview'>('info');
   const [activeQuestion, setActiveQuestion] = useState(0);
+  const [showOnlyLowConfidence, setShowOnlyLowConfidence] = useState(false);
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [draftTestId, setDraftTestId] = useState<string | null>(null);
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -452,10 +455,12 @@ export default function CreateTestPage() {
       difficulty: q.difficulty ?? null,
       blankAnswers: [''],
       matchingPairs: [{ left: '', right: '' }, { left: '', right: '' }],
+      aiConfidence: q.confidence,
     }));
     setQuestions(mapped);
     setActiveQuestion(0);
     setCurrentStep('questions');
+    setShowOnlyLowConfidence(false);
   };
 
   return (
@@ -726,7 +731,25 @@ export default function CreateTestPage() {
               <h3 className="text-sm font-semibold text-text-primary">Savollar</h3>
               <span className="text-xs text-text-secondary">{questions.length} ta</span>
             </div>
-            {questions.map((q, i) => (
+            {(() => {
+              const lowConfidenceCount = questions.filter((q) => q.aiConfidence !== undefined && q.aiConfidence < LOW_CONFIDENCE_THRESHOLD).length;
+              return lowConfidenceCount > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => setShowOnlyLowConfidence((v) => !v)}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-xs flex items-center gap-1.5 border transition-all ${
+                    showOnlyLowConfidence ? 'bg-amber-100 border-amber-300 text-amber-800 font-medium' : 'bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100'
+                  }`}
+                >
+                  <ShieldAlert size={12} />
+                  {showOnlyLowConfidence ? `Hammasini ko'rsatish` : `Faqat tekshirish kerakligini ko'rsatish (${lowConfidenceCount})`}
+                </button>
+              ) : null;
+            })()}
+            {questions.map((q, i) => {
+              const needsReview = q.aiConfidence !== undefined && q.aiConfidence < LOW_CONFIDENCE_THRESHOLD;
+              if (showOnlyLowConfidence && !needsReview) return null;
+              return (
               <button
                 key={i}
                 onClick={() => setActiveQuestion(i)}
@@ -736,6 +759,11 @@ export default function CreateTestPage() {
               >
                 <span className="flex items-center gap-1.5">
                   {i + 1}-savol
+                  {needsReview && (
+                    <span title="AI bu savolga unchalik ishonchli emas — tekshiring">
+                      <ShieldAlert size={12} className="text-amber-600" />
+                    </span>
+                  )}
                   {q.type === 'OPEN_ENDED' && (
                     <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">Ochiq</span>
                   )}
@@ -754,7 +782,8 @@ export default function CreateTestPage() {
                 </span>
                 {isQuestionValid(q) && <CheckCircle size={12} className="text-green-500" />}
               </button>
-            ))}
+              );
+            })}
             <button
               onClick={addQuestion}
               className="w-full px-3 py-2 rounded-lg text-sm text-primary-600 hover:bg-primary-50 flex items-center gap-2 transition-colors border border-dashed border-primary-200"
