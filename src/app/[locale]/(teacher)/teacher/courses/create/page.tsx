@@ -1,37 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import { useRouter } from 'next/navigation';
-import {
-  ArrowLeft, Plus, Trash2, Save, Loader2, Send, FileUp, Layers,
-  ChevronUp, ChevronDown, Video, FileText, ListChecks, GraduationCap, Sparkles,
-} from 'lucide-react';
+import { ArrowLeft, FileUp, Layers, Save, Loader2, Send, GraduationCap, Eye } from 'lucide-react';
 import ImageUploadButton from '@/components/ui/ImageUploadButton';
-import LessonBlocksEditor, { type LessonBlockForm } from '@/components/teacher/LessonBlocksEditor';
-
-type LessonType = 'VIDEO' | 'TEXT' | 'QUIZ' | 'PDF';
-
-interface LessonForm {
-  id?: string;
-  titleUz: string;
-  type: LessonType;
-  videoUrl: string;
-  content: string;
-  testId: string;
-  fileUrl: string;
-  minPassPercent: number | '';
-  durationMinutes: number | '';
-  isPreviewable: boolean;
-  blocks: LessonBlockForm[];
-}
-
-interface SectionForm {
-  id?: string;
-  titleUz: string;
-  lessons: LessonForm[];
-}
+import CourseCurriculumEditor, {
+  createEmptySection, type SectionForm, type TeacherTestItem,
+} from '@/components/teacher/CourseCurriculumEditor';
 
 interface SubjectItem {
   id: string;
@@ -40,22 +17,6 @@ interface SubjectItem {
   category: { nameUz: string; type: string };
 }
 
-interface TeacherTestItem {
-  id: string;
-  titleUz: string;
-}
-
-const emptyLesson: LessonForm = {
-  titleUz: '', type: 'VIDEO', videoUrl: '', content: '', testId: '', fileUrl: '', minPassPercent: '', durationMinutes: '', isPreviewable: false, blocks: [],
-};
-
-const LESSON_TYPE_META: Record<LessonType, { label: string; icon: typeof Video }> = {
-  VIDEO: { label: 'Video', icon: Video },
-  TEXT: { label: 'Matn', icon: FileText },
-  QUIZ: { label: 'Tekshiruv', icon: ListChecks },
-  PDF: { label: 'PDF', icon: FileUp },
-};
-
 export default function CreateCoursePage() {
   const router = useRouter();
   const [subjects, setSubjects] = useState<SubjectItem[]>([]);
@@ -63,8 +24,8 @@ export default function CreateCoursePage() {
   const [saving, setSaving] = useState(false);
   const [currentStep, setCurrentStep] = useState<'info' | 'curriculum'>('info');
   const [courseId, setCourseId] = useState<string | null>(null);
-  const [uploadingPdfKey, setUploadingPdfKey] = useState<string | null>(null);
-  const [generatingQuizKey, setGeneratingQuizKey] = useState<string | null>(null);
+  const [lastSaved, setLastSaved] = useState<string | null>(null);
+  const draftSaveInFlightRef = useRef(false);
 
   const [courseInfo, setCourseInfo] = useState({
     titleUz: '',
@@ -79,7 +40,7 @@ export default function CreateCoursePage() {
     sequentialUnlock: false,
   });
 
-  const [sections, setSections] = useState<SectionForm[]>([{ titleUz: '', lessons: [{ ...emptyLesson }] }]);
+  const [sections, setSections] = useState<SectionForm[]>([createEmptySection()]);
 
   useEffect(() => {
     fetch('/api/subjects').then((r) => r.json()).then((data) => {
@@ -103,129 +64,67 @@ export default function CreateCoursePage() {
     ? subjects.filter((s) => s.category.type === courseInfo.categoryType)
     : subjects;
 
-  // ---- Section/lesson helpers ----
-  const addSection = () => setSections([...sections, { titleUz: '', lessons: [{ ...emptyLesson }] }]);
-  const removeSection = (i: number) => {
-    if (sections.length <= 1) return;
-    setSections(sections.filter((_, idx) => idx !== i));
-  };
-  const moveSection = (i: number, dir: -1 | 1) => {
-    const j = i + dir;
-    if (j < 0 || j >= sections.length) return;
-    const updated = [...sections];
-    [updated[i], updated[j]] = [updated[j], updated[i]];
-    setSections(updated);
-  };
-  const updateSectionTitle = (i: number, titleUz: string) => {
-    const updated = [...sections];
-    updated[i] = { ...updated[i], titleUz };
-    setSections(updated);
-  };
-
-  const addLesson = (sIdx: number) => {
-    const updated = [...sections];
-    updated[sIdx] = { ...updated[sIdx], lessons: [...updated[sIdx].lessons, { ...emptyLesson }] };
-    setSections(updated);
-  };
-  const removeLesson = (sIdx: number, lIdx: number) => {
-    const updated = [...sections];
-    if (updated[sIdx].lessons.length <= 1) return;
-    updated[sIdx] = { ...updated[sIdx], lessons: updated[sIdx].lessons.filter((_, idx) => idx !== lIdx) };
-    setSections(updated);
-  };
-  const moveLesson = (sIdx: number, lIdx: number, dir: -1 | 1) => {
-    const j = lIdx + dir;
-    const lessons = sections[sIdx].lessons;
-    if (j < 0 || j >= lessons.length) return;
-    const updated = [...sections];
-    const newLessons = [...lessons];
-    [newLessons[lIdx], newLessons[j]] = [newLessons[j], newLessons[lIdx]];
-    updated[sIdx] = { ...updated[sIdx], lessons: newLessons };
-    setSections(updated);
-  };
-  const updateLesson = (sIdx: number, lIdx: number, patch: Partial<LessonForm>) => {
-    const updated = [...sections];
-    const lessons = [...updated[sIdx].lessons];
-    lessons[lIdx] = { ...lessons[lIdx], ...patch };
-    updated[sIdx] = { ...updated[sIdx], lessons };
-    setSections(updated);
+  const buildCurriculumPayload = (secs: SectionForm[]) => {
+    const validSections = secs.filter((s) => s.titleUz.trim());
+    return {
+      sections: validSections.map((s) => ({
+        id: s.id,
+        titleUz: s.titleUz,
+        lessons: s.lessons.filter((l) => l.titleUz.trim()).map((l) => ({
+          id: l.id,
+          titleUz: l.titleUz,
+          type: l.type,
+          videoUrl: l.type === 'VIDEO' ? l.videoUrl || null : null,
+          content: l.type === 'TEXT' ? l.content || null : null,
+          testId: l.type === 'QUIZ' ? l.testId || null : null,
+          fileUrl: l.type === 'PDF' ? l.fileUrl || null : null,
+          minPassPercent: l.type === 'QUIZ' && l.minPassPercent !== '' ? l.minPassPercent : null,
+          durationMinutes: l.durationMinutes === '' ? null : l.durationMinutes,
+          isPreviewable: l.isPreviewable,
+          blocks: l.blocks.map((b) => ({
+            id: b.id,
+            type: b.type,
+            labelUz: b.labelUz || null,
+            fileUrl: b.type === 'FILE' ? b.fileUrl || null : null,
+            videoUrl: b.type === 'VIDEO_SOLUTION' ? b.videoUrl || null : null,
+            testId: b.type === 'QUIZ' ? b.testId || null : null,
+          })),
+        })),
+      })),
+    };
   };
 
-  const insertLessonAfter = (sIdx: number, lIdx: number, lesson: LessonForm) => {
-    const updated = [...sections];
-    const lessons = [...updated[sIdx].lessons];
-    lessons.splice(lIdx + 1, 0, lesson);
-    updated[sIdx] = { ...updated[sIdx], lessons };
-    setSections(updated);
-  };
-
-  const handlePdfUpload = async (sIdx: number, lIdx: number, file: File) => {
-    const key = `${sIdx}-${lIdx}`;
-    if (file.size > 8 * 1024 * 1024) {
-      alert("Fayl hajmi 8 MB dan oshmasligi kerak");
-      return;
-    }
-    setUploadingPdfKey(key);
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const res = await fetch('/api/upload?endpoint=aiImportFile', { method: 'POST', body: formData });
-      const data = await res.json();
-      if (res.ok && data.url) {
-        updateLesson(sIdx, lIdx, { fileUrl: data.url });
-      } else {
-        alert(data.error || 'Faylni yuklashda xatolik');
+  // Fon rejimida avtosaqlash — test yaratish sahifasidagi bilan bir xil
+  // naqsh (har 30 soniyada). Faqat "Kurs ma'lumotlari" qadami saqlanib,
+  // courseId mavjud bo'lgach ishga tushadi. Xato bo'lsa jim o'tkaziladi —
+  // bu fon jarayoni, foydalanuvchini bezovta qilmasligi kerak, keyingi
+  // urinishda davom etadi.
+  useEffect(() => {
+    if (!courseId) return;
+    const saveDraft = async () => {
+      if (draftSaveInFlightRef.current) return;
+      const hasContent = sections.some((s) => s.titleUz.trim() && s.lessons.some((l) => l.titleUz.trim()));
+      if (!hasContent) return;
+      draftSaveInFlightRef.current = true;
+      try {
+        const res = await fetch(`/api/teacher/courses/${courseId}/curriculum`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(buildCurriculumPayload(sections)),
+        });
+        if (res.ok) {
+          setLastSaved(new Date().toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' }));
+        }
+      } catch {
+        // Tarmoq xatosi — keyingi avtosaqlash urinishida davom etadi.
+      } finally {
+        draftSaveInFlightRef.current = false;
       }
-    } catch {
-      alert('Faylni yuklashda xatolik');
-    }
-    setUploadingPdfKey(null);
-  };
-
-  // Dars matnidan AI orqali tekshiruv (Test) yasaydi va shu darsdan keyin
-  // avtomatik QUIZ dars sifatida qo'shadi — o'qituvchi qo'lda test
-  // yaratib, dropdown'dan qayta tanlashi shart bo'lmaydi.
-  const handleGenerateQuiz = async (sIdx: number, lIdx: number) => {
-    const lesson = sections[sIdx].lessons[lIdx];
-    if (!lesson.content || lesson.content.trim().length < 20) {
-      alert("Avval dars matnini kiriting (kamida bir necha jumla)!");
-      return;
-    }
-    if (!courseInfo.subjectId) {
-      alert("Avval 'Kurs ma'lumotlari' qadamida fanni tanlang!");
-      return;
-    }
-    const key = `${sIdx}-${lIdx}`;
-    setGeneratingQuizKey(key);
-    try {
-      const res = await fetch('/api/ai/quiz-from-text', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          text: lesson.content,
-          subjectId: courseInfo.subjectId,
-          titleUz: `AI tekshiruv: ${lesson.titleUz || 'dars'}`,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        alert(data.error || 'Xatolik yuz berdi');
-        setGeneratingQuizKey(null);
-        return;
-      }
-      setTeacherTests((prev) => [...prev, { id: data.test.id, titleUz: data.test.titleUz }]);
-      insertLessonAfter(sIdx, lIdx, {
-        ...emptyLesson,
-        titleUz: data.test.titleUz,
-        type: 'QUIZ',
-        testId: data.test.id,
-      });
-      alert(`✅ ${data.test.questionCount} ta savolli tekshiruv yaratildi va shu darsdan keyin qo'shildi!`);
-    } catch {
-      alert("AI xatolik. Qayta urinib ko'ring.");
-    }
-    setGeneratingQuizKey(null);
-  };
+    };
+    const timer = setInterval(saveDraft, 30000);
+    return () => clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sections, courseId]);
 
   // ---- Save ----
   const handleSaveInfo = async () => {
@@ -281,37 +180,10 @@ export default function CreateCoursePage() {
 
     setSaving(true);
     try {
-      const payload = {
-        sections: validSections.map((s) => ({
-          id: s.id,
-          titleUz: s.titleUz,
-          lessons: s.lessons.filter((l) => l.titleUz.trim()).map((l) => ({
-            id: l.id,
-            titleUz: l.titleUz,
-            type: l.type,
-            videoUrl: l.type === 'VIDEO' ? l.videoUrl || null : null,
-            content: l.type === 'TEXT' ? l.content || null : null,
-            testId: l.type === 'QUIZ' ? l.testId || null : null,
-            fileUrl: l.type === 'PDF' ? l.fileUrl || null : null,
-            minPassPercent: l.type === 'QUIZ' && l.minPassPercent !== '' ? l.minPassPercent : null,
-            durationMinutes: l.durationMinutes === '' ? null : l.durationMinutes,
-            isPreviewable: l.isPreviewable,
-            blocks: l.blocks.map((b) => ({
-              id: b.id,
-              type: b.type,
-              labelUz: b.labelUz || null,
-              fileUrl: b.type === 'FILE' ? b.fileUrl || null : null,
-              videoUrl: b.type === 'VIDEO_SOLUTION' ? b.videoUrl || null : null,
-              testId: b.type === 'QUIZ' ? b.testId || null : null,
-            })),
-          })),
-        })),
-      };
-
       const res = await fetch(`/api/teacher/courses/${courseId}/curriculum`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(buildCurriculumPayload(sections)),
       });
       if (!res.ok) {
         const data = await res.json();
@@ -353,23 +225,38 @@ export default function CreateCoursePage() {
       </motion.div>
 
       {/* Step tabs */}
-      <div className="flex gap-2">
-        {[
-          { id: 'info' as const, label: "Kurs ma'lumotlari", icon: FileUp },
-          { id: 'curriculum' as const, label: `Dastur (${sections.length})`, icon: Layers },
-        ].map((step) => (
-          <button
-            key={step.id}
-            onClick={() => step.id === 'info' || courseId ? setCurrentStep(step.id) : null}
-            disabled={step.id === 'curriculum' && !courseId}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
-              currentStep === step.id ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/25' : 'bg-white border border-border text-text-secondary hover:border-primary-200'
-            }`}
-          >
-            <step.icon size={16} />
-            {step.label}
-          </button>
-        ))}
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex gap-2">
+          {[
+            { id: 'info' as const, label: "Kurs ma'lumotlari", icon: FileUp },
+            { id: 'curriculum' as const, label: `Dastur (${sections.length})`, icon: Layers },
+          ].map((step) => (
+            <button
+              key={step.id}
+              onClick={() => step.id === 'info' || courseId ? setCurrentStep(step.id) : null}
+              disabled={step.id === 'curriculum' && !courseId}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
+                currentStep === step.id ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/25' : 'bg-white border border-border text-text-secondary hover:border-primary-200'
+              }`}
+            >
+              <step.icon size={16} />
+              {step.label}
+            </button>
+          ))}
+        </div>
+        {currentStep === 'curriculum' && courseId && (
+          <div className="flex items-center gap-3">
+            {lastSaved && <span className="text-xs text-text-secondary">Oxirgi saqlash: {lastSaved}</span>}
+            <a
+              href={`/courses/${courseId}/learn`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-xl border border-border bg-white text-text-secondary hover:border-primary-200 hover:text-primary-600 transition-colors"
+            >
+              <Eye size={14} /> Talaba ko&apos;zi bilan ko&apos;rish
+            </a>
+          </div>
+        )}
       </div>
 
       {/* STEP: INFO */}
@@ -520,198 +407,13 @@ export default function CreateCoursePage() {
       {/* STEP: CURRICULUM */}
       {currentStep === 'curriculum' && courseId && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-          {sections.map((section, sIdx) => (
-            <div key={sIdx} className="card p-5 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="flex flex-col">
-                  <button onClick={() => moveSection(sIdx, -1)} disabled={sIdx === 0} className="p-0.5 text-text-secondary hover:text-primary-600 disabled:opacity-20"><ChevronUp size={14} /></button>
-                  <button onClick={() => moveSection(sIdx, 1)} disabled={sIdx === sections.length - 1} className="p-0.5 text-text-secondary hover:text-primary-600 disabled:opacity-20"><ChevronDown size={14} /></button>
-                </div>
-                <span className="text-xs font-bold text-primary-600 bg-primary-50 px-2 py-1 rounded-full flex-shrink-0">{sIdx + 1}-bo&apos;lim</span>
-                <input
-                  type="text"
-                  value={section.titleUz}
-                  onChange={(e) => updateSectionTitle(sIdx, e.target.value)}
-                  placeholder="Bo'lim nomi (masalan: Kirish)"
-                  className="flex-1 px-4 py-2.5 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all text-sm font-medium"
-                />
-                <button onClick={() => removeSection(sIdx)} disabled={sections.length <= 1} className="p-2 rounded-lg text-red-500 hover:bg-red-50 disabled:opacity-30 flex-shrink-0">
-                  <Trash2 size={16} />
-                </button>
-              </div>
-
-              <div className="space-y-3 pl-8">
-                {section.lessons.map((lesson, lIdx) => {
-                  const TypeIcon = LESSON_TYPE_META[lesson.type].icon;
-                  return (
-                    <div key={lIdx} className="p-4 rounded-xl border border-border bg-gray-50/50 space-y-3">
-                      <div className="flex items-center gap-2">
-                        <div className="flex flex-col">
-                          <button onClick={() => moveLesson(sIdx, lIdx, -1)} disabled={lIdx === 0} className="p-0.5 text-text-secondary hover:text-primary-600 disabled:opacity-20"><ChevronUp size={12} /></button>
-                          <button onClick={() => moveLesson(sIdx, lIdx, 1)} disabled={lIdx === section.lessons.length - 1} className="p-0.5 text-text-secondary hover:text-primary-600 disabled:opacity-20"><ChevronDown size={12} /></button>
-                        </div>
-                        <TypeIcon size={16} className="text-primary-500 flex-shrink-0" />
-                        <input
-                          type="text"
-                          value={lesson.titleUz}
-                          onChange={(e) => updateLesson(sIdx, lIdx, { titleUz: e.target.value })}
-                          placeholder="Dars nomi"
-                          className="flex-1 px-3 py-2 rounded-lg border border-border focus:ring-2 focus:ring-primary-500/20 text-sm"
-                        />
-                        <button onClick={() => removeLesson(sIdx, lIdx)} disabled={section.lessons.length <= 1} className="p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 disabled:opacity-30 flex-shrink-0">
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-
-                      <div className="flex flex-wrap items-center gap-3 pl-6">
-                        <div className="inline-flex rounded-lg border border-border overflow-hidden">
-                          {(Object.keys(LESSON_TYPE_META) as LessonType[]).map((t) => (
-                            <button
-                              key={t}
-                              onClick={() => updateLesson(sIdx, lIdx, { type: t })}
-                              className={`px-3 py-1.5 text-xs font-medium transition-all ${
-                                lesson.type === t ? 'bg-primary-600 text-white' : 'bg-white text-text-secondary hover:bg-gray-50'
-                              }`}
-                            >
-                              {LESSON_TYPE_META[t].label}
-                            </button>
-                          ))}
-                        </div>
-
-                        <label className="flex items-center gap-1.5 text-xs text-text-secondary">
-                          Daqiqa:
-                          <input
-                            type="text"
-                            inputMode="numeric"
-                            value={lesson.durationMinutes}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              const num = parseInt(val);
-                              updateLesson(sIdx, lIdx, { durationMinutes: val === '' ? '' : (isNaN(num) ? '' : num) });
-                            }}
-                            placeholder="10"
-                            className="w-16 px-2 py-1 rounded-lg border border-border text-center text-xs"
-                          />
-                        </label>
-
-                        <label className="flex items-center gap-1.5 text-xs text-text-secondary cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={lesson.isPreviewable}
-                            onChange={(e) => updateLesson(sIdx, lIdx, { isPreviewable: e.target.checked })}
-                            className="w-3.5 h-3.5 rounded border-border text-primary-600"
-                          />
-                          Bepul namuna
-                        </label>
-                      </div>
-
-                      <div className="pl-6">
-                        {lesson.type === 'VIDEO' && (
-                          <input
-                            type="url"
-                            value={lesson.videoUrl}
-                            onChange={(e) => updateLesson(sIdx, lIdx, { videoUrl: e.target.value })}
-                            placeholder="https://youtube.com/watch?v=..."
-                            className="w-full px-3 py-2 rounded-lg border border-border focus:ring-2 focus:ring-primary-500/20 text-sm"
-                          />
-                        )}
-                        {lesson.type === 'TEXT' && (
-                          <div className="space-y-2">
-                            <textarea
-                              value={lesson.content}
-                              onChange={(e) => updateLesson(sIdx, lIdx, { content: e.target.value })}
-                              placeholder="Dars matni... (LaTeX: $formula$)"
-                              rows={3}
-                              className="w-full px-3 py-2 rounded-lg border border-border focus:ring-2 focus:ring-primary-500/20 text-sm resize-none font-mono"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => handleGenerateQuiz(sIdx, lIdx)}
-                              disabled={generatingQuizKey === `${sIdx}-${lIdx}` || !lesson.content.trim()}
-                              className="text-xs font-medium text-primary-600 hover:text-primary-700 flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
-                            >
-                              {generatingQuizKey === `${sIdx}-${lIdx}` ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
-                              AI bilan tekshiruv yasash
-                            </button>
-                          </div>
-                        )}
-                        {lesson.type === 'QUIZ' && (
-                          <div className="space-y-2">
-                            <select
-                              value={lesson.testId}
-                              onChange={(e) => updateLesson(sIdx, lIdx, { testId: e.target.value })}
-                              className="w-full px-3 py-2 rounded-lg border border-border focus:ring-2 focus:ring-primary-500/20 text-sm"
-                            >
-                              <option value="">Test tanlang...</option>
-                              {teacherTests.map((t) => <option key={t.id} value={t.id}>{t.titleUz}</option>)}
-                            </select>
-                            <label className="flex items-center gap-1.5 text-xs text-text-secondary">
-                              O&apos;tish uchun minimal foiz (ixtiyoriy):
-                              <input
-                                type="text"
-                                inputMode="numeric"
-                                value={lesson.minPassPercent}
-                                onChange={(e) => {
-                                  const val = e.target.value;
-                                  const num = parseInt(val);
-                                  updateLesson(sIdx, lIdx, { minPassPercent: val === '' ? '' : (isNaN(num) ? '' : Math.min(100, Math.max(1, num))) });
-                                }}
-                                placeholder="60"
-                                className="w-16 px-2 py-1 rounded-lg border border-border text-center text-xs"
-                              />
-                              %
-                            </label>
-                          </div>
-                        )}
-                        {lesson.type === 'PDF' && (
-                          <div className="flex items-center gap-3">
-                            <input
-                              type="file"
-                              accept="application/pdf"
-                              id={`pdf-upload-${sIdx}-${lIdx}`}
-                              className="hidden"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) handlePdfUpload(sIdx, lIdx, file);
-                                e.target.value = '';
-                              }}
-                            />
-                            <label
-                              htmlFor={`pdf-upload-${sIdx}-${lIdx}`}
-                              className="text-xs font-medium px-3 py-2 rounded-lg border border-border bg-white text-text-secondary hover:bg-gray-50 cursor-pointer flex items-center gap-1.5"
-                            >
-                              {uploadingPdfKey === `${sIdx}-${lIdx}` ? <Loader2 size={12} className="animate-spin" /> : <FileUp size={12} />}
-                              PDF yuklash
-                            </label>
-                            {lesson.fileUrl && (
-                              <a href={lesson.fileUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-green-600 hover:underline">
-                                ✓ Fayl yuklandi — ko&apos;rish
-                              </a>
-                            )}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="pl-6 pt-1">
-                        <LessonBlocksEditor
-                          blocks={lesson.blocks}
-                          onChange={(blocks) => updateLesson(sIdx, lIdx, { blocks })}
-                          teacherTests={teacherTests}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-                <button onClick={() => addLesson(sIdx)} className="text-xs text-primary-600 hover:text-primary-700 flex items-center gap-1">
-                  <Plus size={12} /> Dars qo&apos;shish
-                </button>
-              </div>
-            </div>
-          ))}
-
-          <button onClick={addSection} className="w-full px-4 py-3 rounded-xl text-sm text-primary-600 hover:bg-primary-50 flex items-center justify-center gap-2 transition-colors border border-dashed border-primary-200">
-            <Plus size={16} /> Bo&apos;lim qo&apos;shish
-          </button>
+          <CourseCurriculumEditor
+            sections={sections}
+            onSectionsChange={setSections}
+            teacherTests={teacherTests}
+            onTeacherTestsChange={setTeacherTests}
+            subjectId={courseInfo.subjectId}
+          />
 
           <div className="flex justify-end gap-2 pt-2">
             <button onClick={() => saveCurriculum(false)} disabled={saving} className="btn-secondary flex items-center gap-2 disabled:opacity-50">
