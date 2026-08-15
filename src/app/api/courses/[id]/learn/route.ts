@@ -47,9 +47,15 @@ export async function GET(
     const enrollment = await db.courseEnrollment.findUnique({
       where: { userId_courseId: { userId: user.id, courseId: id } },
     });
-    if (!enrollment) {
+
+    // Kursning egasi (o'qituvchi) yoki ADMIN yozilmagan bo'lsa ham "talaba
+    // ko'zi bilan ko'rish" uchun davom etadi — hech qanday dars qulflanmaydi
+    // va progress yozilmaydi (frontend buni isPreview orqali biladi).
+    const isOwnerOrAdmin = user.role === 'ADMIN' || course.teacher.userId === user.id;
+    if (!enrollment && !isOwnerOrAdmin) {
       return NextResponse.json({ error: "Siz bu kursga yozilmagansiz" }, { status: 403 });
     }
+    const isPreview = !enrollment;
 
     const allLessons = course.sections.flatMap((s) => s.lessons);
     const allLessonIds = allLessons.map((l) => l.id);
@@ -58,11 +64,13 @@ export async function GET(
     });
     const progressMap = new Map(progressRows.map((p) => [p.lessonId, p]));
 
-    const lockedLessonIds = computeLockedLessonIds(
-      allLessons.map((l) => ({ id: l.id, type: l.type, minPassPercent: l.minPassPercent })),
-      new Map(progressRows.map((p) => [p.lessonId, { completed: p.completed, bestScorePercent: p.bestScorePercent }])),
-      course.sequentialUnlock
-    );
+    const lockedLessonIds = isPreview
+      ? new Set<string>()
+      : computeLockedLessonIds(
+          allLessons.map((l) => ({ id: l.id, type: l.type, minPassPercent: l.minPassPercent })),
+          new Map(progressRows.map((p) => [p.lessonId, { completed: p.completed, bestScorePercent: p.bestScorePercent }])),
+          course.sequentialUnlock
+        );
 
     const sections = course.sections.map((s) => ({
       id: s.id,
@@ -111,8 +119,9 @@ export async function GET(
         sections,
         totalLessons,
         completedLessons,
-        isCompleted: !!enrollment.completedAt,
-        enrollmentId: enrollment.id,
+        isCompleted: !!enrollment?.completedAt,
+        enrollmentId: enrollment?.id ?? null,
+        isPreview,
       },
     });
   } catch (error) {

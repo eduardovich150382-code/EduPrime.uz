@@ -9,7 +9,7 @@ import LatexRenderer from '@/components/ui/LatexRenderer';
 import SecureYouTubePlayer from '@/components/ui/SecureYouTubePlayer';
 import {
   Loader2, AlertCircle, Play, FileText, ListChecks, CheckCircle2,
-  Circle, PartyPopper, ArrowRight, GraduationCap, Award, Lock,
+  Circle, PartyPopper, ArrowRight, GraduationCap, Award, Lock, Eye,
 } from 'lucide-react';
 
 interface LessonBlockItem {
@@ -53,7 +53,9 @@ interface LearnCourse {
   totalLessons: number;
   completedLessons: number;
   isCompleted: boolean;
-  enrollmentId: string;
+  enrollmentId: string | null;
+  /** O'qituvchi/admin kursga yozilmasdan "talaba ko'zi bilan" ko'rayotgan bo'lsa true — hech narsa qulflanmaydi va progress yozilmaydi. */
+  isPreview: boolean;
 }
 
 const LESSON_ICONS = { VIDEO: Play, TEXT: FileText, QUIZ: ListChecks, PDF: FileText };
@@ -131,6 +133,7 @@ export default function CourseLearnPage() {
   };
 
   const handleMarkComplete = async (lessonId: string) => {
+    if (course?.isPreview) return; // Preview rejimida progress yozilmaydi
     setMarking(true);
     updateLessonLocal(lessonId, { completed: true });
     await saveProgress(lessonId, { completed: true });
@@ -148,6 +151,7 @@ export default function CourseLearnPage() {
   };
 
   const handleVideoProgress = (lessonId: string, seconds: number) => {
+    if (course?.isPreview) return; // Preview rejimida progress yozilmaydi
     const rounded = Math.floor(seconds);
     if (Math.abs(rounded - lastSavedPositionRef.current) < 3) return; // ortiqcha so'rov yubormaslik
     lastSavedPositionRef.current = rounded;
@@ -179,6 +183,13 @@ export default function CourseLearnPage() {
   return (
     <div className="max-w-7xl mx-auto space-y-4">
       <BackButton />
+
+      {course.isPreview && (
+        <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-sm">
+          <Eye size={16} className="flex-shrink-0" />
+          Bu — talaba ko&apos;rinishi namunasi. Barcha darslar ochiq, progress yozilmaydi.
+        </div>
+      )}
 
       {/* Progress header */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="card p-4">
@@ -310,7 +321,11 @@ export default function CourseLearnPage() {
               )}
 
               <div className="flex items-center justify-between pt-4 border-t border-border">
-                {currentLesson.completed ? (
+                {course.isPreview ? (
+                  <span className="text-xs text-text-secondary flex items-center gap-1.5">
+                    <Eye size={13} /> Preview rejimida progress yozilmaydi
+                  </span>
+                ) : currentLesson.completed ? (
                   <span className="text-sm text-green-600 font-medium flex items-center gap-1.5">
                     <CheckCircle2 size={16} /> Tugatilgan
                     {currentLesson.type === 'QUIZ' && currentLesson.bestScorePercent != null && ` (${currentLesson.bestScorePercent}%)`}
