@@ -5117,5 +5117,1106 @@
     "tags": [
       "ish masalasi"
     ]
+  },
+  {
+    "id": "fiz-kinematika-aylanma-harakat-01",
+    "subject": "fizika",
+    "topic": "Kinematika",
+    "subtopic": "Aylanma harakat — chiziqli tezlik",
+    "grade": [
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab",
+      "milliy"
+    ],
+    "difficulty": 2,
+    "seedCount": 20,
+    "params": [
+      {
+        "name": "R",
+        "type": "choice",
+        "values": [
+          0.5,
+          1,
+          2,
+          4,
+          5,
+          10
+        ]
+      },
+      {
+        "name": "T",
+        "type": "choice",
+        "values": [
+          1,
+          2,
+          4,
+          5,
+          6,
+          8,
+          10
+        ]
+      }
+    ],
+    "derived": {},
+    "constraints": [],
+    "answer": {
+      "expr": "2*pi*R/T",
+      "round": 2,
+      "unit": "m/s"
+    },
+    "distractors": [
+      {
+        "expr": "pi*R/T",
+        "why": {
+          "uz": "Aylana uzunligi formulasida 2 koeffitsiyenti tushib qolgan."
+        }
+      },
+      {
+        "expr": "2*pi*R*T",
+        "why": {
+          "uz": "Davrga bo'linish o'rniga ko'paytirilgan."
+        }
+      },
+      {
+        "expr": "2*pi*T/R",
+        "why": {
+          "uz": "R va T o'rni almashtirilgan."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "Radiusi R = {R} m bo'lgan aylana bo'ylab jism T = {T} s davr bilan tekis aylanma harakat qiladi. Jismning chiziqli tezligini toping."
+    },
+    "solution": {
+      "uz": "Chiziqli tezlik v = 2πR/T = 2π·{R}/{T} ≈ {ans} m/s."
+    },
+    "hints": [
+      {
+        "uz": "Bir aylanish yo'li — aylana uzunligi 2πR, bu yo'l T vaqtda bosib o'tiladi."
+      }
+    ],
+    "tags": [
+      "aylanma harakat",
+      "chiziqli tezlik"
+    ]
+  },
+  {
+    "id": "fiz-dinamika-ish-quvvat-01",
+    "subject": "fizika",
+    "topic": "Dinamika",
+    "subtopic": "Mexanik ish va quvvat",
+    "grade": [
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab",
+      "milliy"
+    ],
+    "difficulty": 2,
+    "seedCount": 20,
+    "params": [
+      {
+        "name": "F",
+        "type": "choice",
+        "values": [
+          10,
+          20,
+          50,
+          100,
+          150,
+          200
+        ]
+      },
+      {
+        "name": "s",
+        "type": "choice",
+        "values": [
+          5,
+          10,
+          20,
+          50,
+          100
+        ]
+      },
+      {
+        "name": "t",
+        "type": "choice",
+        "values": [
+          2,
+          4,
+          5,
+          10
+        ]
+      }
+    ],
+    "derived": {
+      "A": "F*s"
+    },
+    "constraints": [],
+    "answer": {
+      "expr": "A/t",
+      "round": 2,
+      "unit": "Vt"
+    },
+    "distractors": [
+      {
+        "expr": "A",
+        "why": {
+          "uz": "Bu bajarilgan ish (Joul), quvvat emas — vaqtga bo'linishi kerak."
+        }
+      },
+      {
+        "expr": "F*t",
+        "why": {
+          "uz": "Noto'g'ri formula — masofa (s) hisobga olinmagan."
+        }
+      },
+      {
+        "expr": "F/t",
+        "why": {
+          "uz": "Kuchning o'zi vaqtga bo'lingan, ish orqali hisoblanmagan."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "Jismga {F} N kuch ta'sir etib, uni {s} m masofaga (kuch yo'nalishi bo'ylab) siljitadi. Bu ish {t} s da bajarilgan bo'lsa, quvvatni toping."
+    },
+    "solution": {
+      "uz": "Bajarilgan ish A = F·s = {F}·{s} = {A} J. Quvvat P = A/t = {A}/{t} = {ans} Vt."
+    },
+    "hints": [
+      {
+        "uz": "Avval ish A=F·s ni toping, so'ng quvvat P=A/t formulasini qo'llang."
+      }
+    ],
+    "tags": [
+      "ish",
+      "quvvat"
+    ]
+  },
+  {
+    "id": "fiz-statika-ogirlik-markazi-01",
+    "subject": "fizika",
+    "topic": "Statika",
+    "subtopic": "Og'irlik markazi",
+    "grade": [
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab",
+      "milliy"
+    ],
+    "difficulty": 3,
+    "seedCount": 20,
+    "params": [
+      {
+        "name": "m1",
+        "type": "choice",
+        "values": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      {
+        "name": "m2",
+        "type": "choice",
+        "values": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      {
+        "name": "x1",
+        "type": "int",
+        "min": 0,
+        "max": 10
+      },
+      {
+        "name": "x2",
+        "type": "int",
+        "min": 0,
+        "max": 10
+      }
+    ],
+    "derived": {},
+    "constraints": [
+      "x1 != x2"
+    ],
+    "answer": {
+      "expr": "(m1*x1+m2*x2)/(m1+m2)",
+      "round": 2,
+      "unit": "m"
+    },
+    "distractors": [
+      {
+        "expr": "(x1+x2)/2",
+        "why": {
+          "uz": "Massalar hisobga olinmagan — oddiy o'rtacha arifmetik olingan."
+        }
+      },
+      {
+        "expr": "(m1*x2+m2*x1)/(m1+m2)",
+        "why": {
+          "uz": "Massalar koordinatalar bilan almashtirib yuborilgan."
+        }
+      },
+      {
+        "expr": "m1*x1+m2*x2",
+        "why": {
+          "uz": "Umumiy massaga bo'linmagan."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "To'g'ri chiziq bo'ylab m₁ = {m1} kg massali jism x₁ = {x1} m nuqtada, m₂ = {m2} kg massali jism x₂ = {x2} m nuqtada joylashgan. Bu ikki jism sistemasining og'irlik markazi koordinatasini toping."
+    },
+    "solution": {
+      "uz": "Og'irlik markazi: xc = (m₁x₁+m₂x₂)/(m₁+m₂) = ({m1}·{x1}+{m2}·{x2})/({m1}+{m2}) = {ans} m."
+    },
+    "hints": [
+      {
+        "uz": "Og'irlik markazi — massalar bilan tortilgan o'rtacha koordinata."
+      }
+    ],
+    "tags": [
+      "ogirlik markazi",
+      "statika"
+    ]
+  },
+  {
+    "id": "fiz-impuls-elastik-toqnashuv-01",
+    "subject": "fizika",
+    "topic": "Impuls",
+    "subtopic": "Elastik to'qnashuv",
+    "grade": [
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "milliy"
+    ],
+    "difficulty": 4,
+    "seedCount": 20,
+    "params": [
+      {
+        "name": "m1",
+        "type": "choice",
+        "values": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          8,
+          10
+        ]
+      },
+      {
+        "name": "m2",
+        "type": "choice",
+        "values": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          8,
+          10
+        ]
+      },
+      {
+        "name": "v1",
+        "type": "choice",
+        "values": [
+          2,
+          4,
+          6,
+          8,
+          10,
+          12
+        ]
+      }
+    ],
+    "derived": {},
+    "constraints": [],
+    "answer": {
+      "expr": "2*m1*v1/(m1+m2)",
+      "round": 2,
+      "unit": "m/s"
+    },
+    "distractors": [
+      {
+        "expr": "(m1-m2)*v1/(m1+m2)",
+        "why": {
+          "uz": "Bu — urilgan jismning o'zi (m₁) uchun tezlik formulasi, tinch turgan jism (m₂) uchun emas."
+        }
+      },
+      {
+        "expr": "m1*v1/(m1+m2)",
+        "why": {
+          "uz": "Bu to'liq NOelastik to'qnashuv formulasi — elastik to'qnashuvda ikkala jism ham alohida tezlik oladi, formula boshqacha."
+        }
+      },
+      {
+        "expr": "v1",
+        "why": {
+          "uz": "Tezlik o'zgarmagan deb noto'g'ri hisoblangan."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "m₁ = {m1} kg massali jism v₁ = {v1} m/s tezlik bilan tinch turgan m₂ = {m2} kg massali jismga markaziy elastik to'qnashadi. To'qnashuvdan keyin ikkinchi jism (m₂) qanday tezlik olishini toping."
+    },
+    "solution": {
+      "uz": "Markaziy elastik to'qnashuvda: v₂' = 2m₁v₁/(m₁+m₂) = 2·{m1}·{v1}/({m1}+{m2}) = {ans} m/s."
+    },
+    "hints": [
+      {
+        "uz": "Elastik to'qnashuvda ham impuls, ham kinetik energiya saqlanadi — bu ikkala jism uchun alohida formula beradi."
+      },
+      {
+        "uz": "Tinch turgan jism uchun: v₂' = 2m₁v₁/(m₁+m₂)."
+      }
+    ],
+    "tags": [
+      "impuls",
+      "elastik toqnashuv"
+    ]
+  },
+  {
+    "id": "fiz-tebranish-prujinali-mayatnik-01",
+    "subject": "fizika",
+    "topic": "Mexanik tebranishlar va to'lqinlar",
+    "subtopic": "Prujinali mayatnik davri",
+    "grade": [
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab",
+      "milliy"
+    ],
+    "difficulty": 2,
+    "seedCount": 20,
+    "params": [
+      {
+        "name": "m",
+        "type": "choice",
+        "values": [
+          0.1,
+          0.2,
+          0.4,
+          0.5,
+          1,
+          2
+        ]
+      },
+      {
+        "name": "k",
+        "type": "choice",
+        "values": [
+          10,
+          20,
+          40,
+          50,
+          80,
+          100,
+          200
+        ]
+      }
+    ],
+    "derived": {},
+    "constraints": [],
+    "answer": {
+      "expr": "2*pi*sqrt(m/k)",
+      "round": 2,
+      "unit": "s"
+    },
+    "distractors": [
+      {
+        "expr": "2*pi*sqrt(k/m)",
+        "why": {
+          "uz": "Kasr teskari olingan."
+        }
+      },
+      {
+        "expr": "pi*sqrt(m/k)",
+        "why": {
+          "uz": "2 koeffitsiyenti tushib qolgan."
+        }
+      },
+      {
+        "expr": "2*pi*(m/k)",
+        "why": {
+          "uz": "Kvadrat ildiz olinmagan."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "Qattiqlik koeffitsiyenti k = {k} N/m bo'lgan prujinaga m = {m} kg massali yuk osilgan. Tebranish davrini toping."
+    },
+    "solution": {
+      "uz": "Prujinali mayatnik davri T = 2π√(m/k) = 2π√({m}/{k}) ≈ {ans} s."
+    },
+    "hints": [
+      {
+        "uz": "Prujinali mayatnik davri: T = 2π√(m/k)."
+      }
+    ],
+    "tags": [
+      "tebranish",
+      "prujinali mayatnik"
+    ]
+  },
+  {
+    "id": "fiz-termodinamika-fik-01",
+    "subject": "fizika",
+    "topic": "Molekulyar fizika va termodinamika",
+    "subtopic": "Issiqlik dvigateli FIK",
+    "grade": [
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab",
+      "milliy"
+    ],
+    "difficulty": 3,
+    "seedCount": 20,
+    "params": [
+      {
+        "name": "Q1",
+        "type": "choice",
+        "values": [
+          1000,
+          2000,
+          3000,
+          4000,
+          5000,
+          8000,
+          10000
+        ]
+      },
+      {
+        "name": "Q2",
+        "type": "choice",
+        "values": [
+          600,
+          800,
+          1200,
+          1500,
+          2000,
+          3000
+        ]
+      }
+    ],
+    "derived": {},
+    "constraints": [
+      "Q2 < Q1"
+    ],
+    "answer": {
+      "expr": "(Q1-Q2)/Q1*100",
+      "round": 2,
+      "unit": "%"
+    },
+    "distractors": [
+      {
+        "expr": "Q2/Q1*100",
+        "why": {
+          "uz": "Sovutgichga berilgan issiqlik ulushi hisoblangan, FIK emas."
+        }
+      },
+      {
+        "expr": "(Q1-Q2)/Q2*100",
+        "why": {
+          "uz": "Maxrajda Q1 o'rniga Q2 olingan."
+        }
+      },
+      {
+        "expr": "Q1/Q2*100",
+        "why": {
+          "uz": "Noto'g'ri nisbat."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "Issiqlik dvigateli qizdirgichdan Q₁ = {Q1} J issiqlik oladi va sovutgichga Q₂ = {Q2} J issiqlik beradi. Dvigatelning foydali ish koeffitsiyentini (FIK) toping."
+    },
+    "solution": {
+      "uz": "FIK: η = (Q₁-Q₂)/Q₁ · 100% = ({Q1}-{Q2})/{Q1} · 100% ≈ {ans}%."
+    },
+    "hints": [
+      {
+        "uz": "FIK = bajarilgan foydali ish / sarflangan issiqlik = (Q₁-Q₂)/Q₁."
+      }
+    ],
+    "tags": [
+      "termodinamika",
+      "fik"
+    ]
+  },
+  {
+    "id": "fiz-suyuqlik-arximed-kuchi-01",
+    "subject": "fizika",
+    "topic": "Suyuqliklar, qattiq jismlar va ularning xossalari",
+    "subtopic": "Arximed kuchi",
+    "grade": [
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab",
+      "milliy"
+    ],
+    "difficulty": 2,
+    "seedCount": 20,
+    "params": [
+      {
+        "name": "rho",
+        "type": "choice",
+        "values": [
+          1000,
+          800,
+          900,
+          1300,
+          700,
+          1200
+        ]
+      },
+      {
+        "name": "V",
+        "type": "choice",
+        "values": [
+          0.001,
+          0.002,
+          0.005,
+          0.01,
+          0.02,
+          0.05,
+          0.1
+        ]
+      },
+      {
+        "name": "g",
+        "type": "const",
+        "value": 10
+      }
+    ],
+    "derived": {},
+    "constraints": [],
+    "answer": {
+      "expr": "rho*g*V",
+      "round": 2,
+      "unit": "N"
+    },
+    "distractors": [
+      {
+        "expr": "rho*V",
+        "why": {
+          "uz": "Erkin tushish tezlanishi (g) hisobga olinmagan."
+        }
+      },
+      {
+        "expr": "rho*g",
+        "why": {
+          "uz": "Botirilgan qism hajmi (V) hisobga olinmagan."
+        }
+      },
+      {
+        "expr": "g*V",
+        "why": {
+          "uz": "Suyuqlik zichligi (ρ) hisobga olinmagan."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "Zichligi ρ = {rho} kg/m³ bo'lgan suyuqlikka jism botirilgan, uning suyuqlikka botgan qismi hajmi V = {V} m³. Jismga ta'sir etuvchi Arximed kuchini toping (g = 10 m/s²)."
+    },
+    "solution": {
+      "uz": "Arximed kuchi: F = ρgV = {rho}·10·{V} = {ans} N."
+    },
+    "hints": [
+      {
+        "uz": "Arximed kuchi: F = ρ(suyuqlik)·g·V(botgan qism)."
+      }
+    ],
+    "tags": [
+      "arximed kuchi",
+      "gidrostatika"
+    ]
+  },
+  {
+    "id": "fiz-elektrostatika-kondensator-energiyasi-01",
+    "subject": "fizika",
+    "topic": "Elektrostatika",
+    "subtopic": "Kondensator energiyasi",
+    "grade": [
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "milliy"
+    ],
+    "difficulty": 3,
+    "seedCount": 20,
+    "params": [
+      {
+        "name": "C",
+        "type": "choice",
+        "values": [
+          1,
+          2,
+          4,
+          5,
+          8,
+          10,
+          20
+        ]
+      },
+      {
+        "name": "U",
+        "type": "choice",
+        "values": [
+          10,
+          20,
+          50,
+          100,
+          150,
+          200
+        ]
+      }
+    ],
+    "derived": {},
+    "constraints": [],
+    "answer": {
+      "expr": "C*U*U/2",
+      "round": 2,
+      "unit": "mkJ"
+    },
+    "distractors": [
+      {
+        "expr": "C*U",
+        "why": {
+          "uz": "Kuchlanish kvadratga oshirilmagan va 2ga bo'linmagan."
+        }
+      },
+      {
+        "expr": "C*U*U",
+        "why": {
+          "uz": "2ga bo'linishi kerak edi, unutilgan."
+        }
+      },
+      {
+        "expr": "C*U/2",
+        "why": {
+          "uz": "Kuchlanish kvadratga oshirilmagan."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "Sig'imi C = {C} mkF bo'lgan kondensator U = {U} V kuchlanishgacha zaryadlangan. Kondensatorda to'plangan energiyani toping."
+    },
+    "solution": {
+      "uz": "Kondensator energiyasi: W = CU²/2 = {C}·{U}²/2 = {ans} mkJ."
+    },
+    "hints": [
+      {
+        "uz": "Kondensator energiyasi: W = CU²/2."
+      }
+    ],
+    "tags": [
+      "kondensator",
+      "elektrostatika"
+    ]
+  },
+  {
+    "id": "fiz-elektr-toki-aralash-ulanish-01",
+    "subject": "fizika",
+    "topic": "O'zgarmas elektr toki",
+    "subtopic": "Aralash (parallel+ketma-ket) ulanish",
+    "grade": [
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab",
+      "milliy"
+    ],
+    "difficulty": 3,
+    "seedCount": 20,
+    "params": [
+      {
+        "name": "R1",
+        "type": "choice",
+        "values": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          10
+        ]
+      },
+      {
+        "name": "R2",
+        "type": "choice",
+        "values": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          10
+        ]
+      },
+      {
+        "name": "R3",
+        "type": "choice",
+        "values": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    ],
+    "derived": {
+      "Rp": "R1*R2/(R1+R2)"
+    },
+    "constraints": [],
+    "answer": {
+      "expr": "Rp+R3",
+      "round": 2,
+      "unit": "Om"
+    },
+    "distractors": [
+      {
+        "expr": "R1+R2+R3",
+        "why": {
+          "uz": "R1 va R2 ham ketma-ket ulangan deb noto'g'ri hisoblangan."
+        }
+      },
+      {
+        "expr": "(R1+R2)*R3/(R1+R2+R3)",
+        "why": {
+          "uz": "Barcha uchta rezistor parallel deb noto'g'ri hisoblangan."
+        }
+      },
+      {
+        "expr": "R1*R2/(R1+R2)",
+        "why": {
+          "uz": "R3 (ketma-ket ulangan qism) umuman qo'shilmagan."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "R₁ = {R1} Om va R₂ = {R2} Om rezistorlar parallel ulangan, bu ulanishga esa R₃ = {R3} Om rezistor ketma-ket ulangan. Zanjirning umumiy qarshiligini toping."
+    },
+    "solution": {
+      "uz": "Parallel qism qarshiligi: Rp = R₁R₂/(R₁+R₂) = {R1}·{R2}/({R1}+{R2}) = {Rp} Om. Umumiy qarshilik: R = Rp+R₃ = {Rp}+{R3} = {ans} Om."
+    },
+    "hints": [
+      {
+        "uz": "Avval parallel ulangan R₁, R₂ ning umumiy qarshiligini toping, so'ng R₃ ni ketma-ket qo'shing."
+      }
+    ],
+    "tags": [
+      "elektr toki",
+      "aralash ulanish"
+    ]
+  },
+  {
+    "id": "fiz-induksiya-lorens-kuchi-01",
+    "subject": "fizika",
+    "topic": "Elektromagnit induksiya va magnit maydoni",
+    "subtopic": "Lorens kuchi",
+    "grade": [
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "milliy"
+    ],
+    "difficulty": 3,
+    "seedCount": 20,
+    "params": [
+      {
+        "name": "q",
+        "type": "choice",
+        "values": [
+          1,
+          2,
+          4,
+          5,
+          10
+        ]
+      },
+      {
+        "name": "v",
+        "type": "choice",
+        "values": [
+          1000,
+          2000,
+          5000,
+          10000
+        ]
+      },
+      {
+        "name": "B",
+        "type": "choice",
+        "values": [
+          0.1,
+          0.2,
+          0.5,
+          1,
+          2
+        ]
+      }
+    ],
+    "derived": {},
+    "constraints": [],
+    "answer": {
+      "expr": "q*v*B",
+      "round": 2,
+      "unit": "mkN"
+    },
+    "distractors": [
+      {
+        "expr": "q*v",
+        "why": {
+          "uz": "Magnit induksiya (B) hisobga olinmagan."
+        }
+      },
+      {
+        "expr": "q*B",
+        "why": {
+          "uz": "Zaryad tezligi (v) hisobga olinmagan."
+        }
+      },
+      {
+        "expr": "v*B",
+        "why": {
+          "uz": "Zaryad miqdori (q) hisobga olinmagan."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "q = {q} mkKl zaryadli zarracha B = {B} Tl bo'lgan bir jinsli magnit maydonda maydon chiziqlariga perpendikulyar v = {v} m/s tezlik bilan harakatlanmoqda. Zarrachaga ta'sir etuvchi Lorens kuchini toping."
+    },
+    "solution": {
+      "uz": "Lorens kuchi (tezlik B ga perpendikulyar bo'lgani uchun sin90°=1): F = qvB = {q}·{v}·{B} = {ans} mkN."
+    },
+    "hints": [
+      {
+        "uz": "F = qvB·sinα, bu yerda α=90° (tezlik maydonga perpendikulyar), sin90°=1."
+      }
+    ],
+    "tags": [
+      "lorens kuchi",
+      "magnit maydon"
+    ]
+  },
+  {
+    "id": "fiz-optika-sinish-qonuni-01",
+    "subject": "fizika",
+    "topic": "Geometrik va to'lqin optikasi",
+    "subtopic": "Yorug'lik sinish qonuni (Snell qonuni)",
+    "grade": [
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "milliy"
+    ],
+    "difficulty": 3,
+    "seedCount": 20,
+    "params": [
+      {
+        "name": "n1",
+        "type": "choice",
+        "values": [
+          1,
+          1.33,
+          1.5
+        ]
+      },
+      {
+        "name": "n2",
+        "type": "choice",
+        "values": [
+          1,
+          1.33,
+          1.5,
+          2
+        ]
+      },
+      {
+        "name": "sinA1",
+        "type": "choice",
+        "values": [
+          0.3,
+          0.4,
+          0.5,
+          0.6,
+          0.8
+        ]
+      }
+    ],
+    "derived": {},
+    "constraints": [
+      "n1 != n2",
+      "n1*sinA1/n2 <= 1"
+    ],
+    "answer": {
+      "expr": "n1*sinA1/n2",
+      "round": 2
+    },
+    "distractors": [
+      {
+        "expr": "n2*sinA1/n1",
+        "why": {
+          "uz": "Sindirish ko'rsatkichlari nisbati teskari olingan."
+        }
+      },
+      {
+        "expr": "sinA1*(n1+n2)",
+        "why": {
+          "uz": "Snell qonuni noto'g'ri qo'llanilgan."
+        }
+      },
+      {
+        "expr": "sinA1",
+        "why": {
+          "uz": "Sindirish ko'rsatkichlari o'zgarishi hisobga olinmagan."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "Yorug'lik nur sindirish ko'rsatkichi n₁ = {n1} bo'lgan muhitdan sindirish ko'rsatkichi n₂ = {n2} bo'lgan muhitga o'tmoqda. Tushish burchagining sinusi sin α₁ = {sinA1}. Sinish burchagining sinusini toping."
+    },
+    "solution": {
+      "uz": "Snell qonuni: n₁sin α₁ = n₂sin α₂. Bundan sin α₂ = n₁sin α₁/n₂ = {n1}·{sinA1}/{n2} = {ans}."
+    },
+    "hints": [
+      {
+        "uz": "Sinish qonuni: n₁sinα₁ = n₂sinα₂."
+      }
+    ],
+    "tags": [
+      "optika",
+      "sinish qonuni"
+    ]
+  },
+  {
+    "id": "fiz-atom-fotoeffekt-01",
+    "subject": "fizika",
+    "topic": "Atom va yadro fizikasi",
+    "subtopic": "Fotoeffekt (Eynshteyn tenglamasi)",
+    "grade": [
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "milliy"
+    ],
+    "difficulty": 3,
+    "seedCount": 20,
+    "params": [
+      {
+        "name": "Efoton",
+        "type": "choice",
+        "values": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          8,
+          10
+        ]
+      },
+      {
+        "name": "Aout",
+        "type": "choice",
+        "values": [
+          1,
+          1.5,
+          2,
+          2.5,
+          3,
+          4
+        ]
+      }
+    ],
+    "derived": {},
+    "constraints": [
+      "Aout < Efoton"
+    ],
+    "answer": {
+      "expr": "Efoton-Aout",
+      "round": 2,
+      "unit": "eV"
+    },
+    "distractors": [
+      {
+        "expr": "Efoton+Aout",
+        "why": {
+          "uz": "Eynshteyn tenglamasida belgi xato qo'llanilgan."
+        }
+      },
+      {
+        "expr": "Aout",
+        "why": {
+          "uz": "Chiqish ishining o'zi javob deb olingan."
+        }
+      },
+      {
+        "expr": "Efoton",
+        "why": {
+          "uz": "Chiqish ishi ayirilmagan — foton energiyasining o'zi javob deb olingan."
+        }
+      }
+    ],
+    "stem": {
+      "uz": "Metall yuzasidan elektron chiqish ishi A = {Aout} eV. Metallga E = {Efoton} eV energiyali foton tushmoqda. Fotoeffekt natijasida chiqqan elektronning maksimal kinetik energiyasini toping."
+    },
+    "solution": {
+      "uz": "Eynshteyn tenglamasi: E = A + Ek(max). Bundan Ek(max) = E - A = {Efoton}-{Aout} = {ans} eV."
+    },
+    "hints": [
+      {
+        "uz": "Eynshteyn fotoeffekt tenglamasi: foton energiyasi = chiqish ishi + elektronning kinetik energiyasi."
+      }
+    ],
+    "tags": [
+      "fotoeffekt",
+      "atom fizikasi"
+    ]
   }
 ]
