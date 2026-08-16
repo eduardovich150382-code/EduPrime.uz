@@ -116,52 +116,23 @@ function roundRobinFlatten<T>(items: T[], keyFn: (item: T) => string): T[] {
 }
 
 /**
- * Berilgan havzadan `want` ta savol tanlaydi — IKKI QAVATLI diversifikatsiya:
- * 1) Tashqi qavat — mavzu (`topic`) bo'yicha aylanma tartib, mavzular
- *    orasidagi balansni saqlaydi (avvalgi xatti-harakat).
- * 2) Ichki qavat — har bir mavzu guruhi o'zi ham shablon/savol
- *    (`templateId ?? id`) bo'yicha aylanma tartibga keltiriladi. Kerak:
- *    bitta paramgen shabloni bitta mavzuda 150-200 ta variant beradi —
- *    shablonsiz, faqat mavzu bo'yicha guruhlashda, "want" mavjud mavzular
- *    sonidan ko'p bo'lganda keyingi "round"lar xuddi shu (yagona) shablondan
- *    yana bir variant tortib olardi, natijada bitta imtihonda bir xil
- *    tuzilishdagi savollar ketma-ket chiqib qolardi. Endi har mavzu ichida
- *    turli shablon/qo'lda yozilgan savollar birinchi navbatda tanlanadi,
- *    bitta shablonning ikkinchi-uchinchi varianti faqat o'sha mavzudagi
- *    BOSHQA barcha shablonlar/savollar hammasi bir marta ishlatilgach keladi.
+ * Berilgan havzadan `want` ta savol tanlaydi — shablon/savol (`templateId
+ * ?? id`) bo'yicha aylanma tartibda. Bir vaqtlar mavzu (`topic`) bo'yicha
+ * TASHQI, shablon bo'yicha ICHKI ikki qavatli edi — lekin bu teskari
+ * natija berdi: ba'zi mavzularda (masalan "Algebra") 8-9 ta shablon bor,
+ * ba'zilarida ("Sonlar nazariyasi") faqat 1 ta — tashqi qavat har
+ * mavzudan "bittadan" olganligi uchun, yagona shablonli mavzular allaqachon
+ * 2-3-round'da takrorlanishga majbur bo'lardi, garchi ko'p shablonli
+ * mavzularda hali ishlatilmagan shablonlar bo'lsa ham. To'g'ridan-to'g'ri
+ * shablon bo'yicha bitta qavatli aylanma tartib buni tuzatadi: "round 0"da
+ * MAVJUD BARCHA distinct shablon/savoldan bittadan olinadi (necha xil
+ * mavzuga tegishli bo'lishidan qat'iy nazar) — shu bilan birga mavzu
+ * balansi ham tabiiy saqlanadi, chunki ko'p shablonli mavzular shunchaki
+ * ko'proq "round 0" o'rniga ega bo'ladi.
  */
 function pickByTopicRoundRobin(pool: QuestionCandidate[], want: number): QuestionCandidate[] {
   if (want <= 0 || pool.length === 0) return [];
-
-  const byTopic = new Map<string, QuestionCandidate[]>();
-  for (const q of pool) {
-    const key = q.topic || '__umumiy__';
-    const list = byTopic.get(key) || [];
-    list.push(q);
-    byTopic.set(key, list);
-  }
-  for (const [key, list] of byTopic) {
-    byTopic.set(key, roundRobinFlatten(list, (q) => q.templateId || q.id));
-  }
-
-  const topicKeys = Array.from(byTopic.keys()).sort(() => Math.random() - 0.5);
-  const picked: QuestionCandidate[] = [];
-  let round = 0;
-  while (picked.length < want) {
-    let addedThisRound = false;
-    for (const key of topicKeys) {
-      if (picked.length >= want) break;
-      const list = byTopic.get(key)!;
-      if (round < list.length) {
-        picked.push(list[round]);
-        addedThisRound = true;
-      }
-    }
-    if (!addedThisRound) break;
-    round++;
-  }
-
-  return picked;
+  return roundRobinFlatten(pool, (q) => q.templateId || q.id).slice(0, want);
 }
 
 /**
@@ -262,10 +233,26 @@ async function pickSectionQuestions(
   const primaryPool = bias === 'easy' ? buckets.easy : [...buckets.medium, ...buckets.hard];
   const fallbackPool = bias === 'easy' ? [...buckets.medium, ...buckets.hard] : buckets.easy;
 
-  const picked = pickByTopicRoundRobin(primaryPool, count);
+  // Muhim: qiyinlik bo'yicha tanlangan havzaning XOM hajmi yetarli bo'lishi
+  // (masalan 11 ta shablon x 20 variant = 220 ta) hali diversifikatsiya
+  // uchun yetarli DEGANI EMAS — agar shu havzada faqat 11 ta DISTINCT
+  // shablon bo'lsa-yu, `count`=30 talab qilinsa, pickByTopicRoundRobin
+  // baribir har shablondan bir necha marta olishga majbur bo'ladi (garchi
+  // ichki round-robin shablon darajasida ishlasa ham — chunki tashqarida
+  // faqat 11 ta "guruh" bor). Shu sababli: agar asosiy havzadagi DISTINCT
+  // shablon/savol soni `count`dan kam bo'lsa, zaxira havzani ham oldindan
+  // (round-robin ishga tushishidan OLDIN) qo'shib yuboramiz — qiyinlik
+  // og'irligi baribir saqlanadi (asosiy havzaning barcha variantlari hamon
+  // mavjud, zaxiradan esa faqat yo'q shablonlar kirib, xilma-xillikni
+  // to'ldiradi).
+  const groupKey = (q: QuestionCandidate) => q.templateId || q.id;
+  const primaryGroupCount = new Set(primaryPool.map(groupKey)).size;
+  const roundRobinPool = primaryGroupCount < count ? [...primaryPool, ...fallbackPool] : primaryPool;
+
+  const picked = pickByTopicRoundRobin(roundRobinPool, count);
   if (picked.length < count) {
     const pickedIds = new Set(picked.map((q) => q.id));
-    const leftover = fallbackPool.filter((q) => !pickedIds.has(q.id));
+    const leftover = [...primaryPool, ...fallbackPool].filter((q) => !pickedIds.has(q.id));
     picked.push(...pickByTopicRoundRobin(leftover, count - picked.length));
   }
 
