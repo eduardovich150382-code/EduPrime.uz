@@ -92,6 +92,7 @@ export default function CreateCoursePage() {
             fileUrl: b.type === 'FILE' ? b.fileUrl || null : null,
             videoUrl: b.type === 'VIDEO_SOLUTION' ? b.videoUrl || null : null,
             testId: b.type === 'QUIZ' ? b.testId || null : null,
+            revealAfterQuiz: b.type === 'VIDEO_SOLUTION' ? !!b.revealAfterQuiz : false,
           })),
         })),
       })),

@@ -4,10 +4,14 @@ import { requireAuth } from '@/lib/api-auth';
 import { hasActiveSubscription } from '@/lib/access';
 import { computeTopicStats, classifyTopics, generatePracticeTest, buildGrowthSchedule } from '@/lib/mastery';
 import { generateGrowthPlanTips } from '@/lib/gemini';
+import { daysSince } from '@/lib/date';
+
+const FREE_TIER_COOLDOWN_DAYS = 30;
 
 // GET /api/student/mastery-map — Bilim xaritasi: tashxis, tavsiya testlar,
 // shaxsiy o'sish rejasi. Premium/Ustoz tarifida cheksiz, bepul tarifda
-// faqat 1 marta (User.masteryMapFreeViewedAt orqali belgilanadi).
+// oyiga faqat 1 marta (User.masteryMapFreeViewedAt orqali belgilanadi —
+// oxirgi ko'rishdan FREE_TIER_COOLDOWN_DAYS kun o'tgach yana ochiladi).
 export async function GET() {
   try {
     const { user, error } = await requireAuth();
@@ -29,11 +33,11 @@ export async function GET() {
           where: { id: user.id },
           select: { masteryMapFreeViewedAt: true },
         });
-        if (dbUser?.masteryMapFreeViewedAt) {
+        if (dbUser?.masteryMapFreeViewedAt && daysSince(dbUser.masteryMapFreeViewedAt) < FREE_TIER_COOLDOWN_DAYS) {
           return NextResponse.json(
             {
               error: 'LIMIT_REACHED',
-              message: "Bepul tarifda Bilim xaritasidan faqat 1 marta foydalanish mumkin. Davom etish uchun Premium yoki Ustoz tarifiga o'ting.",
+              message: "Bepul tarifda Bilim xaritasidan oyiga faqat 1 marta foydalanish mumkin. Davom etish uchun Premium yoki Ustoz tarifiga o'ting.",
             },
             { status: 403 }
           );

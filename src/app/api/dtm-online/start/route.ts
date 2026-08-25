@@ -3,9 +3,13 @@ import { db } from '@/lib/db';
 import { requireAuth } from '@/lib/api-auth';
 import { hasActiveSubscription } from '@/lib/access';
 import { generateDtmOnlineExam, getDtmSpecialtySubjects } from '@/lib/dtm-online';
+import { daysSince } from '@/lib/date';
+
+const FREE_TIER_COOLDOWN_DAYS = 30;
 
 // POST /api/dtm-online/start — 2 ta mutaxassislik fani bo'yicha DTM Online
-// imtihonini generatsiya qiladi. Premium/Ustoz cheksiz, bepul tarif 1 marta.
+// imtihonini generatsiya qiladi. Premium/Ustoz cheksiz, bepul tarif oyiga
+// 1 marta (oxirgi foydalanishdan FREE_TIER_COOLDOWN_DAYS kun o'tgach yana ochiladi).
 export async function POST(request: NextRequest) {
   try {
     const { user, error } = await requireAuth();
@@ -36,11 +40,11 @@ export async function POST(request: NextRequest) {
       if (!premium && !teacher) {
         isFreeTier = true;
         const dbUser = await db.user.findUnique({ where: { id: user.id }, select: { dtmOnlineFreeUsedAt: true } });
-        if (dbUser?.dtmOnlineFreeUsedAt) {
+        if (dbUser?.dtmOnlineFreeUsedAt && daysSince(dbUser.dtmOnlineFreeUsedAt) < FREE_TIER_COOLDOWN_DAYS) {
           return NextResponse.json(
             {
               error: 'LIMIT_REACHED',
-              message: "Bepul tarifda DTM Online'dan faqat 1 marta foydalanish mumkin. Davom etish uchun Premium yoki Ustoz tarifiga o'ting.",
+              message: "Bepul tarifda DTM Online'dan oyiga faqat 1 marta foydalanish mumkin. Davom etish uchun Premium yoki Ustoz tarifiga o'ting.",
             },
             { status: 403 }
           );

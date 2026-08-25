@@ -3,14 +3,17 @@ import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { streamExplainQuestion } from '@/lib/gemini';
 import { hasActiveSubscription } from '@/lib/access';
+import { tashkentDateKey } from '@/lib/date';
 
 const FREE_DAILY_AI_EXPLAIN_LIMIT = 3;
 
 // Non-cached (newly generated) explanations are rate-limited per user/day.
 // Stored in SystemSetting (same pattern used elsewhere in this codebase for
-// short-lived per-user counters) rather than a new table.
+// short-lived per-user counters) rather than a new table. Kun chegarasi
+// Asia/Tashkent bo'yicha hisoblanadi (lib/date.ts) — UTC bo'yicha
+// hisoblansa, soat 05:00 gacha kvota kechagi kunga yozilar edi.
 async function checkAndConsumeDailyQuota(userId: string): Promise<boolean> {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = tashkentDateKey();
   const key = `ai_explain_quota_${userId}_${today}`;
   const existing = await db.systemSetting.findUnique({ where: { key } });
   const count = existing ? parseInt(existing.value, 10) || 0 : 0;

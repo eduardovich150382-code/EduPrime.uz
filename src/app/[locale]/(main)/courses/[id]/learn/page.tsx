@@ -297,7 +297,17 @@ export default function CourseLearnPage() {
                         </Link>
                       );
                     }
-                    if (block.type === 'VIDEO_SOLUTION' && block.videoUrl) {
+                    if (block.type === 'VIDEO_SOLUTION') {
+                      if (!block.videoUrl) {
+                        // Server videoUrl'ni null qaytargan — bu dars qulflanmagan
+                        // (aks holda blocks butunlay bo'sh bo'lardi), demak
+                        // revealAfterQuiz yoqilgan va tekshiruv hali topshirilmagan.
+                        return (
+                          <div key={block.id} className="flex items-center gap-2 text-sm text-gray-400">
+                            <Lock size={14} className="flex-shrink-0" /> {block.labelUz || 'Yechim videosi'} — tekshiruvni topshirgach ochiladi
+                          </div>
+                        );
+                      }
                       const revealed = revealedSolutions.has(block.id);
                       return (
                         <div key={block.id}>

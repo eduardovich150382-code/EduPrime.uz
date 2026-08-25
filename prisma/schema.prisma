@@ -31,8 +31,8 @@ model User {
   lastActiveAt      DateTime?
   isBanned          Boolean  @default(false)
   bannedReason      String?
-  masteryMapFreeViewedAt DateTime? // Bepul tarif uchun Bilim xaritasi 1 martalik ko'rish belgisi
-  dtmOnlineFreeUsedAt    DateTime? // Bepul tarif uchun DTM Online 1 martalik urinish belgisi
+  masteryMapFreeViewedAt DateTime? // Bepul tarif uchun Bilim xaritasidan oxirgi foydalanish vaqti — oyiga 1 marta (lib/date.ts#daysSince orqali tekshiriladi)
+  dtmOnlineFreeUsedAt    DateTime? // Bepul tarif uchun DTM Online'dan oxirgi foydalanish vaqti — oyiga 1 marta (lib/date.ts#daysSince orqali tekshiriladi)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -370,15 +370,16 @@ enum LessonBlockType {
 }
 
 model LessonBlock {
-  id        String          @id @default(cuid())
-  lessonId  String
-  type      LessonBlockType
-  order     Int             @default(0)
-  labelUz   String?         // Ko'rinadigan nom (masalan "Mashq varag'i"); bo'sh bo'lsa turga qarab standart nom ishlatiladi
-  fileUrl   String?         // FILE
-  videoUrl  String?         // VIDEO_SOLUTION
-  testId    String?         // QUIZ — mavjud Test'ga ishora (CourseLesson.testId bilan bir xil naqsh)
-  createdAt DateTime        @default(now())
+  id              String          @id @default(cuid())
+  lessonId        String
+  type            LessonBlockType
+  order           Int             @default(0)
+  labelUz         String?         // Ko'rinadigan nom (masalan "Mashq varag'i"); bo'sh bo'lsa turga qarab standart nom ishlatiladi
+  fileUrl         String?         // FILE
+  videoUrl        String?         // VIDEO_SOLUTION
+  testId          String?         // QUIZ — mavjud Test'ga ishora (CourseLesson.testId bilan bir xil naqsh)
+  revealAfterQuiz Boolean         @default(false) // VIDEO_SOLUTION — true bo'lsa, foydalanuvchi shu darsning QUIZ blokini (yoki dars testId'sini) topshirmaguncha GET /api/courses/[id]/learn videoUrl'ni null qaytaradi (qulflangan dars bilan bir xil naqsh)
+  createdAt       DateTime        @default(now())
 
   lesson CourseLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   test   Test?        @relation(fields: [testId], references: [id])
