@@ -1,4 +1,5 @@
 import { db } from './db';
+import { shuffleArray } from './shuffle';
 
 /**
  * Bilim xaritasi — talabaning barcha TestResult'lari bo'yicha mavzu
@@ -146,7 +147,11 @@ export async function generatePracticeTest(params: {
 
   const fresh = candidates.filter((q) => !excludeCorrectIds.has(q.id));
   const pool = fresh.length >= MIN_POOL ? fresh : candidates;
-  const picked = [...pool].sort(() => Math.random() - 0.5).slice(0, Math.min(count, pool.length));
+  // Bu yerdagi aralashtirish foydalanuvchiga bog'liq takrorlanuvchan bo'lishi
+  // shart emas — faqat mashq testi yaratishda bir martalik tekis taqsimot
+  // kerak, shu sababli har chaqiruvda yangi tasodifiy seed hosil qilinadi.
+  const seed = Math.floor(Math.random() * 2 ** 31);
+  const picked = shuffleArray(pool, seed).slice(0, Math.min(count, pool.length));
 
   const subject = await db.subject.findUnique({ where: { id: subjectId }, select: { categoryId: true } });
   if (!subject) return null;
