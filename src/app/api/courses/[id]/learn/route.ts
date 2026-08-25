@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAuth } from '@/lib/api-auth';
 import { computeLockedLessonIds } from '@/lib/course-lock';
+import { collectLessonQuizTestIds, flattenGatingTestIds, resolveSolutionBlockVideoUrl } from '@/lib/solution-lock';
 
 // GET /api/courses/[id]/learn — kursni to'liq iste'mol qilish uchun kerak
 // bo'lgan hamma narsa: barcha dars kontenti (video/matn/test) + shu
@@ -72,23 +73,10 @@ export async function GET(
           course.sequentialUnlock
         );
 
-    // VIDEO_SOLUTION blokida `revealAfterQuiz` yoqilgan bo'lsa, foydalanuvchi
-    // shu darsning tekshiruvini (dars turi QUIZ bo'lsa uning testId'si, yoki
-    // darsdagi QUIZ blokining testId'si) TOPSHIRMAGUNCHA video ko'rsatilmaydi
-    // — "yechim videosi faqat frontendda yashiringan" muammosining server
-    // tomonidagi yechimi. "Topshirgan" — TestResult mavjudligi (o'tgan/
-    // o'tmaganidan qat'i nazar), chunki maqsad javob kalitini oldindan
-    // ko'rishning oldini olish, ball emas.
-    const lessonQuizTestIds = new Map<string, string[]>();
-    for (const l of allLessons) {
-      const ids: string[] = [];
-      if (l.type === 'QUIZ' && l.testId) ids.push(l.testId);
-      for (const b of l.blocks) {
-        if (b.type === 'QUIZ' && b.testId) ids.push(b.testId);
-      }
-      if (ids.length > 0) lessonQuizTestIds.set(l.id, ids);
-    }
-    const allGatingTestIds = Array.from(new Set(Array.from(lessonQuizTestIds.values()).flat()));
+    // VIDEO_SOLUTION blokini qulflash — src/lib/solution-lock.ts (bir xil
+    // mantiq GET /api/courses/[id] preview endpoint'ida ham ishlatiladi).
+    const lessonQuizTestIds = collectLessonQuizTestIds(allLessons);
+    const allGatingTestIds = flattenGatingTestIds(lessonQuizTestIds);
     const submittedTestIds = new Set<string>();
     if (allGatingTestIds.length > 0) {
       const submitted = await db.testResult.findMany({
@@ -122,22 +110,19 @@ export async function GET(
           // Qo'shimcha materiallar — asosiy kontent bilan bir xil qulf qoidasi:
           // dars qulflangan bo'lsa, hech qanday blok kontenti (fayl/video/test)
           // chiqmaydi.
-          blocks: locked ? [] : l.blocks.map((b) => {
-            let videoUrl = b.videoUrl;
-            if (b.type === 'VIDEO_SOLUTION' && b.revealAfterQuiz) {
-              const quizIds = lessonQuizTestIds.get(l.id) || [];
-              const hasSubmitted = quizIds.some((tid) => submittedTestIds.has(tid));
-              if (!hasSubmitted) videoUrl = null;
-            }
-            return {
-              id: b.id,
-              type: b.type,
-              labelUz: b.labelUz,
-              fileUrl: b.fileUrl,
-              videoUrl,
-              test: b.test,
-            };
-          }),
+          blocks: locked ? [] : l.blocks.map((b) => ({
+            id: b.id,
+            type: b.type,
+            labelUz: b.labelUz,
+            fileUrl: b.fileUrl,
+            videoUrl: resolveSolutionBlockVideoUrl({
+              lessonId: l.id,
+              block: b,
+              lessonQuizTestIds,
+              submittedTestIds,
+            }),
+            test: b.test,
+          })),
         };
       }),
     }));
