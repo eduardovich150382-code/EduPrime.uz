@@ -1,4 +1,13 @@
 import { db } from './db';
+import { shuffleArray } from './shuffle';
+
+/** Bu yerdagi aralashtirishlar (savol tanlash) foydalanuvchiga bog'liq
+ * takrorlanuvchan bo'lishi shart emas — faqat bir martalik, imtihon
+ * yaratish vaqtidagi tekis taqsimot kerak, shu sababli har chaqiruvda yangi
+ * tasodifiy seed hosil qilinadi (shuffle.ts dagi Fisher–Yates orqali). */
+function freshSeed(): number {
+  return Math.floor(Math.random() * 2 ** 31);
+}
 
 /**
  * DTM Online — haqiqiy DTM imtihoni simulyatsiyasi. Har urinishda 90 ta
@@ -95,9 +104,9 @@ function roundRobinFlatten<T>(items: T[], keyFn: (item: T) => string): T[] {
     list.push(item);
     byKey.set(key, list);
   }
-  for (const list of byKey.values()) list.sort(() => Math.random() - 0.5);
+  for (const [key, list] of byKey) byKey.set(key, shuffleArray(list, freshSeed()));
 
-  const keys = Array.from(byKey.keys()).sort(() => Math.random() - 0.5);
+  const keys = shuffleArray(Array.from(byKey.keys()), freshSeed());
   const flat: T[] = [];
   let round = 0;
   let addedThisRound = true;
@@ -256,7 +265,7 @@ async function pickSectionQuestions(
     picked.push(...pickByTopicRoundRobin(leftover, count - picked.length));
   }
 
-  return picked.sort(() => Math.random() - 0.5).slice(0, count);
+  return shuffleArray(picked, freshSeed()).slice(0, count);
 }
 
 export async function generateDtmOnlineExam(params: {
