@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { checkCourseAccess } from '@/lib/access';
+import { collectLessonQuizTestIds, flattenGatingTestIds, resolveSolutionBlockVideoUrl } from '@/lib/solution-lock';
 
 // GET /api/courses/[id] — kurs dasturi (curriculum) + yozilish/ruxsat holati.
 // Dars KONTENTI (video/matn/test) faqat isPreviewable=true darslarda
@@ -67,6 +68,23 @@ export async function GET(
       }
     }
 
+    // VIDEO_SOLUTION blokini qulflash — src/lib/solution-lock.ts (bir xil
+    // mantiq GET /api/courses/[id]/learn'da ham ishlatiladi). Bu endpoint
+    // autentifikatsiyasiz ham chaqirilishi mumkin — userId bo'lmasa
+    // submittedTestIds bo'sh qoladi va gating bloklari doim `null` bo'ladi.
+    const allLessons = course.sections.flatMap((s) => s.lessons);
+    const lessonQuizTestIds = collectLessonQuizTestIds(allLessons);
+    const allGatingTestIds = flattenGatingTestIds(lessonQuizTestIds);
+    const submittedTestIds = new Set<string>();
+    if (userId && allGatingTestIds.length > 0) {
+      const submitted = await db.testResult.findMany({
+        where: { userId, testId: { in: allGatingTestIds } },
+        select: { testId: true },
+        distinct: ['testId'],
+      });
+      for (const r of submitted) submittedTestIds.add(r.testId);
+    }
+
     const sections = course.sections.map((s) => ({
       id: s.id,
       titleUz: s.titleUz,
@@ -92,7 +110,12 @@ export async function GET(
             type: b.type,
             labelUz: b.labelUz,
             fileUrl: b.fileUrl,
-            videoUrl: b.videoUrl,
+            videoUrl: resolveSolutionBlockVideoUrl({
+              lessonId: l.id,
+              block: b,
+              lessonQuizTestIds,
+              submittedTestIds,
+            }),
             test: b.test,
           })),
         };
