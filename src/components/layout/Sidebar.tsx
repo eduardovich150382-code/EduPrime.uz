@@ -170,7 +170,6 @@ export default function Sidebar({ role, mobileOpen, setMobileOpen }: SidebarProp
               <button
                 key={l}
                 onClick={() => {
-                  const { useRouter } = require('@/i18n/routing');
                   // Language switch handled by LanguageSwitcher component
                 }}
                 className="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-text-secondary hover:bg-primary-100 hover:text-primary-600 transition-colors uppercase"

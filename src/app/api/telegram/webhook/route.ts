@@ -572,7 +572,7 @@ async function handleUsers(chatId: number, userId: number) {
     select: { name: true, email: true, telegramUsername: true, createdAt: true },
   });
 
-  let userList = recentUsers.map((u, i) =>
+  const userList = recentUsers.map((u, i) =>
     `${i + 1}. ${u.name || 'Nomsiz'} ${u.telegramUsername ? `(@${u.telegramUsername})` : u.email || ''}`
   ).join('\n');
 
