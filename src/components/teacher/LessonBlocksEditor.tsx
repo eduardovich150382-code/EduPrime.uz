@@ -12,6 +12,8 @@ export interface LessonBlockForm {
   fileUrl: string;
   videoUrl: string;
   testId: string;
+  /** VIDEO_SOLUTION uchun — true bo'lsa, talaba shu darsning tekshiruvini topshirmaguncha video yashirin turadi (server GET /api/courses/[id]/learn'da majburlaydi). */
+  revealAfterQuiz: boolean;
 }
 
 interface TeacherTestItem {
@@ -46,7 +48,7 @@ export default function LessonBlocksEditor({ blocks, onChange, teacherTests }: P
 
   const addBlock = (type: LessonBlockType) => {
     if (blocks.length >= MAX_BLOCKS) return;
-    onChange([...blocks, { type, labelUz: '', fileUrl: '', videoUrl: '', testId: '' }]);
+    onChange([...blocks, { type, labelUz: '', fileUrl: '', videoUrl: '', testId: '', revealAfterQuiz: false }]);
   };
   const removeBlock = (idx: number) => onChange(blocks.filter((_, i) => i !== idx));
   const moveBlock = (idx: number, dir: -1 | 1) => {
@@ -139,13 +141,24 @@ export default function LessonBlocksEditor({ blocks, onChange, teacherTests }: P
                     </div>
                   )}
                   {block.type === 'VIDEO_SOLUTION' && (
-                    <input
-                      type="url"
-                      value={block.videoUrl}
-                      onChange={(e) => updateBlock(idx, { videoUrl: e.target.value })}
-                      placeholder="https://youtube.com/watch?v=..."
-                      className="w-full px-2.5 py-1.5 rounded-lg border border-border text-xs"
-                    />
+                    <>
+                      <input
+                        type="url"
+                        value={block.videoUrl}
+                        onChange={(e) => updateBlock(idx, { videoUrl: e.target.value })}
+                        placeholder="https://youtube.com/watch?v=..."
+                        className="w-full px-2.5 py-1.5 rounded-lg border border-border text-xs"
+                      />
+                      <label className="flex items-center gap-1.5 text-xs text-text-secondary">
+                        <input
+                          type="checkbox"
+                          checked={block.revealAfterQuiz}
+                          onChange={(e) => updateBlock(idx, { revealAfterQuiz: e.target.checked })}
+                          className="w-3.5 h-3.5"
+                        />
+                        Faqat tekshiruv topshirilgach ko&apos;rinsin
+                      </label>
+                    </>
                   )}
                   {block.type === 'QUIZ' && (
                     <select

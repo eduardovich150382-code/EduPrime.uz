@@ -103,6 +103,7 @@ export default function EditCoursePage() {
                 fileUrl: b.fileUrl || '',
                 videoUrl: b.videoUrl || '',
                 testId: b.testId || '',
+                revealAfterQuiz: !!b.revealAfterQuiz,
               })),
             })) : [createEmptyLesson()],
           })));
@@ -144,6 +145,7 @@ export default function EditCoursePage() {
             fileUrl: b.type === 'FILE' ? b.fileUrl || null : null,
             videoUrl: b.type === 'VIDEO_SOLUTION' ? b.videoUrl || null : null,
             testId: b.type === 'QUIZ' ? b.testId || null : null,
+            revealAfterQuiz: b.type === 'VIDEO_SOLUTION' ? !!b.revealAfterQuiz : false,
           })),
         })),
       })),
