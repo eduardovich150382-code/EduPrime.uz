@@ -48,11 +48,12 @@ Bu fayl har sessiyada avtomatik o'qiladi. Har bir vazifa promptida takrorlanmasi
 4. **Hosil qilingan SQL'ni doim o'qib chiqing.** `DROP TABLE`, `DROP COLUMN`, `ALTER COLUMN ... SET NOT NULL` bo'lmasligi kerak — bular ma'lumot yo'qotadi. Faqat `CREATE` va nullable ustun qo'shish.
 5. Migratsiyalar **additive** bo'lsin: yangi jadval, yangi ustun (nullable yoki default bilan), yangi indeks. Ustun o'chirish — alohida, ataylab rejalashtirilgan PR'da va faqat kod undan foydalanishni to'xtatgach.
 6. **Migratsiya zanjiri CI'da tekshiriladi** — `.github/workflows/ci.yml` toza Postgres konteynerida `prisma migrate deploy` ni ishga tushiradi. PR yashil bo'lmasa migratsiya noto'g'ri.
-7. **Prod'ga qo'llash faqat `.github/workflows/db-deploy.yml` orqali** — `main` ga merge bo'lganda avtomatik. Lokal terminaldan hech qachon.
-8. **`.env` faylini o'qimang** va uning mazmunini chiqarmang.
-9. Test yoki seed ma'lumotini prod bazaga yozmang.
-10. **Baseline.** `0_init` migratsiyasi prod bazada `migrate resolve --applied` bilan belgilangan. Uni hech qachon qayta yozmang yoki o'chirmang.
-11. `prisma migrate reset` — hech qachon.
+7. **Prod'ga qo'llash — hozircha qo'lda, Neon SQL Editor orqali.** GitHub runner'lari Neon'ga 5432 orqali ulanolmaydi (sabab aniqlanmoqda), shuning uchun `db-deploy.yml` avtomatik ishlamaydi. Har migratsiya uchun `npm run db:manual -- <papka-nomi>` bilan yagona qo'yiladigan SQL fayl hosil qilinadi va u Neon SQL Editor'ga tashlanadi. Loyiha egasi bajaradi, siz emas. Ulanish tiklangach `db-deploy.yml` hech qanday o'zgarishsiz ishlay boshlaydi.
+8. **Lokal terminaldan prod'ga hech qachon hech narsa qo'llamang.**
+9. **`.env` faylini o'qimang** va uning mazmunini chiqarmang.
+10. Test yoki seed ma'lumotini prod bazaga yozmang.
+11. **Baseline.** `0_init` migratsiyasi prod bazada `migrate resolve --applied` bilan belgilangan. Uni hech qachon qayta yozmang yoki o'chirmang.
+12. `prisma migrate reset` — hech qachon.
 
 ## Git ish tartibi
 

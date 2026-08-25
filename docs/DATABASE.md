@@ -30,9 +30,13 @@ Oqibati — butun migratsiya quvuri shu cheklovga moslashtirilgan:
   ichidagi vaqtinchalik `postgres:16` konteyneri tekshiradi (`ci.yml`,
   `migration-check` job'i) — bu lokal ulanishga muhtoj emas, chunki konteyner
   runner ichida yashaydi.
-- Prod bazaga migratsiya qo'llash — faqat GitHub Actions'dagi
-  `db-deploy.yml` orqali, `secrets.DATABASE_URL` bilan. Bu yagona joy bu
-  loyihada `DATABASE_URL` haqiqiy bazaga ulanadigan joy.
+- Prod bazaga migratsiya qo'llash — GitHub Actions'dagi `db-deploy.yml`
+  orqali, `secrets.DATABASE_URL` bilan. Bu — `DATABASE_URL` haqiqiy bazaga
+  ulanadigan yagona *avtomatlashtirilgan* joy. **Hozircha bu workflow
+  ishlamaydi** (pastga, "Hozircha: qo'lda qo'llash" bo'limiga qarang) —
+  GitHub runner'lari Neon'ga 5432 orqali ulanolmaydi, sababi aniqlanmoqda.
+  Shu bois migratsiya prod'ga vaqtincha Neon SQL Editor orqali, qo'lda
+  qo'llanadi.
 - `npm run build` endi bazaga umuman ulanmaydi (`prisma generate && next
   build`) — shuning uchun lokalda va Vercel'da xavfsiz ishlaydi, migratsiya
   bilan bog'liq emas.
@@ -156,6 +160,64 @@ tegmaydi).
 `concurrency` guruhi (`db-deploy`) bir vaqtda bir nechta deploy ishga
 tushishining oldini oladi.
 
+**Hozirgi holat:** bu workflow prod'da ishlamayapti — GitHub Actions
+runner'lari Neon'ga 5432-port orqali ulanolmay, `P1001` xatosi bilan
+yiqiladi (sababi aniqlanmoqda). Vercel va Neon'ning o'z SQL Editor'i esa
+Neon'ga muammosiz ulanadi, shuning uchun migratsiya hozircha pastdagi
+qo'lda tartib orqali qo'llanadi. **Workflow faylining o'zi
+o'zgartirilmagan va o'chirilmagan** — ulanish muammosi tuzatilgan zahoti,
+hech qanday qo'shimcha o'zgarishsiz yana avtomatik ishlay boshlaydi.
+
+## Hozircha: qo'lda qo'llash — `npm run db:manual`
+
+Ulanish muammosi tuzatilguncha, har bir yangi migratsiya `main`ga
+qo'shilgach, loyiha egasi uni Neon SQL Editor orqali qo'lda qo'llaydi.
+Buni xatosiz va takrorlanadigan qilish uchun `scripts/make-manual-migration.ts`
+yordamchi skripti bor — u migratsiyani Neon SQL Editor'ga to'g'ridan-to'g'ri
+nusxa-qo'yiladigan bitta tayyor SQL faylga aylantiradi.
+
+**Nega qo'lda yozib bo'lmaydi:** Neon SQL Editor orqali qo'llangan SQL
+Prisma'ning hisobida "qo'llangan" deb ko'rinmaydi — `_prisma_migrations`
+jadvaliga yozuv qo'shish kerak, aks holda keyingi `prisma migrate deploy`
+(ulanish tiklangach) shu migratsiyani yana qo'llashga urinadi. Bu yozuvning
+`checksum` ustuni migratsiya matnining SHA-256 hex digest'i bo'lishi shart —
+qo'lda hisoblash xatoga moyil (ayniqsa Windows'da CRLF sabab noto'g'ri
+checksum chiqishi mumkin), shuning uchun skript buni avtomatlashtiradi.
+
+### To'liq tartib
+
+1. `prisma/schema.prisma` ni tahrirlang.
+2. Yuqoridagi "Migratsiya yozish tartibi" bo'yicha `prisma migrate diff`
+   bilan `migration.sql` hosil qiling.
+3. Hosil qilingan SQL'ni o'qing — `DROP TABLE`/`DROP COLUMN` yo'qligini,
+   yangi ustunlar nullable yoki default bilan ekanini tekshiring.
+4. Oddiy PR jarayoni: branch, commit, push, PR. CI'dagi `migration-check`
+   job'i butun zanjirni bo'sh bazada tekshiradi.
+5. CI yashil bo'lgach, PR `main`ga merge qilinadi (foydalanuvchi tomonidan).
+6. Loyiha egasi lokalda ishga tushiradi:
+   ```bash
+   npm run db:manual -- <migratsiya-papkasi-nomi>
+   ```
+   Bu `prisma/migrations/<nom>/manual-apply.sql` faylini yozadi — bitta
+   tranzaksiya ichida migratsiya SQL'i va `_prisma_migrations`ga yozuv
+   qo'shadigan `INSERT`. Fayl allaqachon mavjud bo'lsa, qayta yozish uchun
+   `--force` qo'shiladi.
+7. `manual-apply.sql`ning to'liq mazmuni Neon Console → **SQL Editor**'ga
+   nusxa-qo'yiladi va bajariladi.
+8. Tasdiqlash:
+   ```sql
+   SELECT migration_name FROM "_prisma_migrations" ORDER BY finished_at;
+   ```
+   Yangi migratsiya nomi ro'yxatda oxirida ko'rinishi kerak.
+
+`manual-apply.sql` git'da migratsiya papkasi bilan birga saqlanadi (audit
+uchun) — `.gitignore`ga qo'shilmagan.
+
+**Bu qadam faqat loyiha egasi tomonidan bajariladi — Claude Code
+sessiyalari `manual-apply.sql` faylini yaratishi mumkin (matn fayli
+yozish, bazaga ulanmaydi), lekin uni Neon SQL Editor'ga qo'yish va
+bajarish har doim inson tomonidan, qo'lda amalga oshiriladi.**
+
 ## P3005 nima va nega chiqqan edi
 
 `P3005: The database schema is not empty` — Prisma Migrate xatosi. U
@@ -243,8 +305,12 @@ tavsiya etiladi:
   tegmaydi (`prisma migrate diff ... --script > ...`). Bunga ruxsat bor,
   lekin generatsiya qilingan SQL har doim qo'lda tekshirilsin (yuqoridagi
   bo'limga qarang).
-- Migratsiyani bazaga qo'llash — faqat `db-deploy.yml` (avtomatik, `main`ga
-  merge'dan keyin) yoki `db-baseline.yml` (qo'lda, loyiha egasi tomonidan,
-  faqat bir marta) orqali amalga oshiriladi.
+- Migratsiyani bazaga qo'llash — `db-deploy.yml` (avtomatik, `main`ga
+  merge'dan keyin — hozircha P1001 sababli ishlamayapti) yoki
+  `db-baseline.yml` (qo'lda, loyiha egasi tomonidan, faqat bir marta)
+  orqali amalga oshiriladi. Hozirgi vaqtinchalik tartibda migratsiya Neon
+  SQL Editor orqali qo'lda qo'llanadi (`npm run db:manual` — yuqoriga
+  qarang); `manual-apply.sql`ni yaratish ruxsat etilgan (bazaga ulanmaydi),
+  lekin uni SQL Editor'ga qo'yib bajarish — faqat loyiha egasi ishi.
 - `.env` faylini o'qimang va uning mazmunini chiqarmang. GitHub secret
   qiymatlarini ham o'qib bo'lmaydi va chiqarilmaydi.
