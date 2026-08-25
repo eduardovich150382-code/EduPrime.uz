@@ -1,0 +1,30 @@
+name: DB Deploy
+
+# main'ga faqat migratsiya fayllari o'zgargan holatda push bo'lganda ishga tushadi
+# va yangi migratsiyalarni prod bazaga qo'llaydi. Batafsil: docs/DATABASE.md
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'prisma/migrations/**'
+
+concurrency:
+  group: db-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: npm ci
+
+      - name: Migratsiyalarni qo'llash
+        run: npx prisma migrate deploy

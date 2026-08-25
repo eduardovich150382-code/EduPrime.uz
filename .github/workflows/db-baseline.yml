@@ -1,0 +1,30 @@
+name: DB Baseline (bir martalik)
+
+# Bu workflow faqat QO'LDA, bitta marta ishga tushiriladi — 0_init migratsiyasini
+# prod bazada "allaqachon qo'llangan" deb belgilash uchun. Batafsil: docs/DATABASE.md
+on:
+  workflow_dispatch:
+
+jobs:
+  baseline:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: npm ci
+
+      - name: Migratsiya holatini tekshirish (baseline'dan oldin)
+        run: npx prisma migrate status
+        continue-on-error: true
+
+      - name: 0_init ni "qo'llangan" deb belgilash
+        run: npx prisma migrate resolve --applied 0_init
+
+      - name: Migratsiya holatini tekshirish (baseline'dan keyin)
+        run: npx prisma migrate status

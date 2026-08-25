@@ -11,104 +11,180 @@ bu buyruq ustun yoki jadvalni ogohlantirishsiz o'chirib yuborishi mumkin va
 qaysi o'zgarish qachon qo'llanganini kuzatib bo'lmaydi. Prod bazamiz
 (Neon.tech) da real foydalanuvchi ma'lumotlari bo'lgani uchun bu xavfli
 holat edi. Endi har bir sxema o'zgarishi migratsiya fayli sifatida yoziladi,
-kod bilan birga review qilinadi va deploy vaqtida avtomatik qo'llanadi.
+kod bilan birga review qilinadi va alohida workflow orqali qo'llanadi.
 
-## Bir martalik baseline qadami — MUHIM
+## Lokal baza yo'q — MUHIM cheklov
 
-`prisma/migrations/0_init/` — bu mavjud sxemaning "hozirgi holat" suratini
+Ishlab chiquvchining tarmog'i 5432-portni bloklaydi. Shu sababli **lokal
+terminaldan hech qanday Postgre'ga (na prod, na dev, na CI konteyneriga)
+ulanish yo'q va bo'lmaydi** — `prisma migrate dev`, `prisma migrate deploy`,
+`prisma migrate resolve`, `prisma studio`, `prisma db push` kabi bazaga
+ulanadigan har qanday buyruq lokalda ishga tushirilmaydi va ishlamaydi.
+
+Oqibati — butun migratsiya quvuri shu cheklovga moslashtirilgan:
+
+- Migratsiya fayllari bazaga ulanmasdan, sof matn ko'rinishida,
+  `prisma migrate diff --from-schema-datamodel ... --to-schema-datamodel ...`
+  orqali **qo'lda** yaratiladi (pastga qarang).
+- Migratsiya zanjirining bo'sh bazaga muammosiz qo'llanishini GitHub Actions
+  ichidagi vaqtinchalik `postgres:16` konteyneri tekshiradi (`ci.yml`,
+  `migration-check` job'i) — bu lokal ulanishga muhtoj emas, chunki konteyner
+  runner ichida yashaydi.
+- Prod bazaga migratsiya qo'llash — faqat GitHub Actions'dagi
+  `db-deploy.yml` orqali, `secrets.DATABASE_URL` bilan. Bu yagona joy bu
+  loyihada `DATABASE_URL` haqiqiy bazaga ulanadigan joy.
+- `npm run build` endi bazaga umuman ulanmaydi (`prisma generate && next
+  build`) — shuning uchun lokalda va Vercel'da xavfsiz ishlaydi, migratsiya
+  bilan bog'liq emas.
+
+Amaliy natija: **Claude Code sessiyalari (va lokal ishlaydigan har qanday
+ishlab chiquvchi) hech qachon bazaga ulanadigan buyruq ishlatmaydi.**
+Migratsiya fayli yozish — matn fayli yaratish, xolos.
+
+## Migratsiya yozish tartibi
+
+Sxemaga o'zgartirish kiritish kerak bo'lganda (lokal `migrate dev` ishlamagani
+uchun):
+
+```bash
+# 1. Joriy sxemaning nusxasini oling (git tarixidan, HEAD holatida)
+git show HEAD:prisma/schema.prisma > prisma/_prev.prisma
+
+# 2. prisma/schema.prisma faylini kerakli o'zgarishlar bilan tahrirlang
+
+# 3. Ikki sxema orasidagi farqdan SQL migratsiya generatsiya qiling
+#    (bu buyruq hech qanday bazaga ulanmaydi — faqat ikki .prisma faylini solishtiradi)
+npx prisma migrate diff \
+  --from-schema-datamodel prisma/_prev.prisma \
+  --to-schema-datamodel prisma/schema.prisma \
+  --script > prisma/migrations/<timestamp>_<nom>/migration.sql
+
+# 4. Vaqtinchalik faylni tozalang
+rm prisma/_prev.prisma
+```
+
+`<timestamp>` — `YYYYMMDDHHMMSS` formatida (masalan, `20260825120000`),
+`<nom>` — qisqa, kichik harflarda, pastki chiziq bilan (masalan,
+`add_course_rating`). Papka nomi Prisma'ning o'z migratsiyalari bilan bir xil
+naqshda bo'lishi shart, aks holda `migrate deploy` uni tartib bilan
+qo'llamasligi mumkin.
+
+### Majburiy: generatsiya qilingan SQL'ni o'qib chiqing
+
+`migrate diff` sxemadagi har qanday farqni SQL'ga aylantiradi — jumladan
+ustun yoki jadval o'chirishni ham, agar shunday farq bo'lsa. Fayl yozilgach,
+**uni albatta o'qing** va tasdiqlang:
+
+- Faylda `DROP TABLE`, `DROP COLUMN` yoki `DROP` bilan boshlanadigan boshqa
+  buyruq **yo'qligini** tekshiring — bunday o'zgarish CLAUDE.md dagi
+  "additive" qoidasiga ziddir va alohida, ataylab rejalashtirilgan PR talab
+  qiladi.
+- Yangi ustun **nullable** yoki **default qiymat bilan** ekanligini
+  tekshiring — aks holda mavjud qatorlar uchun `migrate deploy` xato beradi.
+- SQL loyihaning boshqa migratsiyalari bilan uslub jihatidan mos kelishini
+  ko'zdan kechiring.
+
+Shubha bo'lsa — migratsiyani commit qilmasdan, foydalanuvchidan tasdiq
+so'rang.
+
+## CI: migratsiya zanjiri bo'sh bazada tekshiriladi
+
+Har bir PR uchun `ci.yml` ichidagi `migration-check` job'i GitHub Actions
+runner'ida vaqtinchalik `postgres:16` konteyner ishga tushiradi va unga
+qarshi `npx prisma migrate deploy` bajaradi. Bu `0_init` dan boshlab butun
+migratsiya zanjirining bo'sh bazaga xatosiz qo'llanishini isbotlaydi —
+prod yoki dev bazaga hech qanday aloqasi yo'q, konteyner PR tugagach
+yo'q qilinadi.
+
+## Bir martalik baseline — `db-baseline.yml`
+
+`prisma/migrations/0_init/` — mavjud sxemaning "hozirgi holat" suratini
 oladigan **baseline** migratsiya. U mavjud jadval/ustunlarni **qayta
 yaratishga urinmaydi** — u faqat sxema tarixini boshlash uchun kerak.
 
 Prod baza (Neon) allaqachon shu sxemada, shuning uchun bu migratsiyani
-oddiy `migrate deploy` orqali qo'llash mumkin emas (jadvallar "allaqachon
-mavjud" xatosini beradi). Buning o'rniga, bazaga **hech narsa yozmasdan**,
-Prisma'ga "bu migratsiya allaqachon qo'llangan deb hisobla" deb aytamiz:
+oddiy `migrate deploy` orqali qo'llash mumkin emas — jadvallar "allaqachon
+mavjud" xatosini beradi (pastga, **P3005** bo'limiga qarang). Buning
+o'rniga, bazaga **hech narsa yozmasdan**, Prisma'ga "bu migratsiya
+allaqachon qo'llangan deb hisobla" deb aytish kerak.
 
-```bash
-npx prisma migrate resolve --applied 0_init
-```
+Bu — `.github/workflows/db-baseline.yml` workflow'ining vazifasi:
 
-**Bu buyruq faqat bir marta, prod bazaga qarshi ishlatiladi** (masalan,
-Vercel muhit o'zgaruvchilari bilan lokal terminaldan yoki bitta xavfsiz
-sessiyada). U bazadagi `_prisma_migrations` jadvaliga yozuv qo'shadi, boshqa
-hech narsani o'zgartirmaydi. Shundan keyingina deploy quvuridagi
-`prisma migrate deploy` ishlay boshlaydi (chunki u endi 0_init dan keyingi
-migratsiyalarnigina qidiradi).
+- Ishga tushirish turi: `workflow_dispatch` — ya'ni GitHub'da qo'lda,
+  **Actions → DB Baseline (bir martalik) → Run workflow** orqali chaqiriladi.
+  Push yoki PR bilan avtomatik ishga tushmaydi.
+- Ichida `npx prisma migrate resolve --applied 0_init` bajaradi — bu
+  bazadagi `_prisma_migrations` jadvaliga yozuv qo'shadi, boshqa hech
+  narsani o'zgartirmaydi.
+- Faqat **bir marta**, loyiha egasi tomonidan ishga tushirilishi kerak.
+  Claude Code sessiyalari buni **hech qachon** o'zi ishga tushirmaydi va
+  ishga tushirishni taklif qilmaydi.
 
-Bu qadamni loyiha egasi yoki vakolatli DevOps shaxsi bajarishi kerak —
-Claude Code sessiyalari buni **hech qachon** o'zi bajarmaydi (quyidagi
-"Xavfsizlik qoidalari" bo'limiga qarang).
+### `DATABASE_URL` ni GitHub secret sifatida sozlash
 
-## Lokal ish tartibi (development)
+Baseline va deploy workflow'lari `secrets.DATABASE_URL` dan foydalanadi.
+Buni bir marta sozlash kerak:
 
-Sxemaga o'zgartirish kiritganda:
+1. GitHub'da: repo → **Settings → Secrets and variables → Actions → New
+   repository secret**.
+2. Nomi: `DATABASE_URL`, qiymati — Neon.tech prod bazasining connection
+   string'i (Vercel muhit o'zgaruvchilaridagi qiymat bilan bir xil).
+3. Bu qiymatni faqat repo egasi yoki vakolatli DevOps shaxsi kiritadi —
+   Claude Code sessiyalari `.env` yoki maxfiy qiymatlarni o'qimaydi va
+   bu qadamni bajara olmaydi.
 
-```bash
-# prisma/schema.prisma ni tahrirlang, keyin:
-npx prisma migrate dev --name <qisqa-nom>
-```
+Secret sozlangach, avval `db-baseline.yml` bir marta qo'lda ishga
+tushiriladi, so'ngra `db-deploy.yml` keyingi migratsiyalarni avtomatik
+qo'llay boshlaydi.
 
-Bu buyruq:
-1. Yangi migratsiya faylini `prisma/migrations/<timestamp>_<nom>/` ga yozadi
-2. Uni lokal/dev bazangizga qo'llaydi
-3. Prisma Client'ni qayta generatsiya qiladi
+## Prod deploy — `db-deploy.yml`
 
-Yaratilgan migratsiya faylini **har doim commit qiling** — u kod review'ning
-bir qismi.
-
-`npm run db:generate` — faqat Prisma Client generatsiya qilish uchun
-(sxema yoki migratsiyaga tegmaydi).
-
-## Prod — avtomatik deploy
-
-`package.json` dagi `build` skripti endi shunday:
-
-```json
-"build": "prisma generate && prisma migrate deploy && next build"
-```
+`main` branchga `prisma/migrations/**` ichida o'zgarish bo'lgan push
+kelganda avtomatik ishga tushadi va `npx prisma migrate deploy` orqali
+hali qo'llanmagan migratsiyalarni prod bazaga qo'llaydi.
 
 `prisma migrate deploy` faqat **hali qo'llanmagan** migratsiyalarni tartib
 bilan qo'llaydi — u interaktiv emas va sxemani migratsiya fayllari bilan
 solishtirmaydi (drift tekshirmaydi), shuning uchun CI/CD muhitida xavfsiz.
 
-Amaliyot: `main` ga merge → Vercel avtomatik build boshlaydi → build
-ichida `migrate deploy` prod bazaga yangi migratsiyalarni qo'llaydi →
-`next build` ishga tushadi.
+Amaliyot: PR `main`ga merge qilinadi → agar migratsiya fayllari o'zgargan
+bo'lsa, `db-deploy.yml` ishga tushadi va prod bazaga yangi migratsiyalarni
+qo'llaydi → mustaqil ravishda Vercel ham `main`dagi kodni deploy qiladi
+(`npm run build` — endi faqat `prisma generate && next build`, bazaga
+tegmaydi).
 
-## ⚠️ Ogohlantirish: Vercel Preview muhiti
+`concurrency` guruhi (`db-deploy`) bir vaqtda bir nechta deploy ishga
+tushishining oldini oladi.
 
-Vercel'da har bir Pull Request uchun alohida **Preview deployment**
-yaratiladi, va u ham xuddi shu `build` skriptini (`prisma migrate deploy`
-bilan) ishga tushiradi.
+## P3005 nima va nega chiqqan edi
 
-**Agar Preview muhiti uchun alohida `DATABASE_URL` sozlanmagan bo'lsa,
-u environment o'zgaruvchilarini Production muhitidan meros oladi — demak
-har bir PR uchun ochilgan preview deploy prod bazaga migratsiya
-qo'llaydi.** Bu, ayniqsa, hali review qilinmagan yoki noto'g'ri
-migratsiya bilan xavfli.
+`P3005: The database schema is not empty` — Prisma Migrate xatosi. U
+`migrate deploy` bo'sh bo'lmagan (allaqachon jadvallari bor) bazaga
+qarshi ishga tushirilganda, lekin `_prisma_migrations` jadvalida hali
+hech qanday migratsiya "qo'llangan" deb belgilanmagan bo'lsa yuzaga
+keladi — Prisma sxemaning haqiqiy holatini bilmaydi va xavfsizlik uchun
+bosh tortadi.
 
-### Buni qanday oldini olish kerak
+Bu loyihada shunday bo'ldi: `package.json` dagi `build` skriptiga
+`prisma migrate deploy` qo'shilgan edi, lekin `0_init` baseline migratsiyasi
+prod bazada hali `migrate resolve --applied` bilan belgilanmagan edi.
+Natijada Vercel Preview deploy `build` bosqichida `migrate deploy`ni
+ishga tushirdi, u prod `DATABASE_URL`ga ulandi, jadvallarni "bo'sh emas"
+deb topdi va P3005 bilan yiqildi.
 
-1. **Neon.tech'da** — loyiha uchun alohida branch (masalan, `preview`)
-   yarating: Neon Console → Branches → "New Branch" → asosiy (prod)
-   branch'dan. Neon branch'lari copy-on-write bo'lib, prod ma'lumotini
-   nusxalaydi, lekin undan mustaqil ishlaydi.
-2. **Vercel'da** — loyiha Settings → Environment Variables bo'limida
-   `DATABASE_URL` uchun alohida qiymat qo'shing va uni faqat **Preview**
-   muhitiga biriktiring (Production'dan farqli qiymat, Neon preview
-   branch'ining connection string'i bilan).
-3. Shundan so'ng har bir PR preview deploy'i o'z alohida Neon branch'iga
-   migratsiya qo'llaydi — prod bazaga tegmaydi.
+Yechim ikki qismdan iborat:
 
-Bu sozlash hali qilinmagan bo'lsa, Preview deploylar prod bazaga
-`migrate deploy` ishlatishda davom etadi — bu holatda hech bo'lmaganda
-migratsiyalar faqat **additive** (pastga qarang) bo'lishiga alohida
-e'tibor bering, chunki ular preview'da ham, prod'da ham qo'llanadi.
+1. `build` skriptidan `prisma migrate deploy` butunlay olib tashlandi —
+   endi Vercel build bazaga umuman ulanmaydi.
+2. Migratsiyani bazaga qo'llash mas'uliyati alohida, ataylab chaqiriladigan
+   workflow'larga (`db-baseline.yml`, `db-deploy.yml`) o'tkazildi — ular
+   `main`ga merge yoki qo'lda ishga tushirish orqali, nazorat ostida
+   ishlaydi, Preview deploy'lar bilan aralashmaydi.
 
 ## Additive-only qoidasi
 
 - Yangi jadval, yangi ustun (**nullable yoki default bilan**), yangi
-  indeks — xavfsiz, `migrate dev` bilan avtomatik yaratiladi.
+  indeks — xavfsiz, `migrate diff` bilan avtomatik yaratiladi.
 - Ustun yoki jadvalni **o'chirish yoki nomini o'zgartirish** — alohida,
   ataylab rejalashtirilgan PR'da qilinsin, va faqat kod undan
   foydalanishni butunlay to'xtatgandan keyin. Bunday migratsiyani PR
@@ -134,12 +210,41 @@ kelsa:
 3. Neon.tech **Point-in-time restore** imkoniyatini beradi — jiddiy
    ma'lumot yo'qotilganda oxirgi chora sifatida shundan foydalaning.
 
+## Kelajakda: Preview uchun Neon branch (ixtiyoriy)
+
+Hozircha Vercel Preview deploy'lar `build` bosqichida bazaga umuman
+ulanmaydi (`prisma migrate deploy` build'dan olib tashlangan), shuning
+uchun P3005 muammosi endi Preview'da qayta chiqmaydi. Lekin agar
+kelajakda Preview muhitida haqiqiy ma'lumotlar bilan ishlash kerak bo'lsa
+(masalan, API route'larni Preview'da qo'lda sinash uchun), quyidagi sozlash
+tavsiya etiladi:
+
+1. **Neon.tech'da** — loyiha uchun alohida branch (masalan, `preview`)
+   yarating: Neon Console → Branches → "New Branch" → asosiy (prod)
+   branch'dan. Neon branch'lari copy-on-write bo'lib, prod ma'lumotini
+   nusxalaydi, lekin undan mustaqil ishlaydi.
+2. **Vercel'da** — loyiha Settings → Environment Variables bo'limida
+   `DATABASE_URL` uchun alohida qiymat qo'shing va uni faqat **Preview**
+   muhitiga biriktiring (Production'dan farqli qiymat, Neon preview
+   branch'ining connection string'i bilan).
+3. Migratsiyani bu Neon preview branch'iga qo'llash alohida masala —
+   masalan, `db-deploy.yml`ga o'xshash, lekin preview branch uchun mo'ljallangan
+   qo'shimcha workflow orqali. Hozircha bu qilinmagan, chunki build endi
+   umuman migratsiya qo'llamaydi va bu ehtiyoj yo'q.
+
 ## Xavfsizlik qoidalari (Claude Code sessiyalari uchun)
 
-- `prisma migrate dev` yoki `prisma migrate resolve` kabi bazaga
-  yozadigan buyruqlarni **hech qachon** lokal terminaldan prod
-  `DATABASE_URL` bilan ishlatmang.
+- Bazaga ulanadigan **hech qanday** buyruq (`prisma migrate dev`,
+  `migrate deploy`, `migrate resolve`, `db push`, `studio`, va h.k.)
+  lokal terminaldan ishga tushirilmaydi — na prod, na dev, na CI
+  konteynerga qarshi. Sabab: lokal tarmoq 5432-portni bloklaydi, ulanish
+  baribir muvaffaqiyatsiz bo'ladi va bu kutilgan holat.
 - Yangi migratsiya fayli yaratish — bu faqat fayl yozish, bazaga
-  tegmaydi (`prisma migrate diff ... --script > ...`). Bunga ruxsat bor.
-- Migratsiyani bazaga qo'llash — faqat deploy quvuri (Vercel build)
-  yoki loyiha egasining o'zi orqali amalga oshiriladi.
+  tegmaydi (`prisma migrate diff ... --script > ...`). Bunga ruxsat bor,
+  lekin generatsiya qilingan SQL har doim qo'lda tekshirilsin (yuqoridagi
+  bo'limga qarang).
+- Migratsiyani bazaga qo'llash — faqat `db-deploy.yml` (avtomatik, `main`ga
+  merge'dan keyin) yoki `db-baseline.yml` (qo'lda, loyiha egasi tomonidan,
+  faqat bir marta) orqali amalga oshiriladi.
+- `.env` faylini o'qimang va uning mazmunini chiqarmang. GitHub secret
+  qiymatlarini ham o'qib bo'lmaydi va chiqarilmaydi.

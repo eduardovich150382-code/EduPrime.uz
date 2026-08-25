@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    env:
+      # Build uchun soxta qiymatlar — haqiqiy secret emas, faqat next build
+      # o'tishi uchun kerak (kod process.env dan o'qiydi, lekin bu bosqichda
+      # hech qanday tashqi xizmatga ulanmaydi).
+      DATABASE_URL: "postgresql://user:password@localhost:5432/eduprime?schema=public"
+      NEXTAUTH_URL: "http://localhost:3000"
+      NEXTAUTH_SECRET: "ci-fake-secret"
+      AUTH_SECRET: "ci-fake-secret"
+      AUTH_TRUST_HOST: "true"
+      GOOGLE_CLIENT_ID: "ci-fake-client-id"
+      GOOGLE_CLIENT_SECRET: "ci-fake-client-secret"
+      TELEGRAM_BOT_TOKEN: "ci-fake-token"
+      TELEGRAM_BOT_USERNAME: "EduPrimeuzbot"
+      TELEGRAM_WEBHOOK_SECRET: "ci-fake-webhook-secret"
+      CRON_SECRET: "ci-fake-cron-secret"
+      ADMIN_SETUP_SECRET: "ci-fake-admin-secret"
+      CLOUDINARY_CLOUD_NAME: "ci-fake-cloud"
+      CLOUDINARY_API_KEY: "ci-fake-key"
+      CLOUDINARY_API_SECRET: "ci-fake-secret"
+      GEMINI_API_KEY: "ci-fake-gemini-key"
+      NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+      ADMIN_TELEGRAM_IDS: ""
+      PAYMENT_CARD_NUMBER: ""
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npx prisma generate
+
+      - run: npx tsc --noEmit
+
+      - run: npm run lint
+
+      - run: npx next build
+
+  migration-check:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: eduprime_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      # Faqat CI ichidagi vaqtinchalik konteynerga ishora qiladi — prod yoki
+      # dev bazaga hech qanday aloqasi yo'q. Bu bosqich butun migratsiya
+      # zanjiri (0_init dan boshlab) bo'sh bazaga muammosiz qo'llanishini
+      # tekshiradi.
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/eduprime_ci?schema=public"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Migratsiya zanjirini bo'sh bazaga qo'llash
+        run: npx prisma migrate deploy
