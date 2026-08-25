@@ -46,12 +46,15 @@ cp .env.example .env
 # Prisma generate
 npm run db:generate
 
-# Database push
-npm run db:push
+# Migratsiyalarni bazaga qo'llash (lokal/dev baza uchun)
+npx prisma migrate dev
 
 # Development
 npm run dev
 ```
+
+Sxema o'zgarishlari `prisma db push` bilan emas, versiyalangan migratsiya
+fayllari orqali qo'llanadi. Batafsil: [docs/DATABASE.md](docs/DATABASE.md).
 
 ## 🤖 Telegram Bot
 

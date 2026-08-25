@@ -24,12 +24,35 @@ Bu fayl har sessiyada avtomatik o'qiladi. Har bir vazifa promptida takrorlanmasi
 
 ## Ma'lumotlar bazasi qoidalari — QAT'IY
 
-1. **`prisma db push` NI HECH QACHON ISHLATMANG.** U ustun/jadvalni ogohlantirishsiz o'chiradi. Loyihada avval shu ishlatilgan — bu tuzatilishi kerak bo'lgan xato, takrorlanadigan naqsh emas.
-2. Har sxema o'zgarishi **`prisma migrate dev --name <qisqa-nom>`** orqali migratsiya fayli sifatida yozilsin va git'ga commit qilinsin.
-3. Migratsiyalar **additive** bo'lsin: yangi jadval, yangi ustun (nullable yoki default bilan), yangi indeks. Ustun o'chirish yoki nomini o'zgartirish — alohida, ataylab rejalashtirilgan PR'da va faqat kod undan foydalanishni to'xtatgach.
-4. Prod bazaga **hech qachon lokal terminaldan migratsiya qo'llamang.** Migratsiya `main` ga merge bo'lgach deploy quvuri orqali qo'llanadi.
-5. Test yoki seed ma'lumotini prod bazaga yozmang.
-6. `.env` faylini o'qimang va uning mazmunini chiqarmang.
+**Muhim kontekst:** ishlab chiquvchining tarmog'i 5432-portni bloklaydi, shuning uchun **lokal bazaga ulanish yo'q va bo'lmaydi**. Migratsiyalar ulanishsiz yoziladi, CI'da tekshiriladi, prod'ga GitHub Actions orqali qo'llanadi. Bu vaqtinchalik chetlanish emas — loyihaning doimiy ish tartibi.
+
+1. **`prisma db push` ni hech qachon ishlatmang.** U ustun/jadvalni ogohlantirishsiz o'chiradi.
+2. **`prisma migrate dev` ni ham ishlatmang** — u bazaga ulanishni talab qiladi.
+3. **Migratsiya shunday yoziladi (ulanishsiz):**
+   ```bash
+   # 1. Sxemaning oldingi holatini git'dan oling
+   git show HEAD:prisma/schema.prisma > prisma/_prev.prisma
+
+   # 2. prisma/schema.prisma ni tahrirlang
+
+   # 3. Farqdan SQL hosil qiling
+   npx prisma migrate diff \
+     --from-schema-datamodel prisma/_prev.prisma \
+     --to-schema-datamodel prisma/schema.prisma \
+     --script > prisma/migrations/<YYYYMMDDHHMMSS>_<nom>/migration.sql
+
+   # 4. Vaqtinchalik faylni o'chiring
+   rm prisma/_prev.prisma
+   ```
+   Papka nomi `20260824143000_add_indexes` shaklida — sana Prisma tartibini belgilaydi.
+4. **Hosil qilingan SQL'ni doim o'qib chiqing.** `DROP TABLE`, `DROP COLUMN`, `ALTER COLUMN ... SET NOT NULL` bo'lmasligi kerak — bular ma'lumot yo'qotadi. Faqat `CREATE` va nullable ustun qo'shish.
+5. Migratsiyalar **additive** bo'lsin: yangi jadval, yangi ustun (nullable yoki default bilan), yangi indeks. Ustun o'chirish — alohida, ataylab rejalashtirilgan PR'da va faqat kod undan foydalanishni to'xtatgach.
+6. **Migratsiya zanjiri CI'da tekshiriladi** — `.github/workflows/ci.yml` toza Postgres konteynerida `prisma migrate deploy` ni ishga tushiradi. PR yashil bo'lmasa migratsiya noto'g'ri.
+7. **Prod'ga qo'llash faqat `.github/workflows/db-deploy.yml` orqali** — `main` ga merge bo'lganda avtomatik. Lokal terminaldan hech qachon.
+8. **`.env` faylini o'qimang** va uning mazmunini chiqarmang.
+9. Test yoki seed ma'lumotini prod bazaga yozmang.
+10. **Baseline.** `0_init` migratsiyasi prod bazada `migrate resolve --applied` bilan belgilangan. Uni hech qachon qayta yozmang yoki o'chirmang.
+11. `prisma migrate reset` — hech qachon.
 
 ## Git ish tartibi
 
@@ -78,9 +101,11 @@ Quyidagilarning hammasi o'tmaguncha PR yaratmang:
 ```bash
 npx tsc --noEmit
 npm run lint
-npm run build
 npm test            # Vitest o'rnatilgach
+npx prisma generate && npx next build
 ```
+
+Bazaga ulanadigan hech qanday buyruqni ishlatmang — ular yiqiladi va bu kutilgan holat.
 
 Biror biri xato bersa — tuzating. "Bu mening o'zgarishimdan emas" deb o'tkazib yubormang; xato bo'lsa PR tayyor emas.
 

@@ -458,7 +458,7 @@ export default function CourseDetailPage() {
                           )}
                           {lesson.type === 'PDF' && lesson.fileUrl && (
                             <a href={lesson.fileUrl} target="_blank" rel="noopener noreferrer" className="btn-primary inline-flex items-center gap-2 text-sm !py-2 !px-4">
-                              <FileText size={14} /> PDF'ni ochish
+                              <FileText size={14} /> PDF&apos;ni ochish
                             </a>
                           )}
 

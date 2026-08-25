@@ -96,7 +96,7 @@ export default function DtmOnlinePage() {
           <GraduationCap size={40} className="text-primary-400 mx-auto mb-4" />
           <h1 className="text-xl font-bold text-text-primary mb-2">Bepul urinish tugadi</h1>
           <p className="text-text-secondary text-sm mb-6">
-            DTM Online'dan bepul tarifda faqat 1 marta foydalanish mumkin edi. Cheksiz urinish uchun Premium yoki Ustoz tarifiga o&apos;ting.
+            DTM Online&apos;dan bepul tarifda faqat 1 marta foydalanish mumkin edi. Cheksiz urinish uchun Premium yoki Ustoz tarifiga o&apos;ting.
           </p>
         </div>
         <PremiumCTA variant="full" />
