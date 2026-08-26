@@ -1,0 +1,1379 @@
+{
+  "subject": "fizika",
+  "tree": [
+    {
+      "nameUz": "Mexanika",
+      "slug": "mexanika",
+      "grade": [
+        7,
+        10
+      ],
+      "children": [
+        {
+          "nameUz": "Kinematika",
+          "slug": "kinematika",
+          "grade": [
+            7,
+            10
+          ],
+          "children": [
+            {
+              "nameUz": "Mexanik harakat. Moddiy nuqta, trayektoriya, ko'chish, yo'l tushunchalari",
+              "slug": "mexanik-harakat",
+              "grade": [
+                7
+              ]
+            },
+            {
+              "nameUz": "Sanoq sistemasi. Vektor kattaliklar va ular ustidagi amallar",
+              "slug": "sanoq-sistemasi-vektorlar",
+              "grade": [
+                7
+              ]
+            },
+            {
+              "nameUz": "To'g'ri chiziqli tekis harakat va uning tezligi",
+              "slug": "tekis-harakat",
+              "grade": [
+                7
+              ]
+            },
+            {
+              "nameUz": "Harakatning nisbiyligi",
+              "slug": "harakat-nisbiyligi",
+              "grade": [
+                7
+              ]
+            },
+            {
+              "nameUz": "To'g'ri chiziqli tekis o'zgaruvchan harakat",
+              "slug": "tekis-ozgaruvchan-harakat",
+              "grade": [
+                7
+              ]
+            },
+            {
+              "nameUz": "To'g'ri chiziqli tekis o'zgaruvchan harakatda ko'chish",
+              "slug": "tekis-ozgaruvchan-kochish",
+              "grade": [
+                7
+              ]
+            },
+            {
+              "nameUz": "To'g'ri chiziqli notekis o'zgaruvchan harakat",
+              "slug": "notekis-ozgaruvchan-harakat",
+              "grade": [
+                7,
+                10
+              ]
+            },
+            {
+              "nameUz": "O'rtacha tezlik",
+              "slug": "ortacha-tezlik",
+              "grade": [
+                7
+              ]
+            },
+            {
+              "nameUz": "Jismlarning erkin tushishi",
+              "slug": "erkin-tushish",
+              "grade": [
+                7
+              ]
+            },
+            {
+              "nameUz": "Yuqoriga tik otilgan jism harakati",
+              "slug": "tik-otilgan-jism",
+              "grade": [
+                7,
+                10
+              ]
+            },
+            {
+              "nameUz": "Egri chiziqli harakat. Aylana bo'ylab tekis harakat",
+              "slug": "aylana-boylab-tekis-harakat",
+              "grade": [
+                7
+              ]
+            },
+            {
+              "nameUz": "Aylanma harakatni uzatish",
+              "slug": "aylanma-harakat-uzatish",
+              "grade": [
+                7
+              ]
+            },
+            {
+              "nameUz": "Markazga intilma tezlanish",
+              "slug": "markazga-intilma-tezlanish",
+              "grade": [
+                7
+              ]
+            },
+            {
+              "nameUz": "Aylana bo'ylab notekis harakat",
+              "slug": "aylana-boylab-notekis-harakat",
+              "grade": [
+                7,
+                10
+              ]
+            },
+            {
+              "nameUz": "Gorizontal otilgan jism harakati",
+              "slug": "gorizontal-otilgan-jism",
+              "grade": [
+                7,
+                10
+              ]
+            },
+            {
+              "nameUz": "Gorizontga qiya otilgan jism harakati",
+              "slug": "qiya-otilgan-jism",
+              "grade": [
+                7,
+                10
+              ]
+            }
+          ]
+        },
+        {
+          "nameUz": "Dinamika",
+          "slug": "dinamika",
+          "grade": [
+            7,
+            10
+          ],
+          "children": [
+            {
+              "nameUz": "Massa va zichlik",
+              "slug": "massa-va-zichlik",
+              "grade": [
+                7
+              ]
+            },
+            {
+              "nameUz": "Nyutonning I, II, III qonunlari",
+              "slug": "nyuton-qonunlari",
+              "grade": [
+                7,
+                10
+              ]
+            },
+            {
+              "nameUz": "Markazga intilma va markazdan qochma kuch",
+              "slug": "markazga-intilma-kuch",
+              "grade": [
+                7,
+                10
+              ]
+            },
+            {
+              "nameUz": "Butun olam tortishish qonuni. Gravitatsiya kuchi",
+              "slug": "butun-olam-tortishish",
+              "grade": [
+                7,
+                10
+              ]
+            },
+            {
+              "nameUz": "Kosmik tezliklar",
+              "slug": "kosmik-tezliklar",
+              "grade": [
+                7,
+                10
+              ]
+            },
+            {
+              "nameUz": "Jism og'irligining uning harakat turlariga bog'liqligi",
+              "slug": "ogirlik-va-harakat",
+              "grade": [
+                7,
+                10
+              ]
+            },
+            {
+              "nameUz": "Elastiklik kuchi",
+              "slug": "elastiklik-kuchi",
+              "grade": [
+                7,
+                10
+              ]
+            }
+          ]
+        },
+        {
+          "nameUz": "Ishqalanish kuchi va impuls",
+          "slug": "ishqalanish-va-impuls",
+          "grade": [
+            7,
+            10
+          ],
+          "children": [
+            {
+              "nameUz": "Gorizontal tekislikda sirpanish ishqalanish kuchi",
+              "slug": "gorizontal-ishqalanish",
+              "grade": [
+                7,
+                10
+              ]
+            },
+            {
+              "nameUz": "Qiya tekislikda sirpanish ishqalanish kuchi",
+              "slug": "qiya-tekislik-ishqalanish",
+              "grade": [
+                7,
+                10
+              ]
+            },
+            {
+              "nameUz": "Bir nechta kuchlar ta'siri ostidagi harakat",
+              "slug": "bir-nechta-kuch",
+              "grade": [
+                7,
+                10
+              ]
+            },
+            {
+              "nameUz": "Ko'chmas va ko'char bloklar",
+              "slug": "bloklar",
+              "grade": [
+                7,
+                10
+              ]
+            },
+            {
+              "nameUz": "Jism va kuch impulsi",
+              "slug": "impuls",
+              "grade": [
+                7,
+                10
+              ]
+            },
+            {
+              "nameUz": "Impulsning saqlanish qonuni",
+              "slug": "impuls-saqlanish",
+              "grade": [
+                7,
+                10
+              ]
+            }
+          ]
+        },
+        {
+          "nameUz": "Mexanik ish va mexanik energiya",
+          "slug": "ish-va-energiya",
+          "grade": [
+            7,
+            10
+          ],
+          "children": [
+            {
+              "nameUz": "Mexanik ish",
+              "slug": "mexanik-ish",
+              "grade": [
+                7,
+                10
+              ]
+            },
+            {
+              "nameUz": "Quvvat",
+              "slug": "quvvat",
+              "grade": [
+                7,
+                10
+              ]
+            },
+            {
+              "nameUz": "Foydali ish koeffitsienti",
+              "slug": "foydali-ish-koeffitsienti",
+              "grade": [
+                7,
+                10
+              ]
+            },
+            {
+              "nameUz": "Mexanik energiya",
+              "slug": "mexanik-energiya",
+              "grade": [
+                7,
+                10
+              ]
+            },
+            {
+              "nameUz": "Mexanik energiya va ish orasidagi bog'lanish",
+              "slug": "energiya-va-ish",
+              "grade": [
+                7,
+                10
+              ]
+            }
+          ]
+        },
+        {
+          "nameUz": "Statika",
+          "slug": "statika",
+          "grade": [
+            7,
+            10
+          ],
+          "children": [
+            {
+              "nameUz": "Jismlarning muvozanat sharti. Kuch momenti. Kuch yelkasi. Og'irlik markazi",
+              "slug": "muvozanat-va-kuch-momenti",
+              "grade": [
+                7,
+                10
+              ]
+            },
+            {
+              "nameUz": "Inersiya momenti",
+              "slug": "inersiya-momenti",
+              "grade": [
+                7,
+                10
+              ]
+            }
+          ]
+        },
+        {
+          "nameUz": "Suyuqliklar va gazlar mexanikasi",
+          "slug": "suyuqlik-gaz-mexanikasi",
+          "grade": [
+            7,
+            10
+          ],
+          "children": [
+            {
+              "nameUz": "Suyuqlik va gazlarda bosim. Gidrostatik va atmosfera bosimi",
+              "slug": "bosim",
+              "grade": [
+                7,
+                10
+              ]
+            },
+            {
+              "nameUz": "Tutash idishlar. Gidravlik (press) mashina",
+              "slug": "tutash-idishlar",
+              "grade": [
+                7,
+                10
+              ]
+            },
+            {
+              "nameUz": "Arximed kuchi",
+              "slug": "arximed-kuchi",
+              "grade": [
+                7,
+                10
+              ]
+            },
+            {
+              "nameUz": "Suyuqlik oqimining uzluksizlik tenglamasi. Bernulli tenglamasi",
+              "slug": "bernulli-tenglamasi",
+              "grade": [
+                7,
+                10
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "nameUz": "Molekulyar fizika va termodinamika",
+      "slug": "molekulyar-fizika-termodinamika",
+      "grade": [
+        7,
+        8,
+        10
+      ],
+      "children": [
+        {
+          "nameUz": "Molekulyar fizika",
+          "slug": "molekulyar-fizika",
+          "grade": [
+            7,
+            8,
+            10
+          ],
+          "children": [
+            {
+              "nameUz": "Molekulyar-kinetik nazariya asoslari",
+              "slug": "mkn-asoslari",
+              "grade": [
+                7,
+                10
+              ]
+            },
+            {
+              "nameUz": "Gazlar molekulyar-kinetik nazariyasining asosiy tenglamasi",
+              "slug": "mkn-asosiy-tenglama",
+              "grade": [
+                7,
+                10
+              ]
+            },
+            {
+              "nameUz": "Temperatura",
+              "slug": "temperatura",
+              "grade": [
+                7,
+                10
+              ]
+            },
+            {
+              "nameUz": "Ideal gazning holat tenglamasi",
+              "slug": "ideal-gaz-holat-tenglamasi",
+              "grade": [
+                7,
+                10
+              ]
+            },
+            {
+              "nameUz": "Gaz qonunlari",
+              "slug": "gaz-qonunlari",
+              "grade": [
+                7,
+                10
+              ]
+            },
+            {
+              "nameUz": "Izotermik jarayon",
+              "slug": "izotermik-jarayon",
+              "grade": [
+                7,
+                10
+              ]
+            },
+            {
+              "nameUz": "Izobarik jarayon",
+              "slug": "izobarik-jarayon",
+              "grade": [
+                7,
+                10
+              ]
+            },
+            {
+              "nameUz": "Izoxorik jarayon",
+              "slug": "izoxorik-jarayon",
+              "grade": [
+                7,
+                10
+              ]
+            }
+          ]
+        },
+        {
+          "nameUz": "Termodinamika",
+          "slug": "termodinamika",
+          "grade": [
+            8,
+            10
+          ],
+          "children": [
+            {
+              "nameUz": "Ichki energiya",
+              "slug": "ichki-energiya",
+              "grade": [
+                8,
+                10
+              ]
+            },
+            {
+              "nameUz": "Issiqlik miqdori",
+              "slug": "issiqlik-miqdori",
+              "grade": [
+                8,
+                10
+              ]
+            },
+            {
+              "nameUz": "Termodinamikada ish tushunchasi",
+              "slug": "termodinamikada-ish",
+              "grade": [
+                8,
+                10
+              ]
+            },
+            {
+              "nameUz": "Termodinamikaning birinchi qonuni",
+              "slug": "termodinamika-birinchi-qonuni",
+              "grade": [
+                8,
+                10
+              ]
+            },
+            {
+              "nameUz": "Termodinamikaning birinchi qonunining izojarayonlarga qo'llanilishi",
+              "slug": "birinchi-qonun-izojarayonlar",
+              "grade": [
+                8,
+                10
+              ]
+            },
+            {
+              "nameUz": "Issiqlik dvigatellari va ularning foydali ish koeffitsienti",
+              "slug": "issiqlik-dvigatellari",
+              "grade": [
+                8,
+                10
+              ]
+            }
+          ]
+        },
+        {
+          "nameUz": "Suyuqlik va qattiq jismlarning xossalari",
+          "slug": "suyuqlik-qattiq-jism-xossalari",
+          "grade": [
+            8,
+            10
+          ],
+          "children": [
+            {
+              "nameUz": "Bug'lanish jarayoni. Kondensatsiya",
+              "slug": "buglanish-kondensatsiya",
+              "grade": [
+                8,
+                10
+              ]
+            },
+            {
+              "nameUz": "Suyuqliklarda sirt taranglik kuchi",
+              "slug": "sirt-taranglik",
+              "grade": [
+                8,
+                10
+              ]
+            },
+            {
+              "nameUz": "Kapillar hodisa",
+              "slug": "kapillar-hodisa",
+              "grade": [
+                8,
+                10
+              ]
+            },
+            {
+              "nameUz": "Qattiq jismlar",
+              "slug": "qattiq-jismlar",
+              "grade": [
+                8,
+                10
+              ]
+            },
+            {
+              "nameUz": "Jismlarning erishi va qotishi",
+              "slug": "erish-va-qotish",
+              "grade": [
+                8,
+                10
+              ]
+            },
+            {
+              "nameUz": "Jismlarning issiqlikdan kengayishi",
+              "slug": "issiqlikdan-kengayish",
+              "grade": [
+                8,
+                10
+              ]
+            }
+          ]
+        },
+        {
+          "nameUz": "Mexanik tebranishlar va to'lqinlar",
+          "slug": "mexanik-tebranish-tolqin",
+          "grade": [
+            8,
+            10
+          ],
+          "children": [
+            {
+              "nameUz": "Mexanik tebranishlar. Matematik mayatnik",
+              "slug": "matematik-mayatnik",
+              "grade": [
+                8,
+                10
+              ]
+            },
+            {
+              "nameUz": "Prujinali mayatnik",
+              "slug": "prujinali-mayatnik",
+              "grade": [
+                8,
+                10
+              ]
+            },
+            {
+              "nameUz": "Garmonik tebranishlar",
+              "slug": "garmonik-tebranishlar",
+              "grade": [
+                8,
+                10
+              ]
+            },
+            {
+              "nameUz": "Mexanik to'lqinlar",
+              "slug": "mexanik-tolqinlar",
+              "grade": [
+                8,
+                10
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "nameUz": "Elektr va magnitizm",
+      "slug": "elektr-va-magnitizm",
+      "grade": [
+        8,
+        10,
+        11
+      ],
+      "children": [
+        {
+          "nameUz": "Elektrostatika",
+          "slug": "elektrostatika",
+          "grade": [
+            8,
+            10
+          ],
+          "children": [
+            {
+              "nameUz": "Elektr zaryadi va uning ikki turi. Elementar zaryad",
+              "slug": "elektr-zaryadi",
+              "grade": [
+                8,
+                10
+              ]
+            },
+            {
+              "nameUz": "Elektr maydoni va uning kuchlanganligi",
+              "slug": "elektr-maydon-kuchlanganligi",
+              "grade": [
+                8,
+                10
+              ]
+            },
+            {
+              "nameUz": "Bir jinsli zaryadlangan cheksiz tekislikning elektr maydoni",
+              "slug": "cheksiz-tekislik-maydoni",
+              "grade": [
+                8,
+                10
+              ]
+            },
+            {
+              "nameUz": "Elektr maydonida nuqtaviy zaryadni ko'chirishda bajarilgan ish",
+              "slug": "maydonda-bajarilgan-ish",
+              "grade": [
+                8,
+                10
+              ]
+            },
+            {
+              "nameUz": "Potensiallar ayirmasi bilan kuchlanganlik orasidagi bog'lanish",
+              "slug": "potensial-va-kuchlanganlik",
+              "grade": [
+                8,
+                10
+              ]
+            },
+            {
+              "nameUz": "Elektr maydonda o'tkazgichlar. O'tkazgich ichidagi elektr maydoni",
+              "slug": "otkazgichlar-maydonda",
+              "grade": [
+                8,
+                10
+              ]
+            },
+            {
+              "nameUz": "O'tkazgichning elektr sig'imi",
+              "slug": "elektr-sigimi",
+              "grade": [
+                8,
+                10
+              ]
+            },
+            {
+              "nameUz": "Kondensator qoplamalarining o'zaro elektrostatik ta'sir kuchi",
+              "slug": "kondensator-tasir-kuchi",
+              "grade": [
+                8,
+                10
+              ]
+            },
+            {
+              "nameUz": "Kondensatorlarni parallel va ketma-ket ulash",
+              "slug": "kondensator-ulash",
+              "grade": [
+                8,
+                10
+              ]
+            },
+            {
+              "nameUz": "Zaryadlangan jismning va kondensatorning energiyasi",
+              "slug": "kondensator-energiyasi",
+              "grade": [
+                8,
+                10
+              ]
+            }
+          ]
+        },
+        {
+          "nameUz": "O'zgarmas tok qonunlari",
+          "slug": "ozgarmas-tok",
+          "grade": [
+            8,
+            10,
+            11
+          ],
+          "children": [
+            {
+              "nameUz": "Elektr toki. Tokning mavjud bo'lish shartlari. Tok kuchi va tok zichligi",
+              "slug": "elektr-toki",
+              "grade": [
+                8,
+                10
+              ]
+            },
+            {
+              "nameUz": "O'tkazgich qarshiligi. Solishtirma qarshilik",
+              "slug": "otkazgich-qarshiligi",
+              "grade": [
+                8,
+                10
+              ]
+            },
+            {
+              "nameUz": "O'tkazgich qarshiligining temperaturaga bog'liqligi",
+              "slug": "qarshilik-va-temperatura",
+              "grade": [
+                8,
+                10
+              ]
+            },
+            {
+              "nameUz": "Zanjirning bir qismi uchun Om qonuni",
+              "slug": "om-qonuni-bir-qism",
+              "grade": [
+                8,
+                10
+              ]
+            },
+            {
+              "nameUz": "O'tkazgichlarni ketma-ket va parallel ulash",
+              "slug": "otkazgich-ulash",
+              "grade": [
+                8,
+                10
+              ]
+            },
+            {
+              "nameUz": "Ampermetr va voltmetrga qo'shimcha qarshilik (shunt) ulash",
+              "slug": "shunt-ulash",
+              "grade": [
+                8,
+                10
+              ]
+            },
+            {
+              "nameUz": "Elektr yurituvchi kuch. Berk zanjir uchun Om qonuni",
+              "slug": "eyk-berk-zanjir",
+              "grade": [
+                8,
+                10
+              ]
+            },
+            {
+              "nameUz": "Kirxgof qonunlari va ularning qo'llanilishi",
+              "slug": "kirxgof-qonunlari",
+              "grade": [
+                10,
+                11
+              ]
+            },
+            {
+              "nameUz": "Elektr tokining ishi va quvvati. Joul-Lens qonuni",
+              "slug": "tok-ishi-quvvati",
+              "grade": [
+                8,
+                10
+              ]
+            },
+            {
+              "nameUz": "Cho'g'lanma elektr lampalari",
+              "slug": "choglanma-lampalar",
+              "grade": [
+                8,
+                10
+              ]
+            }
+          ]
+        },
+        {
+          "nameUz": "Turli muhitlarda elektr toki",
+          "slug": "turli-muhitda-tok",
+          "grade": [
+            8,
+            10
+          ],
+          "children": [
+            {
+              "nameUz": "Elektrolitlarda elektr toki. Elektroliz uchun Faradey qonunlari",
+              "slug": "elektrolitlarda-tok",
+              "grade": [
+                8,
+                10
+              ]
+            },
+            {
+              "nameUz": "Vakuumda elektr toki. Chiqish ishi. Elektron emissiya",
+              "slug": "vakuumda-tok",
+              "grade": [
+                8,
+                10
+              ]
+            },
+            {
+              "nameUz": "Gazlarda elektr toki",
+              "slug": "gazlarda-tok",
+              "grade": [
+                8,
+                10
+              ]
+            },
+            {
+              "nameUz": "Yarim o'tkazgichlarda elektr toki",
+              "slug": "yarim-otkazgichlarda-tok",
+              "grade": [
+                8,
+                10
+              ]
+            }
+          ]
+        },
+        {
+          "nameUz": "Magnitizm",
+          "slug": "magnitizm",
+          "grade": [
+            8,
+            11
+          ],
+          "children": [
+            {
+              "nameUz": "Magnit maydon. Tokning magnit maydoni va o'zaro ta'sirlashuvi",
+              "slug": "magnit-maydon",
+              "grade": [
+                8,
+                11
+              ]
+            },
+            {
+              "nameUz": "Magnit maydonda tokli o'tkazgichga ta'sir etuvchi kuch. Chap qo'l qoidasi",
+              "slug": "amper-kuchi",
+              "grade": [
+                8,
+                11
+              ]
+            },
+            {
+              "nameUz": "Bio-Savar-Laplas qonuni. Magnit maydon induksiyasi. Superpozitsiya prinsipi",
+              "slug": "bio-savar-laplas",
+              "grade": [
+                8,
+                11
+              ]
+            },
+            {
+              "nameUz": "Magnit maydonda zaryadli zarrachaning harakati. Lorens kuchi",
+              "slug": "lorens-kuchi",
+              "grade": [
+                8,
+                11
+              ]
+            },
+            {
+              "nameUz": "Magnit maydon induksiya oqimi. Magnit maydonda bajarilgan ish",
+              "slug": "magnit-oqim",
+              "grade": [
+                8,
+                11
+              ]
+            },
+            {
+              "nameUz": "Elektromagnit induksiya qonuni. Induksion EYK",
+              "slug": "elektromagnit-induksiya",
+              "grade": [
+                8,
+                11
+              ]
+            },
+            {
+              "nameUz": "Induktivlik",
+              "slug": "induktivlik",
+              "grade": [
+                8,
+                11
+              ]
+            },
+            {
+              "nameUz": "Magnit maydon energiyasi",
+              "slug": "magnit-maydon-energiyasi",
+              "grade": [
+                8,
+                11
+              ]
+            },
+            {
+              "nameUz": "Muhitning magnit singdiruvchanligi. Dia-, para- va ferromagnitlar",
+              "slug": "magnit-singdiruvchanlik",
+              "grade": [
+                8,
+                11
+              ]
+            }
+          ]
+        },
+        {
+          "nameUz": "Elektromagnit tebranishlar va to'lqinlar",
+          "slug": "elektromagnit-tebranish-tolqin",
+          "grade": [
+            11
+          ],
+          "children": [
+            {
+              "nameUz": "Tebranish konturi",
+              "slug": "tebranish-konturi",
+              "grade": [
+                11
+              ]
+            },
+            {
+              "nameUz": "O'zgaruvchan tok",
+              "slug": "ozgaruvchan-tok",
+              "grade": [
+                11
+              ]
+            },
+            {
+              "nameUz": "O'zgaruvchan tok zanjirida aktiv qarshilik",
+              "slug": "aktiv-qarshilik",
+              "grade": [
+                11
+              ]
+            },
+            {
+              "nameUz": "O'zgaruvchan tok zanjirida sig'im qarshilik",
+              "slug": "sigim-qarshilik",
+              "grade": [
+                11
+              ]
+            },
+            {
+              "nameUz": "O'zgaruvchan tok zanjirida induktiv qarshilik",
+              "slug": "induktiv-qarshilik",
+              "grade": [
+                11
+              ]
+            },
+            {
+              "nameUz": "O'zgaruvchan tok zanjiri uchun Om qonuni. Rezonans",
+              "slug": "om-qonuni-ozgaruvchan-tok",
+              "grade": [
+                11
+              ]
+            },
+            {
+              "nameUz": "O'zgaruvchan tokning ishi va quvvati. Tok generatori",
+              "slug": "tok-generatori",
+              "grade": [
+                11
+              ]
+            },
+            {
+              "nameUz": "Transformator",
+              "slug": "transformator",
+              "grade": [
+                11
+              ]
+            },
+            {
+              "nameUz": "Elektromagnit to'lqin",
+              "slug": "elektromagnit-tolqin",
+              "grade": [
+                11
+              ]
+            },
+            {
+              "nameUz": "Radiolokatsiya. Modulatsiya, detektorlash",
+              "slug": "radiolokatsiya",
+              "grade": [
+                8,
+                11
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "nameUz": "Optika",
+      "slug": "optika",
+      "grade": [
+        9,
+        11
+      ],
+      "children": [
+        {
+          "nameUz": "Geometrik optika",
+          "slug": "geometrik-optika",
+          "grade": [
+            9,
+            11
+          ],
+          "children": [
+            {
+              "nameUz": "Yorug'likning to'g'ri chiziq bo'ylab tarqalishi. Yorug'lik tezligi",
+              "slug": "yoruglik-tarqalishi",
+              "grade": [
+                9,
+                11
+              ]
+            },
+            {
+              "nameUz": "Fotometriya",
+              "slug": "fotometriya",
+              "grade": [
+                11
+              ]
+            },
+            {
+              "nameUz": "Yorug'likning qaytish qonuni",
+              "slug": "qaytish-qonuni",
+              "grade": [
+                9,
+                11
+              ]
+            },
+            {
+              "nameUz": "Yassi ko'zgudagi tasvir",
+              "slug": "yassi-kozgu",
+              "grade": [
+                9,
+                11
+              ]
+            },
+            {
+              "nameUz": "Yorug'likning sinish qonuni",
+              "slug": "sinish-qonuni",
+              "grade": [
+                9,
+                11
+              ]
+            },
+            {
+              "nameUz": "Yorug'likning to'la ichki qaytishi",
+              "slug": "tola-ichki-qaytish",
+              "grade": [
+                9,
+                11
+              ]
+            },
+            {
+              "nameUz": "Parallel plastinada nurning yo'li",
+              "slug": "parallel-plastina",
+              "grade": [
+                9,
+                11
+              ]
+            },
+            {
+              "nameUz": "Nurlarning uchburchakli prizmadagi yo'li",
+              "slug": "prizma",
+              "grade": [
+                9,
+                11
+              ]
+            },
+            {
+              "nameUz": "Linza. Linzaning optik kuchi",
+              "slug": "linza-optik-kuch",
+              "grade": [
+                9,
+                11
+              ]
+            },
+            {
+              "nameUz": "Linzada tasvir yasash. Linza formulasi",
+              "slug": "linza-formulasi",
+              "grade": [
+                9,
+                11
+              ]
+            },
+            {
+              "nameUz": "Sferik ko'zgular",
+              "slug": "sferik-kozgular",
+              "grade": [
+                9,
+                11
+              ]
+            },
+            {
+              "nameUz": "Optik asboblar",
+              "slug": "optik-asboblar",
+              "grade": [
+                9,
+                11
+              ]
+            }
+          ]
+        },
+        {
+          "nameUz": "To'lqin optikasi",
+          "slug": "tolqin-optikasi",
+          "grade": [
+            9,
+            11
+          ],
+          "children": [
+            {
+              "nameUz": "Yorug'likning to'lqin tabiati",
+              "slug": "yoruglik-tolqin-tabiati",
+              "grade": [
+                9,
+                11
+              ]
+            },
+            {
+              "nameUz": "Yorug'lik interferensiyasi",
+              "slug": "interferensiya",
+              "grade": [
+                9,
+                11
+              ]
+            },
+            {
+              "nameUz": "Yorug'lik dispersiyasi",
+              "slug": "dispersiya",
+              "grade": [
+                9,
+                11
+              ]
+            },
+            {
+              "nameUz": "Yorug'lik difraksiyasi",
+              "slug": "difraksiya",
+              "grade": [
+                9,
+                11
+              ]
+            },
+            {
+              "nameUz": "Yorug'likning qutblanishi",
+              "slug": "qutblanish",
+              "grade": [
+                9,
+                11
+              ]
+            },
+            {
+              "nameUz": "Infraqizil va ultrabinafsha nurlar",
+              "slug": "infraqizil-ultrabinafsha",
+              "grade": [
+                9,
+                11
+              ]
+            },
+            {
+              "nameUz": "Nurlanish va yutilish spektrlari. Spektral analiz",
+              "slug": "spektral-analiz",
+              "grade": [
+                9,
+                11
+              ]
+            },
+            {
+              "nameUz": "Rentgen nurlari",
+              "slug": "rentgen-nurlari",
+              "grade": [
+                9,
+                11
+              ]
+            }
+          ]
+        },
+        {
+          "nameUz": "Maxsus nisbiylik nazariyasi asoslari",
+          "slug": "nisbiylik-nazariyasi",
+          "grade": [
+            9,
+            11
+          ],
+          "children": [
+            {
+              "nameUz": "Eynshteyn postulatlari",
+              "slug": "eynshteyn-postulatlari",
+              "grade": [
+                9,
+                11
+              ]
+            },
+            {
+              "nameUz": "Relyativistik massa va impuls. Massa va energiya orasidagi bog'lanish",
+              "slug": "relyativistik-massa-energiya",
+              "grade": [
+                9,
+                11
+              ]
+            }
+          ]
+        },
+        {
+          "nameUz": "Kvant fizikasi",
+          "slug": "kvant-fizikasi",
+          "grade": [
+            9,
+            11
+          ],
+          "children": [
+            {
+              "nameUz": "Yorug'likning kvant xossalari. Kvant mexanikasi. Fotonlar",
+              "slug": "kvant-xossalar-fotonlar",
+              "grade": [
+                9,
+                11
+              ]
+            },
+            {
+              "nameUz": "Fotoeffekt",
+              "slug": "fotoeffekt",
+              "grade": [
+                9,
+                11
+              ]
+            },
+            {
+              "nameUz": "Yorug'lik bosimi",
+              "slug": "yoruglik-bosimi",
+              "grade": [
+                9,
+                11
+              ]
+            },
+            {
+              "nameUz": "Yorug'likning kimyoviy ta'siri",
+              "slug": "yoruglik-kimyoviy-tasiri",
+              "grade": [
+                11
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "nameUz": "Atom va yadro fizikasi",
+      "slug": "atom-yadro-fizikasi",
+      "grade": [
+        9,
+        11
+      ],
+      "children": [
+        {
+          "nameUz": "Atom va yadro fizikasi",
+          "slug": "atom-yadro",
+          "grade": [
+            9,
+            11
+          ],
+          "children": [
+            {
+              "nameUz": "Atomning planetar modeli. Bor postulatlari",
+              "slug": "atom-planetar-model",
+              "grade": [
+                9,
+                11
+              ]
+            },
+            {
+              "nameUz": "Atom yadrosining tuzilishi. Yadro kuchlari",
+              "slug": "yadro-tuzilishi",
+              "grade": [
+                9,
+                11
+              ]
+            },
+            {
+              "nameUz": "Elementar zarralarni kuzatish. Radioaktivlikning kashf etilishi",
+              "slug": "radioaktivlik-kashfi",
+              "grade": [
+                9,
+                11
+              ]
+            },
+            {
+              "nameUz": "Radioaktiv aylanishlar",
+              "slug": "radioaktiv-aylanishlar",
+              "grade": [
+                9,
+                11
+              ]
+            },
+            {
+              "nameUz": "Radioaktiv yemirilish qonuni",
+              "slug": "radioaktiv-yemirilish",
+              "grade": [
+                9,
+                11
+              ]
+            },
+            {
+              "nameUz": "Izotoplar",
+              "slug": "izotoplar",
+              "grade": [
+                9,
+                11
+              ]
+            },
+            {
+              "nameUz": "Atom yadrosining bog'lanish energiyasi",
+              "slug": "yadro-boglanish-energiyasi",
+              "grade": [
+                9,
+                11
+              ]
+            },
+            {
+              "nameUz": "Yadro reaksiyalari",
+              "slug": "yadro-reaksiyalari",
+              "grade": [
+                9,
+                11
+              ]
+            },
+            {
+              "nameUz": "Elementar zarralar",
+              "slug": "elementar-zarralar",
+              "grade": [
+                9,
+                11
+              ]
+            },
+            {
+              "nameUz": "Radioaktiv nurlanishning biologik ta'siri",
+              "slug": "nurlanish-biologik-tasiri",
+              "grade": [
+                9,
+                11
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -167,8 +167,37 @@ model Subject {
   tests    Test[]
   bankQuestions BankQuestion[]
   courses  Course[]
+  topics   TopicNode[]
 
   @@index([categoryId, order])
+}
+
+// Ierarxik mavzu daraxti. `Question.topic` (erkin matn) o'rnini bosmaydi —
+// bu ustunga hali tegilmagan, bog'lanish keyingi sessiyada qilinadi. Hozircha
+// faqat daraxtning o'zi: DTM Online generatori va bilim xaritasi kelajakda
+// erkin "topic" matni o'rniga shu daraxtdagi tugunga (path) ishora qiladi,
+// shunda "Kinematika" va "kinematika" endi ikki xil mavzu bo'lib qolmaydi.
+model TopicNode {
+  id        String  @id @default(cuid())
+  subjectId String
+  parentId  String?
+  slug      String
+  path      String   // "mexanika/kinematika/erkin-tushish"
+  level     Int      @default(0)
+  nameUz    String
+  nameRu    String?
+  nameEn    String?
+  grade     Int[]    @default([])
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  subject  Subject     @relation(fields: [subjectId], references: [id])
+  parent   TopicNode?  @relation("TopicTree", fields: [parentId], references: [id])
+  children TopicNode[] @relation("TopicTree")
+
+  @@unique([subjectId, slug])
+  @@index([path])
+  @@index([subjectId, level, order])
 }
 
 // ===================== TESTS & QUESTIONS =====================
