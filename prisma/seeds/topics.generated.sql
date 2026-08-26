@@ -6,7 +6,7 @@
 BEGIN;
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_1415d97c5c82ce6d8c93121e',
+  'tn_ace55066143ac5b0d443651c',
   subj."id",
   NULL::text,
   'mexanika',
@@ -15,11 +15,11 @@ SELECT
   'Mexanika',
   NULL,
   NULL,
-  ARRAY[7,8,9,10,11]::integer[],
+  ARRAY[7,10]::integer[],
   0
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -33,7 +33,7 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_4bb581f636934207e858bdf9',
+  'tn_562230c9177169e9a3ef4265',
   subj."id",
   (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'mexanika'),
   'kinematika',
@@ -42,11 +42,11 @@ SELECT
   'Kinematika',
   NULL,
   NULL,
-  ARRAY[9]::integer[],
+  ARRAY[7,10]::integer[],
   0
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -60,20 +60,74 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_91a3368e35df1d08bf41d1e1',
+  'tn_e739495116a25fae0424b81f',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'kinematika'),
+  'mexanik-harakat',
+  'mexanika/kinematika/mexanik-harakat',
+  2,
+  'Mexanik harakat. Moddiy nuqta, trayektoriya, ko''chish, yo''l tushunchalari',
+  NULL,
+  NULL,
+  ARRAY[7]::integer[],
+  0
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_6a1b74c237914733b69d79b8',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'kinematika'),
+  'sanoq-sistemasi-vektorlar',
+  'mexanika/kinematika/sanoq-sistemasi-vektorlar',
+  2,
+  'Sanoq sistemasi. Vektor kattaliklar va ular ustidagi amallar',
+  NULL,
+  NULL,
+  ARRAY[7]::integer[],
+  1
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_efb13b3bdbaa5f8edc3612a4',
   subj."id",
   (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'kinematika'),
   'tekis-harakat',
   'mexanika/kinematika/tekis-harakat',
   2,
-  'Tekis harakat',
+  'To''g''ri chiziqli tekis harakat va uning tezligi',
   NULL,
   NULL,
-  ARRAY[9]::integer[],
-  0
+  ARRAY[7]::integer[],
+  2
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -87,20 +141,20 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_3c7cd50536bee76dd9d6b3c1',
+  'tn_20be3d59c4970cf03cae2bcd',
   subj."id",
   (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'kinematika'),
-  'tezlanish-va-tekis-ozgaruvchan-harakat',
-  'mexanika/kinematika/tezlanish-va-tekis-ozgaruvchan-harakat',
+  'harakat-nisbiyligi',
+  'mexanika/kinematika/harakat-nisbiyligi',
   2,
-  'Tezlanish va tekis o''zgaruvchan harakat',
+  'Harakatning nisbiyligi',
   NULL,
   NULL,
-  ARRAY[9]::integer[],
-  1
+  ARRAY[7]::integer[],
+  3
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -114,20 +168,128 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_04a0de1bc7bbaf3c2926eeaf',
+  'tn_769c5ebf4aecfd342d00535e',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'kinematika'),
+  'tekis-ozgaruvchan-harakat',
+  'mexanika/kinematika/tekis-ozgaruvchan-harakat',
+  2,
+  'To''g''ri chiziqli tekis o''zgaruvchan harakat',
+  NULL,
+  NULL,
+  ARRAY[7]::integer[],
+  4
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_34582d316925949f12bb5df2',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'kinematika'),
+  'tekis-ozgaruvchan-kochish',
+  'mexanika/kinematika/tekis-ozgaruvchan-kochish',
+  2,
+  'To''g''ri chiziqli tekis o''zgaruvchan harakatda ko''chish',
+  NULL,
+  NULL,
+  ARRAY[7]::integer[],
+  5
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_04a55c18760fad6c4d788781',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'kinematika'),
+  'notekis-ozgaruvchan-harakat',
+  'mexanika/kinematika/notekis-ozgaruvchan-harakat',
+  2,
+  'To''g''ri chiziqli notekis o''zgaruvchan harakat',
+  NULL,
+  NULL,
+  ARRAY[7,10]::integer[],
+  6
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_8ea480352586f9d9c33c3ea6',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'kinematika'),
+  'ortacha-tezlik',
+  'mexanika/kinematika/ortacha-tezlik',
+  2,
+  'O''rtacha tezlik',
+  NULL,
+  NULL,
+  ARRAY[7]::integer[],
+  7
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_8daa42fc8e4ed31c9b31c298',
   subj."id",
   (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'kinematika'),
   'erkin-tushish',
   'mexanika/kinematika/erkin-tushish',
   2,
-  'Erkin tushish',
+  'Jismlarning erkin tushishi',
   NULL,
   NULL,
-  ARRAY[9]::integer[],
-  2
+  ARRAY[7]::integer[],
+  8
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -141,20 +303,20 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_2756c999c0279144119279aa',
+  'tn_9114deb4366976f5d610dc4f',
   subj."id",
   (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'kinematika'),
-  'egri-chiziqli-harakat',
-  'mexanika/kinematika/egri-chiziqli-harakat',
+  'tik-otilgan-jism',
+  'mexanika/kinematika/tik-otilgan-jism',
   2,
-  'Egri chiziqli harakat',
+  'Yuqoriga tik otilgan jism harakati',
   NULL,
   NULL,
-  ARRAY[9,10]::integer[],
-  3
+  ARRAY[7,10]::integer[],
+  9
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -168,7 +330,169 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_8a1bb2cd66ec1e54bc46fd58',
+  'tn_795c93ab0a237e0644f42465',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'kinematika'),
+  'aylana-boylab-tekis-harakat',
+  'mexanika/kinematika/aylana-boylab-tekis-harakat',
+  2,
+  'Egri chiziqli harakat. Aylana bo''ylab tekis harakat',
+  NULL,
+  NULL,
+  ARRAY[7]::integer[],
+  10
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_810f250866e03a035488ca23',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'kinematika'),
+  'aylanma-harakat-uzatish',
+  'mexanika/kinematika/aylanma-harakat-uzatish',
+  2,
+  'Aylanma harakatni uzatish',
+  NULL,
+  NULL,
+  ARRAY[7]::integer[],
+  11
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_e35fd51daf0f17b71f1d9b2c',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'kinematika'),
+  'markazga-intilma-tezlanish',
+  'mexanika/kinematika/markazga-intilma-tezlanish',
+  2,
+  'Markazga intilma tezlanish',
+  NULL,
+  NULL,
+  ARRAY[7]::integer[],
+  12
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_e4d3894e8c4847b402d943bd',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'kinematika'),
+  'aylana-boylab-notekis-harakat',
+  'mexanika/kinematika/aylana-boylab-notekis-harakat',
+  2,
+  'Aylana bo''ylab notekis harakat',
+  NULL,
+  NULL,
+  ARRAY[7,10]::integer[],
+  13
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_c2f985cb97dd4b0157869f90',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'kinematika'),
+  'gorizontal-otilgan-jism',
+  'mexanika/kinematika/gorizontal-otilgan-jism',
+  2,
+  'Gorizontal otilgan jism harakati',
+  NULL,
+  NULL,
+  ARRAY[7,10]::integer[],
+  14
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_330435b84a6d3b5c43844a87',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'kinematika'),
+  'qiya-otilgan-jism',
+  'mexanika/kinematika/qiya-otilgan-jism',
+  2,
+  'Gorizontga qiya otilgan jism harakati',
+  NULL,
+  NULL,
+  ARRAY[7,10]::integer[],
+  15
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_528d48d5275e249514e26f6d',
   subj."id",
   (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'mexanika'),
   'dinamika',
@@ -177,11 +501,11 @@ SELECT
   'Dinamika',
   NULL,
   NULL,
-  ARRAY[9]::integer[],
+  ARRAY[7,10]::integer[],
   1
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -195,47 +519,47 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_5e91facf9b074ef796743152',
+  'tn_28597979dc56c857f7bf5c71',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'dinamika'),
+  'massa-va-zichlik',
+  'mexanika/dinamika/massa-va-zichlik',
+  2,
+  'Massa va zichlik',
+  NULL,
+  NULL,
+  ARRAY[7]::integer[],
+  0
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_5752ec6abd903d8da0988ec2',
   subj."id",
   (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'dinamika'),
   'nyuton-qonunlari',
   'mexanika/dinamika/nyuton-qonunlari',
   2,
-  'Nyuton qonunlari',
+  'Nyutonning I, II, III qonunlari',
   NULL,
   NULL,
-  ARRAY[9]::integer[],
-  0
-FROM "Subject" subj
-JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
-LIMIT 1
-ON CONFLICT ("subjectId", "slug") DO UPDATE SET
-  "parentId" = EXCLUDED."parentId",
-  "path" = EXCLUDED."path",
-  "level" = EXCLUDED."level",
-  "nameUz" = EXCLUDED."nameUz",
-  "nameRu" = EXCLUDED."nameRu",
-  "nameEn" = EXCLUDED."nameEn",
-  "grade" = EXCLUDED."grade",
-  "order" = EXCLUDED."order";
-
-INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
-SELECT
-  'tn_7573469178f52f3f03cd3e21',
-  subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'dinamika'),
-  'erkinlik-kuchi-va-ogirlik-kuchi',
-  'mexanika/dinamika/erkinlik-kuchi-va-ogirlik-kuchi',
-  2,
-  'Erkinlik kuchi va og''irlik kuchi',
-  NULL,
-  NULL,
-  ARRAY[9]::integer[],
+  ARRAY[7,10]::integer[],
   1
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -249,20 +573,20 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_d2e72a1aa23907bca3ddcd92',
+  'tn_2d6dbd2cdbfaffefd3b67437',
   subj."id",
   (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'dinamika'),
-  'ishqalanish-kuchi',
-  'mexanika/dinamika/ishqalanish-kuchi',
+  'markazga-intilma-kuch',
+  'mexanika/dinamika/markazga-intilma-kuch',
   2,
-  'Ishqalanish kuchi',
+  'Markazga intilma va markazdan qochma kuch',
   NULL,
   NULL,
-  ARRAY[9]::integer[],
+  ARRAY[7,10]::integer[],
   2
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -276,7 +600,88 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_a7112da070a1f07d1fe6d9a5',
+  'tn_87eb586065ab13e557119f94',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'dinamika'),
+  'butun-olam-tortishish',
+  'mexanika/dinamika/butun-olam-tortishish',
+  2,
+  'Butun olam tortishish qonuni. Gravitatsiya kuchi',
+  NULL,
+  NULL,
+  ARRAY[7,10]::integer[],
+  3
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_de73f0ffa6b5de7f47906826',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'dinamika'),
+  'kosmik-tezliklar',
+  'mexanika/dinamika/kosmik-tezliklar',
+  2,
+  'Kosmik tezliklar',
+  NULL,
+  NULL,
+  ARRAY[7,10]::integer[],
+  4
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_b8165a13291a42d0c4a98ee8',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'dinamika'),
+  'ogirlik-va-harakat',
+  'mexanika/dinamika/ogirlik-va-harakat',
+  2,
+  'Jism og''irligining uning harakat turlariga bog''liqligi',
+  NULL,
+  NULL,
+  ARRAY[7,10]::integer[],
+  5
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_71b471566c34e49ac6c393b4',
   subj."id",
   (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'dinamika'),
   'elastiklik-kuchi',
@@ -285,11 +690,11 @@ SELECT
   'Elastiklik kuchi',
   NULL,
   NULL,
-  ARRAY[9]::integer[],
-  3
+  ARRAY[7,10]::integer[],
+  6
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -303,7 +708,358 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_a14f401bd3a5a58d9d22fa88',
+  'tn_c8abb15c7d44bbad5a93f041',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'mexanika'),
+  'ishqalanish-va-impuls',
+  'mexanika/ishqalanish-va-impuls',
+  1,
+  'Ishqalanish kuchi va impuls',
+  NULL,
+  NULL,
+  ARRAY[7,10]::integer[],
+  2
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_47074fd76e4740f878d68a00',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'ishqalanish-va-impuls'),
+  'gorizontal-ishqalanish',
+  'mexanika/ishqalanish-va-impuls/gorizontal-ishqalanish',
+  2,
+  'Gorizontal tekislikda sirpanish ishqalanish kuchi',
+  NULL,
+  NULL,
+  ARRAY[7,10]::integer[],
+  0
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_62cb2aac8ae2cc0e18193a26',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'ishqalanish-va-impuls'),
+  'qiya-tekislik-ishqalanish',
+  'mexanika/ishqalanish-va-impuls/qiya-tekislik-ishqalanish',
+  2,
+  'Qiya tekislikda sirpanish ishqalanish kuchi',
+  NULL,
+  NULL,
+  ARRAY[7,10]::integer[],
+  1
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_d04cc62a72a0e0a658bf87cc',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'ishqalanish-va-impuls'),
+  'bir-nechta-kuch',
+  'mexanika/ishqalanish-va-impuls/bir-nechta-kuch',
+  2,
+  'Bir nechta kuchlar ta''siri ostidagi harakat',
+  NULL,
+  NULL,
+  ARRAY[7,10]::integer[],
+  2
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_3273eeb338ed4bf73113e1fd',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'ishqalanish-va-impuls'),
+  'bloklar',
+  'mexanika/ishqalanish-va-impuls/bloklar',
+  2,
+  'Ko''chmas va ko''char bloklar',
+  NULL,
+  NULL,
+  ARRAY[7,10]::integer[],
+  3
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_4ef4a1e18085203a5721d909',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'ishqalanish-va-impuls'),
+  'impuls',
+  'mexanika/ishqalanish-va-impuls/impuls',
+  2,
+  'Jism va kuch impulsi',
+  NULL,
+  NULL,
+  ARRAY[7,10]::integer[],
+  4
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_fadab2c101e01279fdab3a84',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'ishqalanish-va-impuls'),
+  'impuls-saqlanish',
+  'mexanika/ishqalanish-va-impuls/impuls-saqlanish',
+  2,
+  'Impulsning saqlanish qonuni',
+  NULL,
+  NULL,
+  ARRAY[7,10]::integer[],
+  5
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_f5968b7bb92f7416cdb61b9c',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'mexanika'),
+  'ish-va-energiya',
+  'mexanika/ish-va-energiya',
+  1,
+  'Mexanik ish va mexanik energiya',
+  NULL,
+  NULL,
+  ARRAY[7,10]::integer[],
+  3
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_0143b421b80ce3d8c77ef8f5',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'ish-va-energiya'),
+  'mexanik-ish',
+  'mexanika/ish-va-energiya/mexanik-ish',
+  2,
+  'Mexanik ish',
+  NULL,
+  NULL,
+  ARRAY[7,10]::integer[],
+  0
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_118817f4d7f1f11e08c21135',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'ish-va-energiya'),
+  'quvvat',
+  'mexanika/ish-va-energiya/quvvat',
+  2,
+  'Quvvat',
+  NULL,
+  NULL,
+  ARRAY[7,10]::integer[],
+  1
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_cd5336f1ae61284b218864c4',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'ish-va-energiya'),
+  'foydali-ish-koeffitsienti',
+  'mexanika/ish-va-energiya/foydali-ish-koeffitsienti',
+  2,
+  'Foydali ish koeffitsienti',
+  NULL,
+  NULL,
+  ARRAY[7,10]::integer[],
+  2
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_8d15c473a2b29b0e3c35aa07',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'ish-va-energiya'),
+  'mexanik-energiya',
+  'mexanika/ish-va-energiya/mexanik-energiya',
+  2,
+  'Mexanik energiya',
+  NULL,
+  NULL,
+  ARRAY[7,10]::integer[],
+  3
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_7044fe9021e395793db374e7',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'ish-va-energiya'),
+  'energiya-va-ish',
+  'mexanika/ish-va-energiya/energiya-va-ish',
+  2,
+  'Mexanik energiya va ish orasidagi bog''lanish',
+  NULL,
+  NULL,
+  ARRAY[7,10]::integer[],
+  4
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_277aa7b0aaa7a5c2b257a1bb',
   subj."id",
   (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'mexanika'),
   'statika',
@@ -312,254 +1068,11 @@ SELECT
   'Statika',
   NULL,
   NULL,
-  ARRAY[9]::integer[],
-  2
-FROM "Subject" subj
-JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
-LIMIT 1
-ON CONFLICT ("subjectId", "slug") DO UPDATE SET
-  "parentId" = EXCLUDED."parentId",
-  "path" = EXCLUDED."path",
-  "level" = EXCLUDED."level",
-  "nameUz" = EXCLUDED."nameUz",
-  "nameRu" = EXCLUDED."nameRu",
-  "nameEn" = EXCLUDED."nameEn",
-  "grade" = EXCLUDED."grade",
-  "order" = EXCLUDED."order";
-
-INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
-SELECT
-  'tn_fcdd67a87372227dc3976034',
-  subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'statika'),
-  'kuchlar-muvozanati',
-  'mexanika/statika/kuchlar-muvozanati',
-  2,
-  'Kuchlar muvozanati',
-  NULL,
-  NULL,
-  ARRAY[9]::integer[],
-  0
-FROM "Subject" subj
-JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
-LIMIT 1
-ON CONFLICT ("subjectId", "slug") DO UPDATE SET
-  "parentId" = EXCLUDED."parentId",
-  "path" = EXCLUDED."path",
-  "level" = EXCLUDED."level",
-  "nameUz" = EXCLUDED."nameUz",
-  "nameRu" = EXCLUDED."nameRu",
-  "nameEn" = EXCLUDED."nameEn",
-  "grade" = EXCLUDED."grade",
-  "order" = EXCLUDED."order";
-
-INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
-SELECT
-  'tn_28591d0af4614664fdeadb31',
-  subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'statika'),
-  'kuch-momenti-va-richag',
-  'mexanika/statika/kuch-momenti-va-richag',
-  2,
-  'Kuch momenti va richag',
-  NULL,
-  NULL,
-  ARRAY[9]::integer[],
-  1
-FROM "Subject" subj
-JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
-LIMIT 1
-ON CONFLICT ("subjectId", "slug") DO UPDATE SET
-  "parentId" = EXCLUDED."parentId",
-  "path" = EXCLUDED."path",
-  "level" = EXCLUDED."level",
-  "nameUz" = EXCLUDED."nameUz",
-  "nameRu" = EXCLUDED."nameRu",
-  "nameEn" = EXCLUDED."nameEn",
-  "grade" = EXCLUDED."grade",
-  "order" = EXCLUDED."order";
-
-INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
-SELECT
-  'tn_cadad18cbb93112a316b0152',
-  subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'statika'),
-  'ogirlik-markazi',
-  'mexanika/statika/ogirlik-markazi',
-  2,
-  'Og''irlik markazi',
-  NULL,
-  NULL,
-  ARRAY[9]::integer[],
-  2
-FROM "Subject" subj
-JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
-LIMIT 1
-ON CONFLICT ("subjectId", "slug") DO UPDATE SET
-  "parentId" = EXCLUDED."parentId",
-  "path" = EXCLUDED."path",
-  "level" = EXCLUDED."level",
-  "nameUz" = EXCLUDED."nameUz",
-  "nameRu" = EXCLUDED."nameRu",
-  "nameEn" = EXCLUDED."nameEn",
-  "grade" = EXCLUDED."grade",
-  "order" = EXCLUDED."order";
-
-INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
-SELECT
-  'tn_89f5a0ebbe38bd66a1a3197b',
-  subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'statika'),
-  'jismlarning-muvozanat-turlari',
-  'mexanika/statika/jismlarning-muvozanat-turlari',
-  2,
-  'Jismlarning muvozanat turlari',
-  NULL,
-  NULL,
-  ARRAY[9]::integer[],
-  3
-FROM "Subject" subj
-JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
-LIMIT 1
-ON CONFLICT ("subjectId", "slug") DO UPDATE SET
-  "parentId" = EXCLUDED."parentId",
-  "path" = EXCLUDED."path",
-  "level" = EXCLUDED."level",
-  "nameUz" = EXCLUDED."nameUz",
-  "nameRu" = EXCLUDED."nameRu",
-  "nameEn" = EXCLUDED."nameEn",
-  "grade" = EXCLUDED."grade",
-  "order" = EXCLUDED."order";
-
-INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
-SELECT
-  'tn_8eb8e6f366fba8879532f8ac',
-  subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'mexanika'),
-  'saqlanish-qonunlari',
-  'mexanika/saqlanish-qonunlari',
-  1,
-  'Saqlanish qonunlari',
-  NULL,
-  NULL,
-  ARRAY[9]::integer[],
-  3
-FROM "Subject" subj
-JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
-LIMIT 1
-ON CONFLICT ("subjectId", "slug") DO UPDATE SET
-  "parentId" = EXCLUDED."parentId",
-  "path" = EXCLUDED."path",
-  "level" = EXCLUDED."level",
-  "nameUz" = EXCLUDED."nameUz",
-  "nameRu" = EXCLUDED."nameRu",
-  "nameEn" = EXCLUDED."nameEn",
-  "grade" = EXCLUDED."grade",
-  "order" = EXCLUDED."order";
-
-INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
-SELECT
-  'tn_b2394293415e9fa207683c6d',
-  subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'saqlanish-qonunlari'),
-  'impulsning-saqlanish-qonuni',
-  'mexanika/saqlanish-qonunlari/impulsning-saqlanish-qonuni',
-  2,
-  'Impulsning saqlanish qonuni',
-  NULL,
-  NULL,
-  ARRAY[9]::integer[],
-  0
-FROM "Subject" subj
-JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
-LIMIT 1
-ON CONFLICT ("subjectId", "slug") DO UPDATE SET
-  "parentId" = EXCLUDED."parentId",
-  "path" = EXCLUDED."path",
-  "level" = EXCLUDED."level",
-  "nameUz" = EXCLUDED."nameUz",
-  "nameRu" = EXCLUDED."nameRu",
-  "nameEn" = EXCLUDED."nameEn",
-  "grade" = EXCLUDED."grade",
-  "order" = EXCLUDED."order";
-
-INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
-SELECT
-  'tn_c25e9f77799e732adfcd8e18',
-  subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'saqlanish-qonunlari'),
-  'mexanik-energiyaning-saqlanish-qonuni',
-  'mexanika/saqlanish-qonunlari/mexanik-energiyaning-saqlanish-qonuni',
-  2,
-  'Mexanik energiyaning saqlanish qonuni',
-  NULL,
-  NULL,
-  ARRAY[9]::integer[],
-  1
-FROM "Subject" subj
-JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
-LIMIT 1
-ON CONFLICT ("subjectId", "slug") DO UPDATE SET
-  "parentId" = EXCLUDED."parentId",
-  "path" = EXCLUDED."path",
-  "level" = EXCLUDED."level",
-  "nameUz" = EXCLUDED."nameUz",
-  "nameRu" = EXCLUDED."nameRu",
-  "nameEn" = EXCLUDED."nameEn",
-  "grade" = EXCLUDED."grade",
-  "order" = EXCLUDED."order";
-
-INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
-SELECT
-  'tn_574467af83008bbfebeb1e7e',
-  subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'saqlanish-qonunlari'),
-  'ish-va-quvvat',
-  'mexanika/saqlanish-qonunlari/ish-va-quvvat',
-  2,
-  'Ish va quvvat',
-  NULL,
-  NULL,
-  ARRAY[9]::integer[],
-  2
-FROM "Subject" subj
-JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
-LIMIT 1
-ON CONFLICT ("subjectId", "slug") DO UPDATE SET
-  "parentId" = EXCLUDED."parentId",
-  "path" = EXCLUDED."path",
-  "level" = EXCLUDED."level",
-  "nameUz" = EXCLUDED."nameUz",
-  "nameRu" = EXCLUDED."nameRu",
-  "nameEn" = EXCLUDED."nameEn",
-  "grade" = EXCLUDED."grade",
-  "order" = EXCLUDED."order";
-
-INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
-SELECT
-  'tn_624bbb7b1499d63ed8082234',
-  subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'mexanika'),
-  'aylanma-harakat',
-  'mexanika/aylanma-harakat',
-  1,
-  'Aylanma harakat',
-  NULL,
-  NULL,
-  ARRAY[9,10]::integer[],
+  ARRAY[7,10]::integer[],
   4
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -573,20 +1086,20 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_8ba8d97a9154685553718fe6',
+  'tn_7238147973021c28bf75857a',
   subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'aylanma-harakat'),
-  'burchak-tezlik-va-chiziqli-tezlik',
-  'mexanika/aylanma-harakat/burchak-tezlik-va-chiziqli-tezlik',
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'statika'),
+  'muvozanat-va-kuch-momenti',
+  'mexanika/statika/muvozanat-va-kuch-momenti',
   2,
-  'Burchak tezlik va chiziqli tezlik',
+  'Jismlarning muvozanat sharti. Kuch momenti. Kuch yelkasi. Og''irlik markazi',
   NULL,
   NULL,
-  ARRAY[10]::integer[],
+  ARRAY[7,10]::integer[],
   0
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -600,20 +1113,20 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_6fe3b46cef360956576ac601',
+  'tn_b5f038fd90826041299d23ff',
   subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'aylanma-harakat'),
-  'markazga-intilma-tezlanish',
-  'mexanika/aylanma-harakat/markazga-intilma-tezlanish',
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'statika'),
+  'inersiya-momenti',
+  'mexanika/statika/inersiya-momenti',
   2,
-  'Markazga intilma tezlanish',
+  'Inersiya momenti',
   NULL,
   NULL,
-  ARRAY[10]::integer[],
+  ARRAY[7,10]::integer[],
   1
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -627,74 +1140,20 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_4e63d60d34ae195e2e9e7639',
-  subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'aylanma-harakat'),
-  'aylana-boylab-tekis-harakat',
-  'mexanika/aylanma-harakat/aylana-boylab-tekis-harakat',
-  2,
-  'Aylana bo''ylab tekis harakat',
-  NULL,
-  NULL,
-  ARRAY[10]::integer[],
-  2
-FROM "Subject" subj
-JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
-LIMIT 1
-ON CONFLICT ("subjectId", "slug") DO UPDATE SET
-  "parentId" = EXCLUDED."parentId",
-  "path" = EXCLUDED."path",
-  "level" = EXCLUDED."level",
-  "nameUz" = EXCLUDED."nameUz",
-  "nameRu" = EXCLUDED."nameRu",
-  "nameEn" = EXCLUDED."nameEn",
-  "grade" = EXCLUDED."grade",
-  "order" = EXCLUDED."order";
-
-INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
-SELECT
-  'tn_6689917dc747e8dd970d8be6',
-  subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'aylanma-harakat'),
-  'markazdan-qochma-kuch',
-  'mexanika/aylanma-harakat/markazdan-qochma-kuch',
-  2,
-  'Markazdan qochma kuch',
-  NULL,
-  NULL,
-  ARRAY[10]::integer[],
-  3
-FROM "Subject" subj
-JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
-LIMIT 1
-ON CONFLICT ("subjectId", "slug") DO UPDATE SET
-  "parentId" = EXCLUDED."parentId",
-  "path" = EXCLUDED."path",
-  "level" = EXCLUDED."level",
-  "nameUz" = EXCLUDED."nameUz",
-  "nameRu" = EXCLUDED."nameRu",
-  "nameEn" = EXCLUDED."nameEn",
-  "grade" = EXCLUDED."grade",
-  "order" = EXCLUDED."order";
-
-INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
-SELECT
-  'tn_cdd011c6ab0e97cee6c473be',
+  'tn_49132daf9bbf9e4d16ef1b7d',
   subj."id",
   (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'mexanika'),
-  'gidromexanika',
-  'mexanika/gidromexanika',
+  'suyuqlik-gaz-mexanikasi',
+  'mexanika/suyuqlik-gaz-mexanikasi',
   1,
-  'Gidromexanika',
+  'Suyuqliklar va gazlar mexanikasi',
   NULL,
   NULL,
   ARRAY[7,10]::integer[],
   5
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -708,20 +1167,20 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_4cf478704142da7ae2b6b171',
+  'tn_538879c9ae670eceea1e6bf3',
   subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'gidromexanika'),
-  'paskal-qonuni',
-  'mexanika/gidromexanika/paskal-qonuni',
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'suyuqlik-gaz-mexanikasi'),
+  'bosim',
+  'mexanika/suyuqlik-gaz-mexanikasi/bosim',
   2,
-  'Paskal qonuni',
+  'Suyuqlik va gazlarda bosim. Gidrostatik va atmosfera bosimi',
   NULL,
   NULL,
-  ARRAY[7]::integer[],
+  ARRAY[7,10]::integer[],
   0
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -735,47 +1194,47 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_be28bea796539a2a90026dda',
+  'tn_e3f08408c34397d76c145a8a',
   subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'gidromexanika'),
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'suyuqlik-gaz-mexanikasi'),
+  'tutash-idishlar',
+  'mexanika/suyuqlik-gaz-mexanikasi/tutash-idishlar',
+  2,
+  'Tutash idishlar. Gidravlik (press) mashina',
+  NULL,
+  NULL,
+  ARRAY[7,10]::integer[],
+  1
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_1b4fbe0a5f7cbc2ecda38f83',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'suyuqlik-gaz-mexanikasi'),
   'arximed-kuchi',
-  'mexanika/gidromexanika/arximed-kuchi',
+  'mexanika/suyuqlik-gaz-mexanikasi/arximed-kuchi',
   2,
   'Arximed kuchi',
   NULL,
   NULL,
-  ARRAY[7]::integer[],
-  1
-FROM "Subject" subj
-JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
-LIMIT 1
-ON CONFLICT ("subjectId", "slug") DO UPDATE SET
-  "parentId" = EXCLUDED."parentId",
-  "path" = EXCLUDED."path",
-  "level" = EXCLUDED."level",
-  "nameUz" = EXCLUDED."nameUz",
-  "nameRu" = EXCLUDED."nameRu",
-  "nameEn" = EXCLUDED."nameEn",
-  "grade" = EXCLUDED."grade",
-  "order" = EXCLUDED."order";
-
-INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
-SELECT
-  'tn_623a8e380c7cd7c1329746f9',
-  subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'gidromexanika'),
-  'bernulli-tenglamasi',
-  'mexanika/gidromexanika/bernulli-tenglamasi',
-  2,
-  'Bernulli tenglamasi',
-  NULL,
-  NULL,
-  ARRAY[10]::integer[],
+  ARRAY[7,10]::integer[],
   2
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -789,20 +1248,20 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_7cf79b299ca765e8c7c33834',
+  'tn_f0818ba3a274cd1b1e13f2dd',
   subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'gidromexanika'),
-  'suyuqlik-oqimining-uzluksizlik-tenglamasi',
-  'mexanika/gidromexanika/suyuqlik-oqimining-uzluksizlik-tenglamasi',
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'suyuqlik-gaz-mexanikasi'),
+  'bernulli-tenglamasi',
+  'mexanika/suyuqlik-gaz-mexanikasi/bernulli-tenglamasi',
   2,
-  'Suyuqlik oqimining uzluksizlik tenglamasi',
+  'Suyuqlik oqimining uzluksizlik tenglamasi. Bernulli tenglamasi',
   NULL,
   NULL,
-  ARRAY[10]::integer[],
+  ARRAY[7,10]::integer[],
   3
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -816,20 +1275,290 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_8a511807eb3fc9c878b7c4ac',
+  'tn_38f7d6dde9e9d539bc4f6912',
   subj."id",
   NULL::text,
-  'molekulyar-fizika-va-termodinamika',
-  'molekulyar-fizika-va-termodinamika',
+  'molekulyar-fizika-termodinamika',
+  'molekulyar-fizika-termodinamika',
   0,
   'Molekulyar fizika va termodinamika',
   NULL,
   NULL,
+  ARRAY[7,8,10]::integer[],
+  1
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_392df228e31496aec78da696',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'molekulyar-fizika-termodinamika'),
+  'molekulyar-fizika',
+  'molekulyar-fizika-termodinamika/molekulyar-fizika',
+  1,
+  'Molekulyar fizika',
+  NULL,
+  NULL,
+  ARRAY[7,8,10]::integer[],
+  0
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_6ef8ea9b5d30b3d7df2d1942',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'molekulyar-fizika'),
+  'mkn-asoslari',
+  'molekulyar-fizika-termodinamika/molekulyar-fizika/mkn-asoslari',
+  2,
+  'Molekulyar-kinetik nazariya asoslari',
+  NULL,
+  NULL,
+  ARRAY[7,10]::integer[],
+  0
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_a175ac2f971923fccfb9cb50',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'molekulyar-fizika'),
+  'mkn-asosiy-tenglama',
+  'molekulyar-fizika-termodinamika/molekulyar-fizika/mkn-asosiy-tenglama',
+  2,
+  'Gazlar molekulyar-kinetik nazariyasining asosiy tenglamasi',
+  NULL,
+  NULL,
+  ARRAY[7,10]::integer[],
+  1
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_bb73f71e6911d7ded6446e5b',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'molekulyar-fizika'),
+  'temperatura',
+  'molekulyar-fizika-termodinamika/molekulyar-fizika/temperatura',
+  2,
+  'Temperatura',
+  NULL,
+  NULL,
+  ARRAY[7,10]::integer[],
+  2
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_b9aab06da5318e3afad04cf1',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'molekulyar-fizika'),
+  'ideal-gaz-holat-tenglamasi',
+  'molekulyar-fizika-termodinamika/molekulyar-fizika/ideal-gaz-holat-tenglamasi',
+  2,
+  'Ideal gazning holat tenglamasi',
+  NULL,
+  NULL,
+  ARRAY[7,10]::integer[],
+  3
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_dd56e0f3c3e89d30f56fa4da',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'molekulyar-fizika'),
+  'gaz-qonunlari',
+  'molekulyar-fizika-termodinamika/molekulyar-fizika/gaz-qonunlari',
+  2,
+  'Gaz qonunlari',
+  NULL,
+  NULL,
+  ARRAY[7,10]::integer[],
+  4
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_8f94dfc689768ab7ed7b1956',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'molekulyar-fizika'),
+  'izotermik-jarayon',
+  'molekulyar-fizika-termodinamika/molekulyar-fizika/izotermik-jarayon',
+  2,
+  'Izotermik jarayon',
+  NULL,
+  NULL,
+  ARRAY[7,10]::integer[],
+  5
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_bc3449f2745614b113bb66b6',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'molekulyar-fizika'),
+  'izobarik-jarayon',
+  'molekulyar-fizika-termodinamika/molekulyar-fizika/izobarik-jarayon',
+  2,
+  'Izobarik jarayon',
+  NULL,
+  NULL,
+  ARRAY[7,10]::integer[],
+  6
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_1d269afcd64ebb87136a9fb8',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'molekulyar-fizika'),
+  'izoxorik-jarayon',
+  'molekulyar-fizika-termodinamika/molekulyar-fizika/izoxorik-jarayon',
+  2,
+  'Izoxorik jarayon',
+  NULL,
+  NULL,
+  ARRAY[7,10]::integer[],
+  7
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_4ba41ae5c0e4688f6a6d8453',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'molekulyar-fizika-termodinamika'),
+  'termodinamika',
+  'molekulyar-fizika-termodinamika/termodinamika',
+  1,
+  'Termodinamika',
+  NULL,
+  NULL,
   ARRAY[8,10]::integer[],
   1
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -843,20 +1572,20 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_8df968570a08b747535cacda',
+  'tn_db50478ff0b93708dea1903c',
   subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'molekulyar-fizika-va-termodinamika'),
-  'mktn-asoslari',
-  'molekulyar-fizika-va-termodinamika/mktn-asoslari',
-  1,
-  'Modda tuzilishining molekulyar-kinetik nazariyasi',
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'termodinamika'),
+  'ichki-energiya',
+  'molekulyar-fizika-termodinamika/termodinamika/ichki-energiya',
+  2,
+  'Ichki energiya',
   NULL,
   NULL,
-  ARRAY[10]::integer[],
+  ARRAY[8,10]::integer[],
   0
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -870,20 +1599,20 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_4f21d017c6fde743f59e6145',
+  'tn_9bdab0fba342626b39f7fbb8',
   subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'molekulyar-fizika-va-termodinamika'),
-  'ideal-gaz-qonunlari',
-  'molekulyar-fizika-va-termodinamika/ideal-gaz-qonunlari',
-  1,
-  'Ideal gaz qonunlari',
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'termodinamika'),
+  'issiqlik-miqdori',
+  'molekulyar-fizika-termodinamika/termodinamika/issiqlik-miqdori',
+  2,
+  'Issiqlik miqdori',
   NULL,
   NULL,
-  ARRAY[10]::integer[],
+  ARRAY[8,10]::integer[],
   1
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -897,20 +1626,20 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_c146eb2e7d5f1b36e9f3e858',
+  'tn_eb4462e021329c467982a2d8',
   subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'molekulyar-fizika-va-termodinamika'),
-  'termodinamika-asoslari',
-  'molekulyar-fizika-va-termodinamika/termodinamika-asoslari',
-  1,
-  'Termodinamika asoslari',
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'termodinamika'),
+  'termodinamikada-ish',
+  'molekulyar-fizika-termodinamika/termodinamika/termodinamikada-ish',
+  2,
+  'Termodinamikada ish tushunchasi',
   NULL,
   NULL,
-  ARRAY[10]::integer[],
+  ARRAY[8,10]::integer[],
   2
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -924,20 +1653,20 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_929eef5303e92c94a79df056',
+  'tn_f62b52df38ecebaafdfcac70',
   subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'molekulyar-fizika-va-termodinamika'),
-  'fazaviy-otishlar',
-  'molekulyar-fizika-va-termodinamika/fazaviy-otishlar',
-  1,
-  'Fazaviy o''tishlar (bug''lanish, kondensatsiya, kristallanish)',
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'termodinamika'),
+  'termodinamika-birinchi-qonuni',
+  'molekulyar-fizika-termodinamika/termodinamika/termodinamika-birinchi-qonuni',
+  2,
+  'Termodinamikaning birinchi qonuni',
   NULL,
   NULL,
   ARRAY[8,10]::integer[],
   3
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -951,20 +1680,20 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_f2b90ccb5923c13fa8cbec15',
+  'tn_b8caa628f51c1a019151f298',
   subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'molekulyar-fizika-va-termodinamika'),
-  'sirt-taranglik-va-namlanish',
-  'molekulyar-fizika-va-termodinamika/sirt-taranglik-va-namlanish',
-  1,
-  'Sirt taranglik va namlanish',
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'termodinamika'),
+  'birinchi-qonun-izojarayonlar',
+  'molekulyar-fizika-termodinamika/termodinamika/birinchi-qonun-izojarayonlar',
+  2,
+  'Termodinamikaning birinchi qonunining izojarayonlarga qo''llanilishi',
   NULL,
   NULL,
-  ARRAY[10]::integer[],
+  ARRAY[8,10]::integer[],
   4
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -978,20 +1707,20 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_028373df314c8ec483d527f0',
+  'tn_32968c43341eab1a446eb669',
   subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'molekulyar-fizika-va-termodinamika'),
-  'qattiq-jismlar-fizikasi',
-  'molekulyar-fizika-va-termodinamika/qattiq-jismlar-fizikasi',
-  1,
-  'Qattiq jismlar fizikasi',
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'termodinamika'),
+  'issiqlik-dvigatellari',
+  'molekulyar-fizika-termodinamika/termodinamika/issiqlik-dvigatellari',
+  2,
+  'Issiqlik dvigatellari va ularning foydali ish koeffitsienti',
   NULL,
   NULL,
-  ARRAY[10]::integer[],
+  ARRAY[8,10]::integer[],
   5
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -1005,20 +1734,344 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_203d0ebe676140908996fddd',
+  'tn_1e339bb12a17f3abb95a79bb',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'molekulyar-fizika-termodinamika'),
+  'suyuqlik-qattiq-jism-xossalari',
+  'molekulyar-fizika-termodinamika/suyuqlik-qattiq-jism-xossalari',
+  1,
+  'Suyuqlik va qattiq jismlarning xossalari',
+  NULL,
+  NULL,
+  ARRAY[8,10]::integer[],
+  2
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_a4b4595f47128e3286a64553',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'suyuqlik-qattiq-jism-xossalari'),
+  'buglanish-kondensatsiya',
+  'molekulyar-fizika-termodinamika/suyuqlik-qattiq-jism-xossalari/buglanish-kondensatsiya',
+  2,
+  'Bug''lanish jarayoni. Kondensatsiya',
+  NULL,
+  NULL,
+  ARRAY[8,10]::integer[],
+  0
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_80e5f2430747b4bb5d6b382a',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'suyuqlik-qattiq-jism-xossalari'),
+  'sirt-taranglik',
+  'molekulyar-fizika-termodinamika/suyuqlik-qattiq-jism-xossalari/sirt-taranglik',
+  2,
+  'Suyuqliklarda sirt taranglik kuchi',
+  NULL,
+  NULL,
+  ARRAY[8,10]::integer[],
+  1
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_686d98f1c02f2e592e5a9ba5',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'suyuqlik-qattiq-jism-xossalari'),
+  'kapillar-hodisa',
+  'molekulyar-fizika-termodinamika/suyuqlik-qattiq-jism-xossalari/kapillar-hodisa',
+  2,
+  'Kapillar hodisa',
+  NULL,
+  NULL,
+  ARRAY[8,10]::integer[],
+  2
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_ea4f73052cb6e8c448d79faa',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'suyuqlik-qattiq-jism-xossalari'),
+  'qattiq-jismlar',
+  'molekulyar-fizika-termodinamika/suyuqlik-qattiq-jism-xossalari/qattiq-jismlar',
+  2,
+  'Qattiq jismlar',
+  NULL,
+  NULL,
+  ARRAY[8,10]::integer[],
+  3
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_1dd1764a10c04541c7ffca89',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'suyuqlik-qattiq-jism-xossalari'),
+  'erish-va-qotish',
+  'molekulyar-fizika-termodinamika/suyuqlik-qattiq-jism-xossalari/erish-va-qotish',
+  2,
+  'Jismlarning erishi va qotishi',
+  NULL,
+  NULL,
+  ARRAY[8,10]::integer[],
+  4
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_5101b2ad9e8e6b4a332963d0',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'suyuqlik-qattiq-jism-xossalari'),
+  'issiqlikdan-kengayish',
+  'molekulyar-fizika-termodinamika/suyuqlik-qattiq-jism-xossalari/issiqlikdan-kengayish',
+  2,
+  'Jismlarning issiqlikdan kengayishi',
+  NULL,
+  NULL,
+  ARRAY[8,10]::integer[],
+  5
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_01ae429e1bd32efcb53d1529',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'molekulyar-fizika-termodinamika'),
+  'mexanik-tebranish-tolqin',
+  'molekulyar-fizika-termodinamika/mexanik-tebranish-tolqin',
+  1,
+  'Mexanik tebranishlar va to''lqinlar',
+  NULL,
+  NULL,
+  ARRAY[8,10]::integer[],
+  3
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_eb160026a5893c5f6237bed0',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'mexanik-tebranish-tolqin'),
+  'matematik-mayatnik',
+  'molekulyar-fizika-termodinamika/mexanik-tebranish-tolqin/matematik-mayatnik',
+  2,
+  'Mexanik tebranishlar. Matematik mayatnik',
+  NULL,
+  NULL,
+  ARRAY[8,10]::integer[],
+  0
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_c1376eefa489990418fb3112',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'mexanik-tebranish-tolqin'),
+  'prujinali-mayatnik',
+  'molekulyar-fizika-termodinamika/mexanik-tebranish-tolqin/prujinali-mayatnik',
+  2,
+  'Prujinali mayatnik',
+  NULL,
+  NULL,
+  ARRAY[8,10]::integer[],
+  1
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_279eef7ce74b76ef9579f7eb',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'mexanik-tebranish-tolqin'),
+  'garmonik-tebranishlar',
+  'molekulyar-fizika-termodinamika/mexanik-tebranish-tolqin/garmonik-tebranishlar',
+  2,
+  'Garmonik tebranishlar',
+  NULL,
+  NULL,
+  ARRAY[8,10]::integer[],
+  2
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_d6dbfa16da0dabee42b6491d',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'mexanik-tebranish-tolqin'),
+  'mexanik-tolqinlar',
+  'molekulyar-fizika-termodinamika/mexanik-tebranish-tolqin/mexanik-tolqinlar',
+  2,
+  'Mexanik to''lqinlar',
+  NULL,
+  NULL,
+  ARRAY[8,10]::integer[],
+  3
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_8afce5eaef69e6d622dcc0af',
   subj."id",
   NULL::text,
-  'elektr-va-magnetizm',
-  'elektr-va-magnetizm',
+  'elektr-va-magnitizm',
+  'elektr-va-magnitizm',
   0,
-  'Elektr va magnetizm',
+  'Elektr va magnitizm',
   NULL,
   NULL,
   ARRAY[8,10,11]::integer[],
   2
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -1032,20 +2085,20 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_6136851c40187b3b9dcafc86',
+  'tn_cf7604d85ab13f9e0ee2d85a',
   subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'elektr-va-magnetizm'),
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'elektr-va-magnitizm'),
   'elektrostatika',
-  'elektr-va-magnetizm/elektrostatika',
+  'elektr-va-magnitizm/elektrostatika',
   1,
   'Elektrostatika',
   NULL,
   NULL,
-  ARRAY[10]::integer[],
+  ARRAY[8,10]::integer[],
   0
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -1059,20 +2112,47 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_3ee320519b9efd643ba84f99',
+  'tn_3b839b9715a6134e4e06ace9',
   subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'elektr-va-magnetizm'),
-  'ozgarmas-elektr-tok',
-  'elektr-va-magnetizm/ozgarmas-elektr-tok',
-  1,
-  'O''zgarmas elektr tok',
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'elektrostatika'),
+  'elektr-zaryadi',
+  'elektr-va-magnitizm/elektrostatika/elektr-zaryadi',
+  2,
+  'Elektr zaryadi va uning ikki turi. Elementar zaryad',
+  NULL,
+  NULL,
+  ARRAY[8,10]::integer[],
+  0
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_cdd24eea308109574fab416e',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'elektrostatika'),
+  'elektr-maydon-kuchlanganligi',
+  'elektr-va-magnitizm/elektrostatika/elektr-maydon-kuchlanganligi',
+  2,
+  'Elektr maydoni va uning kuchlanganligi',
   NULL,
   NULL,
   ARRAY[8,10]::integer[],
   1
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -1086,20 +2166,20 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_8e8b4d74ef041133bd2177d3',
+  'tn_aea81a643f38d57e97b6d278',
   subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'elektr-va-magnetizm'),
-  'yarimotkazgichlar',
-  'elektr-va-magnetizm/yarimotkazgichlar',
-  1,
-  'Yarimo''tkazgichlar',
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'elektrostatika'),
+  'cheksiz-tekislik-maydoni',
+  'elektr-va-magnitizm/elektrostatika/cheksiz-tekislik-maydoni',
+  2,
+  'Bir jinsli zaryadlangan cheksiz tekislikning elektr maydoni',
   NULL,
   NULL,
-  ARRAY[10,11]::integer[],
+  ARRAY[8,10]::integer[],
   2
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -1113,20 +2193,20 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_3fa4c6100067696908d4e9a9',
+  'tn_44a9ede980a5fa8cd543add5',
   subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'elektr-va-magnetizm'),
-  'magnit-maydon',
-  'elektr-va-magnetizm/magnit-maydon',
-  1,
-  'Magnit maydon',
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'elektrostatika'),
+  'maydonda-bajarilgan-ish',
+  'elektr-va-magnitizm/elektrostatika/maydonda-bajarilgan-ish',
+  2,
+  'Elektr maydonida nuqtaviy zaryadni ko''chirishda bajarilgan ish',
   NULL,
   NULL,
-  ARRAY[10]::integer[],
+  ARRAY[8,10]::integer[],
   3
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -1140,20 +2220,884 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_9cecf87969561934a9fba8f3',
+  'tn_18396b3828c336d6f6bfce52',
   subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'elektr-va-magnetizm'),
-  'elektromagnit-induksiya',
-  'elektr-va-magnetizm/elektromagnit-induksiya',
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'elektrostatika'),
+  'potensial-va-kuchlanganlik',
+  'elektr-va-magnitizm/elektrostatika/potensial-va-kuchlanganlik',
+  2,
+  'Potensiallar ayirmasi bilan kuchlanganlik orasidagi bog''lanish',
+  NULL,
+  NULL,
+  ARRAY[8,10]::integer[],
+  4
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_5d136f39189749520b69e1bc',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'elektrostatika'),
+  'otkazgichlar-maydonda',
+  'elektr-va-magnitizm/elektrostatika/otkazgichlar-maydonda',
+  2,
+  'Elektr maydonda o''tkazgichlar. O''tkazgich ichidagi elektr maydoni',
+  NULL,
+  NULL,
+  ARRAY[8,10]::integer[],
+  5
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_b8161b99a544f7cf887f6b82',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'elektrostatika'),
+  'elektr-sigimi',
+  'elektr-va-magnitizm/elektrostatika/elektr-sigimi',
+  2,
+  'O''tkazgichning elektr sig''imi',
+  NULL,
+  NULL,
+  ARRAY[8,10]::integer[],
+  6
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_3c597dd541f14abee8895047',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'elektrostatika'),
+  'kondensator-tasir-kuchi',
+  'elektr-va-magnitizm/elektrostatika/kondensator-tasir-kuchi',
+  2,
+  'Kondensator qoplamalarining o''zaro elektrostatik ta''sir kuchi',
+  NULL,
+  NULL,
+  ARRAY[8,10]::integer[],
+  7
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_4a4ff6284fcbb248f4440b8c',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'elektrostatika'),
+  'kondensator-ulash',
+  'elektr-va-magnitizm/elektrostatika/kondensator-ulash',
+  2,
+  'Kondensatorlarni parallel va ketma-ket ulash',
+  NULL,
+  NULL,
+  ARRAY[8,10]::integer[],
+  8
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_9796958aeba6fc3b6bb15aa3',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'elektrostatika'),
+  'kondensator-energiyasi',
+  'elektr-va-magnitizm/elektrostatika/kondensator-energiyasi',
+  2,
+  'Zaryadlangan jismning va kondensatorning energiyasi',
+  NULL,
+  NULL,
+  ARRAY[8,10]::integer[],
+  9
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_a2621277350b15942b324d7d',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'elektr-va-magnitizm'),
+  'ozgarmas-tok',
+  'elektr-va-magnitizm/ozgarmas-tok',
   1,
-  'Elektromagnit induksiya',
+  'O''zgarmas tok qonunlari',
+  NULL,
+  NULL,
+  ARRAY[8,10,11]::integer[],
+  1
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_98120afbe0c111b8f7d5490a',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'ozgarmas-tok'),
+  'elektr-toki',
+  'elektr-va-magnitizm/ozgarmas-tok/elektr-toki',
+  2,
+  'Elektr toki. Tokning mavjud bo''lish shartlari. Tok kuchi va tok zichligi',
+  NULL,
+  NULL,
+  ARRAY[8,10]::integer[],
+  0
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_74ffdb11f97c431c0c3541b7',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'ozgarmas-tok'),
+  'otkazgich-qarshiligi',
+  'elektr-va-magnitizm/ozgarmas-tok/otkazgich-qarshiligi',
+  2,
+  'O''tkazgich qarshiligi. Solishtirma qarshilik',
+  NULL,
+  NULL,
+  ARRAY[8,10]::integer[],
+  1
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_aee58b275d0ce667233b67fd',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'ozgarmas-tok'),
+  'qarshilik-va-temperatura',
+  'elektr-va-magnitizm/ozgarmas-tok/qarshilik-va-temperatura',
+  2,
+  'O''tkazgich qarshiligining temperaturaga bog''liqligi',
+  NULL,
+  NULL,
+  ARRAY[8,10]::integer[],
+  2
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_b17eeb4cd5e2c15e39855015',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'ozgarmas-tok'),
+  'om-qonuni-bir-qism',
+  'elektr-va-magnitizm/ozgarmas-tok/om-qonuni-bir-qism',
+  2,
+  'Zanjirning bir qismi uchun Om qonuni',
+  NULL,
+  NULL,
+  ARRAY[8,10]::integer[],
+  3
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_99ae28431cc9070d4005c71b',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'ozgarmas-tok'),
+  'otkazgich-ulash',
+  'elektr-va-magnitizm/ozgarmas-tok/otkazgich-ulash',
+  2,
+  'O''tkazgichlarni ketma-ket va parallel ulash',
+  NULL,
+  NULL,
+  ARRAY[8,10]::integer[],
+  4
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_5e99a4975d32f1c3c10965a6',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'ozgarmas-tok'),
+  'shunt-ulash',
+  'elektr-va-magnitizm/ozgarmas-tok/shunt-ulash',
+  2,
+  'Ampermetr va voltmetrga qo''shimcha qarshilik (shunt) ulash',
+  NULL,
+  NULL,
+  ARRAY[8,10]::integer[],
+  5
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_87ffe36b2b4f1dea8c5c17f7',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'ozgarmas-tok'),
+  'eyk-berk-zanjir',
+  'elektr-va-magnitizm/ozgarmas-tok/eyk-berk-zanjir',
+  2,
+  'Elektr yurituvchi kuch. Berk zanjir uchun Om qonuni',
+  NULL,
+  NULL,
+  ARRAY[8,10]::integer[],
+  6
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_ad6dbce45e051e09c7e6a120',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'ozgarmas-tok'),
+  'kirxgof-qonunlari',
+  'elektr-va-magnitizm/ozgarmas-tok/kirxgof-qonunlari',
+  2,
+  'Kirxgof qonunlari va ularning qo''llanilishi',
+  NULL,
+  NULL,
+  ARRAY[10,11]::integer[],
+  7
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_45a052ebe3da7de519c09fc2',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'ozgarmas-tok'),
+  'tok-ishi-quvvati',
+  'elektr-va-magnitizm/ozgarmas-tok/tok-ishi-quvvati',
+  2,
+  'Elektr tokining ishi va quvvati. Joul-Lens qonuni',
+  NULL,
+  NULL,
+  ARRAY[8,10]::integer[],
+  8
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_ed70bcecd6f68e1a4b5a2366',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'ozgarmas-tok'),
+  'choglanma-lampalar',
+  'elektr-va-magnitizm/ozgarmas-tok/choglanma-lampalar',
+  2,
+  'Cho''g''lanma elektr lampalari',
+  NULL,
+  NULL,
+  ARRAY[8,10]::integer[],
+  9
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_ecc8347b581a75c4094de8ae',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'elektr-va-magnitizm'),
+  'turli-muhitda-tok',
+  'elektr-va-magnitizm/turli-muhitda-tok',
+  1,
+  'Turli muhitlarda elektr toki',
+  NULL,
+  NULL,
+  ARRAY[8,10]::integer[],
+  2
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_75c6ef642cd2da74237da8a2',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'turli-muhitda-tok'),
+  'elektrolitlarda-tok',
+  'elektr-va-magnitizm/turli-muhitda-tok/elektrolitlarda-tok',
+  2,
+  'Elektrolitlarda elektr toki. Elektroliz uchun Faradey qonunlari',
+  NULL,
+  NULL,
+  ARRAY[8,10]::integer[],
+  0
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_e98c796f015d373ed0187d29',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'turli-muhitda-tok'),
+  'vakuumda-tok',
+  'elektr-va-magnitizm/turli-muhitda-tok/vakuumda-tok',
+  2,
+  'Vakuumda elektr toki. Chiqish ishi. Elektron emissiya',
+  NULL,
+  NULL,
+  ARRAY[8,10]::integer[],
+  1
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_5d94c6ed1a431dea9eba9267',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'turli-muhitda-tok'),
+  'gazlarda-tok',
+  'elektr-va-magnitizm/turli-muhitda-tok/gazlarda-tok',
+  2,
+  'Gazlarda elektr toki',
+  NULL,
+  NULL,
+  ARRAY[8,10]::integer[],
+  2
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_66f3d8538badd5ab76aec120',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'turli-muhitda-tok'),
+  'yarim-otkazgichlarda-tok',
+  'elektr-va-magnitizm/turli-muhitda-tok/yarim-otkazgichlarda-tok',
+  2,
+  'Yarim o''tkazgichlarda elektr toki',
+  NULL,
+  NULL,
+  ARRAY[8,10]::integer[],
+  3
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_d7039db48fbe1fab4f89e611',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'elektr-va-magnitizm'),
+  'magnitizm',
+  'elektr-va-magnitizm/magnitizm',
+  1,
+  'Magnitizm',
+  NULL,
+  NULL,
+  ARRAY[8,11]::integer[],
+  3
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_7f87878bc68676ac60c4c345',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'magnitizm'),
+  'magnit-maydon',
+  'elektr-va-magnitizm/magnitizm/magnit-maydon',
+  2,
+  'Magnit maydon. Tokning magnit maydoni va o''zaro ta''sirlashuvi',
+  NULL,
+  NULL,
+  ARRAY[8,11]::integer[],
+  0
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_173fcd2d5e36deba4a6f858d',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'magnitizm'),
+  'amper-kuchi',
+  'elektr-va-magnitizm/magnitizm/amper-kuchi',
+  2,
+  'Magnit maydonda tokli o''tkazgichga ta''sir etuvchi kuch. Chap qo''l qoidasi',
+  NULL,
+  NULL,
+  ARRAY[8,11]::integer[],
+  1
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_7cb71ed089120af315f7baa6',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'magnitizm'),
+  'bio-savar-laplas',
+  'elektr-va-magnitizm/magnitizm/bio-savar-laplas',
+  2,
+  'Bio-Savar-Laplas qonuni. Magnit maydon induksiyasi. Superpozitsiya prinsipi',
+  NULL,
+  NULL,
+  ARRAY[8,11]::integer[],
+  2
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_d666458c922d88fefd104998',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'magnitizm'),
+  'lorens-kuchi',
+  'elektr-va-magnitizm/magnitizm/lorens-kuchi',
+  2,
+  'Magnit maydonda zaryadli zarrachaning harakati. Lorens kuchi',
+  NULL,
+  NULL,
+  ARRAY[8,11]::integer[],
+  3
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_5ba31b23e3db7c2c491f1768',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'magnitizm'),
+  'magnit-oqim',
+  'elektr-va-magnitizm/magnitizm/magnit-oqim',
+  2,
+  'Magnit maydon induksiya oqimi. Magnit maydonda bajarilgan ish',
+  NULL,
+  NULL,
+  ARRAY[8,11]::integer[],
+  4
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_05af89f5d9331659cdd8c56d',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'magnitizm'),
+  'elektromagnit-induksiya',
+  'elektr-va-magnitizm/magnitizm/elektromagnit-induksiya',
+  2,
+  'Elektromagnit induksiya qonuni. Induksion EYK',
+  NULL,
+  NULL,
+  ARRAY[8,11]::integer[],
+  5
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_856b5e2046fc5e03292bd876',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'magnitizm'),
+  'induktivlik',
+  'elektr-va-magnitizm/magnitizm/induktivlik',
+  2,
+  'Induktivlik',
+  NULL,
+  NULL,
+  ARRAY[8,11]::integer[],
+  6
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_bcf60d8476486d53844a3079',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'magnitizm'),
+  'magnit-maydon-energiyasi',
+  'elektr-va-magnitizm/magnitizm/magnit-maydon-energiyasi',
+  2,
+  'Magnit maydon energiyasi',
+  NULL,
+  NULL,
+  ARRAY[8,11]::integer[],
+  7
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_8df79ef2410c7be355895288',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'magnitizm'),
+  'magnit-singdiruvchanlik',
+  'elektr-va-magnitizm/magnitizm/magnit-singdiruvchanlik',
+  2,
+  'Muhitning magnit singdiruvchanligi. Dia-, para- va ferromagnitlar',
+  NULL,
+  NULL,
+  ARRAY[8,11]::integer[],
+  8
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_d1352edeae4d61d9587e0feb',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'elektr-va-magnitizm'),
+  'elektromagnit-tebranish-tolqin',
+  'elektr-va-magnitizm/elektromagnit-tebranish-tolqin',
+  1,
+  'Elektromagnit tebranishlar va to''lqinlar',
   NULL,
   NULL,
   ARRAY[11]::integer[],
   4
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -1167,101 +3111,47 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_a692118da9604fb705a54c53',
+  'tn_0db86abc2541efc91777f8ef',
   subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'elektr-va-magnetizm'),
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'elektromagnit-tebranish-tolqin'),
+  'tebranish-konturi',
+  'elektr-va-magnitizm/elektromagnit-tebranish-tolqin/tebranish-konturi',
+  2,
+  'Tebranish konturi',
+  NULL,
+  NULL,
+  ARRAY[11]::integer[],
+  0
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_f0ae1daf389c1b5572f727ed',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'elektromagnit-tebranish-tolqin'),
   'ozgaruvchan-tok',
-  'elektr-va-magnetizm/ozgaruvchan-tok',
-  1,
+  'elektr-va-magnitizm/elektromagnit-tebranish-tolqin/ozgaruvchan-tok',
+  2,
   'O''zgaruvchan tok',
   NULL,
   NULL,
   ARRAY[11]::integer[],
-  5
-FROM "Subject" subj
-JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
-LIMIT 1
-ON CONFLICT ("subjectId", "slug") DO UPDATE SET
-  "parentId" = EXCLUDED."parentId",
-  "path" = EXCLUDED."path",
-  "level" = EXCLUDED."level",
-  "nameUz" = EXCLUDED."nameUz",
-  "nameRu" = EXCLUDED."nameRu",
-  "nameEn" = EXCLUDED."nameEn",
-  "grade" = EXCLUDED."grade",
-  "order" = EXCLUDED."order";
-
-INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
-SELECT
-  'tn_5ced10faffb0f31559709c95',
-  subj."id",
-  NULL::text,
-  'tebranishlar-va-tolqinlar',
-  'tebranishlar-va-tolqinlar',
-  0,
-  'Tebranishlar va to''lqinlar',
-  NULL,
-  NULL,
-  ARRAY[9,11]::integer[],
-  3
-FROM "Subject" subj
-JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
-LIMIT 1
-ON CONFLICT ("subjectId", "slug") DO UPDATE SET
-  "parentId" = EXCLUDED."parentId",
-  "path" = EXCLUDED."path",
-  "level" = EXCLUDED."level",
-  "nameUz" = EXCLUDED."nameUz",
-  "nameRu" = EXCLUDED."nameRu",
-  "nameEn" = EXCLUDED."nameEn",
-  "grade" = EXCLUDED."grade",
-  "order" = EXCLUDED."order";
-
-INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
-SELECT
-  'tn_9c1f42c0207896359357ac9f',
-  subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'tebranishlar-va-tolqinlar'),
-  'mexanik-tebranishlar',
-  'tebranishlar-va-tolqinlar/mexanik-tebranishlar',
-  1,
-  'Mexanik tebranishlar',
-  NULL,
-  NULL,
-  ARRAY[9]::integer[],
-  0
-FROM "Subject" subj
-JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
-LIMIT 1
-ON CONFLICT ("subjectId", "slug") DO UPDATE SET
-  "parentId" = EXCLUDED."parentId",
-  "path" = EXCLUDED."path",
-  "level" = EXCLUDED."level",
-  "nameUz" = EXCLUDED."nameUz",
-  "nameRu" = EXCLUDED."nameRu",
-  "nameEn" = EXCLUDED."nameEn",
-  "grade" = EXCLUDED."grade",
-  "order" = EXCLUDED."order";
-
-INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
-SELECT
-  'tn_250c7886686217c089f8a4fb',
-  subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'tebranishlar-va-tolqinlar'),
-  'mexanik-tolqinlar-va-tovush',
-  'tebranishlar-va-tolqinlar/mexanik-tolqinlar-va-tovush',
-  1,
-  'Mexanik to''lqinlar va tovush',
-  NULL,
-  NULL,
-  ARRAY[9]::integer[],
   1
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -1275,20 +3165,20 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_d47fbf84c748a3e493a54d9c',
+  'tn_04d2bbdb703aa6048ea0fef1',
   subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'tebranishlar-va-tolqinlar'),
-  'elektromagnit-tebranishlar',
-  'tebranishlar-va-tolqinlar/elektromagnit-tebranishlar',
-  1,
-  'Elektromagnit tebranishlar',
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'elektromagnit-tebranish-tolqin'),
+  'aktiv-qarshilik',
+  'elektr-va-magnitizm/elektromagnit-tebranish-tolqin/aktiv-qarshilik',
+  2,
+  'O''zgaruvchan tok zanjirida aktiv qarshilik',
   NULL,
   NULL,
   ARRAY[11]::integer[],
   2
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -1302,20 +3192,20 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_32868081e54e929f0bbc8222',
+  'tn_e440131abc6d0a9169d04db6',
   subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'tebranishlar-va-tolqinlar'),
-  'elektromagnit-tolqinlar',
-  'tebranishlar-va-tolqinlar/elektromagnit-tolqinlar',
-  1,
-  'Elektromagnit to''lqinlar',
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'elektromagnit-tebranish-tolqin'),
+  'sigim-qarshilik',
+  'elektr-va-magnitizm/elektromagnit-tebranish-tolqin/sigim-qarshilik',
+  2,
+  'O''zgaruvchan tok zanjirida sig''im qarshilik',
   NULL,
   NULL,
   ARRAY[11]::integer[],
   3
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -1329,7 +3219,169 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_8ef625730dabaec98c1e4756',
+  'tn_d7c949b3437ec3ceb89e891b',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'elektromagnit-tebranish-tolqin'),
+  'induktiv-qarshilik',
+  'elektr-va-magnitizm/elektromagnit-tebranish-tolqin/induktiv-qarshilik',
+  2,
+  'O''zgaruvchan tok zanjirida induktiv qarshilik',
+  NULL,
+  NULL,
+  ARRAY[11]::integer[],
+  4
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_808459e323eb288c24a070b7',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'elektromagnit-tebranish-tolqin'),
+  'om-qonuni-ozgaruvchan-tok',
+  'elektr-va-magnitizm/elektromagnit-tebranish-tolqin/om-qonuni-ozgaruvchan-tok',
+  2,
+  'O''zgaruvchan tok zanjiri uchun Om qonuni. Rezonans',
+  NULL,
+  NULL,
+  ARRAY[11]::integer[],
+  5
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_704e5f72966b2c1f0a2b7b48',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'elektromagnit-tebranish-tolqin'),
+  'tok-generatori',
+  'elektr-va-magnitizm/elektromagnit-tebranish-tolqin/tok-generatori',
+  2,
+  'O''zgaruvchan tokning ishi va quvvati. Tok generatori',
+  NULL,
+  NULL,
+  ARRAY[11]::integer[],
+  6
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_58f1a817f80c56285934c167',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'elektromagnit-tebranish-tolqin'),
+  'transformator',
+  'elektr-va-magnitizm/elektromagnit-tebranish-tolqin/transformator',
+  2,
+  'Transformator',
+  NULL,
+  NULL,
+  ARRAY[11]::integer[],
+  7
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_42bdfe40b2edf67159ab8df1',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'elektromagnit-tebranish-tolqin'),
+  'elektromagnit-tolqin',
+  'elektr-va-magnitizm/elektromagnit-tebranish-tolqin/elektromagnit-tolqin',
+  2,
+  'Elektromagnit to''lqin',
+  NULL,
+  NULL,
+  ARRAY[11]::integer[],
+  8
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_786305fcb511f6d52ec3ab4c',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'elektromagnit-tebranish-tolqin'),
+  'radiolokatsiya',
+  'elektr-va-magnitizm/elektromagnit-tebranish-tolqin/radiolokatsiya',
+  2,
+  'Radiolokatsiya. Modulatsiya, detektorlash',
+  NULL,
+  NULL,
+  ARRAY[8,11]::integer[],
+  9
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_8501fe39b1ec420d480f0f5f',
   subj."id",
   NULL::text,
   'optika',
@@ -1338,11 +3390,11 @@ SELECT
   'Optika',
   NULL,
   NULL,
-  ARRAY[11]::integer[],
-  4
+  ARRAY[9,11]::integer[],
+  3
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -1356,7 +3408,7 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_29d59b55049d06873440284a',
+  'tn_300d21989fde647c961077dc',
   subj."id",
   (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'optika'),
   'geometrik-optika',
@@ -1365,11 +3417,11 @@ SELECT
   'Geometrik optika',
   NULL,
   NULL,
-  ARRAY[11]::integer[],
+  ARRAY[9,11]::integer[],
   0
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -1383,20 +3435,47 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_9c05f86b3c74f29c393af666',
+  'tn_d60e48968f71235c0775b6b4',
   subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'optika'),
-  'yoruglikning-tolqin-xossalari',
-  'optika/yoruglikning-tolqin-xossalari',
-  1,
-  'Yorug''likning to''lqin xossalari',
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'geometrik-optika'),
+  'yoruglik-tarqalishi',
+  'optika/geometrik-optika/yoruglik-tarqalishi',
+  2,
+  'Yorug''likning to''g''ri chiziq bo''ylab tarqalishi. Yorug''lik tezligi',
+  NULL,
+  NULL,
+  ARRAY[9,11]::integer[],
+  0
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_c698e68a30eb9a5e25aa175e',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'geometrik-optika'),
+  'fotometriya',
+  'optika/geometrik-optika/fotometriya',
+  2,
+  'Fotometriya',
   NULL,
   NULL,
   ARRAY[11]::integer[],
   1
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -1410,20 +3489,20 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_2fb99773535ac5104f5a92b6',
+  'tn_7b25f4254bf68a13b1360e11',
   subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'optika'),
-  'yoruglikning-kvant-xossalari',
-  'optika/yoruglikning-kvant-xossalari',
-  1,
-  'Yorug''likning kvant xossalari',
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'geometrik-optika'),
+  'qaytish-qonuni',
+  'optika/geometrik-optika/qaytish-qonuni',
+  2,
+  'Yorug''likning qaytish qonuni',
   NULL,
   NULL,
-  ARRAY[11]::integer[],
+  ARRAY[9,11]::integer[],
   2
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -1437,20 +3516,20 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_686ef2bc516f433f3dd4fb16',
+  'tn_14aaf5c004fe731d6310611c',
   subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'optika'),
-  'linzalar-va-optik-asboblar',
-  'optika/linzalar-va-optik-asboblar',
-  1,
-  'Linzalar va optik asboblar',
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'geometrik-optika'),
+  'yassi-kozgu',
+  'optika/geometrik-optika/yassi-kozgu',
+  2,
+  'Yassi ko''zgudagi tasvir',
   NULL,
   NULL,
-  ARRAY[11]::integer[],
+  ARRAY[9,11]::integer[],
   3
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -1464,20 +3543,47 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_b58761928422f6df82e0a7ab',
+  'tn_3c89ece934ad71ebab1c1301',
   subj."id",
-  NULL::text,
-  'kvant-va-atom-fizikasi',
-  'kvant-va-atom-fizikasi',
-  0,
-  'Kvant va atom fizikasi',
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'geometrik-optika'),
+  'sinish-qonuni',
+  'optika/geometrik-optika/sinish-qonuni',
+  2,
+  'Yorug''likning sinish qonuni',
   NULL,
   NULL,
-  ARRAY[11]::integer[],
+  ARRAY[9,11]::integer[],
+  4
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_8a8a66c3a32d5d1b622be00f',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'geometrik-optika'),
+  'tola-ichki-qaytish',
+  'optika/geometrik-optika/tola-ichki-qaytish',
+  2,
+  'Yorug''likning to''la ichki qaytishi',
+  NULL,
+  NULL,
+  ARRAY[9,11]::integer[],
   5
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -1491,20 +3597,20 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_98496b8ab77c1e0e93f9faae',
+  'tn_f8d6dbf4ba4a17736d43fd2f',
   subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'kvant-va-atom-fizikasi'),
-  'atom-tuzilishi',
-  'kvant-va-atom-fizikasi/atom-tuzilishi',
-  1,
-  'Atom tuzilishi',
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'geometrik-optika'),
+  'parallel-plastina',
+  'optika/geometrik-optika/parallel-plastina',
+  2,
+  'Parallel plastinada nurning yo''li',
   NULL,
   NULL,
-  ARRAY[11]::integer[],
-  0
+  ARRAY[9,11]::integer[],
+  6
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -1518,20 +3624,155 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_900cc10b507ae21509f09354',
+  'tn_7c3fab512c8b440e0d0a0da7',
   subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'kvant-va-atom-fizikasi'),
-  'atom-yadrosi-fizikasi',
-  'kvant-va-atom-fizikasi/atom-yadrosi-fizikasi',
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'geometrik-optika'),
+  'prizma',
+  'optika/geometrik-optika/prizma',
+  2,
+  'Nurlarning uchburchakli prizmadagi yo''li',
+  NULL,
+  NULL,
+  ARRAY[9,11]::integer[],
+  7
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_42145b9c04bc5608517f4813',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'geometrik-optika'),
+  'linza-optik-kuch',
+  'optika/geometrik-optika/linza-optik-kuch',
+  2,
+  'Linza. Linzaning optik kuchi',
+  NULL,
+  NULL,
+  ARRAY[9,11]::integer[],
+  8
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_fa1c3be3447d4dc79526c913',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'geometrik-optika'),
+  'linza-formulasi',
+  'optika/geometrik-optika/linza-formulasi',
+  2,
+  'Linzada tasvir yasash. Linza formulasi',
+  NULL,
+  NULL,
+  ARRAY[9,11]::integer[],
+  9
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_06c9ba872aab77793c314924',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'geometrik-optika'),
+  'sferik-kozgular',
+  'optika/geometrik-optika/sferik-kozgular',
+  2,
+  'Sferik ko''zgular',
+  NULL,
+  NULL,
+  ARRAY[9,11]::integer[],
+  10
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_90dbd14168c51cd485c85e2d',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'geometrik-optika'),
+  'optik-asboblar',
+  'optika/geometrik-optika/optik-asboblar',
+  2,
+  'Optik asboblar',
+  NULL,
+  NULL,
+  ARRAY[9,11]::integer[],
+  11
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_6d599ce8323b6f2bb5e6d440',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'optika'),
+  'tolqin-optikasi',
+  'optika/tolqin-optikasi',
   1,
-  'Atom yadrosi fizikasi',
+  'To''lqin optikasi',
   NULL,
   NULL,
-  ARRAY[11]::integer[],
+  ARRAY[9,11]::integer[],
   1
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -1545,20 +3786,74 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_911e8f6b209023ab55b6d090',
+  'tn_93e7ee68f571a7c84c8b47d8',
   subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'kvant-va-atom-fizikasi'),
-  'radioaktivlik',
-  'kvant-va-atom-fizikasi/radioaktivlik',
-  1,
-  'Radioaktivlik',
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'tolqin-optikasi'),
+  'yoruglik-tolqin-tabiati',
+  'optika/tolqin-optikasi/yoruglik-tolqin-tabiati',
+  2,
+  'Yorug''likning to''lqin tabiati',
   NULL,
   NULL,
-  ARRAY[11]::integer[],
+  ARRAY[9,11]::integer[],
+  0
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_d22bff8ea849a80eae944c5e',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'tolqin-optikasi'),
+  'interferensiya',
+  'optika/tolqin-optikasi/interferensiya',
+  2,
+  'Yorug''lik interferensiyasi',
+  NULL,
+  NULL,
+  ARRAY[9,11]::integer[],
+  1
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_a9c5f03649bec2cd4535a429',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'tolqin-optikasi'),
+  'dispersiya',
+  'optika/tolqin-optikasi/dispersiya',
+  2,
+  'Yorug''lik dispersiyasi',
+  NULL,
+  NULL,
+  ARRAY[9,11]::integer[],
   2
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -1572,20 +3867,668 @@ ON CONFLICT ("subjectId", "slug") DO UPDATE SET
 
 INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
 SELECT
-  'tn_a83c1b06db2d592074b2fa63',
+  'tn_ce59bcdb05868666242dc4b8',
   subj."id",
-  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'kvant-va-atom-fizikasi'),
-  'yadro-reaksiyalari',
-  'kvant-va-atom-fizikasi/yadro-reaksiyalari',
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'tolqin-optikasi'),
+  'difraksiya',
+  'optika/tolqin-optikasi/difraksiya',
+  2,
+  'Yorug''lik difraksiyasi',
+  NULL,
+  NULL,
+  ARRAY[9,11]::integer[],
+  3
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_08ffb8589a51e4ee38e546ca',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'tolqin-optikasi'),
+  'qutblanish',
+  'optika/tolqin-optikasi/qutblanish',
+  2,
+  'Yorug''likning qutblanishi',
+  NULL,
+  NULL,
+  ARRAY[9,11]::integer[],
+  4
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_d1239f71edc64d496533a5a6',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'tolqin-optikasi'),
+  'infraqizil-ultrabinafsha',
+  'optika/tolqin-optikasi/infraqizil-ultrabinafsha',
+  2,
+  'Infraqizil va ultrabinafsha nurlar',
+  NULL,
+  NULL,
+  ARRAY[9,11]::integer[],
+  5
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_59a0cbd7e231be151ea14543',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'tolqin-optikasi'),
+  'spektral-analiz',
+  'optika/tolqin-optikasi/spektral-analiz',
+  2,
+  'Nurlanish va yutilish spektrlari. Spektral analiz',
+  NULL,
+  NULL,
+  ARRAY[9,11]::integer[],
+  6
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_3da26a2d6d6648973c662ccc',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'tolqin-optikasi'),
+  'rentgen-nurlari',
+  'optika/tolqin-optikasi/rentgen-nurlari',
+  2,
+  'Rentgen nurlari',
+  NULL,
+  NULL,
+  ARRAY[9,11]::integer[],
+  7
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_eb091ea3d917b5b5e54aaeb3',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'optika'),
+  'nisbiylik-nazariyasi',
+  'optika/nisbiylik-nazariyasi',
   1,
-  'Yadro reaksiyalari',
+  'Maxsus nisbiylik nazariyasi asoslari',
+  NULL,
+  NULL,
+  ARRAY[9,11]::integer[],
+  2
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_d29fea723440a5a19c40e86b',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'nisbiylik-nazariyasi'),
+  'eynshteyn-postulatlari',
+  'optika/nisbiylik-nazariyasi/eynshteyn-postulatlari',
+  2,
+  'Eynshteyn postulatlari',
+  NULL,
+  NULL,
+  ARRAY[9,11]::integer[],
+  0
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_71f8b580318ff36d39dbee2e',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'nisbiylik-nazariyasi'),
+  'relyativistik-massa-energiya',
+  'optika/nisbiylik-nazariyasi/relyativistik-massa-energiya',
+  2,
+  'Relyativistik massa va impuls. Massa va energiya orasidagi bog''lanish',
+  NULL,
+  NULL,
+  ARRAY[9,11]::integer[],
+  1
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_4448ee2f68cab393306dc4ff',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'optika'),
+  'kvant-fizikasi',
+  'optika/kvant-fizikasi',
+  1,
+  'Kvant fizikasi',
+  NULL,
+  NULL,
+  ARRAY[9,11]::integer[],
+  3
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_c8c73fa2ee3f0734074d9f8d',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'kvant-fizikasi'),
+  'kvant-xossalar-fotonlar',
+  'optika/kvant-fizikasi/kvant-xossalar-fotonlar',
+  2,
+  'Yorug''likning kvant xossalari. Kvant mexanikasi. Fotonlar',
+  NULL,
+  NULL,
+  ARRAY[9,11]::integer[],
+  0
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_1c5f9f3c8ae7966d60778257',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'kvant-fizikasi'),
+  'fotoeffekt',
+  'optika/kvant-fizikasi/fotoeffekt',
+  2,
+  'Fotoeffekt',
+  NULL,
+  NULL,
+  ARRAY[9,11]::integer[],
+  1
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_d1fc8e59a2b0a9af991c0380',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'kvant-fizikasi'),
+  'yoruglik-bosimi',
+  'optika/kvant-fizikasi/yoruglik-bosimi',
+  2,
+  'Yorug''lik bosimi',
+  NULL,
+  NULL,
+  ARRAY[9,11]::integer[],
+  2
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_a7575b520876cc6dd69d8bed',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'kvant-fizikasi'),
+  'yoruglik-kimyoviy-tasiri',
+  'optika/kvant-fizikasi/yoruglik-kimyoviy-tasiri',
+  2,
+  'Yorug''likning kimyoviy ta''siri',
   NULL,
   NULL,
   ARRAY[11]::integer[],
   3
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Fizika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_f9548e9aebc24379c7a914a3',
+  subj."id",
+  NULL::text,
+  'atom-yadro-fizikasi',
+  'atom-yadro-fizikasi',
+  0,
+  'Atom va yadro fizikasi',
+  NULL,
+  NULL,
+  ARRAY[9,11]::integer[],
+  4
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_7590e3074293a25f9bea0575',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'atom-yadro-fizikasi'),
+  'atom-yadro',
+  'atom-yadro-fizikasi/atom-yadro',
+  1,
+  'Atom va yadro fizikasi',
+  NULL,
+  NULL,
+  ARRAY[9,11]::integer[],
+  0
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_1ccaedb82ff61c03bf123bc9',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'atom-yadro'),
+  'atom-planetar-model',
+  'atom-yadro-fizikasi/atom-yadro/atom-planetar-model',
+  2,
+  'Atomning planetar modeli. Bor postulatlari',
+  NULL,
+  NULL,
+  ARRAY[9,11]::integer[],
+  0
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_6752396e055a52062e5fa2c1',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'atom-yadro'),
+  'yadro-tuzilishi',
+  'atom-yadro-fizikasi/atom-yadro/yadro-tuzilishi',
+  2,
+  'Atom yadrosining tuzilishi. Yadro kuchlari',
+  NULL,
+  NULL,
+  ARRAY[9,11]::integer[],
+  1
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_44277ca73e8aef0156e37a5d',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'atom-yadro'),
+  'radioaktivlik-kashfi',
+  'atom-yadro-fizikasi/atom-yadro/radioaktivlik-kashfi',
+  2,
+  'Elementar zarralarni kuzatish. Radioaktivlikning kashf etilishi',
+  NULL,
+  NULL,
+  ARRAY[9,11]::integer[],
+  2
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_5da46d7700a85df648436665',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'atom-yadro'),
+  'radioaktiv-aylanishlar',
+  'atom-yadro-fizikasi/atom-yadro/radioaktiv-aylanishlar',
+  2,
+  'Radioaktiv aylanishlar',
+  NULL,
+  NULL,
+  ARRAY[9,11]::integer[],
+  3
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_476d238be13b3045c699f615',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'atom-yadro'),
+  'radioaktiv-yemirilish',
+  'atom-yadro-fizikasi/atom-yadro/radioaktiv-yemirilish',
+  2,
+  'Radioaktiv yemirilish qonuni',
+  NULL,
+  NULL,
+  ARRAY[9,11]::integer[],
+  4
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_9a95b2e9e8c5845431de725b',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'atom-yadro'),
+  'izotoplar',
+  'atom-yadro-fizikasi/atom-yadro/izotoplar',
+  2,
+  'Izotoplar',
+  NULL,
+  NULL,
+  ARRAY[9,11]::integer[],
+  5
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_92312574be7600f66dfbe7c8',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'atom-yadro'),
+  'yadro-boglanish-energiyasi',
+  'atom-yadro-fizikasi/atom-yadro/yadro-boglanish-energiyasi',
+  2,
+  'Atom yadrosining bog''lanish energiyasi',
+  NULL,
+  NULL,
+  ARRAY[9,11]::integer[],
+  6
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_99eb7ce26675874bdf417b60',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'atom-yadro'),
+  'yadro-reaksiyalari',
+  'atom-yadro-fizikasi/atom-yadro/yadro-reaksiyalari',
+  2,
+  'Yadro reaksiyalari',
+  NULL,
+  NULL,
+  ARRAY[9,11]::integer[],
+  7
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_5e3f28346b8bfdd279f11d1e',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'atom-yadro'),
+  'elementar-zarralar',
+  'atom-yadro-fizikasi/atom-yadro/elementar-zarralar',
+  2,
+  'Elementar zarralar',
+  NULL,
+  NULL,
+  ARRAY[9,11]::integer[],
+  8
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
+LIMIT 1
+ON CONFLICT ("subjectId", "slug") DO UPDATE SET
+  "parentId" = EXCLUDED."parentId",
+  "path" = EXCLUDED."path",
+  "level" = EXCLUDED."level",
+  "nameUz" = EXCLUDED."nameUz",
+  "nameRu" = EXCLUDED."nameRu",
+  "nameEn" = EXCLUDED."nameEn",
+  "grade" = EXCLUDED."grade",
+  "order" = EXCLUDED."order";
+
+INSERT INTO "TopicNode" ("id", "subjectId", "parentId", "slug", "path", "level", "nameUz", "nameRu", "nameEn", "grade", "order")
+SELECT
+  'tn_f571f15f40c5ae8ca5c9417e',
+  subj."id",
+  (SELECT "id" FROM "TopicNode" WHERE "subjectId" = subj."id" AND "slug" = 'atom-yadro'),
+  'nurlanish-biologik-tasiri',
+  'atom-yadro-fizikasi/atom-yadro/nurlanish-biologik-tasiri',
+  2,
+  'Radioaktiv nurlanishning biologik ta''siri',
+  NULL,
+  NULL,
+  ARRAY[9,11]::integer[],
+  9
+FROM "Subject" subj
+JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('fizika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -1612,7 +4555,7 @@ SELECT
   0
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -1639,7 +4582,7 @@ SELECT
   0
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -1666,7 +4609,7 @@ SELECT
   1
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -1693,7 +4636,7 @@ SELECT
   2
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -1720,7 +4663,7 @@ SELECT
   3
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -1747,7 +4690,7 @@ SELECT
   4
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -1774,7 +4717,7 @@ SELECT
   5
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -1801,7 +4744,7 @@ SELECT
   1
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -1828,7 +4771,7 @@ SELECT
   0
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -1855,7 +4798,7 @@ SELECT
   1
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -1882,7 +4825,7 @@ SELECT
   2
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -1909,7 +4852,7 @@ SELECT
   3
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -1936,7 +4879,7 @@ SELECT
   4
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -1963,7 +4906,7 @@ SELECT
   5
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -1990,7 +4933,7 @@ SELECT
   6
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2017,7 +4960,7 @@ SELECT
   2
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2044,7 +4987,7 @@ SELECT
   0
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2071,7 +5014,7 @@ SELECT
   1
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2098,7 +5041,7 @@ SELECT
   2
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2125,7 +5068,7 @@ SELECT
   3
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2152,7 +5095,7 @@ SELECT
   4
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2179,7 +5122,7 @@ SELECT
   5
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2206,7 +5149,7 @@ SELECT
   6
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2233,7 +5176,7 @@ SELECT
   3
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2260,7 +5203,7 @@ SELECT
   0
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2287,7 +5230,7 @@ SELECT
   1
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2314,7 +5257,7 @@ SELECT
   2
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2341,7 +5284,7 @@ SELECT
   3
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2368,7 +5311,7 @@ SELECT
   4
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2395,7 +5338,7 @@ SELECT
   0
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2422,7 +5365,7 @@ SELECT
   1
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2449,7 +5392,7 @@ SELECT
   2
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2476,7 +5419,7 @@ SELECT
   3
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2503,7 +5446,7 @@ SELECT
   5
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2530,7 +5473,7 @@ SELECT
   0
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2557,7 +5500,7 @@ SELECT
   1
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2584,7 +5527,7 @@ SELECT
   2
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2611,7 +5554,7 @@ SELECT
   3
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2638,7 +5581,7 @@ SELECT
   4
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2665,7 +5608,7 @@ SELECT
   6
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2692,7 +5635,7 @@ SELECT
   0
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2719,7 +5662,7 @@ SELECT
   1
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2746,7 +5689,7 @@ SELECT
   2
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2773,7 +5716,7 @@ SELECT
   3
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2800,7 +5743,7 @@ SELECT
   4
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2827,7 +5770,7 @@ SELECT
   7
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2854,7 +5797,7 @@ SELECT
   0
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2881,7 +5824,7 @@ SELECT
   1
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2908,7 +5851,7 @@ SELECT
   2
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2935,7 +5878,7 @@ SELECT
   3
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
@@ -2962,7 +5905,7 @@ SELECT
   4
 FROM "Subject" subj
 JOIN "TestCategory" cat ON cat."id" = subj."categoryId"
-WHERE cat."type" = 'DTM' AND subj."nameUz" = 'Matematika'
+WHERE cat."type" = 'DTM' AND LOWER(subj."nameUz") = LOWER('Matematika')
 LIMIT 1
 ON CONFLICT ("subjectId", "slug") DO UPDATE SET
   "parentId" = EXCLUDED."parentId",
