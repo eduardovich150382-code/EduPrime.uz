@@ -1,0 +1,136 @@
+{
+  "subject": "Fizika",
+  "tree": [
+    {
+      "nameUz": "Mexanika",
+      "slug": "mexanika",
+      "grade": [7, 8, 9, 10, 11],
+      "children": [
+        {
+          "nameUz": "Kinematika",
+          "slug": "kinematika",
+          "grade": [9],
+          "children": [
+            { "nameUz": "Tekis harakat", "slug": "tekis-harakat", "grade": [9] },
+            { "nameUz": "Tezlanish va tekis o'zgaruvchan harakat", "slug": "tezlanish-va-tekis-ozgaruvchan-harakat", "grade": [9] },
+            { "nameUz": "Erkin tushish", "slug": "erkin-tushish", "grade": [9] },
+            { "nameUz": "Egri chiziqli harakat", "slug": "egri-chiziqli-harakat", "grade": [9, 10] }
+          ]
+        },
+        {
+          "nameUz": "Dinamika",
+          "slug": "dinamika",
+          "grade": [9],
+          "children": [
+            { "nameUz": "Nyuton qonunlari", "slug": "nyuton-qonunlari", "grade": [9] },
+            { "nameUz": "Erkinlik kuchi va og'irlik kuchi", "slug": "erkinlik-kuchi-va-ogirlik-kuchi", "grade": [9] },
+            { "nameUz": "Ishqalanish kuchi", "slug": "ishqalanish-kuchi", "grade": [9] },
+            { "nameUz": "Elastiklik kuchi", "slug": "elastiklik-kuchi", "grade": [9] }
+          ]
+        },
+        {
+          "nameUz": "Statika",
+          "slug": "statika",
+          "grade": [9],
+          "children": [
+            { "nameUz": "Kuchlar muvozanati", "slug": "kuchlar-muvozanati", "grade": [9] },
+            { "nameUz": "Kuch momenti va richag", "slug": "kuch-momenti-va-richag", "grade": [9] },
+            { "nameUz": "Og'irlik markazi", "slug": "ogirlik-markazi", "grade": [9] },
+            { "nameUz": "Jismlarning muvozanat turlari", "slug": "jismlarning-muvozanat-turlari", "grade": [9] }
+          ]
+        },
+        {
+          "nameUz": "Saqlanish qonunlari",
+          "slug": "saqlanish-qonunlari",
+          "grade": [9],
+          "children": [
+            { "nameUz": "Impulsning saqlanish qonuni", "slug": "impulsning-saqlanish-qonuni", "grade": [9] },
+            { "nameUz": "Mexanik energiyaning saqlanish qonuni", "slug": "mexanik-energiyaning-saqlanish-qonuni", "grade": [9] },
+            { "nameUz": "Ish va quvvat", "slug": "ish-va-quvvat", "grade": [9] }
+          ]
+        },
+        {
+          "nameUz": "Aylanma harakat",
+          "slug": "aylanma-harakat",
+          "grade": [9, 10],
+          "children": [
+            { "nameUz": "Burchak tezlik va chiziqli tezlik", "slug": "burchak-tezlik-va-chiziqli-tezlik", "grade": [10] },
+            { "nameUz": "Markazga intilma tezlanish", "slug": "markazga-intilma-tezlanish", "grade": [10] },
+            { "nameUz": "Aylana bo'ylab tekis harakat", "slug": "aylana-boylab-tekis-harakat", "grade": [10] },
+            { "nameUz": "Markazdan qochma kuch", "slug": "markazdan-qochma-kuch", "grade": [10] }
+          ]
+        },
+        {
+          "nameUz": "Gidromexanika",
+          "slug": "gidromexanika",
+          "grade": [7, 10],
+          "children": [
+            { "nameUz": "Paskal qonuni", "slug": "paskal-qonuni", "grade": [7] },
+            { "nameUz": "Arximed kuchi", "slug": "arximed-kuchi", "grade": [7] },
+            { "nameUz": "Bernulli tenglamasi", "slug": "bernulli-tenglamasi", "grade": [10] },
+            { "nameUz": "Suyuqlik oqimining uzluksizlik tenglamasi", "slug": "suyuqlik-oqimining-uzluksizlik-tenglamasi", "grade": [10] }
+          ]
+        }
+      ]
+    },
+    {
+      "nameUz": "Molekulyar fizika va termodinamika",
+      "slug": "molekulyar-fizika-va-termodinamika",
+      "grade": [8, 10],
+      "children": [
+        { "nameUz": "Modda tuzilishining molekulyar-kinetik nazariyasi", "slug": "mktn-asoslari", "grade": [10] },
+        { "nameUz": "Ideal gaz qonunlari", "slug": "ideal-gaz-qonunlari", "grade": [10] },
+        { "nameUz": "Termodinamika asoslari", "slug": "termodinamika-asoslari", "grade": [10] },
+        { "nameUz": "Fazaviy o'tishlar (bug'lanish, kondensatsiya, kristallanish)", "slug": "fazaviy-otishlar", "grade": [8, 10] },
+        { "nameUz": "Sirt taranglik va namlanish", "slug": "sirt-taranglik-va-namlanish", "grade": [10] },
+        { "nameUz": "Qattiq jismlar fizikasi", "slug": "qattiq-jismlar-fizikasi", "grade": [10] }
+      ]
+    },
+    {
+      "nameUz": "Elektr va magnetizm",
+      "slug": "elektr-va-magnetizm",
+      "grade": [8, 10, 11],
+      "children": [
+        { "nameUz": "Elektrostatika", "slug": "elektrostatika", "grade": [10] },
+        { "nameUz": "O'zgarmas elektr tok", "slug": "ozgarmas-elektr-tok", "grade": [8, 10] },
+        { "nameUz": "Yarimo'tkazgichlar", "slug": "yarimotkazgichlar", "grade": [10, 11] },
+        { "nameUz": "Magnit maydon", "slug": "magnit-maydon", "grade": [10] },
+        { "nameUz": "Elektromagnit induksiya", "slug": "elektromagnit-induksiya", "grade": [11] },
+        { "nameUz": "O'zgaruvchan tok", "slug": "ozgaruvchan-tok", "grade": [11] }
+      ]
+    },
+    {
+      "nameUz": "Tebranishlar va to'lqinlar",
+      "slug": "tebranishlar-va-tolqinlar",
+      "grade": [9, 11],
+      "children": [
+        { "nameUz": "Mexanik tebranishlar", "slug": "mexanik-tebranishlar", "grade": [9] },
+        { "nameUz": "Mexanik to'lqinlar va tovush", "slug": "mexanik-tolqinlar-va-tovush", "grade": [9] },
+        { "nameUz": "Elektromagnit tebranishlar", "slug": "elektromagnit-tebranishlar", "grade": [11] },
+        { "nameUz": "Elektromagnit to'lqinlar", "slug": "elektromagnit-tolqinlar", "grade": [11] }
+      ]
+    },
+    {
+      "nameUz": "Optika",
+      "slug": "optika",
+      "grade": [11],
+      "children": [
+        { "nameUz": "Geometrik optika", "slug": "geometrik-optika", "grade": [11] },
+        { "nameUz": "Yorug'likning to'lqin xossalari", "slug": "yoruglikning-tolqin-xossalari", "grade": [11] },
+        { "nameUz": "Yorug'likning kvant xossalari", "slug": "yoruglikning-kvant-xossalari", "grade": [11] },
+        { "nameUz": "Linzalar va optik asboblar", "slug": "linzalar-va-optik-asboblar", "grade": [11] }
+      ]
+    },
+    {
+      "nameUz": "Kvant va atom fizikasi",
+      "slug": "kvant-va-atom-fizikasi",
+      "grade": [11],
+      "children": [
+        { "nameUz": "Atom tuzilishi", "slug": "atom-tuzilishi", "grade": [11] },
+        { "nameUz": "Atom yadrosi fizikasi", "slug": "atom-yadrosi-fizikasi", "grade": [11] },
+        { "nameUz": "Radioaktivlik", "slug": "radioaktivlik", "grade": [11] },
+        { "nameUz": "Yadro reaksiyalari", "slug": "yadro-reaksiyalari", "grade": [11] }
+      ]
+    }
+  ]
+}
