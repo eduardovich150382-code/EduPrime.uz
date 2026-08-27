@@ -52,6 +52,7 @@ model User {
   courseEnrollments CourseEnrollment[]
   lessonProgress    LessonProgress[]
   courseReviews     CourseReview[]
+  purchases         Purchase[]
 }
 
 model Referral {
@@ -664,6 +665,30 @@ model Payment {
   subscription Subscription?
 
   @@index([userId, status])
+}
+
+// `Payment.selectedSubjects` asli TEACHER_PLAN uchun tanlangan fan id'larini
+// saqlash uchun mo'ljallangan edi, lekin bitta-test/bitta-kurs xaridini ham
+// shu maydonga (test/kurs id'sini) tiqib qo'yish orqali "vaqtinchalik"
+// kengaytirilgan (lib/access.ts, telegram/webhook confirm_ handler) —
+// natijada bitta massivda fan id'lari va xarid id'lari aralashadi. Purchase
+// bitta xaridni bitta aniq turga (itemType) bog'laydi, shuning uchun
+// checkTestAccess/checkCourseAccess endi buni ANIQ tekshira oladi.
+// `selectedSubjects` orqali tekshirish CLAUDE.md talabiga ko'ra zaxira
+// sifatida saqlanadi — backfill prod'da bajarilmaguncha eski xaridlar ham
+// ishlayveradi.
+model Purchase {
+  id        String   @id @default(cuid())
+  userId    String
+  itemType  String   // "test" | "course"
+  itemId    String
+  paymentId String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, itemType, itemId])
+  @@index([userId, itemType])
 }
 
 // ===================== NOTIFICATIONS =====================

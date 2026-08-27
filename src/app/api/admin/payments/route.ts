@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
+import { recordPurchase, resolvePurchaseItemType } from '@/lib/purchases';
 
 // GET /api/admin/payments — all payments (ADMIN only)
 export async function GET(request: NextRequest) {
@@ -135,6 +136,18 @@ export async function PATCH(request: NextRequest) {
           paymentId: payment.id,
         },
       });
+
+      // `selectedSubjects` bitta-test/bitta-kurs xaridlarida ham ishlatiladi
+      // (lib/purchases.ts) — shu maydondagi har bir id haqiqatan Test/Course
+      // ekanini tekshirib, mos Purchase yozuvini yaratamiz. TEACHER_PLAN
+      // uchun tanlangan fan id'lari ikkalasiga ham mos kelmaydi va tegilmay
+      // qoladi.
+      for (const subjectOrItemId of payment.selectedSubjects) {
+        const itemType = await resolvePurchaseItemType(subjectOrItemId);
+        if (itemType) {
+          await recordPurchase(payment.userId, itemType, subjectOrItemId, payment.id);
+        }
+      }
     }
 
     return NextResponse.json({

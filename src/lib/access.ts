@@ -20,10 +20,18 @@ export async function checkTestAccess(
   if (test.accessType === 'premium_teacher' && (premium || teacher)) return true;
 
   if (test.accessType === 'paid') {
-    const purchase = await db.payment.findFirst({
-      where: { userId, status: 'CONFIRMED', selectedSubjects: { has: test.id } },
+    const purchase = await db.purchase.findUnique({
+      where: { userId_itemType_itemId: { userId, itemType: 'test', itemId: test.id } },
     });
     if (purchase) return true;
+
+    // Zaxira: Purchase backfill prod'da bajarilmaguncha, backfill'dan oldingi
+    // xaridlar hali `Payment.selectedSubjects`da yotibdi — shu yerda ham
+    // tekshiramiz, ikkalasidan biri topilsa ruxsat beriladi.
+    const legacyPurchase = await db.payment.findFirst({
+      where: { userId, status: 'CONFIRMED', selectedSubjects: { has: test.id } },
+    });
+    if (legacyPurchase) return true;
   }
 
   return false;
@@ -49,10 +57,16 @@ export async function checkCourseAccess(
   if (course.accessType === 'premium_teacher' && (premium || teacher)) return true;
 
   if (course.accessType === 'paid') {
-    const purchase = await db.payment.findFirst({
-      where: { userId, status: 'CONFIRMED', selectedSubjects: { has: course.id } },
+    const purchase = await db.purchase.findUnique({
+      where: { userId_itemType_itemId: { userId, itemType: 'course', itemId: course.id } },
     });
     if (purchase) return true;
+
+    // Zaxira: checkTestAccess bilan bir xil sabab — yuqoridagi izohga qarang.
+    const legacyPurchase = await db.payment.findFirst({
+      where: { userId, status: 'CONFIRMED', selectedSubjects: { has: course.id } },
+    });
+    if (legacyPurchase) return true;
   }
 
   return false;

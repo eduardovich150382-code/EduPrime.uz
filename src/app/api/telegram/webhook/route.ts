@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { recordPurchase } from '@/lib/purchases';
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || '';
@@ -757,10 +758,11 @@ async function handleCallbackQuery(callbackQuery: any) {
       if (targetUser) {
         if (payment.plan === 'test_purchase') {
           // Single-test purchase — grant access to exactly this test, never a
-          // subscription. checkTestAccess() looks for a CONFIRMED Payment
-          // whose selectedSubjects contains this test's id; plan/duration
-          // have no "single test" enum value so they're inert placeholders.
-          await db.payment.create({
+          // subscription. selectedSubjects is kept for backward compatibility
+          // (lib/access.ts legacy fallback); Purchase is now the canonical
+          // record checkTestAccess() looks for first. plan/duration have no
+          // "single test" enum value so they're inert placeholders.
+          const paymentRecord = await db.payment.create({
             data: {
               userId: targetUser.id,
               plan: 'PREMIUM',
@@ -771,11 +773,10 @@ async function handleCallbackQuery(callbackQuery: any) {
               selectedSubjects: [payment.testId],
             },
           });
+          await recordPurchase(targetUser.id, 'test', payment.testId, paymentRecord.id);
         } else if (payment.plan === 'course_purchase') {
           // Single-course purchase — mirrors test_purchase exactly.
-          // checkCourseAccess() looks for a CONFIRMED Payment whose
-          // selectedSubjects contains this course's id.
-          await db.payment.create({
+          const paymentRecord = await db.payment.create({
             data: {
               userId: targetUser.id,
               plan: 'PREMIUM',
@@ -786,6 +787,7 @@ async function handleCallbackQuery(callbackQuery: any) {
               selectedSubjects: [payment.courseId],
             },
           });
+          await recordPurchase(targetUser.id, 'course', payment.courseId, paymentRecord.id);
         } else {
           // Map plan string to SubscriptionPlan enum
           const planEnum = payment.plan === 'premium' ? 'PREMIUM' : 'TEACHER_PLAN';
