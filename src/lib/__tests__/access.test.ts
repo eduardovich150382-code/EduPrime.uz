@@ -11,15 +11,17 @@ import { checkCourseAccess, checkTestAccess, hasActiveSubscription } from "../ac
  * boshiga avtomatik ko'chiriladi — shuning uchun yuqoridagi `../access`
  * importi baribir shu mock'langan `db` bilan ishlaydi.
  */
-const { findFirstMock, findManyMock } = vi.hoisted(() => ({
+const { findFirstMock, findManyMock, purchaseFindUniqueMock } = vi.hoisted(() => ({
   findFirstMock: vi.fn(),
   findManyMock: vi.fn(),
+  purchaseFindUniqueMock: vi.fn(),
 }));
 
 vi.mock("../db", () => ({
   db: {
     payment: { findFirst: (...args: unknown[]) => findFirstMock(...args) },
     subscription: { findMany: (...args: unknown[]) => findManyMock(...args) },
+    purchase: { findUnique: (...args: unknown[]) => purchaseFindUniqueMock(...args) },
   },
 }));
 
@@ -44,6 +46,16 @@ interface PaymentWhereArgs {
   where: { userId: string; status: string; selectedSubjects: { has: string } };
 }
 
+interface FakePurchase {
+  userId: string;
+  itemType: string;
+  itemId: string;
+}
+
+interface PurchaseWhereArgs {
+  where: { userId_itemType_itemId: { userId: string; itemType: string; itemId: string } };
+}
+
 function setSubscriptions(subscriptions: FakeSubscription[]) {
   findManyMock.mockImplementation(async (args: SubscriptionWhereArgs) => {
     return subscriptions
@@ -66,14 +78,26 @@ function setPayments(payments: FakePayment[]) {
   });
 }
 
+function setPurchases(purchases: FakePurchase[]) {
+  purchaseFindUniqueMock.mockImplementation(async (args: PurchaseWhereArgs) => {
+    const key = args.where.userId_itemType_itemId;
+    const match = purchases.find(
+      (p) => p.userId === key.userId && p.itemType === key.itemType && p.itemId === key.itemId
+    );
+    return match ?? null;
+  });
+}
+
 const farFuture = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
 const farPast = new Date(Date.now() - 1000 * 60 * 60 * 24 * 30);
 
 beforeEach(() => {
   findFirstMock.mockReset();
   findManyMock.mockReset();
+  purchaseFindUniqueMock.mockReset();
   setSubscriptions([]);
   setPayments([]);
+  setPurchases([]);
 });
 
 describe("checkTestAccess", () => {
@@ -124,7 +148,7 @@ describe("checkTestAccess", () => {
     ).toBe(true);
   });
 
-  it("paid accessType, shu testga CONFIRMED to'lov bilan o'tadi", async () => {
+  it("paid accessType, shu testga CONFIRMED to'lov bilan o'tadi (legacy selectedSubjects)", async () => {
     setPayments([{ userId: "user-1", status: "CONFIRMED", selectedSubjects: ["t1"] }]);
     const result = await checkTestAccess("user-1", { id: "t1", accessType: "paid" }, "STUDENT");
     expect(result).toBe(true);
@@ -138,6 +162,28 @@ describe("checkTestAccess", () => {
 
   it("paid accessType, to'lov CONFIRMED bo'lmasa (masalan PENDING) o'tmaydi", async () => {
     setPayments([{ userId: "user-1", status: "PENDING", selectedSubjects: ["t1"] }]);
+    const result = await checkTestAccess("user-1", { id: "t1", accessType: "paid" }, "STUDENT");
+    expect(result).toBe(false);
+  });
+
+  it("paid accessType, Purchase yozuvi bo'lsa (selectedSubjects bo'lmasa ham) o'tadi — Payment'ga umuman murojaat qilinmaydi", async () => {
+    setPurchases([{ userId: "user-1", itemType: "test", itemId: "t1" }]);
+    setPayments([]);
+    const result = await checkTestAccess("user-1", { id: "t1", accessType: "paid" }, "STUDENT");
+    expect(result).toBe(true);
+    expect(findFirstMock).not.toHaveBeenCalled();
+  });
+
+  it("paid accessType, Purchase ham, legacy selectedSubjects ham yo'q bo'lsa o'tmaydi", async () => {
+    setPurchases([]);
+    setPayments([]);
+    const result = await checkTestAccess("user-1", { id: "t1", accessType: "paid" }, "STUDENT");
+    expect(result).toBe(false);
+  });
+
+  it("paid accessType, boshqa foydalanuvchining Purchase'i ruxsat bermaydi", async () => {
+    setPurchases([{ userId: "user-2", itemType: "test", itemId: "t1" }]);
+    setPayments([]);
     const result = await checkTestAccess("user-1", { id: "t1", accessType: "paid" }, "STUDENT");
     expect(result).toBe(false);
   });
@@ -157,10 +203,25 @@ describe("checkCourseAccess", () => {
     expect(await checkCourseAccess("user-1", { id: "c1", accessType: "premium" }, "STUDENT")).toBe(false);
   });
 
-  it("paid accessType, shu kursga CONFIRMED to'lov bilan o'tadi", async () => {
+  it("paid accessType, shu kursga CONFIRMED to'lov bilan o'tadi (legacy selectedSubjects)", async () => {
     setPayments([{ userId: "user-1", status: "CONFIRMED", selectedSubjects: ["c1"] }]);
     const result = await checkCourseAccess("user-1", { id: "c1", accessType: "paid" }, "STUDENT");
     expect(result).toBe(true);
+  });
+
+  it("paid accessType, Purchase yozuvi bo'lsa o'tadi — Payment'ga murojaat qilinmaydi", async () => {
+    setPurchases([{ userId: "user-1", itemType: "course", itemId: "c1" }]);
+    setPayments([]);
+    const result = await checkCourseAccess("user-1", { id: "c1", accessType: "paid" }, "STUDENT");
+    expect(result).toBe(true);
+    expect(findFirstMock).not.toHaveBeenCalled();
+  });
+
+  it("paid accessType, Purchase ham, legacy selectedSubjects ham yo'q bo'lsa o'tmaydi", async () => {
+    setPurchases([]);
+    setPayments([]);
+    const result = await checkCourseAccess("user-1", { id: "c1", accessType: "paid" }, "STUDENT");
+    expect(result).toBe(false);
   });
 });
 
