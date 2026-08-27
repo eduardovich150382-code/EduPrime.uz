@@ -218,6 +218,65 @@ sessiyalari `manual-apply.sql` faylini yaratishi mumkin (matn fayli
 yozish, bazaga ulanmaydi), lekin uni Neon SQL Editor'ga qo'yish va
 bajarish har doim inson tomonidan, qo'lda amalga oshiriladi.**
 
+## Backfill — sof SQL orqali (`npm run db:backfill-sql`)
+
+Ba'zi migratsiyalar sxema qo'shishdan tashqari, mavjud ma'lumotni yangi
+jadvalga (masalan `Item`, `Purchase`) ko'chirishni ham talab qiladi. Bunday
+"backfill" skriptlar odatda Prisma Client orqali bazadan o'qiydi va yozadi
+— lekin yuqoridagi "Lokal baza yo'q" cheklovi bularga ham tegishli: `tsx
+scripts/backfill-*.ts` lokal terminaldan ishga tushirilmaydi.
+
+Shu sababli backfill mantig'i **sof SQL** sifatida ham yoziladi:
+
+- `scripts/generate-backfill-sql.ts` — bazaga ULANMAYDI, faqat statik SQL
+  matnini fayllarga yozadi:
+  - `prisma/backfill/01-items.sql` — `BankQuestion`/`Question` -> `Item`,
+    dublikatlarni birlashtirib, `TestItem` va `ItemTopic` bilan birga.
+  - `prisma/backfill/02-purchases.sql` — `Payment.selectedSubjects` ->
+    `Purchase` (faqat haqiqiy test/kurs xaridlari, fan id'lari tegilmaydi).
+- Har ikkalasi ham bitta tranzaksiya (`BEGIN;` ... `COMMIT;`) — ko'chirishni
+  server tomonda, `INSERT ... SELECT` orqali bajaradi, Prisma Client yoki
+  tarmoq ulanishi umuman kerak emas.
+- **IDEMPOTENT**: `ON CONFLICT DO NOTHING` / `NOT EXISTS` tekshiruvlari
+  bilan — qayta ishga tushirilsa dublikat yaratmaydi.
+- Manba jadvallardan (`Question`, `BankQuestion`, `Payment`) hech narsa
+  o'chirilmaydi yoki o'zgartirilmaydi — bu faqat qo'shimcha ko'chirish.
+
+### Qayta hosil qilish
+
+Skript faqat statik matn yozadi (mantiqni o'zgartirsangiz shu buyruqni qayta
+ishga tushiring):
+
+```bash
+npm run db:backfill-sql
+```
+
+### Qo'llash tartibi
+
+1. `npm run db:backfill-sql` bilan `prisma/backfill/01-items.sql` va
+   `02-purchases.sql` fayllarini yangilang (agar mantiqqa tegilgan bo'lsa).
+2. `01-items.sql`ning to'liq mazmunini Neon Console -> SQL Editor'ga
+   nusxa-qo'ying va bajaring — bu `Item`/`TestItem`/`ItemTopic`ni to'ldiradi.
+3. `02-purchases.sql`ni ham xuddi shunday bajaring — bu `Purchase`ni
+   to'ldiradi. `01`dan keyin, mustaqil ravishda ishga tushirilishi mumkin.
+4. Har fayl oxiridagi izohli tekshiruv so'rovlarini (masalan, nechta `Item`
+   yaratildi, nechta savol mavzuga bog'lanmadi) alohida, `COMMIT`dan keyin
+   ishga tushirib natijani ko'ring.
+
+**Bu qadam ham — `manual-apply.sql` kabi — faqat loyiha egasi tomonidan
+bajariladi.** Claude Code sessiyalari SQL faylini yaratishi mumkin (bazaga
+ulanmaydi), lekin uni Neon SQL Editor'ga qo'yib bajarish har doim inson
+tomonidan, qo'lda amalga oshiriladi.
+
+### Nega Prisma Client versiyasi ham saqlanib qolgan
+
+`scripts/backfill-items.ts` va `scripts/backfill-purchases.ts` — bir xil
+mantiqning Prisma Client asosidagi versiyasi (`--dry-run`/`--apply`,
+batafsil hisobot bilan). Ular hozircha ishga tushirib bo'lmaydi, lekin
+o'chirilmagan — bazaga ulanish tiklangan kundan boshlab ulardan foydalanish
+mumkin bo'ladi. Ikkala variant ham bir xil qoidalarni (dublikat aniqlash,
+mavzu moslashtirish) amalga oshiradi; SQL varianti hozirgi amaldagi yo'l.
+
 ## P3005 nima va nega chiqqan edi
 
 `P3005: The database schema is not empty` — Prisma Migrate xatosi. U

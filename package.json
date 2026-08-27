@@ -13,6 +13,7 @@
     "db:studio": "prisma studio",
     "db:seed": "npx tsx prisma/seed.ts",
     "db:manual": "tsx scripts/make-manual-migration.ts",
+    "db:backfill-sql": "tsx scripts/generate-backfill-sql.ts",
     "paramgen:seed": "tsx src/lib/paramgen/seed.ts",
     "seed:topics": "tsx prisma/seeds/seed-topics.ts",
     "postinstall": "prisma generate",
