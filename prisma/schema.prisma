@@ -168,6 +168,7 @@ model Subject {
   bankQuestions BankQuestion[]
   courses  Course[]
   topics   TopicNode[]
+  items    Item[]
 
   @@index([categoryId, order])
 }
@@ -194,6 +195,7 @@ model TopicNode {
   subject  Subject     @relation(fields: [subjectId], references: [id])
   parent   TopicNode?  @relation("TopicTree", fields: [parentId], references: [id])
   children TopicNode[] @relation("TopicTree")
+  items    ItemTopic[]
 
   @@unique([subjectId, slug])
   @@index([path])
@@ -238,6 +240,7 @@ model Test {
   teacher   Teacher?      @relation(fields: [teacherId], references: [id])
   user      User?         @relation("GeneratedTests", fields: [userId], references: [id], onDelete: Cascade)
   questions Question[]
+  testItems TestItem[]
   results   TestResult[]
   courseLessons CourseLesson[]
   lessonBlocks  LessonBlock[]
@@ -311,6 +314,114 @@ model BankQuestion {
 
   @@index([teacherId, subjectId])
   @@index([topic])
+}
+
+// ===================== ITEM (kanonik savol banki) =====================
+// Kelajakda Question va BankQuestion o'rnini bosadigan yagona savol modeli.
+// Hozircha faqat sxema — mavjud Question/BankQuestion oqimlariga tegilmagan,
+// ular ustidan hech narsa ko'chirilmagan. legacyQuestionId/legacyBankId eski
+// yozuvlar bilan keyingi backfill'ni kuzatish uchun.
+enum ItemStatus {
+  DRAFT
+  REVIEW
+  PUBLISHED
+  RETIRED
+}
+
+enum ItemSource {
+  MANUAL
+  PARAMETRIC
+  AI
+}
+
+enum ItemVisibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum ExplanationSource {
+  AUTHORED
+  AI
+  NONE
+}
+
+model Item {
+  id                String   @id @default(cuid())
+  authorTeacherId   String?
+  orgId             String?              // B2B uchun — hozir doim null
+  subjectId         String
+  text              String
+  images            String[] @default([])
+  options           Json
+  correctAnswer     String
+  type              QuestionType @default(MULTIPLE_CHOICE)
+  explanation       String?
+  explanationImages String[] @default([])
+  explanationSource ExplanationSource @default(NONE)
+  videoUrl          String?
+  grade             Int[]    @default([])
+  exams             String[] @default([])
+  bloomLevel        String?
+  difficulty        Int?
+  pValue            Float?
+  tags              String[] @default([])
+  lang              String   @default("uz")
+  source            ItemSource @default(MANUAL)
+  status            ItemStatus @default(PUBLISHED)
+  visibility        ItemVisibility @default(PRIVATE)
+  templateId        String?
+  variantSig        String?  @unique
+  legacyQuestionId  String?  @unique   // backfill kuzatuvi uchun
+  legacyBankId      String?  @unique
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  subject   Subject     @relation(fields: [subjectId], references: [id])
+  topics    ItemTopic[]
+  testItems TestItem[]
+  stat      ItemStat?
+
+  @@index([subjectId, status, visibility])
+  @@index([subjectId, difficulty])
+  @@index([templateId])
+}
+
+model ItemTopic {
+  itemId  String
+  topicId String
+  weight  Float @default(1)
+
+  item  Item      @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  topic TopicNode @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@id([itemId, topicId])
+  @@index([topicId])
+}
+
+model TestItem {
+  testId String
+  itemId String
+  order  Int   @default(0)
+  points Float @default(1)
+
+  test Test @relation(fields: [testId], references: [id], onDelete: Cascade)
+  item Item @relation(fields: [itemId], references: [id])
+
+  @@id([testId, itemId])
+  @@index([testId, order])
+}
+
+model ItemStat {
+  itemId         String @id
+  attempts       Int    @default(0)
+  correct        Int    @default(0)
+  pValue         Float?
+  discrimination Float?
+  avgTimeSec     Float?
+  distractorHits Json?
+  updatedAt      DateTime @updatedAt
+
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
 }
 
 // ===================== COURSES (kurs yaratish, MVP-A: sxema + muallif tomoni) =====================
