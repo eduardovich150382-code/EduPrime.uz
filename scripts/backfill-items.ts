@@ -1,4 +1,13 @@
 /**
+ * MUHIM: bu skript Prisma Client orqali bazaga ulanadi, lekin loyihada
+ * hozircha na lokal bazaga, na GitHub runner'idan Neon'ga ulanish yo'q
+ * (CLAUDE.md) — shuning uchun bu fayl hozircha ishga tushirib bo'lmaydi.
+ * Amaldagi variant — `scripts/generate-backfill-sql.ts` orqali hosil
+ * qilingan sof SQL (`prisma/backfill/01-items.sql`), Neon SQL Editor'ga
+ * qo'lda qo'yiladi. Bu fayl bazaga ulanish tiklangan kunda, `--apply` bilan
+ * qayta ishlatish uchun saqlab qolingan — ikkalasi ham bir xil mantiqni
+ * (dublikat aniqlash, mavzu moslashtirish) amalga oshiradi.
+ *
  * Mavjud Question/BankQuestion yozuvlarini kanonik Item jadvaliga
  * ko'chiradi (prisma/schema.prisma#Item — hozircha faqat sxema, hech qanday
  * oqim undan foydalanmaydi). Rejalashtirish mantig'i (dublikat aniqlash,
