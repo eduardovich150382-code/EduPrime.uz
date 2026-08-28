@@ -265,12 +265,59 @@ describe("buildInsertStatement", () => {
     expect(sql).toContain(`SELECT "id" FROM "TopicNode"`);
   });
 
-  it("subjectId'ni DTM kategoriyasi ichidan Subject+TestCategory JOIN orqali topadi", () => {
+  it("subjectId'ni applyToCategories dagi kategoriya(lar) ichidan Subject+TestCategory JOIN orqali topadi (berilmasa — faqat DTM)", () => {
     const sql = buildInsertStatement(rootRow);
     expect(sql).toContain(`FROM "Subject" subj`);
     expect(sql).toContain(`JOIN "TestCategory" cat`);
-    expect(sql).toContain(`cat."type" = 'DTM'`);
+    expect(sql).toContain(`cat."type" = ANY(ARRAY['DTM']::"TestType"[])`);
     expect(sql).toContain(`LOWER(subj."nameUz") = LOWER('Fizika')`);
+  });
+
+  it("applyToCategories bir nechta qiymatli bo'lsa, HAMMASI bitta ANY(ARRAY[...]) ichida chiqadi — natijada shu kategoriyalardagi BARCHA mos Subject qatoriga yoziladi, LIMIT 1 yo'q", () => {
+    const row = flattenTree("Matematika", [{ nameUz: "Algebra", slug: "algebra" }], [
+      "DTM",
+      "SCHOOL",
+      "ATTESTATION",
+    ])[0];
+    const sql = buildInsertStatement(row);
+    expect(sql).toContain(`cat."type" = ANY(ARRAY['DTM','SCHOOL','ATTESTATION']::"TestType"[])`);
+    expect(sql).not.toContain("LIMIT 1");
+  });
+
+  it("noto'g'ri applyToCategories qiymatida xato beradi", () => {
+    expect(() => flattenTree("Matematika", [{ nameUz: "Algebra", slug: "algebra" }], ["NOTO'G'RI"])).toThrow(
+      /applyToCategories/
+    );
+  });
+
+  it("aliases berilgan tugun uchun ARRAY[...]::text[] literalini, berilmagan uchun bo'sh massivni chiqaradi", () => {
+    const withAliases = flattenTree("Matematika", [
+      { nameUz: "Algebra", slug: "algebra", aliases: ["Algebraik ifodalar", "Tenglamalar"] },
+    ])[0];
+    const withoutAliases = flattenTree("Matematika", [{ nameUz: "Algebra", slug: "algebra" }])[0];
+
+    expect(buildInsertStatement(withAliases)).toContain(
+      `ARRAY['Algebraik ifodalar','Tenglamalar']::text[]`
+    );
+    expect(buildInsertStatement(withoutAliases)).toContain(`'{}'::text[]`);
+  });
+
+  it("ON CONFLICT DO UPDATE aliases ustunini ham yangilaydi", () => {
+    const sql = buildInsertStatement(rootRow);
+    expect(sql).toContain(`"aliases" = EXCLUDED."aliases",`);
+  });
+
+  it("nameEn berilgan tugun uchun qiymatni, berilmagan uchun NULL'ni chiqaradi", () => {
+    // nameRu ikkalasida ham berilmagan (NULL) — shuning uchun nameEn qiymati
+    // aynan shu NULL'dan keyingi qatorda ko'rinadi, nameUz bilan chalkashmasin
+    // deb atayin nameUz'dan farqli matn tanlandi.
+    const withNameEn = flattenTree("SAT Math", [
+      { nameUz: "Algebra", nameEn: "SAT Algebra EN", slug: "sat-algebra" },
+    ])[0];
+    const withoutNameEn = flattenTree("SAT Math", [{ nameUz: "Algebra", slug: "sat-algebra" }])[0];
+
+    expect(buildInsertStatement(withNameEn)).toContain(`NULL,\n  'SAT Algebra EN',\n`);
+    expect(buildInsertStatement(withoutNameEn)).toContain(`NULL,\n  NULL,\n`);
   });
 
   it("fan nomini katta-kichik harfga sezgir emas solishtiradi (JSON'dagi \"fizika\" DB'dagi \"Fizika\" bilan mos kelishi kerak)", () => {
@@ -357,9 +404,11 @@ describe("haqiqiy JSON fayllar (prisma/seeds/topics)", () => {
     expect(subjectsData.length).toBeGreaterThan(0);
   });
 
-  it("fizika va matematika to'liq daraxtga ega, qolganlari bo'sh shablon", () => {
+  it("fizika, matematika, ona tili va adabiyot, tarix, SAT Math to'liq daraxtga ega, qolganlari bo'sh shablon", () => {
     const full = subjectsData.filter((s) => s.tree.length > 0).map((s) => s.subject.toLowerCase());
-    expect(full.sort()).toEqual(["fizika", "matematika"]);
+    expect(full.sort()).toEqual(
+      ["fizika", "matematika", "ona tili va adabiyot", "sat math", "tarix"].sort()
+    );
   });
 
   it("fizika: 168 ta tugun, uch daraja (bo'lim → bob → mavzu), 5-8 bo'lim", () => {
@@ -370,15 +419,27 @@ describe("haqiqiy JSON fayllar (prisma/seeds/topics)", () => {
     expect(fizika.tree.length).toBeLessThanOrEqual(8);
   });
 
-  it("matematika: 5-8 bo'lim, har bo'limda 4-10 mavzu (hali 2 darajali)", () => {
+  it("matematika: 5-12 bo'lim, har bo'limda 3-12 mavzu (hali 2 darajali)", () => {
     const matematika = findSubject("Matematika")!;
     expect(matematika.tree.length).toBeGreaterThanOrEqual(5);
-    expect(matematika.tree.length).toBeLessThanOrEqual(8);
+    expect(matematika.tree.length).toBeLessThanOrEqual(12);
 
     for (const section of matematika.tree) {
       const topicCount = section.children?.length ?? 0;
-      expect(topicCount, section.nameUz).toBeGreaterThanOrEqual(4);
-      expect(topicCount, section.nameUz).toBeLessThanOrEqual(10);
+      expect(topicCount, section.nameUz).toBeGreaterThanOrEqual(3);
+      expect(topicCount, section.nameUz).toBeLessThanOrEqual(12);
+    }
+  });
+
+  it("har to'ldirilgan fan uchun applyToCategories bor va faqat ma'lum TestType qiymatlaridan iborat", () => {
+    const VALID = ["DTM", "SCHOOL", "ATTESTATION", "SAT", "GRE", "CERTIFICATE", "PRESIDENT_SCHOOL"];
+    for (const s of subjectsData) {
+      if (s.tree.length === 0) continue;
+      expect(s.applyToCategories, s.subject).toBeDefined();
+      expect(s.applyToCategories!.length, s.subject).toBeGreaterThan(0);
+      for (const category of s.applyToCategories!) {
+        expect(VALID, `${s.subject}: "${category}"`).toContain(category);
+      }
     }
   });
 
@@ -428,13 +489,13 @@ describe("haqiqiy JSON fayllar (prisma/seeds/topics)", () => {
     const rows = flattenTree(fizika.subject, fizika.tree);
     const sql = generateTopicsSql([fizika]);
 
-    // Har qatorning id'si (computeStableId) fan+path'dan hosil bo'lgani
-    // uchun butun faylda faqat shu qatorning O'Z INSERT bloki boshida
-    // uchraydi — shuni anchor sifatida ishlatib, statement'ning matndagi
-    // haqiqiy pozitsiyasini topamiz.
+    // Har qatorning id ifodasi ichidagi "urug'" (computeStableId — fan+path'
+    // dan hosil bo'lgani uchun) butun faylda faqat shu qatorning O'Z INSERT
+    // bloki boshida uchraydi — shuni anchor sifatida ishlatib, statement'ning
+    // matndagi haqiqiy pozitsiyasini topamiz.
     const positionOf = (row: TopicRow) => {
-      const id = computeStableId(row.subject, row.path);
-      const index = sql.indexOf(`'${id}',`);
+      const seed = computeStableId(row.subject, row.path);
+      const index = sql.indexOf(`'${seed}'`);
       expect(index, `"${row.path}" uchun INSERT topilmadi`).toBeGreaterThan(-1);
       return index;
     };

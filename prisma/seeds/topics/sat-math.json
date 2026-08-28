@@ -1,0 +1,284 @@
+{
+  "subject": "SAT Math",
+  "applyToCategories": [
+    "SAT"
+  ],
+  "tree": [
+    {
+      "nameUz": "Algebra",
+      "slug": "sat-algebra",
+      "grade": [
+        10,
+        11
+      ],
+      "nameEn": "Algebra",
+      "aliases": [
+        "Algebraik atamalar",
+        "Algebraik ifodalar"
+      ],
+      "children": [
+        {
+          "nameUz": "Linear equations in one variable",
+          "slug": "sat-linear-equations-one-var",
+          "grade": [
+            10,
+            11
+          ]
+        },
+        {
+          "nameUz": "Linear functions",
+          "slug": "sat-linear-functions",
+          "grade": [
+            10,
+            11
+          ],
+          "aliases": [
+            "To'g'ri chiziq tenglamasi"
+          ]
+        },
+        {
+          "nameUz": "Systems of linear equations",
+          "slug": "sat-linear-systems",
+          "grade": [
+            10,
+            11
+          ]
+        },
+        {
+          "nameUz": "Linear inequalities",
+          "slug": "sat-linear-inequalities",
+          "grade": [
+            10,
+            11
+          ]
+        }
+      ]
+    },
+    {
+      "nameUz": "Advanced Math",
+      "slug": "sat-advanced-math",
+      "grade": [
+        11
+      ],
+      "nameEn": "Advanced Math",
+      "aliases": [
+        "Funksiyalar va grafiklar",
+        "Funksiya xossalari",
+        "Funksiya turlari",
+        "Funksiya nollari",
+        "Funksiya uzluksizligi",
+        "Funksiya almashtirishlari",
+        "Ko'rsatkichli funksiya"
+      ],
+      "children": [
+        {
+          "nameUz": "Equivalent expressions",
+          "slug": "sat-equivalent-expressions",
+          "grade": [
+            11
+          ]
+        },
+        {
+          "nameUz": "Nonlinear equations and systems",
+          "slug": "sat-nonlinear-equations",
+          "grade": [
+            11
+          ]
+        },
+        {
+          "nameUz": "Quadratic functions",
+          "slug": "sat-quadratic-functions",
+          "grade": [
+            11
+          ]
+        },
+        {
+          "nameUz": "Exponential functions and growth",
+          "slug": "sat-exponential-functions",
+          "grade": [
+            11
+          ]
+        },
+        {
+          "nameUz": "Function notation, domain and range",
+          "slug": "sat-function-notation",
+          "grade": [
+            11
+          ]
+        }
+      ]
+    },
+    {
+      "nameUz": "Problem-Solving and Data Analysis",
+      "slug": "sat-data-analysis",
+      "grade": [
+        10,
+        11
+      ],
+      "nameEn": "Problem-Solving and Data Analysis",
+      "aliases": [
+        "Statistika",
+        "Ehtimollar nazariyasi"
+      ],
+      "children": [
+        {
+          "nameUz": "Ratios, rates and proportions",
+          "slug": "sat-ratios-rates",
+          "grade": [
+            10,
+            11
+          ]
+        },
+        {
+          "nameUz": "Percentages",
+          "slug": "sat-percentages",
+          "grade": [
+            10,
+            11
+          ]
+        },
+        {
+          "nameUz": "Data interpretation: tables and graphs",
+          "slug": "sat-data-interpretation",
+          "grade": [
+            10,
+            11
+          ]
+        },
+        {
+          "nameUz": "Measures of center and spread",
+          "slug": "sat-center-spread",
+          "grade": [
+            10,
+            11
+          ]
+        },
+        {
+          "nameUz": "Probability and conditional probability",
+          "slug": "sat-probability",
+          "grade": [
+            10,
+            11
+          ]
+        },
+        {
+          "nameUz": "Inference and margin of error",
+          "slug": "sat-inference",
+          "grade": [
+            11
+          ]
+        }
+      ]
+    },
+    {
+      "nameUz": "Geometry and Trigonometry",
+      "slug": "sat-geometry-trig",
+      "grade": [
+        10,
+        11
+      ],
+      "nameEn": "Geometry and Trigonometry",
+      "aliases": [
+        "Geometrik atamalar",
+        "Geometrik kattaliklar",
+        "Geometrik shakllar",
+        "Burchaklar"
+      ],
+      "children": [
+        {
+          "nameUz": "Lines, angles and triangles",
+          "slug": "sat-lines-angles-triangles",
+          "grade": [
+            10,
+            11
+          ]
+        },
+        {
+          "nameUz": "Right triangles and the Pythagorean theorem",
+          "slug": "sat-right-triangles",
+          "grade": [
+            10,
+            11
+          ],
+          "aliases": [
+            "To'g'ri burchakli uchburchak",
+            "Pifagor teoremasi"
+          ]
+        },
+        {
+          "nameUz": "Circles",
+          "slug": "sat-circles",
+          "grade": [
+            10,
+            11
+          ],
+          "aliases": [
+            "Aylana va doira"
+          ]
+        },
+        {
+          "nameUz": "Area and volume",
+          "slug": "sat-area-volume",
+          "grade": [
+            10,
+            11
+          ]
+        },
+        {
+          "nameUz": "Trigonometric ratios",
+          "slug": "sat-trigonometry",
+          "grade": [
+            11
+          ],
+          "aliases": [
+            "Trigonometriya"
+          ]
+        }
+      ]
+    },
+    {
+      "nameUz": "Math Vocabulary",
+      "slug": "sat-math-vocabulary",
+      "grade": [
+        9,
+        10,
+        11
+      ],
+      "nameEn": "Math Vocabulary",
+      "aliases": [
+        "Matematik terminologiya",
+        "Matematika terminologiyasi",
+        "Matematik atamalar"
+      ],
+      "children": [
+        {
+          "nameUz": "Core mathematical terms",
+          "slug": "sat-core-terms",
+          "grade": [
+            9,
+            10,
+            11
+          ]
+        },
+        {
+          "nameUz": "Terms in algebra",
+          "slug": "sat-terms-algebra",
+          "grade": [
+            9,
+            10,
+            11
+          ]
+        },
+        {
+          "nameUz": "Terms in geometry",
+          "slug": "sat-terms-geometry",
+          "grade": [
+            9,
+            10,
+            11
+          ]
+        }
+      ]
+    }
+  ]
+}

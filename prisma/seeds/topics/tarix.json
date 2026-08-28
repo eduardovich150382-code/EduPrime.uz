@@ -1,4 +1,339 @@
 {
   "subject": "Tarix",
-  "tree": []
+  "applyToCategories": [
+    "DTM",
+    "SCHOOL",
+    "ATTESTATION",
+    "CERTIFICATE"
+  ],
+  "tree": [
+    {
+      "nameUz": "O'zbekiston tarixi",
+      "slug": "ozbekiston-tarixi",
+      "grade": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "aliases": [
+        "O'zbekiston tarixi"
+      ],
+      "children": [
+        {
+          "nameUz": "Ibtidoiy jamiyat",
+          "slug": "ibtidoiy-jamiyat",
+          "grade": [
+            6
+          ],
+          "aliases": [
+            "Ibtidoiy davr yodgorliklari"
+          ]
+        },
+        {
+          "nameUz": "Ilk davlatchilik",
+          "slug": "ilk-davlatchilik",
+          "grade": [
+            6,
+            7
+          ]
+        },
+        {
+          "nameUz": "Ahamoniylar davri",
+          "slug": "ahamoniylar",
+          "grade": [
+            6,
+            7
+          ]
+        },
+        {
+          "nameUz": "Makedoniyalik Aleksandr istilosi",
+          "slug": "aleksandr-istilosi",
+          "grade": [
+            6,
+            7
+          ]
+        },
+        {
+          "nameUz": "Yunon-Baqtriya podsholigi",
+          "slug": "yunon-baqtriya",
+          "grade": [
+            6,
+            7
+          ]
+        },
+        {
+          "nameUz": "Kushonlar davlati",
+          "slug": "kushonlar",
+          "grade": [
+            6,
+            7
+          ]
+        },
+        {
+          "nameUz": "Eftaliylar davlati",
+          "slug": "eftaliylar",
+          "grade": [
+            7
+          ]
+        },
+        {
+          "nameUz": "Turk xoqonligi",
+          "slug": "turk-xoqonligi",
+          "grade": [
+            7
+          ]
+        },
+        {
+          "nameUz": "Arab istilosi",
+          "slug": "arab-istilosi",
+          "grade": [
+            7
+          ]
+        },
+        {
+          "nameUz": "Somoniylar davlati",
+          "slug": "somoniylar",
+          "grade": [
+            7
+          ]
+        },
+        {
+          "nameUz": "Buyuk Ipak yo'li",
+          "slug": "buyuk-ipak-yoli",
+          "grade": [
+            6,
+            7
+          ]
+        },
+        {
+          "nameUz": "Mo'g'ullar istilosi",
+          "slug": "mogullar-istilosi",
+          "grade": [
+            7,
+            8
+          ]
+        },
+        {
+          "nameUz": "Amir Temur davri",
+          "slug": "amir-temur",
+          "grade": [
+            7,
+            8
+          ]
+        },
+        {
+          "nameUz": "Temuriylar davri",
+          "slug": "temuriylar",
+          "grade": [
+            7,
+            8
+          ]
+        },
+        {
+          "nameUz": "Shayboniylar davlati",
+          "slug": "shayboniylar",
+          "grade": [
+            8
+          ]
+        },
+        {
+          "nameUz": "Buxoro amirligi",
+          "slug": "buxoro-amirligi",
+          "grade": [
+            8,
+            9
+          ]
+        },
+        {
+          "nameUz": "Qo'qon xonligi",
+          "slug": "qoqon-xonligi",
+          "grade": [
+            8,
+            9
+          ]
+        },
+        {
+          "nameUz": "Xiva xonligi",
+          "slug": "xiva-xonligi",
+          "grade": [
+            8,
+            9
+          ]
+        },
+        {
+          "nameUz": "Rossiya istilosi",
+          "slug": "rossiya-istilosi",
+          "grade": [
+            9
+          ]
+        },
+        {
+          "nameUz": "Rossiya mustamlakachiligi",
+          "slug": "rossiya-mustamlakachiligi",
+          "grade": [
+            9
+          ]
+        },
+        {
+          "nameUz": "Jadidchilik harakati",
+          "slug": "jadidchilik",
+          "grade": [
+            9,
+            10
+          ]
+        },
+        {
+          "nameUz": "Sovet davri O'zbekiston",
+          "slug": "sovet-davri",
+          "grade": [
+            10,
+            11
+          ]
+        },
+        {
+          "nameUz": "Mustaqil O'zbekiston",
+          "slug": "mustaqil-ozbekiston",
+          "grade": [
+            11
+          ]
+        }
+      ]
+    },
+    {
+      "nameUz": "Jahon tarixi",
+      "slug": "jahon-tarixi",
+      "grade": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "aliases": [
+        "Umumiy tarix"
+      ],
+      "children": [
+        {
+          "nameUz": "Qadimgi Sharq",
+          "slug": "qadimgi-sharq",
+          "grade": [
+            6
+          ]
+        },
+        {
+          "nameUz": "Qadimgi Yunoniston",
+          "slug": "qadimgi-yunoniston",
+          "grade": [
+            6
+          ]
+        },
+        {
+          "nameUz": "Qadimgi Rim",
+          "slug": "qadimgi-rim",
+          "grade": [
+            6
+          ]
+        },
+        {
+          "nameUz": "G'arbiy Rim imperiyasi",
+          "slug": "garbiy-rim",
+          "grade": [
+            6,
+            7
+          ]
+        },
+        {
+          "nameUz": "O'rta asr davlatlari",
+          "slug": "orta-asr-davlatlari",
+          "grade": [
+            7
+          ]
+        },
+        {
+          "nameUz": "O'rta asrlar Yevropa",
+          "slug": "orta-asr-yevropa",
+          "grade": [
+            7
+          ]
+        },
+        {
+          "nameUz": "O'rta asrlar madaniyati",
+          "slug": "orta-asr-madaniyati",
+          "grade": [
+            7,
+            8
+          ]
+        },
+        {
+          "nameUz": "Uyg'onish davri",
+          "slug": "uygonish-davri",
+          "grade": [
+            8
+          ]
+        },
+        {
+          "nameUz": "Reformatsiya davri",
+          "slug": "reformatsiya",
+          "grade": [
+            8
+          ]
+        },
+        {
+          "nameUz": "Buyuk geografik kashfiyotlar",
+          "slug": "geografik-kashfiyotlar",
+          "grade": [
+            8
+          ]
+        },
+        {
+          "nameUz": "XVII-XVIII asr inqiloblari",
+          "slug": "xvii-xviii-inqiloblar",
+          "grade": [
+            8,
+            9
+          ]
+        },
+        {
+          "nameUz": "Sanoat to'ntarishi",
+          "slug": "sanoat-tontarishi",
+          "grade": [
+            9
+          ]
+        },
+        {
+          "nameUz": "XIX asr dunyosi",
+          "slug": "xix-asr-dunyosi",
+          "grade": [
+            9
+          ]
+        },
+        {
+          "nameUz": "Birinchi jahon urushi",
+          "slug": "birinchi-jahon-urushi",
+          "grade": [
+            10
+          ]
+        },
+        {
+          "nameUz": "Ikkinchi jahon urushi",
+          "slug": "ikkinchi-jahon-urushi",
+          "grade": [
+            10,
+            11
+          ]
+        },
+        {
+          "nameUz": "Sovuq urush",
+          "slug": "sovuq-urush",
+          "grade": [
+            11
+          ]
+        }
+      ]
+    }
+  ]
 }

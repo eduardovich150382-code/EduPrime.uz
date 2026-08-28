@@ -189,6 +189,7 @@ model TopicNode {
   nameUz    String
   nameRu    String?
   nameEn    String?
+  aliases   String[] @default([]) // muqobil nomlar — savol teglarini bog'lashda nameUz bilan bir qatorda hisobga olinadi
   grade     Int[]    @default([])
   order     Int      @default(0)
   createdAt DateTime @default(now())

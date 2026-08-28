@@ -1,5 +1,11 @@
 {
-  "subject": "fizika",
+  "subject": "Fizika",
+  "applyToCategories": [
+    "DTM",
+    "SCHOOL",
+    "ATTESTATION",
+    "CERTIFICATE"
+  ],
   "tree": [
     {
       "nameUz": "Mexanika",
@@ -42,21 +48,24 @@
               "nameUz": "Harakatning nisbiyligi",
               "slug": "harakat-nisbiyligi",
               "grade": [
-                7
+                7,
+                10
               ]
             },
             {
               "nameUz": "To'g'ri chiziqli tekis o'zgaruvchan harakat",
               "slug": "tekis-ozgaruvchan-harakat",
               "grade": [
-                7
+                7,
+                10
               ]
             },
             {
               "nameUz": "To'g'ri chiziqli tekis o'zgaruvchan harakatda ko'chish",
               "slug": "tekis-ozgaruvchan-kochish",
               "grade": [
-                7
+                7,
+                10
               ]
             },
             {
@@ -71,14 +80,16 @@
               "nameUz": "O'rtacha tezlik",
               "slug": "ortacha-tezlik",
               "grade": [
-                7
+                7,
+                10
               ]
             },
             {
               "nameUz": "Jismlarning erkin tushishi",
               "slug": "erkin-tushish",
               "grade": [
-                7
+                7,
+                10
               ]
             },
             {
@@ -93,21 +104,24 @@
               "nameUz": "Egri chiziqli harakat. Aylana bo'ylab tekis harakat",
               "slug": "aylana-boylab-tekis-harakat",
               "grade": [
-                7
+                7,
+                10
               ]
             },
             {
               "nameUz": "Aylanma harakatni uzatish",
               "slug": "aylanma-harakat-uzatish",
               "grade": [
-                7
+                7,
+                10
               ]
             },
             {
               "nameUz": "Markazga intilma tezlanish",
               "slug": "markazga-intilma-tezlanish",
               "grade": [
-                7
+                7,
+                10
               ]
             },
             {
@@ -134,6 +148,9 @@
                 10
               ]
             }
+          ],
+          "aliases": [
+            "Kinematika"
           ]
         },
         {
@@ -199,6 +216,9 @@
                 10
               ]
             }
+          ],
+          "aliases": [
+            "Dinamika"
           ]
         },
         {
@@ -257,6 +277,10 @@
                 10
               ]
             }
+          ],
+          "aliases": [
+            "Impuls",
+            "Saqlanish qonunlari"
           ]
         },
         {
@@ -333,6 +357,9 @@
                 10
               ]
             }
+          ],
+          "aliases": [
+            "Statika"
           ]
         },
         {
@@ -377,6 +404,9 @@
             }
           ]
         }
+      ],
+      "aliases": [
+        "Klassik mexanika"
       ]
     },
     {
@@ -577,6 +607,9 @@
                 10
               ]
             }
+          ],
+          "aliases": [
+            "Suyuqliklar, qattiq jismlar va ularning xossalari"
           ]
         },
         {
@@ -619,8 +652,14 @@
                 10
               ]
             }
+          ],
+          "aliases": [
+            "Mexanik tebranishlar va to'lqinlar"
           ]
         }
+      ],
+      "aliases": [
+        "Molekulyar fizika va termodinamika"
       ]
     },
     {
@@ -720,6 +759,9 @@
                 10
               ]
             }
+          ],
+          "aliases": [
+            "Elektrostatika"
           ]
         },
         {
@@ -811,6 +853,10 @@
                 10
               ]
             }
+          ],
+          "aliases": [
+            "Elektr toki",
+            "O'zgarmas elektr toki"
           ]
         },
         {
@@ -935,6 +981,11 @@
                 11
               ]
             }
+          ],
+          "aliases": [
+            "Elektromagnit induksiya va magnit maydoni",
+            "Magnit maydon",
+            "Magnetizm"
           ]
         },
         {
@@ -1273,6 +1324,9 @@
             }
           ]
         }
+      ],
+      "aliases": [
+        "Geometrik va to'lqin optikasi"
       ]
     },
     {
@@ -1373,6 +1427,9 @@
             }
           ]
         }
+      ],
+      "aliases": [
+        "Atom va yadro fizikasi"
       ]
     }
   ]
