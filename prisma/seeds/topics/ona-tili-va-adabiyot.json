@@ -1,4 +1,294 @@
 {
   "subject": "Ona tili va adabiyot",
-  "tree": []
+  "applyToCategories": [
+    "DTM",
+    "SCHOOL",
+    "ATTESTATION",
+    "CERTIFICATE"
+  ],
+  "tree": [
+    {
+      "nameUz": "Ona tili",
+      "slug": "ona-tili",
+      "grade": [
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "aliases": [
+        "Til bilimi"
+      ],
+      "children": [
+        {
+          "nameUz": "Fonetika va orfoepiya",
+          "slug": "fonetika-orfoepiya",
+          "grade": [
+            5,
+            6
+          ]
+        },
+        {
+          "nameUz": "Grafika va orfografiya",
+          "slug": "grafika-orfografiya",
+          "grade": [
+            5,
+            6
+          ]
+        },
+        {
+          "nameUz": "Leksikologiya",
+          "slug": "leksikologiya",
+          "grade": [
+            6,
+            7
+          ]
+        },
+        {
+          "nameUz": "Frazeologiya",
+          "slug": "frazeologiya",
+          "grade": [
+            6,
+            7
+          ]
+        },
+        {
+          "nameUz": "Morfemika",
+          "slug": "morfemika",
+          "grade": [
+            6,
+            7
+          ]
+        },
+        {
+          "nameUz": "So'z yasalishi",
+          "slug": "soz-yasalishi",
+          "grade": [
+            6,
+            7
+          ]
+        },
+        {
+          "nameUz": "Ot turkumi",
+          "slug": "ot-turkumi",
+          "grade": [
+            6,
+            7
+          ],
+          "aliases": [
+            "Ot"
+          ]
+        },
+        {
+          "nameUz": "Sifat",
+          "slug": "sifat",
+          "grade": [
+            6,
+            7
+          ]
+        },
+        {
+          "nameUz": "Son",
+          "slug": "son",
+          "grade": [
+            6,
+            7
+          ]
+        },
+        {
+          "nameUz": "Olmosh",
+          "slug": "olmosh",
+          "grade": [
+            6,
+            7
+          ]
+        },
+        {
+          "nameUz": "Fe'l",
+          "slug": "fel",
+          "grade": [
+            7,
+            8
+          ]
+        },
+        {
+          "nameUz": "Ravish",
+          "slug": "ravish",
+          "grade": [
+            7,
+            8
+          ]
+        },
+        {
+          "nameUz": "Yordamchi so'z turkumlari",
+          "slug": "yordamchi-soz-turkumlari",
+          "grade": [
+            7,
+            8
+          ]
+        },
+        {
+          "nameUz": "Undov, taqlid va modal so'zlar",
+          "slug": "undov-taqlid-modal",
+          "grade": [
+            7,
+            8
+          ]
+        },
+        {
+          "nameUz": "So'z birikmasi",
+          "slug": "soz-birikmasi",
+          "grade": [
+            8
+          ]
+        },
+        {
+          "nameUz": "Gap bo'laklari",
+          "slug": "gap-bolaklari",
+          "grade": [
+            8
+          ]
+        },
+        {
+          "nameUz": "Sodda gap turlari",
+          "slug": "sodda-gap-turlari",
+          "grade": [
+            8
+          ]
+        },
+        {
+          "nameUz": "Uyushiq bo'laklar, undalma va kirish so'zlar",
+          "slug": "uyushiq-undalma-kirish",
+          "grade": [
+            8
+          ]
+        },
+        {
+          "nameUz": "Qo'shma gap",
+          "slug": "qoshma-gap",
+          "grade": [
+            9
+          ]
+        },
+        {
+          "nameUz": "Ko'chirma va o'zlashtirma gaplar",
+          "slug": "kochirma-ozlashtirma-gap",
+          "grade": [
+            9
+          ]
+        },
+        {
+          "nameUz": "Nutq uslublari va matn",
+          "slug": "nutq-uslublari-matn",
+          "grade": [
+            9,
+            10,
+            11
+          ]
+        }
+      ]
+    },
+    {
+      "nameUz": "Adabiyot",
+      "slug": "adabiyot",
+      "grade": [
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "children": [
+        {
+          "nameUz": "Xalq og'zaki ijodi",
+          "slug": "xalq-ogzaki-ijodi",
+          "grade": [
+            5,
+            6
+          ]
+        },
+        {
+          "nameUz": "Qadimgi va o'rta asrlar adabiyoti",
+          "slug": "qadimgi-orta-asr-adabiyoti",
+          "grade": [
+            8,
+            9
+          ]
+        },
+        {
+          "nameUz": "Alisher Navoiy ijodi",
+          "slug": "alisher-navoiy",
+          "grade": [
+            9,
+            10
+          ]
+        },
+        {
+          "nameUz": "XV-XIX asr adabiyoti",
+          "slug": "xv-xix-asr-adabiyoti",
+          "grade": [
+            9,
+            10
+          ],
+          "aliases": [
+            "XV–XIX asr adabiyoti"
+          ]
+        },
+        {
+          "nameUz": "Jadid adabiyoti",
+          "slug": "jadid-adabiyoti",
+          "grade": [
+            10
+          ]
+        },
+        {
+          "nameUz": "XX asr o'zbek adabiyoti",
+          "slug": "xx-asr-ozbek-adabiyoti",
+          "grade": [
+            10,
+            11
+          ]
+        },
+        {
+          "nameUz": "Mustaqillik davri adabiyoti",
+          "slug": "mustaqillik-adabiyoti",
+          "grade": [
+            11
+          ]
+        },
+        {
+          "nameUz": "Jahon adabiyoti",
+          "slug": "jahon-adabiyoti",
+          "grade": [
+            9,
+            10,
+            11
+          ]
+        },
+        {
+          "nameUz": "Adabiy turlar va janrlar",
+          "slug": "adabiy-turlar-janrlar",
+          "grade": [
+            8,
+            9,
+            10
+          ]
+        },
+        {
+          "nameUz": "Adabiyot nazariyasi",
+          "slug": "adabiyot-nazariyasi",
+          "grade": [
+            9,
+            10,
+            11
+          ]
+        }
+      ]
+    }
+  ]
 }

@@ -1,103 +1,570 @@
 {
   "subject": "Matematika",
+  "applyToCategories": [
+    "DTM",
+    "SCHOOL",
+    "ATTESTATION",
+    "CERTIFICATE",
+    "PRESIDENT_SCHOOL"
+  ],
   "tree": [
     {
-      "nameUz": "Sonlar va amallar",
-      "slug": "sonlar-va-amallar",
-      "grade": [5, 6, 7, 8, 9, 10, 11],
+      "nameUz": "Algebra",
+      "slug": "algebra",
+      "grade": [
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "aliases": [
+        "Algebraik ifodalar",
+        "Tenglamalar"
+      ],
       "children": [
-        { "nameUz": "Natural va butun sonlar", "slug": "natural-va-butun-sonlar", "grade": [5, 6] },
-        { "nameUz": "Ratsional va irratsional sonlar", "slug": "ratsional-va-irratsional-sonlar", "grade": [8] },
-        { "nameUz": "Foizlar", "slug": "foizlar", "grade": [5, 6] },
-        { "nameUz": "Proporsiya va nisbat", "slug": "proporsiya-va-nisbat", "grade": [6] },
-        { "nameUz": "Daraja va ildiz", "slug": "daraja-va-ildiz", "grade": [7, 8, 9] },
-        { "nameUz": "Modul", "slug": "modul", "grade": [6, 7] }
-      ]
-    },
-    {
-      "nameUz": "Algebraik ifodalar va tenglamalar",
-      "slug": "algebraik-ifodalar-va-tenglamalar",
-      "grade": [7, 8, 9],
-      "children": [
-        { "nameUz": "Ko'phadlar", "slug": "kophadlar", "grade": [7] },
-        { "nameUz": "Ko'paytuvchilarga ajratish", "slug": "kopaytuvchilarga-ajratish", "grade": [7] },
-        { "nameUz": "Ratsional ifodalar", "slug": "ratsional-ifodalar", "grade": [8] },
-        { "nameUz": "Chiziqli tenglama va tengsizliklar", "slug": "chiziqli-tenglama-va-tengsizliklar", "grade": [7] },
-        { "nameUz": "Kvadrat tenglama va tengsizliklar", "slug": "kvadrat-tenglama-va-tengsizliklar", "grade": [8, 9] },
-        { "nameUz": "Tenglamalar sistemasi", "slug": "tenglamalar-sistemasi", "grade": [7, 9] },
-        { "nameUz": "Modulli tenglama va tengsizliklar", "slug": "modulli-tenglama-va-tengsizliklar", "grade": [9] }
+        {
+          "nameUz": "Sonlar va amallar",
+          "slug": "sonlar-va-amallar",
+          "grade": [
+            7,
+            8
+          ]
+        },
+        {
+          "nameUz": "Algebraik ifodalarni soddalashtirish",
+          "slug": "ifodalarni-soddalashtirish",
+          "grade": [
+            7,
+            8,
+            9
+          ]
+        },
+        {
+          "nameUz": "Chiziqli tenglama va tengsizliklar",
+          "slug": "chiziqli-tenglamalar",
+          "grade": [
+            7,
+            8,
+            9
+          ]
+        },
+        {
+          "nameUz": "Kvadrat tenglama va tengsizliklar",
+          "slug": "kvadrat-tenglamalar",
+          "grade": [
+            8,
+            9
+          ]
+        },
+        {
+          "nameUz": "Tenglamalar sistemasi",
+          "slug": "tenglamalar-sistemasi",
+          "grade": [
+            8,
+            9
+          ]
+        },
+        {
+          "nameUz": "Daraja va ildiz",
+          "slug": "daraja-va-ildiz",
+          "grade": [
+            8,
+            9,
+            10
+          ]
+        },
+        {
+          "nameUz": "Logarifm",
+          "slug": "logarifm",
+          "grade": [
+            10,
+            11
+          ]
+        },
+        {
+          "nameUz": "Progressiyalar",
+          "slug": "progressiyalar",
+          "grade": [
+            9,
+            10
+          ]
+        },
+        {
+          "nameUz": "Modulli ifodalar va tenglamalar",
+          "slug": "modul",
+          "grade": [
+            8,
+            9,
+            10
+          ]
+        },
+        {
+          "nameUz": "Ratsional va irratsional tenglamalar",
+          "slug": "ratsional-irratsional-tenglamalar",
+          "grade": [
+            9,
+            10
+          ]
+        },
+        {
+          "nameUz": "Ko'rsatkichli tenglama va tengsizliklar",
+          "slug": "korsatkichli-tenglamalar",
+          "grade": [
+            10,
+            11
+          ]
+        }
       ]
     },
     {
       "nameUz": "Funksiyalar",
       "slug": "funksiyalar",
-      "grade": [8, 9, 10],
+      "grade": [
+        9,
+        10,
+        11
+      ],
+      "aliases": [
+        "Funksiya"
+      ],
       "children": [
-        { "nameUz": "Funksiya tushunchasi va grafigi", "slug": "funksiya-tushunchasi-va-grafigi", "grade": [8] },
-        { "nameUz": "Chiziqli funksiya", "slug": "chiziqli-funksiya", "grade": [7] },
-        { "nameUz": "Kvadratik funksiya", "slug": "kvadratik-funksiya", "grade": [8, 9] },
-        { "nameUz": "Darajali funksiya", "slug": "darajali-funksiya", "grade": [9] },
-        { "nameUz": "Ko'rsatkichli funksiya", "slug": "korsatkichli-funksiya", "grade": [10] },
-        { "nameUz": "Logarifmik funksiya", "slug": "logarifmik-funksiya", "grade": [10] },
-        { "nameUz": "Trigonometrik funksiyalar", "slug": "trigonometrik-funksiyalar", "grade": [10] }
+        {
+          "nameUz": "Funksiya tushunchasi va grafigi",
+          "slug": "funksiya-tushunchasi",
+          "grade": [
+            9,
+            10
+          ]
+        },
+        {
+          "nameUz": "Chiziqli va kvadratik funksiya",
+          "slug": "chiziqli-kvadratik-funksiya",
+          "grade": [
+            8,
+            9
+          ]
+        },
+        {
+          "nameUz": "Funksiya xossalari",
+          "slug": "funksiya-xossalari",
+          "grade": [
+            10,
+            11
+          ]
+        },
+        {
+          "nameUz": "Teskari funksiya",
+          "slug": "teskari-funksiya",
+          "grade": [
+            10,
+            11
+          ]
+        },
+        {
+          "nameUz": "Ko'rsatkichli va logarifmik funksiya",
+          "slug": "korsatkichli-logarifmik-funksiya",
+          "grade": [
+            10,
+            11
+          ]
+        }
+      ]
+    },
+    {
+      "nameUz": "Hosila va integral",
+      "slug": "hosila-va-integral",
+      "grade": [
+        10,
+        11
+      ],
+      "aliases": [
+        "Hosila",
+        "Integral",
+        "Matematik analiz"
+      ],
+      "children": [
+        {
+          "nameUz": "Limit va uzluksizlik",
+          "slug": "limit-uzluksizlik",
+          "grade": [
+            10,
+            11
+          ]
+        },
+        {
+          "nameUz": "Hosila ta'rifi va hisoblash qoidalari",
+          "slug": "hosila-hisoblash",
+          "grade": [
+            10,
+            11
+          ]
+        },
+        {
+          "nameUz": "Hosilaning geometrik va fizik ma'nosi",
+          "slug": "hosila-manosi",
+          "grade": [
+            10,
+            11
+          ]
+        },
+        {
+          "nameUz": "Funksiyani hosila yordamida tekshirish",
+          "slug": "funksiyani-tekshirish",
+          "grade": [
+            10,
+            11
+          ]
+        },
+        {
+          "nameUz": "Eng katta va eng kichik qiymat masalalari",
+          "slug": "ekstremum-masalalari",
+          "grade": [
+            10,
+            11
+          ]
+        },
+        {
+          "nameUz": "Boshlang'ich funksiya va aniqmas integral",
+          "slug": "aniqmas-integral",
+          "grade": [
+            11
+          ]
+        },
+        {
+          "nameUz": "Aniq integral va uning tatbiqlari",
+          "slug": "aniq-integral",
+          "grade": [
+            11
+          ]
+        }
       ]
     },
     {
       "nameUz": "Trigonometriya",
       "slug": "trigonometriya",
-      "grade": [10],
+      "grade": [
+        9,
+        10,
+        11
+      ],
       "children": [
-        { "nameUz": "Burchak o'lchov birliklari (radian, gradus)", "slug": "burchak-olchov-birliklari", "grade": [10] },
-        { "nameUz": "Trigonometrik ayniyatlar", "slug": "trigonometrik-ayniyatlar", "grade": [10] },
-        { "nameUz": "Trigonometrik tenglamalar", "slug": "trigonometrik-tenglamalar", "grade": [10] },
-        { "nameUz": "Trigonometrik tengsizliklar", "slug": "trigonometrik-tengsizliklar", "grade": [10] }
-      ]
-    },
-    {
-      "nameUz": "Progressiyalar",
-      "slug": "progressiyalar",
-      "grade": [9],
-      "children": [
-        { "nameUz": "Arifmetik progressiya", "slug": "arifmetik-progressiya", "grade": [9] },
-        { "nameUz": "Geometrik progressiya", "slug": "geometrik-progressiya", "grade": [9] },
-        { "nameUz": "Progressiyalarga doir masalalar", "slug": "progressiyalarga-doir-masalalar", "grade": [9] },
-        { "nameUz": "Cheksiz kamayuvchi geometrik progressiya", "slug": "cheksiz-kamayuvchi-geometrik-progressiya", "grade": [11] }
+        {
+          "nameUz": "Trigonometrik funksiyalar va ularning qiymatlari",
+          "slug": "trigonometrik-funksiyalar",
+          "grade": [
+            9,
+            10
+          ]
+        },
+        {
+          "nameUz": "Trigonometrik ayniyatlar",
+          "slug": "trigonometrik-ayniyatlar",
+          "grade": [
+            10
+          ]
+        },
+        {
+          "nameUz": "Qo'shish formulalari va keltirish",
+          "slug": "qoshish-formulalari",
+          "grade": [
+            10
+          ]
+        },
+        {
+          "nameUz": "Trigonometrik tenglama va tengsizliklar",
+          "slug": "trigonometrik-tenglamalar",
+          "grade": [
+            10,
+            11
+          ]
+        },
+        {
+          "nameUz": "Uchburchakni yechish. Sinuslar va kosinuslar teoremasi",
+          "slug": "uchburchakni-yechish",
+          "grade": [
+            9,
+            10
+          ]
+        }
       ]
     },
     {
       "nameUz": "Planimetriya",
       "slug": "planimetriya",
-      "grade": [7, 8, 9],
+      "grade": [
+        7,
+        8,
+        9
+      ],
+      "aliases": [
+        "Geometriya (tekislikda)"
+      ],
       "children": [
-        { "nameUz": "Uchburchaklar", "slug": "uchburchaklar", "grade": [7, 8] },
-        { "nameUz": "To'rtburchaklar", "slug": "tortburchaklar", "grade": [8] },
-        { "nameUz": "Aylana va doira", "slug": "aylana-va-doira", "grade": [8, 9] },
-        { "nameUz": "Yuzlar", "slug": "yuzlar", "grade": [8, 9] },
-        { "nameUz": "Vektorlar va koordinatalar usuli", "slug": "vektorlar-va-koordinatalar-usuli", "grade": [9] }
+        {
+          "nameUz": "Burchaklar va parallel to'g'ri chiziqlar",
+          "slug": "burchaklar-parallel",
+          "grade": [
+            7
+          ]
+        },
+        {
+          "nameUz": "Uchburchaklar va ularning tengligi",
+          "slug": "uchburchaklar",
+          "grade": [
+            7,
+            8
+          ]
+        },
+        {
+          "nameUz": "To'g'ri burchakli uchburchak. Pifagor teoremasi",
+          "slug": "pifagor-teoremasi",
+          "grade": [
+            8
+          ]
+        },
+        {
+          "nameUz": "To'rtburchaklar",
+          "slug": "tortburchaklar",
+          "grade": [
+            8
+          ]
+        },
+        {
+          "nameUz": "O'xshashlik",
+          "slug": "oxshashlik",
+          "grade": [
+            8,
+            9
+          ]
+        },
+        {
+          "nameUz": "Aylana va doira",
+          "slug": "aylana-va-doira",
+          "grade": [
+            8,
+            9
+          ]
+        },
+        {
+          "nameUz": "Yuzalar",
+          "slug": "yuzalar",
+          "grade": [
+            8,
+            9
+          ]
+        },
+        {
+          "nameUz": "Vektorlar va koordinatalar tekislikda",
+          "slug": "vektorlar-tekislikda",
+          "grade": [
+            9
+          ]
+        }
       ]
     },
     {
       "nameUz": "Stereometriya",
       "slug": "stereometriya",
-      "grade": [10, 11],
+      "grade": [
+        10,
+        11
+      ],
+      "aliases": [
+        "Fazoviy geometriya"
+      ],
       "children": [
-        { "nameUz": "To'g'ri chiziq va tekisliklar", "slug": "togri-chiziq-va-tekisliklar", "grade": [10] },
-        { "nameUz": "Ko'pyoqlar", "slug": "kopyoqlar", "grade": [10, 11] },
-        { "nameUz": "Prizma va piramida", "slug": "prizma-va-piramida", "grade": [10, 11] },
-        { "nameUz": "Aylanish jismlari (silindr, konus, shar)", "slug": "aylanish-jismlari", "grade": [11] },
-        { "nameUz": "Ko'pyoqlar va aylanish jismlarining yuza va hajmlari", "slug": "yuza-va-hajmlar", "grade": [11] }
+        {
+          "nameUz": "Fazoda to'g'ri chiziq va tekisliklar",
+          "slug": "fazoda-togri-chiziq-tekislik",
+          "grade": [
+            10
+          ]
+        },
+        {
+          "nameUz": "Ko'pyoqlar. Prizma va parallelepiped",
+          "slug": "prizma-parallelepiped",
+          "grade": [
+            10,
+            11
+          ]
+        },
+        {
+          "nameUz": "Piramida",
+          "slug": "piramida",
+          "grade": [
+            10,
+            11
+          ]
+        },
+        {
+          "nameUz": "Aylanma jismlar. Silindr, konus, shar",
+          "slug": "aylanma-jismlar",
+          "grade": [
+            11
+          ]
+        },
+        {
+          "nameUz": "Hajmlar va sirt yuzalari",
+          "slug": "hajm-va-sirt",
+          "grade": [
+            11
+          ]
+        },
+        {
+          "nameUz": "Fazoviy vektorlar va koordinatalar",
+          "slug": "vektorlar-fazoda",
+          "grade": [
+            11
+          ]
+        }
       ]
     },
     {
-      "nameUz": "Matematik analiz asoslari",
-      "slug": "matematik-analiz-asoslari",
-      "grade": [10, 11],
+      "nameUz": "Kombinatorika va ehtimollik",
+      "slug": "kombinatorika-ehtimollik",
+      "grade": [
+        9,
+        10,
+        11
+      ],
+      "aliases": [
+        "Kombinatorika",
+        "Ehtimollik nazariyasi",
+        "Statistika"
+      ],
       "children": [
-        { "nameUz": "Limit va uzluksizlik", "slug": "limit-va-uzluksizlik", "grade": [10] },
-        { "nameUz": "Hosila va uning tatbiqlari", "slug": "hosila-va-uning-tatbiqlari", "grade": [10, 11] },
-        { "nameUz": "Integral va uning tatbiqlari", "slug": "integral-va-uning-tatbiqlari", "grade": [11] },
-        { "nameUz": "Kombinatorika", "slug": "kombinatorika", "grade": [11] },
-        { "nameUz": "Ehtimollar nazariyasi", "slug": "ehtimollar-nazariyasi", "grade": [11] }
+        {
+          "nameUz": "Kombinatorika asoslari. O'rin almashtirish va guruhlash",
+          "slug": "kombinatorika-asoslari",
+          "grade": [
+            9,
+            10
+          ]
+        },
+        {
+          "nameUz": "Nyuton binomi",
+          "slug": "nyuton-binomi",
+          "grade": [
+            10,
+            11
+          ]
+        },
+        {
+          "nameUz": "Klassik ehtimollik",
+          "slug": "klassik-ehtimollik",
+          "grade": [
+            9,
+            10,
+            11
+          ]
+        },
+        {
+          "nameUz": "Ehtimolliklarni qo'shish va ko'paytirish",
+          "slug": "ehtimollik-amallari",
+          "grade": [
+            10,
+            11
+          ]
+        },
+        {
+          "nameUz": "Statistika elementlari",
+          "slug": "statistika-elementlari",
+          "grade": [
+            9,
+            10
+          ]
+        }
+      ]
+    },
+    {
+      "nameUz": "Sonlar nazariyasi",
+      "slug": "sonlar-nazariyasi",
+      "grade": [
+        7,
+        8,
+        9
+      ],
+      "children": [
+        {
+          "nameUz": "Bo'linish belgilari va tub sonlar",
+          "slug": "bolinish-tub-sonlar",
+          "grade": [
+            7,
+            8
+          ]
+        },
+        {
+          "nameUz": "EKUB va EKUK",
+          "slug": "ekub-ekuk",
+          "grade": [
+            7,
+            8
+          ]
+        },
+        {
+          "nameUz": "Qoldiqli bo'lish va modul arifmetikasi",
+          "slug": "qoldiqli-bolish",
+          "grade": [
+            8,
+            9
+          ]
+        }
+      ]
+    },
+    {
+      "nameUz": "Amaliy masalalar",
+      "slug": "amaliy-masalalar",
+      "grade": [
+        7,
+        8,
+        9
+      ],
+      "aliases": [
+        "Matnli masalalar",
+        "Foizlar"
+      ],
+      "children": [
+        {
+          "nameUz": "Foizlar",
+          "slug": "foizlar",
+          "grade": [
+            7,
+            8
+          ]
+        },
+        {
+          "nameUz": "Nisbat va proporsiya",
+          "slug": "nisbat-proporsiya",
+          "grade": [
+            7,
+            8
+          ]
+        },
+        {
+          "nameUz": "Harakatga oid masalalar",
+          "slug": "harakat-masalalari",
+          "grade": [
+            8,
+            9
+          ]
+        },
+        {
+          "nameUz": "Ish va unumdorlikka oid masalalar",
+          "slug": "ish-masalalari",
+          "grade": [
+            8,
+            9
+          ]
+        },
+        {
+          "nameUz": "Aralashma va qotishmaga oid masalalar",
+          "slug": "aralashma-masalalari",
+          "grade": [
+            8,
+            9
+          ]
+        }
       ]
     }
   ]
