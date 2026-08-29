@@ -34,7 +34,8 @@ describe("generateVariants — constraints", () => {
     const variants = generateVariants(pythagoreanTemplate, { count: 20, seed: 1 });
     expect(variants.length).toBeGreaterThan(0);
     for (const v of variants) {
-      const { a, b } = v.scope;
+      const a = Number(v.scope.a);
+      const b = Number(v.scope.b);
       const c = Math.sqrt(a * a + b * b);
       expect(Number.isInteger(c)).toBe(true); // constraint: c == round(c)
       expect(a).not.toBe(b); // constraint: a != b
