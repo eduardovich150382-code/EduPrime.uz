@@ -28,14 +28,37 @@ export type ParamSpec =
   | { name: string; type: "int"; min: number; max: number; step?: number }
   | { name: string; type: "choice"; values: number[] }
   | { name: string; type: "const"; value: number }
-  /** Bir nechta nomni bitta qatordan biriktiradi (masalan Pifagor uchliklari) */
-  | { name: string; type: "set"; names: string[]; rows: number[][] };
+  /**
+   * Bir nechta nomni bitta qatordan biriktiradi (masalan Pifagor uchliklari).
+   * Ustunlar matn ham bo'lishi mumkin (masalan sana, voqea nomi, toifa) —
+   * lekin matnli ustunlar `derived` va `answer.expr` kabi mathjs
+   * ifodalarida ISHLATILMAYDI (faqat sonli ustunlar ishlatiladi).
+   */
+  | { name: string; type: "set"; names: string[]; rows: (number | string)[][] };
 
 export interface Distractor {
   /** Noto'g'ri javob formulasi — TIPIK XATO natijasi bo'lishi shart */
   expr: string;
   /** Qanday xato ekanini tushuntirish (natija sahifasida ko'rsatiladi) */
   why: LocalizedText;
+}
+
+/**
+ * Matnli (tarix, ona tili va h.k.) shablonlar uchun: chalg'ituvchilar
+ * shu `set` ustunining boshqa qatorlaridan olinadi — mathjs ifodasi shart
+ * emas.
+ */
+export interface FromColumnDistractors {
+  /** `set` parametridagi ustun nomi (ParamSpec.names ichidan biri) */
+  fromColumn: string;
+  /**
+   * otherRows — boshqa qatorlardan tasodifiy;
+   * nearest — son sifatida talqin qilib, to'g'ri javobga eng yaqinlari (sanalar uchun);
+   * sameGroup — shu ustundagi noyob qiymatlardan, to'g'ri javobdan boshqasi (toifalar uchun)
+   */
+  strategy: "otherRows" | "nearest" | "sameGroup";
+  /** Nechta chalg'ituvchi kerak — berilmasa optionCount-1 */
+  count?: number;
 }
 
 export interface Template {
@@ -52,8 +75,11 @@ export interface Template {
   derived?: Record<string, string>;
   /** Hammasi true bo'lgandagina variant qabul qilinadi */
   constraints?: string[];
-  answer: { expr: string; unit?: string; round?: number };
-  distractors: Distractor[];
+  answer:
+    | { expr: string; unit?: string; round?: number }
+    /** Javob hisoblanmaydi — `set` parametrining shu ustunidan/qiymatidan to'g'ridan-to'g'ri olinadi */
+    | { fromParam: string };
+  distractors: Distractor[] | FromColumnDistractors;
   stem: LocalizedText;
   solution: LocalizedText;
   hints?: LocalizedText[];
@@ -78,10 +104,10 @@ export interface Variant {
   lang: Lang;
   stem: string;
   choices: Choice[];
-  answerValue: number;
+  answerValue: number | string;
   solution: string;
   hints: string[];
-  scope: Record<string, number>;
+  scope: Record<string, number | string>;
 }
 
 /* ------------------------------------------------------------------ */
@@ -120,16 +146,118 @@ function pick<T>(rnd: () => number, arr: T[]): T {
   return arr[Math.floor(rnd() * arr.length)];
 }
 
-function interpolate(tpl: string, scope: Record<string, number>): string {
+/** Fisher-Yates — array nusxasini aralashtirib qaytaradi (asl massivga tegmaydi) */
+function shuffled<T>(arr: T[], rnd: () => number): T[] {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(rnd() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+function interpolate(tpl: string, scope: Record<string, number | string>): string {
   return tpl.replace(/\{(\w+)(?::(\d+))?\}/g, (_m, key: string, d?: string) => {
     const v = scope[key];
     if (v === undefined) return `{${key}}`;
+    if (typeof v === "string") return v;
     return d !== undefined ? v.toFixed(Number(d)) : fmt(v);
   });
 }
 
-function evalExpr(expr: string, scope: Record<string, number>): number | boolean {
+function evalExpr(expr: string, scope: Record<string, number | string>): number | boolean {
   return math.evaluate(expr, { ...scope }) as number | boolean;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Matnli parametrlar — mathjs ifodalariga tushmasligini tekshirish   */
+/* ------------------------------------------------------------------ */
+
+/** Shu shablondagi "set" parametrlarning qaysi ustunlari matn ekanini aniqlaydi */
+function textColumnNames(t: Template): Set<string> {
+  const names = new Set<string>();
+  for (const p of t.params) {
+    if (p.type !== "set") continue;
+    p.names.forEach((nm, i) => {
+      if (p.rows.some((row) => typeof row[i] === "string")) names.add(nm);
+    });
+  }
+  return names;
+}
+
+function identifiersOf(expr: string): string[] {
+  const ids: string[] = [];
+  math.parse(expr).traverse((node) => {
+    if (node.type === "SymbolNode") ids.push((node as unknown as { name: string }).name);
+  });
+  return ids;
+}
+
+/** `derived`/`answer.expr` kabi mathjs ifodalarida matnli parametr ishlatilsa, aniq xato beradi */
+function assertNoTextInExpr(templateId: string, source: string, expr: string, textNames: Set<string>): void {
+  if (textNames.size === 0) return;
+  let ids: string[];
+  try {
+    ids = identifiersOf(expr);
+  } catch {
+    return; // sintaksis xatosi keyinroq evalExpr'da o'z holicha ushlanadi
+  }
+  const bad = ids.find((id) => textNames.has(id));
+  if (bad) {
+    throw new Error(
+      `Shablon "${templateId}": matnli parametr "${bad}" "${source}" ifodasida ishlatilgan ("${expr}") — ` +
+        `matnli parametrlar mathjs ifodalarida ishlatilmaydi, faqat stem/solution/hints matnida yoki ` +
+        `answer.fromParam / distractors.fromColumn orqali ishlatilishi mumkin.`
+    );
+  }
+}
+
+/** Har bir mathjs ifodasi ishlatilishi mumkin bo'lgan joyni bir marta (variant sikli boshlanmasdan) tekshiradi */
+function validateTemplateExprs(t: Template, textNames: Set<string>): void {
+  if (textNames.size === 0) return;
+  if (t.derived) {
+    for (const [k, expr] of Object.entries(t.derived)) assertNoTextInExpr(t.id, `derived.${k}`, expr, textNames);
+  }
+  if (t.constraints) {
+    t.constraints.forEach((c, i) => assertNoTextInExpr(t.id, `constraints[${i}]`, c, textNames));
+  }
+  if ("expr" in t.answer) assertNoTextInExpr(t.id, "answer.expr", t.answer.expr, textNames);
+  if (Array.isArray(t.distractors)) {
+    t.distractors.forEach((d, i) => assertNoTextInExpr(t.id, `distractors[${i}].expr`, d.expr, textNames));
+  }
+}
+
+/** `set` parametridagi bitta ustunning barcha qatorlardagi qiymatlarini qaytaradi */
+function setColumnValues(t: Template, columnName: string): (number | string)[] {
+  for (const p of t.params) {
+    if (p.type !== "set") continue;
+    const idx = p.names.indexOf(columnName);
+    if (idx !== -1) return p.rows.map((row) => row[idx]);
+  }
+  throw new Error(`Shablon "${t.id}": distractors.fromColumn="${columnName}" hech qanday "set" parametrida topilmadi`);
+}
+
+/**
+ * `fromColumn` chalg'ituvchi strategiyasi uchun nomzodlar ro'yxati (to'g'ri
+ * javobga teng qiymatlar chiqarib tashlangan). Tashqi kod bu ro'yxatdan
+ * kerakli sonini `used` to'plamiga qarab tanlab oladi.
+ */
+function fromColumnCandidates(
+  strategy: FromColumnDistractors["strategy"],
+  columnValues: (number | string)[],
+  ans: number | string,
+  rnd: () => number
+): (number | string)[] {
+  const pool = columnValues.filter((v) => v !== ans);
+  if (strategy === "sameGroup") return shuffled(Array.from(new Set(pool)), rnd);
+  if (strategy === "nearest") {
+    const ansNum = Number(ans);
+    if (!Number.isFinite(ansNum)) return [];
+    return pool
+      .filter((v) => Number.isFinite(Number(v)))
+      .sort((a, b) => Math.abs(Number(a) - ansNum) - Math.abs(Number(b) - ansNum));
+  }
+  return shuffled(pool, rnd); // otherRows
 }
 
 /* ------------------------------------------------------------------ */
@@ -158,17 +286,26 @@ export function generateVariants(
     optionCount = 4,
   } = opts;
 
+  // Matnli parametrlarning mathjs ifodalariga tushib ketishini bir marta,
+  // sikldan oldin tekshiramiz — noto'g'ri shablon har bir urinishda emas,
+  // darhol aniq xato bilan to'xtaydi.
+  const textNames = textColumnNames(t);
+  validateTemplateExprs(t, textNames);
+  const distractorColumnValues = Array.isArray(t.distractors)
+    ? null
+    : setColumnValues(t, t.distractors.fromColumn);
+
   const rnd = mulberry32(hash32(t.id) ^ seed);
   const out: Variant[] = [];
   const seenSignatures = new Set<string>();
-  const roundTo = t.answer.round ?? 2;
+  const roundTo = "expr" in t.answer ? t.answer.round ?? 2 : 2;
 
   let tries = 0;
   while (out.length < count && tries < count * maxTries) {
     tries++;
 
     // 1) Parametrlarni tanlash
-    const scope: Record<string, number> = {};
+    const scope: Record<string, number | string> = {};
     for (const p of t.params) {
       if (p.type === "const") scope[p.name] = p.value;
       else if (p.type === "choice") scope[p.name] = pick(rnd, p.values);
@@ -213,49 +350,74 @@ export function generateVariants(
     if (seenSignatures.has(signature)) continue;
 
     // 5) To'g'ri javob
-    let ans: number;
-    try {
-      const raw = evalExpr(t.answer.expr, scope);
-      if (typeof raw !== "number") throw new Error("javob ifodasi son emas");
-      ans = Number(raw.toFixed(roundTo));
-    } catch { continue; }
-    if (!Number.isFinite(ans)) continue;
+    let ans: number | string;
+    if ("fromParam" in t.answer) {
+      // Hisoblanmaydi — parametr qatoridan to'g'ridan-to'g'ri olinadi
+      // (masalan sana yoki toifa nomi).
+      const raw = scope[t.answer.fromParam];
+      if (raw === undefined) continue;
+      ans = raw;
+    } else {
+      let computed: number;
+      try {
+        const raw = evalExpr(t.answer.expr, scope);
+        if (typeof raw !== "number") throw new Error("javob ifodasi son emas");
+        computed = Number(raw.toFixed(roundTo));
+      } catch { continue; }
+      if (!Number.isFinite(computed)) continue;
+      ans = computed;
+    }
     scope["ans"] = ans;
 
     // 6) Chalg'ituvchilar — takrorlanmasin va javobga teng bo'lmasin
-    const used = new Set<number>([ans]);
-    const wrong: { value: number; why: LocalizedText }[] = [];
-    for (const d of t.distractors) {
-      if (wrong.length >= optionCount - 1) break;
-      let v: number;
-      try {
-        const raw = evalExpr(d.expr, scope);
-        if (typeof raw !== "number") throw new Error("chalg'ituvchi ifoda son emas");
-        v = Number(raw.toFixed(roundTo));
-      } catch { continue; }
-      if (!Number.isFinite(v) || used.has(v)) continue;
-      used.add(v);
-      wrong.push({ value: v, why: d.why });
-    }
-    // Yetmasa — javobga yaqin "shovqin" bilan to'ldiramiz (oxirgi chora)
-    let guard = 0;
-    while (wrong.length < optionCount - 1 && guard++ < 50) {
-      const k = [1.5, 0.5, 2, 0.25, 3][wrong.length % 5];
-      const v = Number((ans * k).toFixed(roundTo));
-      if (Number.isFinite(v) && !used.has(v) && v !== 0) {
+    const used = new Set<number | string>([ans]);
+    const wrong: { value: number | string; why: LocalizedText }[] = [];
+    if (Array.isArray(t.distractors)) {
+      for (const d of t.distractors) {
+        if (wrong.length >= optionCount - 1) break;
+        let v: number;
+        try {
+          const raw = evalExpr(d.expr, scope);
+          if (typeof raw !== "number") throw new Error("chalg'ituvchi ifoda son emas");
+          v = Number(raw.toFixed(roundTo));
+        } catch { continue; }
+        if (!Number.isFinite(v) || used.has(v)) continue;
+        used.add(v);
+        wrong.push({ value: v, why: d.why });
+      }
+    } else {
+      const limit = t.distractors.count ?? optionCount - 1;
+      const candidates = fromColumnCandidates(t.distractors.strategy, distractorColumnValues!, ans, rnd);
+      for (const v of candidates) {
+        if (wrong.length >= optionCount - 1 || wrong.length >= limit) break;
+        if (used.has(v)) continue;
         used.add(v);
         wrong.push({ value: v, why: {} });
-      } else guard += 5;
+      }
+    }
+    // Yetmasa — javobga yaqin "shovqin" bilan to'ldiramiz (oxirgi chora,
+    // faqat sonli javob uchun — matnli javobga sonli "shovqin" ma'nosiz)
+    if (wrong.length < optionCount - 1 && typeof ans === "number") {
+      let guard = 0;
+      while (wrong.length < optionCount - 1 && guard++ < 50) {
+        const k = [1.5, 0.5, 2, 0.25, 3][wrong.length % 5];
+        const v = Number((ans * k).toFixed(roundTo));
+        if (Number.isFinite(v) && !used.has(v) && v !== 0) {
+          used.add(v);
+          wrong.push({ value: v, why: {} });
+        } else guard += 5;
+      }
     }
     if (wrong.length < optionCount - 1) continue;
 
     // 7) Variantlarni aralashtirish
-    const unit = t.answer.unit ? ` ${t.answer.unit}` : "";
+    const unit = "expr" in t.answer && t.answer.unit ? ` ${t.answer.unit}` : "";
+    const toText = (v: number | string) => (typeof v === "number" ? fmt(v) + unit : String(v));
     const pool: Choice[] = [
-      { key: "", text: fmt(ans) + unit, correct: true },
+      { key: "", text: toText(ans), correct: true },
       ...wrong.map((w) => ({
         key: "",
-        text: fmt(w.value) + unit,
+        text: toText(w.value),
         correct: false,
         why: w.why,
       })),
