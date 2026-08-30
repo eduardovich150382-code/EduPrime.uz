@@ -1,5 +1,6 @@
 import { db } from './db';
 import { shuffleArray } from './shuffle';
+import { roundRobinFlatten } from './item-picker';
 
 /** Bu yerdagi aralashtirishlar (savol tanlash) foydalanuvchiga bog'liq
  * takrorlanuvchan bo'lishi shart emas — faqat bir martalik, imtihon
@@ -89,42 +90,6 @@ function difficultyBucketOf(difficulty: number | null): DifficultyBucket {
 }
 
 /**
- * `items`ni `keyFn` bo'yicha guruhlab, guruhlar orasida aylanma tartibda
- * ("round-robin") tekislaydi — bitta guruhdan hammasi ketma-ket kelib
- * qolmasligi uchun. Har guruh ichi ham tasodifiy aralashtiriladi, shu
- * sababli har chaqiruvda boshqacha tartib chiqadi. Natija — guruh
- * chegaralarisiz, oddiy tekis massiv (guruh ichidagi "round=0" elementlar
- * birinchi, "round=1" elementlar keyin va h.k.).
- */
-function roundRobinFlatten<T>(items: T[], keyFn: (item: T) => string): T[] {
-  const byKey = new Map<string, T[]>();
-  for (const item of items) {
-    const key = keyFn(item);
-    const list = byKey.get(key) || [];
-    list.push(item);
-    byKey.set(key, list);
-  }
-  for (const [key, list] of byKey) byKey.set(key, shuffleArray(list, freshSeed()));
-
-  const keys = shuffleArray(Array.from(byKey.keys()), freshSeed());
-  const flat: T[] = [];
-  let round = 0;
-  let addedThisRound = true;
-  while (addedThisRound) {
-    addedThisRound = false;
-    for (const key of keys) {
-      const list = byKey.get(key)!;
-      if (round < list.length) {
-        flat.push(list[round]);
-        addedThisRound = true;
-      }
-    }
-    round++;
-  }
-  return flat;
-}
-
-/**
  * Berilgan havzadan `want` ta savol tanlaydi — shablon/savol (`templateId
  * ?? id`) bo'yicha aylanma tartibda. Bir vaqtlar mavzu (`topic`) bo'yicha
  * TASHQI, shablon bo'yicha ICHKI ikki qavatli edi — lekin bu teskari
@@ -141,7 +106,7 @@ function roundRobinFlatten<T>(items: T[], keyFn: (item: T) => string): T[] {
  */
 function pickByTopicRoundRobin(pool: QuestionCandidate[], want: number): QuestionCandidate[] {
   if (want <= 0 || pool.length === 0) return [];
-  return roundRobinFlatten(pool, (q) => q.templateId || q.id).slice(0, want);
+  return roundRobinFlatten(pool, (q) => q.templateId || q.id, freshSeed).slice(0, want);
 }
 
 /**
