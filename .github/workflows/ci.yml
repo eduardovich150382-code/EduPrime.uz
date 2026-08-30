@@ -45,6 +45,8 @@ jobs:
 
       - run: npm run lint
 
+      - run: npm test
+
       - name: Paramgen shablonlarini tekshirish (har biridan 50 ta variant)
         run: npm run validate:templates
 
