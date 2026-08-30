@@ -57,8 +57,23 @@ export function shuffleTest(
   testId: string,
   opts: { preserveOrder?: boolean } = {}
 ): any[] {
-  const baseSeed = generateSeed(userId, testId);
+  return shuffleQuestionsWithSeed(questions, generateSeed(userId, testId), opts);
+}
 
+/**
+ * `shuffleTest` bilan bir xil — lekin `userId+testId`dan hosil qilingan
+ * urug' o'rniga TO'G'RIDAN-TO'G'RI raqamli urug' qabul qiladi. TestSession
+ * uchun kerak: sessiya haqiqiy Test qatoriga ega emas, o'rniga saqlangan
+ * `TestSession.seed` ishlatiladi (bitta foydalanuvchi bir xil spec bilan
+ * bir nechta sessiya ochsa, har biri BOSHQA aralashtirishga ega bo'lishi
+ * kerak — shuning uchun generateSeed(userId, ...) yaramaydi, chunki u
+ * har doim bir xil natija beradi).
+ */
+export function shuffleQuestionsWithSeed(
+  questions: any[],
+  baseSeed: number,
+  opts: { preserveOrder?: boolean } = {}
+): any[] {
   // Shuffle question order — skipped for generated, section-grouped exams
   // (e.g. DTM Online) where the presentation order (mutaxassislik 1 →
   // mutaxassislik 2 → majburiy fanlar) must stay intact. Options within each

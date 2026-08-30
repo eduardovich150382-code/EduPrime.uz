@@ -41,7 +41,8 @@ interface QuestionData {
 interface ResultData {
   id: string;
   userId: string;
-  testId: string;
+  testId: string | null;
+  sessionId: string | null;
   score: number;
   maxScore: number;
   percentage: number;
@@ -341,13 +342,15 @@ export default function ResultPage() {
 
         {/* Actions */}
         <div className="flex items-center justify-center gap-3 mt-8">
-          <Link
-            href={`/tests/${result.testId}/solve`}
-            className="btn-secondary flex items-center gap-2"
-          >
-            <RotateCcw size={16} />
-            Qayta yechish
-          </Link>
+          {result.testId && (
+            <Link
+              href={`/tests/${result.testId}/solve`}
+              className="btn-secondary flex items-center gap-2"
+            >
+              <RotateCcw size={16} />
+              Qayta yechish
+            </Link>
+          )}
           <button
             onClick={handleShare}
             className="btn-ghost flex items-center gap-2 relative"

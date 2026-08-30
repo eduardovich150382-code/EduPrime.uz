@@ -49,6 +49,7 @@ model User {
   referralsReceived Referral[]   @relation("ReferralsReceived")
   notifications     Notification[]
   generatedTests    Test[]       @relation("GeneratedTests")
+  testSessions      TestSession[]
   courseEnrollments CourseEnrollment[]
   lessonProgress    LessonProgress[]
   courseReviews     CourseReview[]
@@ -575,12 +576,48 @@ model CourseReview {
   @@unique([userId, courseId])
 }
 
+// ===================== VIRTUAL TEST SESSIONS =====================
+// Har generatsiya qilingan test (DTM Online, mashq testi) uchun bazaga
+// o'nlab Question qatori yozish o'rniga — ItemSpec + tanlangan Item id'lari
+// (itemIds) saqlanadi, savollarning o'zi Item jadvalidan so'rov vaqtida
+// olinadi. `itemIds` ataylab oddiy String[] (Item'ga FK emas) — bu faqat
+// ishoralar ro'yxati, Item o'chirilsa ham TestSession buzilmaydi (savol
+// shunchaki natijada ko'rinmay qoladi). `seed` — GET/submit ikkalasida bir
+// xil aralashtirish tartibini qayta hosil qilish uchun (baseSeed o'rniga
+// generateSeed(userId, id) emas, shu saqlangan qiymat ishlatiladi — chunki
+// bitta foydalanuvchi bir xil spec bilan bir nechta sessiya ochishi mumkin,
+// ularning har biri BOSHQA aralashtirishga ega bo'lishi kerak).
+enum SessionMode {
+  FIXED
+  ADAPTIVE
+}
+
+model TestSession {
+  id          String      @id @default(cuid())
+  userId      String
+  title       String
+  spec        Json        // ItemSpec — qayta ishlatish va ulashish uchun
+  itemIds     String[]    // tanlangan savollar — faqat ishoralar (Item.id), FK emas
+  seed        Int
+  mode        SessionMode @default(FIXED)
+  durationMin Int
+  startedAt   DateTime    @default(now())
+  expiresAt   DateTime
+  submittedAt DateTime?
+
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  results TestResult[]
+
+  @@index([userId, startedAt])
+}
+
 // ===================== RESULTS =====================
 
 model TestResult {
   id          String   @id @default(cuid())
   userId      String
-  testId      String
+  testId      String?      // Sessiya orqali topshirilgan natijada bo'sh — sessionId to'ldirilgan bo'ladi
+  sessionId   String?      // TestSession orqali topshirilgan natijada to'ldirilgan (haqiqiy Test qatori yo'q)
   score       Int
   maxScore    Int
   percentage  Float
@@ -588,11 +625,13 @@ model TestResult {
   timeSpent   Int      // in seconds
   completedAt DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  test Test @relation(fields: [testId], references: [id])
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  test    Test?        @relation(fields: [testId], references: [id])
+  session TestSession? @relation(fields: [sessionId], references: [id])
 
   @@index([userId, completedAt])
   @@index([testId])
+  @@index([sessionId])
 }
 
 // ===================== SUBSCRIPTIONS & PAYMENTS =====================

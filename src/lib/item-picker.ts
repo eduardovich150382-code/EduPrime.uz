@@ -404,3 +404,51 @@ export async function getRecentlyCorrectItemIds(userId: string, days: number): P
   for (const it of legacyItems) excludeIds.add(it.id); // (2) — legacy backfill orqali
   return Array.from(excludeIds);
 }
+
+// ===================== Havzadan tanlash (DB bilan) =====================
+
+/**
+ * `POST /api/items/search`dagi havza bo'shatish tsiklining aynan o'zi
+ * (relaxation loop) — `POST /api/sessions` ham bir xil algoritm bilan
+ * savol tanlaydi, shuning uchun bu yerda bir marta yozilgan. `items/search`
+ * o'zining mavjud (sinovdan o'tgan) yo'lini alohida saqlaydi — bu funksiya
+ * faqat yangi chaqiruvchilar uchun.
+ */
+export async function pickItemsForSpec(params: {
+  spec: ItemSpec;
+  limit: number;
+  seed: number;
+  excludeItemIds: string[];
+}): Promise<{ ids: string[]; relaxed: RelaxationStep[] }> {
+  const { spec, limit, seed, excludeItemIds } = params;
+
+  const fetchCandidates = (s: ItemSpec): Promise<PickableItem[]> =>
+    db.item.findMany({
+      where: buildItemWhere(s, excludeItemIds),
+      select: { id: true, templateId: true, difficulty: true },
+    });
+
+  const relaxed: RelaxationStep[] = [];
+  let effectiveSpec = spec;
+  let candidates = await fetchCandidates(effectiveSpec);
+
+  while (candidates.length < limit) {
+    const step = nextRelaxationStep(effectiveSpec, relaxed);
+    if (!step) break;
+    relaxed.push(step);
+
+    const relaxedSpec = applyRelaxationStep(effectiveSpec, step);
+    if (JSON.stringify(relaxedSpec) === JSON.stringify(effectiveSpec)) continue; // bo'shatish hech narsani o'zgartirmadi — keyingi qadamga o'tiladi
+
+    effectiveSpec = relaxedSpec;
+    candidates = await fetchCandidates(effectiveSpec);
+  }
+
+  const picked = pickItems(candidates, {
+    limit,
+    range: { min: effectiveSpec.difficultyMin ?? 1, max: effectiveSpec.difficultyMax ?? 5 },
+    seedFn: makeSeedSequence(seed),
+  });
+
+  return { ids: picked.map((p) => p.id), relaxed };
+}

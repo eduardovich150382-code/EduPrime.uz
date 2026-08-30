@@ -92,6 +92,9 @@ export async function GET() {
         test: {
           select: { titleUz: true },
         },
+        session: {
+          select: { title: true },
+        },
       },
       orderBy: { completedAt: 'desc' },
       take: 5,
@@ -104,7 +107,8 @@ export async function GET() {
       streak,
       recentResults: recentResults.map((r) => ({
         id: r.id,
-        testTitle: r.test.titleUz,
+        // Sessiya orqali topshirilgan natijada r.test yo'q — TestSession.title bilan almashtiriladi.
+        testTitle: r.test?.titleUz ?? r.session?.title ?? '—',
         percentage: Math.round(r.percentage),
         completedAt: r.completedAt,
       })),

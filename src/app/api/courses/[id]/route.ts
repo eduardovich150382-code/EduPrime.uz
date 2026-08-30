@@ -82,7 +82,11 @@ export async function GET(
         select: { testId: true },
         distinct: ['testId'],
       });
-      for (const r of submitted) submittedTestIds.add(r.testId);
+      // testId — `where: { testId: { in: allGatingTestIds } } }` bilan
+      // filtrlangan, shu sababli amalda hech qachon null emas — bu yerdagi
+      // tekshiruv faqat TestResult.testId endi nullable bo'lgani uchun
+      // TypeScript'ni qanoatlantirish uchun.
+      for (const r of submitted) if (r.testId) submittedTestIds.add(r.testId);
     }
 
     const sections = course.sections.map((s) => ({
