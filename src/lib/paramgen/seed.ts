@@ -7,6 +7,13 @@
  * Test avtomatik topiladi yoki yaratiladi ("Parametrik savollar havzasi —
  * <Fan>"). Bu Test dtm-online.ts dagi savol tanlovi uchun ham (subjectId +
  * isPublished orqali) avtomatik ko'rinadi — alohida integratsiya shart emas.
+ *
+ * Korpusga asoslangan shablonlar (`params[].type === "set"` va `corpus`
+ * maydoni bilan, masalan tarix/ona tili/biologiya) shu faylga hech qanday
+ * qo'shimcha kod talab qilmaydi — `generateVariants` korpusni
+ * `src/lib/paramgen/corpora/<corpus>.json`dan shaffof o'qiydi, shuning uchun
+ * bu yerda oddiy inline "set" shablonlardan farqi yo'q. Qo'llanma va yangi
+ * korpus/shablon qo'shish tartibi: `docs/TEMPLATES.md`.
  */
 import fs from "fs";
 import path from "path";
