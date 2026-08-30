@@ -6218,5 +6218,396 @@
       "fotoeffekt",
       "atom fizikasi"
     ]
+  },
+  {
+    "id": "tarix-voqea-yil-01",
+    "subject": "tarix",
+    "topic": "Jahon va O'zbekiston tarixi — muhim sanalar",
+    "subtopic": "Voqea va sana",
+    "grade": [
+      9,
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab"
+    ],
+    "difficulty": 2,
+    "params": [
+      {
+        "name": "event",
+        "type": "set",
+        "corpus": "tarix-voqealar"
+      }
+    ],
+    "constraints": [],
+    "answer": {
+      "fromParam": "yil"
+    },
+    "distractors": {
+      "fromColumn": "yil",
+      "strategy": "nearest",
+      "count": 3
+    },
+    "stem": {
+      "uz": "\"{voqea}\" voqeasi qaysi yilda sodir bo'lgan?"
+    },
+    "solution": {
+      "uz": "\"{voqea}\" — {yil}-yilda sodir bo'lgan (bog'liq shaxs: {shaxs}, joy: {joy})."
+    },
+    "hints": [
+      {
+        "uz": "Voqeaning qaysi tarixiy shaxs va davr bilan bog'liqligini eslang."
+      }
+    ],
+    "tags": [
+      "tarix voqealari",
+      "sana"
+    ],
+    "seedCount": 40
+  },
+  {
+    "id": "tarix-voqea-shaxs-01",
+    "subject": "tarix",
+    "topic": "Jahon va O'zbekiston tarixi — muhim sanalar",
+    "subtopic": "Voqea va shaxs",
+    "grade": [
+      9,
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab"
+    ],
+    "difficulty": 2,
+    "params": [
+      {
+        "name": "event",
+        "type": "set",
+        "corpus": "tarix-voqealar"
+      }
+    ],
+    "constraints": [],
+    "answer": {
+      "fromParam": "shaxs"
+    },
+    "distractors": {
+      "fromColumn": "shaxs",
+      "strategy": "sameGroup",
+      "count": 3
+    },
+    "stem": {
+      "uz": "\"{voqea}\" ({yil}-yil) voqeasi qaysi tarixiy shaxs bilan bog'liq?"
+    },
+    "solution": {
+      "uz": "\"{voqea}\" ({yil}-yil, {joy}) — {shaxs} bilan bog'liq."
+    },
+    "hints": [
+      {
+        "uz": "Voqea qaysi davrda va qayerda sodir bo'lganini hisobga oling."
+      }
+    ],
+    "tags": [
+      "tarix voqealari",
+      "tarixiy shaxslar"
+    ],
+    "seedCount": 40
+  },
+  {
+    "id": "tarix-voqea-joy-01",
+    "subject": "tarix",
+    "topic": "Jahon va O'zbekiston tarixi — muhim sanalar",
+    "subtopic": "Voqea va joy",
+    "grade": [
+      9,
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab"
+    ],
+    "difficulty": 2,
+    "params": [
+      {
+        "name": "event",
+        "type": "set",
+        "corpus": "tarix-voqealar"
+      }
+    ],
+    "constraints": [],
+    "answer": {
+      "fromParam": "joy"
+    },
+    "distractors": {
+      "fromColumn": "joy",
+      "strategy": "otherRows",
+      "count": 3
+    },
+    "stem": {
+      "uz": "\"{voqea}\" voqeasi qayerda sodir bo'lgan?"
+    },
+    "solution": {
+      "uz": "\"{voqea}\" ({yil}-yil) — {joy}da sodir bo'lgan."
+    },
+    "hints": [
+      {
+        "uz": "Voqeaga aloqador tarixiy shaxs qayerda faoliyat yuritganini eslang."
+      }
+    ],
+    "tags": [
+      "tarix voqealari",
+      "geografiya"
+    ],
+    "seedCount": 40
+  },
+  {
+    "id": "onatili-soz-turkum-01",
+    "subject": "ona tili",
+    "topic": "So'z turkumlari",
+    "subtopic": "So'zning turkumini aniqlash",
+    "grade": [
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "exams": [
+      "maktab",
+      "dtm"
+    ],
+    "difficulty": 1,
+    "params": [
+      {
+        "name": "word",
+        "type": "set",
+        "corpus": "onatili-soz-turkum"
+      }
+    ],
+    "constraints": [],
+    "answer": {
+      "fromParam": "turkum"
+    },
+    "distractors": {
+      "fromColumn": "turkum",
+      "strategy": "sameGroup",
+      "count": 3
+    },
+    "stem": {
+      "uz": "\"{soz}\" so'zi qaysi so'z turkumiga tegishli?"
+    },
+    "solution": {
+      "uz": "\"{soz}\" — {turkum}. Misol: {misol}"
+    },
+    "hints": [
+      {
+        "uz": "So'zning gapdagi vazifasiga (predmet, belgi, harakat va h.k.) e'tibor bering."
+      }
+    ],
+    "tags": [
+      "so'z turkumlari",
+      "morfologiya"
+    ],
+    "seedCount": 40
+  },
+  {
+    "id": "onatili-soz-turkum-matnda-01",
+    "subject": "ona tili",
+    "topic": "So'z turkumlari",
+    "subtopic": "So'zning turkumini matn ichida aniqlash",
+    "grade": [
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "exams": [
+      "maktab",
+      "dtm"
+    ],
+    "difficulty": 1,
+    "params": [
+      {
+        "name": "word",
+        "type": "set",
+        "corpus": "onatili-soz-turkum"
+      }
+    ],
+    "constraints": [],
+    "answer": {
+      "fromParam": "turkum"
+    },
+    "distractors": {
+      "fromColumn": "turkum",
+      "strategy": "sameGroup",
+      "count": 3
+    },
+    "stem": {
+      "uz": "Quyidagi gapga e'tibor bering: \"{misol}\" Ushbu gapdagi \"{soz}\" so'zi qaysi turkumga oid?"
+    },
+    "solution": {
+      "uz": "\"{misol}\" gapida \"{soz}\" so'zi — {turkum}."
+    },
+    "hints": [
+      {
+        "uz": "So'zni gapdan alohida olib, unga savol bering (kim? nima? qanday? qancha? va h.k.)."
+      }
+    ],
+    "tags": [
+      "so'z turkumlari",
+      "matn tahlili"
+    ],
+    "seedCount": 40
+  },
+  {
+    "id": "biologiya-organ-tizim-01",
+    "subject": "biologiya",
+    "topic": "Inson anatomiyasi va fiziologiyasi",
+    "subtopic": "Organ va tizim",
+    "grade": [
+      8,
+      9,
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab"
+    ],
+    "difficulty": 2,
+    "params": [
+      {
+        "name": "organ",
+        "type": "set",
+        "corpus": "biologiya-organ"
+      }
+    ],
+    "constraints": [],
+    "answer": {
+      "fromParam": "tizim"
+    },
+    "distractors": {
+      "fromColumn": "tizim",
+      "strategy": "sameGroup",
+      "count": 3
+    },
+    "stem": {
+      "uz": "\"{organ}\" inson tanasining qaysi tizimiga tegishli?"
+    },
+    "solution": {
+      "uz": "\"{organ}\" — {tizim}ga tegishli. Vazifasi: {vazifa}."
+    },
+    "hints": [
+      {
+        "uz": "Organning bajaradigan vazifasi qaysi tizimning umumiy ishiga xizmat qilishini o'ylang."
+      }
+    ],
+    "tags": [
+      "inson organlari",
+      "organ tizimlari"
+    ],
+    "seedCount": 40
+  },
+  {
+    "id": "biologiya-organ-vazifa-01",
+    "subject": "biologiya",
+    "topic": "Inson anatomiyasi va fiziologiyasi",
+    "subtopic": "Organ va vazifa",
+    "grade": [
+      8,
+      9,
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab"
+    ],
+    "difficulty": 2,
+    "params": [
+      {
+        "name": "organ",
+        "type": "set",
+        "corpus": "biologiya-organ"
+      }
+    ],
+    "constraints": [],
+    "answer": {
+      "fromParam": "vazifa"
+    },
+    "distractors": {
+      "fromColumn": "vazifa",
+      "strategy": "otherRows",
+      "count": 3
+    },
+    "stem": {
+      "uz": "\"{organ}\" ning asosiy vazifasi nima?"
+    },
+    "solution": {
+      "uz": "\"{organ}\" ({tizim}) — {vazifa}."
+    },
+    "hints": [
+      {
+        "uz": "Organ qaysi tizimga tegishli ekanini eslab, shu tizimning umumiy vazifasidan kelib chiqing."
+      }
+    ],
+    "tags": [
+      "inson organlari",
+      "organ vazifalari"
+    ],
+    "seedCount": 40
+  },
+  {
+    "id": "biologiya-vazifa-organ-01",
+    "subject": "biologiya",
+    "topic": "Inson anatomiyasi va fiziologiyasi",
+    "subtopic": "Vazifadan organni aniqlash",
+    "grade": [
+      8,
+      9,
+      10,
+      11
+    ],
+    "exams": [
+      "dtm",
+      "maktab"
+    ],
+    "difficulty": 3,
+    "params": [
+      {
+        "name": "organ",
+        "type": "set",
+        "corpus": "biologiya-organ"
+      }
+    ],
+    "constraints": [],
+    "answer": {
+      "fromParam": "organ"
+    },
+    "distractors": {
+      "fromColumn": "organ",
+      "strategy": "otherRows",
+      "count": 3
+    },
+    "stem": {
+      "uz": "Quyidagi vazifani bajaruvchi organni aniqlang: \"{vazifa}\"."
+    },
+    "solution": {
+      "uz": "Bu vazifani {organ} ({tizim}) bajaradi."
+    },
+    "hints": [
+      {
+        "uz": "Vazifa tavsifida qaysi tizim haqida so'z ketayotganini aniqlang, so'ng shu tizimdagi organni toping."
+      }
+    ],
+    "tags": [
+      "inson organlari",
+      "organ vazifalari"
+    ],
+    "seedCount": 40
   }
 ]

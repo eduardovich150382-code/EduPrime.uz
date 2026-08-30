@@ -13,6 +13,8 @@
  * hisob-kitob yo'q, ya'ni platformaning qolgan qismi umuman o'zgarmaydi.
  */
 
+import fs from "fs";
+import path from "path";
 import { create, all } from "mathjs";
 
 const math = create(all, { number: "number" });
@@ -34,7 +36,41 @@ export type ParamSpec =
    * lekin matnli ustunlar `derived` va `answer.expr` kabi mathjs
    * ifodalarida ISHLATILMAYDI (faqat sonli ustunlar ishlatiladi).
    */
+  | { name: string; type: "set"; names: string[]; rows: (number | string)[][] }
+  /**
+   * Yuqoridagi kabi, lekin qatorlar shablon ichida emas — alohida korpus
+   * faylida (`src/lib/paramgen/corpora/<corpus>.json`, ko'rinishi:
+   * `{ id, columns, rows }`). Bitta korpus bir nechta shablonga xizmat
+   * qilishi mumkin (masalan bitta "tarix-voqealar" korpusidan "qaysi
+   * yilda", "kim bilan bog'liq" kabi bir nechta shablon foydalanadi).
+   * Ustun nomlari korpusning o'zidan olinadi — shablonda qayta ko'rsatish
+   * shart emas. `generateVariants` korpusni birinchi ishlatilganda fayldan
+   * o'qiydi va keyingi chaqiruvlar uchun xotirada saqlaydi.
+   */
+  | { name: string; type: "set"; corpus: string };
+
+/**
+ * Generator korpusni shu shaklda o'qiydi — `qa.ts`/`seed.ts`/CLI hech narsa
+ * bilmasin, shuning uchun format oddiy va o'qituvchi ham to'ldira oladigan
+ * bo'lishi kerak (batafsil: `docs/TEMPLATES.md`).
+ */
+export interface Corpus {
+  id: string;
+  columns: string[];
+  rows: (number | string)[][];
+}
+
+/**
+ * `corpus` havolasi hal qilingandan keyingi "set" parametr — generatorning
+ * qolgan qismi doim shu ko'rinish bilan ishlaydi, korpus haqida bilmaydi.
+ */
+type ResolvedParamSpec =
+  | { name: string; type: "int"; min: number; max: number; step?: number }
+  | { name: string; type: "choice"; values: number[] }
+  | { name: string; type: "const"; value: number }
   | { name: string; type: "set"; names: string[]; rows: (number | string)[][] };
+
+type ResolvedTemplate = Omit<Template, "params"> & { params: ResolvedParamSpec[] };
 
 export interface Distractor {
   /** Noto'g'ri javob formulasi — TIPIK XATO natijasi bo'lishi shart */
@@ -170,11 +206,71 @@ function evalExpr(expr: string, scope: Record<string, number | string>): number 
 }
 
 /* ------------------------------------------------------------------ */
+/*  Korpuslar — "set" parametrning qatorlarini alohida fayldan o'qish  */
+/* ------------------------------------------------------------------ */
+
+const CORPORA_DIR = path.join(__dirname, "corpora");
+/** Bitta process ichida bir korpus bir marta o'qiladi — ko'p shablon bitta korpusdan foydalanishi mumkin */
+const corpusCache = new Map<string, Corpus>();
+
+function loadCorpus(corpusId: string): Corpus {
+  const cached = corpusCache.get(corpusId);
+  if (cached) return cached;
+
+  const filePath = path.join(CORPORA_DIR, `${corpusId}.json`);
+  let raw: string;
+  try {
+    raw = fs.readFileSync(filePath, "utf8");
+  } catch {
+    throw new Error(`Korpus topilmadi: "${corpusId}" (kutilgan fayl: ${filePath})`);
+  }
+
+  let parsed: Corpus;
+  try {
+    parsed = JSON.parse(raw) as Corpus;
+  } catch (e) {
+    throw new Error(`Korpus "${corpusId}" JSON sifatida o'qilmadi: ${e instanceof Error ? e.message : String(e)}`);
+  }
+  if (!Array.isArray(parsed.columns) || parsed.columns.length === 0) {
+    throw new Error(`Korpus "${corpusId}": "columns" bo'sh yoki noto'g'ri`);
+  }
+  if (!Array.isArray(parsed.rows) || parsed.rows.length === 0) {
+    throw new Error(`Korpus "${corpusId}": "rows" bo'sh yoki noto'g'ri`);
+  }
+  parsed.rows.forEach((row, i) => {
+    if (!Array.isArray(row) || row.length !== parsed.columns.length) {
+      throw new Error(
+        `Korpus "${corpusId}": rows[${i}] ustunlar soniga (${parsed.columns.length}) mos kelmaydi: ${JSON.stringify(row)}`
+      );
+    }
+  });
+
+  corpusCache.set(corpusId, parsed);
+  return parsed;
+}
+
+/**
+ * Shablondagi har bir "set" parametrini generator ishlata oladigan holga
+ * keltiradi: `corpus` bilan ko'rsatilganini mos JSON fayldan o'qib
+ * `names`/`rows`ga aylantiradi, qolganini o'zgarishsiz qaytaradi. Shundan
+ * keyin butun generator (va uning yordamchi funksiyalari) korpus haqida
+ * umuman bilmaydi — faqat oddiy inline "set" bilan ishlagandek davom etadi.
+ */
+function resolveTemplate(t: Template): ResolvedTemplate {
+  const params = t.params.map<ResolvedParamSpec>((p) => {
+    if (p.type !== "set" || !("corpus" in p)) return p;
+    const corpus = loadCorpus(p.corpus);
+    return { name: p.name, type: "set", names: corpus.columns, rows: corpus.rows };
+  });
+  return { ...t, params };
+}
+
+/* ------------------------------------------------------------------ */
 /*  Matnli parametrlar — mathjs ifodalariga tushmasligini tekshirish   */
 /* ------------------------------------------------------------------ */
 
 /** Shu shablondagi "set" parametrlarning qaysi ustunlari matn ekanini aniqlaydi */
-function textColumnNames(t: Template): Set<string> {
+function textColumnNames(t: ResolvedTemplate): Set<string> {
   const names = new Set<string>();
   for (const p of t.params) {
     if (p.type !== "set") continue;
@@ -228,7 +324,7 @@ function validateTemplateExprs(t: Template, textNames: Set<string>): void {
 }
 
 /** `set` parametridagi bitta ustunning barcha qatorlardagi qiymatlarini qaytaradi */
-function setColumnValues(t: Template, columnName: string): (number | string)[] {
+function setColumnValues(t: ResolvedTemplate, columnName: string): (number | string)[] {
   for (const p of t.params) {
     if (p.type !== "set") continue;
     const idx = p.names.indexOf(columnName);
@@ -286,14 +382,19 @@ export function generateVariants(
     optionCount = 4,
   } = opts;
 
+  // "set" parametrlaridagi korpus havolalarini (bo'lsa) fayldan o'qib,
+  // to'g'ridan-to'g'ri names/rows ko'rinishiga keltiramiz — shundan keyingi
+  // butun funksiya korpus haqida umuman bilmaydi.
+  const rt = resolveTemplate(t);
+
   // Matnli parametrlarning mathjs ifodalariga tushib ketishini bir marta,
   // sikldan oldin tekshiramiz — noto'g'ri shablon har bir urinishda emas,
   // darhol aniq xato bilan to'xtaydi.
-  const textNames = textColumnNames(t);
+  const textNames = textColumnNames(rt);
   validateTemplateExprs(t, textNames);
   const distractorColumnValues = Array.isArray(t.distractors)
     ? null
-    : setColumnValues(t, t.distractors.fromColumn);
+    : setColumnValues(rt, t.distractors.fromColumn);
 
   const rnd = mulberry32(hash32(t.id) ^ seed);
   const out: Variant[] = [];
@@ -306,7 +407,7 @@ export function generateVariants(
 
     // 1) Parametrlarni tanlash
     const scope: Record<string, number | string> = {};
-    for (const p of t.params) {
+    for (const p of rt.params) {
       if (p.type === "const") scope[p.name] = p.value;
       else if (p.type === "choice") scope[p.name] = pick(rnd, p.values);
       else if (p.type === "int") {
@@ -343,7 +444,7 @@ export function generateVariants(
     if (!ok) continue;
 
     // 4) Takrorlanmaslik
-    const signature = t.params
+    const signature = rt.params
       .flatMap((p) => (p.type === "set" ? p.names : [p.name]))
       .map((n) => `${n}=${scope[n]}`)
       .join("|");
@@ -454,7 +555,8 @@ export function generateVariants(
 
 /** Shablon nazariy jihatdan nechta har xil parametr to'plami bera oladi */
 export function paramSpaceSize(t: Template): number {
-  return t.params.reduce((acc, p) => {
+  const rt = resolveTemplate(t);
+  return rt.params.reduce((acc, p) => {
     if (p.type === "const") return acc;
     if (p.type === "choice") return acc * p.values.length;
     if (p.type === "set") return acc * p.rows.length;

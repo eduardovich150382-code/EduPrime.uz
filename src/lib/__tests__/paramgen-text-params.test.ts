@@ -118,7 +118,11 @@ describe("generateVariants — distraktor strategiyalari", () => {
   it("'nearest': chalg'ituvchilar to'g'ri javobga eng yaqin yillar (sanalar uchun)", () => {
     const variants = generateVariants(historyTemplate, { count: 6, seed: 2 });
     expect(variants.length).toBeGreaterThan(0);
-    const allYears = historyTemplate.params[0].type === "set" ? historyTemplate.params[0].rows.map((r) => r[1] as number) : [];
+    const historyParam0 = historyTemplate.params[0];
+    const allYears =
+      historyParam0.type === "set" && "rows" in historyParam0
+        ? historyParam0.rows.map((r) => r[1] as number)
+        : [];
 
     for (const v of variants) {
       const ansYear = Number(v.answerValue);
@@ -153,7 +157,8 @@ describe("generateVariants — distraktor strategiyalari", () => {
   it("'otherRows': chalg'ituvchilar boshqa qatorlardan, to'g'ri javobga teng emas", () => {
     const variants = generateVariants(lawTemplate, { count: 6, seed: 4 });
     expect(variants.length).toBeGreaterThan(0);
-    const allTitles = lawTemplate.params[0].type === "set" ? lawTemplate.params[0].rows.map((r) => r[1] as string) : [];
+    const lawParam0 = lawTemplate.params[0];
+    const allTitles = lawParam0.type === "set" && "rows" in lawParam0 ? lawParam0.rows.map((r) => r[1] as string) : [];
     for (const v of variants) {
       const ansTitle = String(v.answerValue);
       const wrong = v.choices.filter((c) => !c.correct).map((c) => c.text);
@@ -191,5 +196,42 @@ describe("generateVariants — matnli parametrni mathjs ifodasida ishlatish taqi
       distractors: { fromColumn: "noSuchColumn", strategy: "otherRows" },
     };
     expect(() => generateVariants(bad, { count: 1 })).toThrow(/fromColumn="noSuchColumn"/);
+  });
+});
+
+// Korpusga asoslangan "set" parametr — qatorlar shablon ichida emas,
+// `src/lib/paramgen/corpora/<corpus>.json` faylida. Bu yerda faqat
+// generatorning fayl o'qish/xato holatlari tekshiriladi — real korpuslar
+// bilan ishlaydigan haqiqiy shablonlar `paramgen-corpus-templates.test.ts`da.
+describe("generateVariants — 'set' parametr korpusdan (corpus) o'qilganda", () => {
+  const corpusTemplate: Template = {
+    id: "test-corpus-history",
+    subject: "Tarix",
+    topic: "Test korpus",
+    difficulty: 2,
+    params: [{ name: "event", type: "set", corpus: "tarix-voqealar" }],
+    answer: { fromParam: "yil" },
+    distractors: { fromColumn: "yil", strategy: "nearest", count: 3 },
+    stem: { uz: "\"{voqea}\" voqeasi qaysi yilda sodir bo'lgan?" },
+    solution: { uz: "\"{voqea}\" — {yil}-yilda." },
+  };
+
+  it("mavjud korpus fayldan o'qib, oddiy inline 'set' bilan bir xil ishlaydi", () => {
+    const variants = generateVariants(corpusTemplate, { count: 5, seed: 1 });
+    expect(variants.length).toBeGreaterThan(0);
+    for (const v of variants) {
+      expect(v.answerValue).toBe(v.scope.yil);
+      expect(v.stem).not.toContain("{");
+      expect(v.choices.filter((c) => c.correct)).toHaveLength(1);
+    }
+  });
+
+  it("mavjud bo'lmagan korpus nomi uchun aniq xato beradi", () => {
+    const bad: Template = {
+      ...corpusTemplate,
+      id: "test-bad-corpus",
+      params: [{ name: "event", type: "set", corpus: "yoq-shunday-korpus" }],
+    };
+    expect(() => generateVariants(bad, { count: 1 })).toThrow(/Korpus topilmadi: "yoq-shunday-korpus"/);
   });
 });

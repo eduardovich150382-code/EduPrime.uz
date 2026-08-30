@@ -249,12 +249,15 @@ describe("validateTemplate — to'liq oqim (haqiqiy generateVariants orqali)", (
   });
 });
 
-describe("validateAllTemplates — mavjud 60 ta real shablon", () => {
+describe("validateAllTemplates — barcha real shablonlar", () => {
+  // Shablonlar soni o'sishi bilan bu test ham sekinlashadi (har biridan 50
+  // variant, ko'pchiligi mathjs orqali) — standart 5s vitest limiti yetmay
+  // qoladi, shuning uchun oshirilgan.
   it("hech qanday xato qaytarmaydi (bazaga yozishga tayyor)", () => {
     const issues = validateAllTemplates(realTemplates);
     if (issues.length > 0) {
       console.error(issues.slice(0, 20));
     }
     expect(issues).toEqual([]);
-  });
+  }, 30_000);
 });

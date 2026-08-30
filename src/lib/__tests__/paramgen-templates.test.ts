@@ -2,17 +2,19 @@ import { describe, expect, it } from "vitest";
 import { generateVariants, type Template } from "../paramgen/paramgen";
 import templatesJson from "../paramgen/templates.json";
 
-// `templates.json` — bazaga seed qilinadigan 60 ta REAL shablon. Bu fayl
-// matnli parametr generatori qo'shilgandan keyin ham hech biri buzilmaganini
-// tekshiradi: har shablondan 10 tadan variant chiqarib, javob va
-// distraktorlarning shakl jihatidan to'g'ri ekanini tasdiqlaydi. Mazmunan
-// "yaxshi" ekanini emas — shakliy invariantlarni tekshiradi (buni chuqurroq
-// `qaTemplate` qiladi, u alohida qo'lda ishga tushiriladi, CI'da emas).
+// `templates.json` — bazaga seed qilinadigan 68 ta REAL shablon (shundan 8
+// tasi korpusga asoslangan — `src/lib/paramgen/corpora/`, batafsil
+// `docs/TEMPLATES.md`da). Bu fayl matnli parametr generatori qo'shilgandan
+// keyin ham hech biri buzilmaganini tekshiradi: har shablondan 10 tadan
+// variant chiqarib, javob va distraktorlarning shakl jihatidan to'g'ri
+// ekanini tasdiqlaydi. Mazmunan "yaxshi" ekanini emas — shakliy
+// invariantlarni tekshiradi (buni chuqurroq `qaTemplate` qiladi, u alohida
+// qo'lda ishga tushiriladi, CI'da emas).
 const templates = templatesJson as unknown as Template[];
 
-describe("templates.json — 60 ta mavjud shablon regressiyasi", () => {
-  it("aynan 60 ta shablon bor (bu son o'zgarsa — ataylab ekanini bilib turing)", () => {
-    expect(templates.length).toBe(60);
+describe("templates.json — 68 ta mavjud shablon regressiyasi", () => {
+  it("aynan 68 ta shablon bor (bu son o'zgarsa — ataylab ekanini bilib turing)", () => {
+    expect(templates.length).toBe(68);
   });
 
   for (const t of templates) {
