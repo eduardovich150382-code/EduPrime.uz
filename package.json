@@ -15,6 +15,7 @@
     "db:manual": "tsx scripts/make-manual-migration.ts",
     "db:backfill-sql": "tsx scripts/generate-backfill-sql.ts",
     "paramgen:seed": "tsx src/lib/paramgen/seed.ts",
+    "validate:templates": "tsx scripts/validate-templates.ts",
     "seed:topics": "tsx prisma/seeds/seed-topics.ts",
     "postinstall": "prisma generate",
     "test": "vitest run",
