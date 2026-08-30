@@ -51,6 +51,7 @@ export async function GET(
       where: { userId: id },
       include: {
         test: { select: { titleUz: true, subject: { select: { nameUz: true } } } },
+        session: { select: { title: true } },
       },
       orderBy: { completedAt: 'desc' },
       take: 20,
@@ -61,8 +62,10 @@ export async function GET(
       subscriptions,
       testResults: testResults.map(r => ({
         id: r.id,
-        testTitle: r.test.titleUz,
-        subject: r.test.subject.nameUz,
+        // Sessiya orqali topshirilgan natijada r.test yo'q (haqiqiy Test
+        // qatori mavjud emas) — TestSession.title bilan almashtiriladi.
+        testTitle: r.test?.titleUz ?? r.session?.title ?? '—',
+        subject: r.test?.subject.nameUz ?? '—',
         score: r.score,
         maxScore: r.maxScore,
         percentage: r.percentage,
