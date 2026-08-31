@@ -125,14 +125,19 @@ function makeQuestionRow(overrides: Partial<QuestionRow> = {}): QuestionRow {
 }
 
 describe("planBackfill — BankQuestion", () => {
-  it("har BankQuestion uchun yangi Item rejalashtiradi, legacyBankId va PRIVATE visibility bilan", () => {
+  it("har BankQuestion uchun yangi Item rejalashtiradi, legacyBankId va PUBLIC visibility bilan", () => {
     const state = createEmptyState();
     const plan = planBackfill([makeBankRow()], [], state);
 
     expect(plan.report.bankItemsCreated).toBe(1);
     expect(plan.newItems).toHaveLength(1);
     expect(plan.newItems[0].data.legacyBankId).toBe("bank_1");
-    expect(plan.newItems[0].data.visibility).toBe("PRIVATE");
+    // Savollar banki umumiy mahsulot — `visibility` "manbasi bank edi"
+    // sababli emas, faqat o'qituvchi ataylab yashirganda PRIVATE bo'ladi
+    // (hozircha bunday belgi BankQuestion'da yo'q, shu sababli standart
+    // PUBLIC). Prod'da bu qoida buzilib, 454 ta bank Item PRIVATE qolib
+    // ketgani konstruktor/DTM/qidiruvda ko'rinmay qolishiga sabab bo'lgan edi.
+    expect(plan.newItems[0].data.visibility).toBe("PUBLIC");
   });
 
   it("idempotent: allaqachon ko'chirilgan BankQuestion (legacyBankId bo'yicha) qayta yaratilmaydi", () => {
@@ -213,6 +218,12 @@ describe("planBackfill — visibility", () => {
     const state = createEmptyState();
     const plan = planBackfill([], [makeQuestionRow({ testAccessType: "premium" })], state);
     expect(plan.newItems[0].data.visibility).toBe("PRIVATE");
+  });
+
+  it("BankQuestion'dan yaratilgan Item PUBLIC bo'ladi (Test.accessType tushunchasi bank uchun umuman qo'llanilmaydi)", () => {
+    const state = createEmptyState();
+    const plan = planBackfill([makeBankRow()], [], state);
+    expect(plan.newItems[0].data.visibility).toBe("PUBLIC");
   });
 });
 

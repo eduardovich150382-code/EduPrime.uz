@@ -322,9 +322,17 @@ export function planBankQuestions(
       tags: [],
       lang: "uz",
       source: "MANUAL",
-      // Bank savollari standart PRIVATE — Test'ga bog'lanmagan, shuning
-      // uchun accessType'dan kelib chiqadigan bepul/pullik qoidasi yo'q.
-      visibility: "PRIVATE",
+      // `visibility` savolni HAVZADAN (konstruktor/DTM/qidiruv) ataylab
+      // yashirish uchun ishlatiladigan bayroq — "manbasi bank edi" degan
+      // sabab bunga kirmaydi. Savollar banki ham umumiy mahsulot: Test'dagi
+      // savollar kabi, o'qituvchi ularni ataylab pullik/yashirin qilib
+      // belgilamagan bo'lsa, standart holat PUBLIC (prod'da 454 ta bank
+      // Item xato ravishda PRIVATE qolib, Ona tili/Tarix majburiy DTM
+      // bloki to'lmay qolgan edi — qarang PR muhokamasi). BankQuestion'da
+      // Test.accessType kabi pullik/bepul belgisi umuman yo'q, shuning
+      // uchun accessType'ga asoslangan qoida (resolveVisibilityFromAccessType)
+      // qo'llanilmaydi.
+      visibility: "PUBLIC",
       templateId: null,
       variantSig: null,
       legacyBankId: row.id,
