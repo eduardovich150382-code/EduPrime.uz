@@ -268,6 +268,36 @@ bajariladi.** Claude Code sessiyalari SQL faylini yaratishi mumkin (bazaga
 ulanmaydi), lekin uni Neon SQL Editor'ga qo'yib bajarish har doim inson
 tomonidan, qo'lda amalga oshiriladi.
 
+### `Item.visibility` nima anglatadi
+
+`Item.visibility` (`PUBLIC` | `PRIVATE`) savol matni/variantlari/to'g'ri
+javobini **havzadan** (konstruktor `/build`, DTM Online, `/api/items/search`)
+ataylab yashirish uchun ishlatiladigan bayroq — `buildItemWhere`
+(`lib/item-picker.ts`) har doim `visibility: 'PUBLIC'` bilan filtrlaydi,
+shuning uchun `PRIVATE` Item butunlay ko'rinmas bo'lib qoladi (paywall'dan
+farqli — bu yerda pullik/bepul emas, ko'rinadigan/ko'rinmas masalasi).
+
+- **PUBLIC** — standart holat. `Question` (Test orqali) `Test.accessType`
+  bo'yicha hisoblanadi (`free` → PUBLIC, boshqa barchasi → PRIVATE —
+  paywall shu orqali saqlanadi). **`BankQuestion`dan kelgan Item'lar ham
+  PUBLIC** — savollar banki ham umumiy mahsulot, "manbasi bank edi" degan
+  sabab uni yashirish uchun YETARLI EMAS.
+- **PRIVATE** — faqat aniq bir sabab bilan: pullik Test'dan kelgan savol,
+  yoki o'qituvchi savolni ataylab qoralama/yashirin holatda saqlagan.
+  Backfill (yoki har qanday yangi ko'chirish skripti) standart qiymat
+  sifatida **hech qachon** PRIVATE'ni ishlatmasligi kerak — bu "xavfsiz
+  standart" emas, aksincha mahsulotni ko'rinmas qiladi.
+
+**Nima uchun bu yozilgan:** `prisma/backfill/01-items.sql`da
+BankQuestion → Item ko'chirishda `visibility` xato ravishda doim `PRIVATE`
+qilib yozilgan edi ("bank savoli Test'ga bog'lanmagan" degan noto'g'ri
+mantiq bilan). Natijada prod bazada 454 ta bank Item (shu jumladan Ona
+tili va Tarix fanlarining BARCHA savollari) konstruktorda, DTM Online'da
+va qidiruvda umuman ko'rinmay qoldi — DTM Online'ning majburiy bloki
+to'lolmadi. Tuzatildi (`scripts/generate-backfill-sql.ts`,
+`scripts/backfill-items-lib.ts`); prod ma'lumoti loyiha egasi tomonidan
+qo'lda SQL bilan tuzatilgan.
+
 ### Nega Prisma Client versiyasi ham saqlanib qolgan
 
 `scripts/backfill-items.ts` va `scripts/backfill-purchases.ts` — bir xil

@@ -51,8 +51,14 @@ RETURNS TEXT AS $$
 $$ LANGUAGE SQL IMMUTABLE;
 
 -- ============ 1-BOSQICH: BankQuestion -> Item ============
--- Bank savollari doim PRIVATE (hech qanday Test'ga bog'lanmagan) va
--- standart MANUAL/uz.
+-- visibility=PUBLIC: visibility ustuni savolni HAVZADAN (konstruktor/DTM/
+-- qidiruv) ataylab yashirish uchun ishlatiladigan bayroq — "manbasi bank
+-- edi" degan sabab bunga kirmaydi. Savollar banki ham umumiy mahsulot:
+-- Test'dagi savollar kabi standart holat PUBLIC (BankQuestion'da
+-- Test.accessType kabi pullik/bepul belgisi umuman yo'q). Bu qoida avval
+-- xato ravishda PRIVATE edi — 454 ta bank Item (shu jumladan Ona tili va
+-- Tarix fanlarining BARCHA savollari) konstruktor/DTM/qidiruvda ko'rinmay
+-- qolgan edi, prod'da qo'lda tuzatilgan.
 INSERT INTO "Item" (
   id, "authorTeacherId", "subjectId", text, images, options, "correctAnswer",
   type, explanation, "explanationImages", "explanationSource", "videoUrl",
@@ -80,7 +86,7 @@ SELECT
   'uz',
   'MANUAL'::"ItemSource",
   'PUBLISHED'::"ItemStatus",
-  'PRIVATE'::"ItemVisibility",
+  'PUBLIC'::"ItemVisibility",
   NULL,
   NULL,
   bq.id,
