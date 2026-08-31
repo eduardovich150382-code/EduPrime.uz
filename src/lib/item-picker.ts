@@ -437,11 +437,18 @@ export async function getRecentlyCorrectItemIds(userId: string, days: number): P
 /**
  * Foydalanuvchi KECHA (Asia/Tashkent kalendar kuni) NOTO'G'RI javob bergan
  * itemlar id'sini qaytaradi — konstruktordagi "Kechagi xatolarim" preseti
- * `spec.onlyItemIds` sifatida shuni ishlatadi. Manba va ikki bosqichli
- * qidiruv (to'g'ridan-to'g'ri itemId, keyin legacyQuestionId orqali)
- * `getRecentlyCorrectItemIds` bilan AYNAN bir xil — farqi faqat oraliq
- * (butun "days" oynasi emas, aniq bitta kalendar kun) va shart (`isCorrect
- * === false`, `undefined` emas — javob berilmagan savol "xato" hisoblanmaydi).
+ * `spec.onlyItemIds` sifatida shuni ishlatadi (`where.id: { in: ... }`,
+ * qarang `buildItemWhere`), shuning uchun bu yerda RAQAM emas, faqat
+ * DB'da haqiqatan mavjud Item.id'lar qaytishi shart — aks holda `onlyItemIds`
+ * xayoliy id'lar bilan to'lib, haqiqiy itemlar 200 limitidan siqilib chiqib
+ * ketishi (yoki `questionCount` haqiqiy havzadan katta ko'rsatilishi)
+ * mumkin edi.
+ *
+ * Shu sababli `getRecentlyCorrectItemIds`dan farqli (u yerda ikki bosqichli
+ * to'plam — xom `questionId` + legacy topilganlar — chetlatish (`notIn`)
+ * uchun ishlatilgani sababli xavfsiz), bu yerda BITTA so'rov bilan
+ * to'g'ridan-to'g'ri Item jadvalidan (`id` YOKI `legacyQuestionId` orqali)
+ * tasdiqlangan qatorlar olinadi.
  */
 export async function getYesterdayIncorrectItemIds(userId: string): Promise<string[]> {
   const { start, end } = tashkentDayRangeUtc(1);
@@ -462,14 +469,12 @@ export async function getYesterdayIncorrectItemIds(userId: string): Promise<stri
   if (incorrectQuestionIds.size === 0) return [];
 
   const ids = Array.from(incorrectQuestionIds);
-  const legacyItems = await db.item.findMany({
-    where: { legacyQuestionId: { in: ids } },
+  const items = await db.item.findMany({
+    where: { OR: [{ id: { in: ids } }, { legacyQuestionId: { in: ids } }] },
     select: { id: true },
+    take: 200, // parseItemSpec'dagi onlyItemIds chegarasi bilan mos — DB darajasida kesiladi, haqiqiy id'lar siqilib chiqmaydi
   });
-
-  const itemIds = new Set<string>(ids);
-  for (const it of legacyItems) itemIds.add(it.id);
-  return Array.from(itemIds).slice(0, 200); // parseItemSpec'dagi onlyItemIds chegarasi bilan mos
+  return items.map((it) => it.id);
 }
 
 // ===================== Havzadan tanlash (DB bilan) =====================
