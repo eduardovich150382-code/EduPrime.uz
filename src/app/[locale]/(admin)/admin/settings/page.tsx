@@ -284,8 +284,10 @@ export default function AdminSettingsPage() {
         );
       })}
 
-      {/* Sticky Save bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-border p-4 z-40">
+      {/* Sticky Save bar — mobilda BottomNav (fixed bottom-0 h-14 z-50) tagida
+          qolib ketmasin: bottom-14 undan yuqoriga suradi, md dan BottomNav
+          yo'q, panel haqiqiy pastki chetga qaytadi. */}
+      <div className="fixed bottom-14 md:bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-border p-4 z-40 md:pb-[calc(1rem+env(safe-area-inset-bottom))]">
         <div className="max-w-3xl mx-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <button
             onClick={handleSave}

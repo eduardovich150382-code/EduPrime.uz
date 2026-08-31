@@ -23,7 +23,13 @@ export default function StartBar({
   const notEnough = poolTotal !== null && poolTotal < requested;
 
   return (
-    <div className="sticky bottom-0 inset-x-0 z-30 -mx-4 px-4 sm:mx-0 sm:px-0 pt-3">
+    // Mobilda (md dan pastda) BottomNav `fixed bottom-0 h-14 z-50` bilan
+    // ekran tagiga yopishgan — shu panel bottom-0 da bo'lsa tugma undan
+    // pastda, ko'rinmas holda qoladi. bottom-14 BottomNav balandligicha
+    // yuqoriga suradi; md dan boshlab BottomNav yo'q (md:hidden), shuning
+    // uchun panel haqiqiy pastki chetga qaytadi. z-40 — menyudan (z-50)
+    // past, lekin sahifadagi qolgan hamma narsadan yuqori.
+    <div className="sticky bottom-14 md:bottom-0 inset-x-0 z-40 -mx-4 px-4 sm:mx-0 sm:px-0 pt-3 md:pb-[env(safe-area-inset-bottom)]">
       <div className="card p-3 sm:p-4 bg-surface/95 backdrop-blur border-primary-100">
         {notEnough && (
           <div className="flex items-center justify-between gap-3 mb-3 p-2.5 rounded-xl bg-amber-50 border border-amber-100 text-xs sm:text-sm text-amber-800">
