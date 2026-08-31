@@ -28,3 +28,18 @@ export function tashkentDateKey(d: Date = new Date()): string {
 export function daysSince(date: Date, now: Date = new Date()): number {
   return (now.getTime() - date.getTime()) / (24 * 60 * 60 * 1000);
 }
+
+/**
+ * `now`dan `daysAgo` kun oldingi Tashkent kalendar kunining [boshlanish,
+ * tugash) UTC oralig'ini qaytaradi — masalan "kechagi xatolarim" kabi
+ * filtrlar `TestResult.completedAt`ni UTC kun chegarasi bilan emas, shu
+ * oraliq bilan solishtirishi kerak (fayl boshidagi izohga qarang).
+ * `daysAgo=0` — bugungi Tashkent kuni, `daysAgo=1` — kecha.
+ */
+export function tashkentDayRangeUtc(daysAgo: number, now: Date = new Date()): { start: Date; end: Date } {
+  const shifted = new Date(now.getTime() + TASHKENT_OFFSET_MS);
+  const localMidnightUtcMs = Date.UTC(shifted.getUTCFullYear(), shifted.getUTCMonth(), shifted.getUTCDate() - daysAgo);
+  const start = new Date(localMidnightUtcMs - TASHKENT_OFFSET_MS);
+  const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+  return { start, end };
+}

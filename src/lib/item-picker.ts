@@ -1,5 +1,6 @@
 import { Prisma, QuestionType } from '@prisma/client';
 import { shuffleArray } from './shuffle';
+import { tashkentDayRangeUtc } from './date';
 import { db } from './db';
 
 /**
@@ -18,6 +19,15 @@ export interface ItemSpec {
   difficultyMax?: number;
   types?: QuestionType[];
   bloomLevels?: string[];
+  lang?: string[];
+  /**
+   * Berilsa, havza AYNAN shu id'lar bilan cheklanadi (boshqa shartlar bilan
+   * AND) — masalan konstruktordagi "Kechagi xatolarim" preseti yoki
+   * bitta spec'ni havola bilan ulashish/qayta ishlash oqimi uchun. Cheklov
+   * bo'shatish (nextRelaxationStep) bu maydonga tegmaydi — bu "toraytiruvchi
+   * filtr" emas, aniq tanlov, kengaytirish uning maqsadini yo'qqa chiqaradi.
+   */
+  onlyItemIds?: string[];
   excludeAnsweredCorrectlyDays?: number;
 }
 
@@ -81,6 +91,15 @@ export function parseItemSpec(body: unknown): { spec: ItemSpec } | { error: stri
   if (bloomLevels === null) return { error: "bloomLevels — satrlar massivi bo'lishi kerak" };
   if (bloomLevels.length) spec.bloomLevels = bloomLevels;
 
+  const lang = stringArray(b.lang);
+  if (lang === null) return { error: "lang — satrlar massivi bo'lishi kerak" };
+  if (lang.length) spec.lang = lang;
+
+  const onlyItemIds = stringArray(b.onlyItemIds);
+  if (onlyItemIds === null) return { error: "onlyItemIds — satrlar massivi bo'lishi kerak" };
+  if (onlyItemIds.length > 200) return { error: "onlyItemIds — 200 tadan ko'p bo'lishi mumkin emas" };
+  if (onlyItemIds.length) spec.onlyItemIds = onlyItemIds;
+
   if (b.excludeAnsweredCorrectlyDays !== undefined) {
     if (typeof b.excludeAnsweredCorrectlyDays !== 'number' || b.excludeAnsweredCorrectlyDays <= 0) {
       return { error: "excludeAnsweredCorrectlyDays — musbat son bo'lishi kerak" };
@@ -126,7 +145,17 @@ export function buildItemWhere(spec: ItemSpec, excludeItemIds: string[] = []): P
 
   if (spec.types?.length) where.type = { in: spec.types };
   if (spec.bloomLevels?.length) where.bloomLevel = { in: spec.bloomLevels };
-  if (excludeItemIds.length) where.id = { notIn: excludeItemIds };
+  if (spec.lang?.length) where.lang = { in: spec.lang };
+
+  // `onlyItemIds` (aniq tanlov) va `excludeItemIds` (chetlatish) ikkalasi
+  // ham `id` ustuniga tushadi — ikkalasi berilsa ham bir-birini
+  // almashtirmasin deb bitta obyektga birlashtiriladi.
+  if (spec.onlyItemIds?.length || excludeItemIds.length) {
+    where.id = {
+      ...(spec.onlyItemIds?.length ? { in: spec.onlyItemIds } : {}),
+      ...(excludeItemIds.length ? { notIn: excludeItemIds } : {}),
+    };
+  }
 
   return where;
 }
@@ -403,6 +432,44 @@ export async function getRecentlyCorrectItemIds(userId: string, days: number): P
   const excludeIds = new Set<string>(ids); // (1) — to'g'ridan-to'g'ri itemId bo'lishi ehtimoli
   for (const it of legacyItems) excludeIds.add(it.id); // (2) — legacy backfill orqali
   return Array.from(excludeIds);
+}
+
+/**
+ * Foydalanuvchi KECHA (Asia/Tashkent kalendar kuni) NOTO'G'RI javob bergan
+ * itemlar id'sini qaytaradi — konstruktordagi "Kechagi xatolarim" preseti
+ * `spec.onlyItemIds` sifatida shuni ishlatadi. Manba va ikki bosqichli
+ * qidiruv (to'g'ridan-to'g'ri itemId, keyin legacyQuestionId orqali)
+ * `getRecentlyCorrectItemIds` bilan AYNAN bir xil — farqi faqat oraliq
+ * (butun "days" oynasi emas, aniq bitta kalendar kun) va shart (`isCorrect
+ * === false`, `undefined` emas — javob berilmagan savol "xato" hisoblanmaydi).
+ */
+export async function getYesterdayIncorrectItemIds(userId: string): Promise<string[]> {
+  const { start, end } = tashkentDayRangeUtc(1);
+  const results = await db.testResult.findMany({
+    where: { userId, completedAt: { gte: start, lt: end } },
+    select: { answers: true },
+    orderBy: { completedAt: 'desc' },
+    take: 500,
+  });
+
+  const incorrectQuestionIds = new Set<string>();
+  for (const r of results) {
+    const answers = r.answers as unknown as { questionId?: string; isCorrect?: boolean }[] | null;
+    for (const a of answers || []) {
+      if (a.questionId && a.isCorrect === false) incorrectQuestionIds.add(a.questionId);
+    }
+  }
+  if (incorrectQuestionIds.size === 0) return [];
+
+  const ids = Array.from(incorrectQuestionIds);
+  const legacyItems = await db.item.findMany({
+    where: { legacyQuestionId: { in: ids } },
+    select: { id: true },
+  });
+
+  const itemIds = new Set<string>(ids);
+  for (const it of legacyItems) itemIds.add(it.id);
+  return Array.from(itemIds).slice(0, 200); // parseItemSpec'dagi onlyItemIds chegarasi bilan mos
 }
 
 // ===================== Havzadan tanlash (DB bilan) =====================
