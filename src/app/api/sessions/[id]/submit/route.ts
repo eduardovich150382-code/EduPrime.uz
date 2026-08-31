@@ -5,6 +5,7 @@ import { requireAuth } from '@/lib/api-auth';
 import { sanitizeText, sanitizeInt } from '@/lib/sanitize';
 import { gradeSubmission } from '@/lib/grading';
 import { loadSessionItems } from '@/lib/sessions';
+import { refundBuiltTest } from '@/lib/quota';
 
 // POST /api/sessions/[id]/submit — sessiya javoblarini baholaydi va
 // TestResult yaratadi. Baholash mantig'i /api/tests/[id]/submit bilan
@@ -86,6 +87,23 @@ export async function POST(
         data: { submittedAt: new Date() },
       }),
     ]);
+
+    // Kvota qaytarish (S17) — sessiya boshlanganidan 2 daqiqa ICHIDA hech
+    // qanday javob bermay "Tugatish" bosilgan (yoki vaqt tugab avtomatik
+    // topshirilgan) bo'lsa, bu chinakam abandon hisoblanadi va
+    // `consumeBuiltTest` orqali sarflangan kvota qaytariladi. Bu marshrut
+    // `submittedAt`/409 tekshiruvi orqali allaqachon bir martalik
+    // bajarilishni kafolatlaydi, shuning uchun qo'shimcha idempotentlik
+    // himoyasi kerak emas — best-effort: xato bo'lsa ham javob (natija)
+    // buzilmasin.
+    const anyAnswered = answerResults.some((r) => r.answer.trim() !== '');
+    if (!anyAnswered) {
+      try {
+        await refundBuiltTest(testSession.id);
+      } catch (err) {
+        console.error('refundBuiltTest error:', err);
+      }
+    }
 
     return NextResponse.json({
       result: {

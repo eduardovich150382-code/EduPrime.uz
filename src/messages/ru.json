@@ -215,7 +215,20 @@
   },
   "results": {
     "backToBuild": "Вернуться в конструктор",
-    "backToTests": "Вернуться к тестам"
+    "backToTests": "Вернуться к тестам",
+    "solutionQuotaFree": "Сегодня осталось {remaining}/{limit} бесплатных решений",
+    "solutionQuotaUnlimited": "Решения без ограничений (Premium)",
+    "unlockSolution": "Открыть решение",
+    "unlocking": "Открывается...",
+    "videoLockedPremium": "Видеорешение — только для Premium",
+    "unlockError": "Ошибка при открытии решения",
+    "quotaExceededTitle": "Бесплатные решения на сегодня закончились",
+    "quotaExceededBody": "Чтобы увидеть полное решение вопроса «{question}», сегодняшний бесплатный лимит исчерпан.",
+    "quotaExceededUsedToday": "Сегодня вы открыли {usedToday} решений",
+    "quotaExceededPrice": "Premium — от ≈970 сум в день, решения без ограничений",
+    "quotaExceededTomorrow": "Или получите ещё {limit} бесплатных решений завтра",
+    "quotaExceededCta": "Получить Premium",
+    "quotaExceededClose": "Закрыть"
   },
   "sessionSolve": {
     "exitButton": "Выйти из теста",

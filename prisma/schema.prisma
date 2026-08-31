@@ -54,6 +54,7 @@ model User {
   lessonProgress    LessonProgress[]
   courseReviews     CourseReview[]
   purchases         Purchase[]
+  dailyUsage        DailyUsage[]
 }
 
 model Referral {
@@ -746,6 +747,39 @@ model Notification {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, isRead, createdAt])
+}
+
+// ===================== KVOTA VA YECHIM DARAJALARI (S17) =====================
+// Bepul foydalanuvchi uchun kunlik cheklovlar (test tuzish, yechim ochish
+// va h.k.) va qaysi savol yechimi ochilganini kuzatish. Kun — Tashkent
+// kalendar kuni (lib/date.ts#tashkentDateKey), UTC emas — lib/quota.ts
+// shu qiymatdan `date` ustunini to'ldiradi.
+
+model DailyUsage {
+  id                String   @id @default(cuid())
+  userId            String
+  date              DateTime @db.Date   // Asia/Tashkent kuni, UTC emas
+  builtTests        Int      @default(0)
+  dtmOnline         Int      @default(0)
+  solutionsUnlocked Int      @default(0)
+  tutorMessages     Int      @default(0)
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId, date])
+}
+
+// `itemId` — Question.id (haqiqiy Test orqali) YOKI Item.id (TestSession
+// orqali) bo'lishi mumkin, ataylab FK emas — TestSession.itemIds bilan bir
+// xil naqsh (ikkala manbani ham qamrab olish uchun), ikkala id fazosi ham
+// cuid/uuid bo'lgani sababli to'qnashuv amalda bo'lmaydi.
+model SolutionUnlock {
+  userId     String
+  itemId     String
+  unlockedAt DateTime @default(now())
+
+  @@id([userId, itemId])
+  @@index([userId, unlockedAt])
 }
 
 // ===================== SYSTEM SETTINGS =====================

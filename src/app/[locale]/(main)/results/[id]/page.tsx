@@ -17,6 +17,7 @@ import {
   Video, FileText, ArrowLeft, Share2, RotateCcw,
   Loader2, AlertCircle, Play,
   X, Copy, ExternalLink, Filter, Bookmark, BarChart3, Bot,
+  Lock, Unlock, Crown, Sparkles,
 } from 'lucide-react';
 
 interface QuestionOption {
@@ -37,6 +38,17 @@ interface QuestionData {
   points: number;
   order: number;
   type?: string;
+  // S17 — yechim darajalari: `solutionKind` savolda qanday yechim
+  // BORLIGINI bildiradi (matn null bo'lsa ham), `solutionUnlocked` esa
+  // shu foydalanuvchi uni ko'ra oladimi.
+  solutionKind?: 'none' | 'video' | 'written';
+  solutionUnlocked?: boolean;
+}
+
+interface SolutionQuota {
+  usedToday: number;
+  /** `null` — cheklovsiz (Premium/Teacher/ADMIN). */
+  limit: number | null;
 }
 
 interface ResultData {
@@ -83,6 +95,12 @@ export default function ResultPage() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [showTimeAnalysis, setShowTimeAnalysis] = useState(false);
 
+  // S17 — yechim darajalari
+  const [solutionQuota, setSolutionQuota] = useState<SolutionQuota | null>(null);
+  const [unlocking, setUnlocking] = useState<Record<string, boolean>>({});
+  const [unlockError, setUnlockError] = useState<Record<string, string>>({});
+  const [quotaExceeded, setQuotaExceeded] = useState<{ questionText: string; usedToday: number; limit: number | null } | null>(null);
+
   // Fetch result data
   useEffect(() => {
     async function fetchResult() {
@@ -91,6 +109,7 @@ export default function ResultPage() {
         const data = await res.json();
         if (res.ok && data.result) {
           setResult(data.result);
+          if (data.solutionQuota) setSolutionQuota(data.solutionQuota);
           // Trigger confetti for high scores
           if (data.result.percentage >= 80) {
             setShowConfetti(true);
@@ -238,6 +257,64 @@ export default function ResultPage() {
       }
     } catch {
       setAiExplain(prev => ({ ...prev, [questionId]: { error: "Server bilan bog'lanishda xatolik" } }));
+    }
+  };
+
+  // Foydalanuvchi "Yechimni ochish"ni bosganda — kvotani sarflaydi va
+  // (bo'lsa) SolutionUnlock yozadi (POST /api/results/[id]/unlock-solution).
+  // Muvaffaqiyatli bo'lsa yechim matnini bevosita javobdan olib, natijani
+  // qayta so'ramasdan lokal holatga yozamiz.
+  const handleUnlockSolution = async (question: QuestionData) => {
+    if (unlocking[question.id]) return;
+    setUnlocking((prev) => ({ ...prev, [question.id]: true }));
+    setUnlockError((prev) => ({ ...prev, [question.id]: '' }));
+    try {
+      const res = await fetch(`/api/results/${resultId}/unlock-solution`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ questionId: question.id }),
+      });
+      const data = await res.json();
+
+      if (res.status === 429) {
+        setQuotaExceeded({
+          questionText: question.text,
+          usedToday: data.usedToday ?? 0,
+          limit: data.limit ?? null,
+        });
+        return;
+      }
+
+      if (!res.ok || !data.unlocked) {
+        setUnlockError((prev) => ({ ...prev, [question.id]: data.error || t('unlockError') }));
+        return;
+      }
+
+      setSolutionQuota({ usedToday: data.usedToday ?? 0, limit: data.limit ?? null });
+      setResult((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          test: {
+            ...prev.test,
+            questions: prev.test.questions.map((q) =>
+              q.id === question.id
+                ? {
+                    ...q,
+                    explanation: data.explanation,
+                    explanationImages: data.explanationImages || [],
+                    solutionUnlocked: true,
+                  }
+                : q
+            ),
+          },
+        };
+      });
+      setShowExplanation((prev) => ({ ...prev, [question.id]: true }));
+    } catch {
+      setUnlockError((prev) => ({ ...prev, [question.id]: t('unlockError') }));
+    } finally {
+      setUnlocking((prev) => ({ ...prev, [question.id]: false }));
     }
   };
 
@@ -508,6 +585,28 @@ export default function ResultPage() {
           </button>
         </div>
 
+        {/* S17 — yechim kvotasi hisoblagichi */}
+        {solutionQuota && (
+          <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-xl bg-primary-50 border border-primary-100 text-xs sm:text-sm text-primary-800 w-fit">
+            {solutionQuota.limit === null ? (
+              <>
+                <Sparkles size={14} className="text-primary-600 flex-shrink-0" />
+                <span className="font-medium">{t('solutionQuotaUnlimited')}</span>
+              </>
+            ) : (
+              <>
+                <Unlock size={14} className="text-primary-600 flex-shrink-0" />
+                <span className="font-medium">
+                  {t('solutionQuotaFree', {
+                    remaining: Math.max(0, solutionQuota.limit - solutionQuota.usedToday),
+                    limit: solutionQuota.limit,
+                  })}
+                </span>
+              </>
+            )}
+          </div>
+        )}
+
         {/* Time analysis per question */}
         {showTimeAnalysis && (
           <motion.div
@@ -666,14 +765,32 @@ export default function ResultPage() {
                   </div>
 
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    {question.explanation && (
-                      <span className="p-1.5 rounded-lg bg-blue-50" title="Yozma yechim bor">
-                        <FileText size={14} className="text-blue-600" />
+                    {/* `solutionKind` — yechim BORLIGINI bildiradi, matn
+                        qulflangan bo'lsa ham (question.explanation shu holda
+                        null) — shuning uchun bu belgi raw maydonlar emas,
+                        solutionKind orqali ko'rsatiladi. */}
+                    {question.solutionKind === 'written' && (
+                      <span
+                        className="p-1.5 rounded-lg bg-blue-50"
+                        title={question.solutionUnlocked ? 'Yozma yechim bor' : t('unlockSolution')}
+                      >
+                        {question.solutionUnlocked ? (
+                          <FileText size={14} className="text-blue-600" />
+                        ) : (
+                          <Lock size={14} className="text-blue-400" />
+                        )}
                       </span>
                     )}
-                    {question.videoUrl && (
-                      <span className="p-1.5 rounded-lg bg-purple-50" title="Video yechim bor">
-                        <Video size={14} className="text-purple-600" />
+                    {question.solutionKind === 'video' && (
+                      <span
+                        className="p-1.5 rounded-lg bg-purple-50"
+                        title={question.solutionUnlocked ? 'Video yechim bor' : t('videoLockedPremium')}
+                      >
+                        {question.solutionUnlocked ? (
+                          <Video size={14} className="text-purple-600" />
+                        ) : (
+                          <Lock size={14} className="text-purple-400" />
+                        )}
                       </span>
                     )}
                   </div>
@@ -892,11 +1009,11 @@ export default function ResultPage() {
                   </div>
 
                   {/* Solution buttons */}
-                  <div className="flex items-center gap-3 mt-4">
+                  <div className="flex flex-wrap items-center gap-3 mt-4">
                     {question.explanation && (
                       <button
                         onClick={() => toggleExplanation(question.id)}
-                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all min-h-11 ${
                           showExplanation[question.id]
                             ? 'bg-blue-600 text-white'
                             : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200'
@@ -906,10 +1023,29 @@ export default function ResultPage() {
                         Yozma yechim
                       </button>
                     )}
-                    {question.videoUrl && (
+
+                    {/* Yozma yechim BOR, lekin ochilmagan — foydalanuvchi
+                        O'ZI shu tugma orqali tanlab ochadi (avtomatik
+                        ochish yo'q, S17 talabi). */}
+                    {question.solutionKind === 'written' && !question.solutionUnlocked && (
+                      <button
+                        onClick={() => handleUnlockSolution(question)}
+                        disabled={unlocking[question.id]}
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all min-h-11 bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200 disabled:opacity-60"
+                      >
+                        {unlocking[question.id] ? (
+                          <Loader2 size={16} className="animate-spin" />
+                        ) : (
+                          <Lock size={16} />
+                        )}
+                        {unlocking[question.id] ? t('unlocking') : t('unlockSolution')}
+                      </button>
+                    )}
+
+                    {question.solutionKind === 'video' && question.solutionUnlocked && (
                       <button
                         onClick={() => toggleVideo(question.id)}
-                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all min-h-11 ${
                           showVideo[question.id]
                             ? 'bg-purple-600 text-white'
                             : 'bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200'
@@ -919,18 +1055,43 @@ export default function ResultPage() {
                         Videoyechim
                       </button>
                     )}
-                    <button
-                      onClick={() => toggleAiExplain(question.id)}
-                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                        showAiExplain[question.id]
-                          ? 'bg-emerald-600 text-white'
-                          : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
-                      }`}
-                    >
-                      <Bot size={16} />
-                      AI&apos;dan tushuntirish
-                    </button>
+
+                    {/* Video yechim BOR, lekin Premium emas — bu yerdan
+                        ochilmaydi (faqat obuna orqali), shuning uchun
+                        to'g'ridan-to'g'ri narxlash sahifasiga yo'naltiradi. */}
+                    {question.solutionKind === 'video' && !question.solutionUnlocked && (
+                      <Link
+                        href="/pricing"
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all min-h-11 bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200"
+                      >
+                        <Crown size={16} />
+                        {t('videoLockedPremium')}
+                      </Link>
+                    )}
+
+                    {/* AI tushuntirish yozma yechimning o'rnini bosadi —
+                        yechim hali ochilmagan bo'lsa server baribir 403
+                        qaytaradi (ai-explain — S17 "teshik"), shuning uchun
+                        bu holatda tugmani ko'rsatib, foydalanuvchini
+                        muvaffaqiyatsiz so'rovga yo'naltirmaymiz. */}
+                    {(question.solutionKind === 'none' || question.solutionUnlocked) && (
+                      <button
+                        onClick={() => toggleAiExplain(question.id)}
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all min-h-11 ${
+                          showAiExplain[question.id]
+                            ? 'bg-emerald-600 text-white'
+                            : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
+                        }`}
+                      >
+                        <Bot size={16} />
+                        AI&apos;dan tushuntirish
+                      </button>
+                    )}
                   </div>
+
+                  {unlockError[question.id] && (
+                    <p className="text-xs text-red-600 mt-2">{unlockError[question.id]}</p>
+                  )}
 
                   {/* Written solution content - only after clicking */}
                   {showExplanation[question.id] && question.explanation && (
@@ -1007,6 +1168,69 @@ export default function ResultPage() {
           })}
         </div>
       </motion.div>
+
+      {/* S17 — kvota tugagan taklif ekrani. Devor emas: nima yo'qotayotgani,
+          bugun nima olgani, kunlik narx va ertangi bepul muqobili — hammasi
+          bitta oyna ichida. Markazdagi modal (BottomNav bilan to'qnashuv
+          xavfi yo'q — sticky/fixed bottom emas). */}
+      {quotaExceeded && (
+        <div
+          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+          onClick={() => setQuotaExceeded(null)}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+                <Lock size={18} className="text-white" />
+              </div>
+              <button
+                onClick={() => setQuotaExceeded(null)}
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors min-h-11 min-w-11 flex items-center justify-center"
+              >
+                <X size={18} className="text-text-secondary" />
+              </button>
+            </div>
+
+            <h3 className="text-lg font-bold text-text-primary mb-2">{t('quotaExceededTitle')}</h3>
+            <p className="text-sm text-text-secondary mb-4">
+              {t('quotaExceededBody', { question: quotaExceeded.questionText })}
+            </p>
+
+            <div className="space-y-2 mb-5 text-sm">
+              <p className="flex items-center gap-2 text-text-secondary">
+                <CheckCircle size={14} className="text-green-600 flex-shrink-0" />
+                {t('quotaExceededUsedToday', { usedToday: quotaExceeded.usedToday })}
+              </p>
+              <p className="flex items-center gap-2 text-text-secondary">
+                <Crown size={14} className="text-purple-600 flex-shrink-0" />
+                {t('quotaExceededPrice')}
+              </p>
+              <p className="flex items-center gap-2 text-text-secondary">
+                <Clock size={14} className="text-blue-600 flex-shrink-0" />
+                {quotaExceeded.limit !== null && t('quotaExceededTomorrow', { limit: quotaExceeded.limit })}
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button onClick={() => setQuotaExceeded(null)} className="flex-1 btn-secondary !py-2.5 min-h-11">
+                {t('quotaExceededClose')}
+              </button>
+              <Link
+                href="/pricing"
+                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold min-h-11"
+              >
+                <Crown size={16} />
+                {t('quotaExceededCta')}
+              </Link>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

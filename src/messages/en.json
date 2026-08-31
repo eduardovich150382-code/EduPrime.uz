@@ -215,7 +215,20 @@
   },
   "results": {
     "backToBuild": "Back to builder",
-    "backToTests": "Back to tests"
+    "backToTests": "Back to tests",
+    "solutionQuotaFree": "{remaining}/{limit} free solutions left today",
+    "solutionQuotaUnlimited": "Unlimited solutions (Premium)",
+    "unlockSolution": "Unlock solution",
+    "unlocking": "Unlocking...",
+    "videoLockedPremium": "Video solution — Premium only",
+    "unlockError": "Failed to unlock the solution",
+    "quotaExceededTitle": "Today's free solutions are used up",
+    "quotaExceededBody": "To see the full solution for \"{question}\", today's free limit is used up.",
+    "quotaExceededUsedToday": "You've unlocked {usedToday} solutions today",
+    "quotaExceededPrice": "Premium — about 970 UZS/day, unlimited solutions",
+    "quotaExceededTomorrow": "Or get {limit} more free solutions tomorrow",
+    "quotaExceededCta": "Get Premium",
+    "quotaExceededClose": "Close"
   },
   "sessionSolve": {
     "exitButton": "Exit test",

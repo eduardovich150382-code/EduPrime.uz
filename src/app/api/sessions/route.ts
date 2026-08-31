@@ -5,6 +5,7 @@ import { requireAuth } from '@/lib/api-auth';
 import { sanitizeText } from '@/lib/sanitize';
 import { getRecentlyCorrectItemIds, parseItemSpec, pickItemsForSpec } from '@/lib/item-picker';
 import { loadSessionItems, toPresentedQuestions } from '@/lib/sessions';
+import { consumeBuiltTest } from '@/lib/quota';
 
 const MAX_LIMIT = 200;
 const MAX_DURATION_MIN = 600; // 10 soat — yetarlicha keng yuqori chegara
@@ -57,6 +58,30 @@ export async function POST(request: NextRequest) {
 
     if (itemIds.length === 0) {
       return NextResponse.json({ error: "Berilgan filtrga mos savol topilmadi" }, { status: 404 });
+    }
+
+    // Bepul foydalanuvchi uchun kunlik konstruktor test limiti (S17) —
+    // sessiya YARATILGANDA hisoblanadi, tugatilganda emas. Havza bo'sh
+    // chiqib 404 qaytadigan urinish kvotani sarflamasligi uchun shu
+    // tekshiruv sessiya haqiqatan yaratilishidan OLDIN, lekin havza
+    // tasdiqlangandan KEYIN turibdi. Bilim xaritasi mashq testlari bu
+    // yerga kirmasligi kerak — ular `source: 'mastery'` bilan kelsa kvota
+    // chetlab o'tiladi (hozircha bunday chaqiruvchi yo'q, bu — kelajakdagi
+    // bog'lanish uchun tayyor joy).
+    const isMasteryPractice = b.source === 'mastery';
+    if (!isMasteryPractice) {
+      const quota = await consumeBuiltTest(user.id);
+      if (!quota.allowed) {
+        return NextResponse.json(
+          {
+            error: `Bugungi bepul test tuzish limiti (${quota.limit} ta) tugadi. Ertaga yana ${quota.limit} ta bepul bo'ladi, yoki Premium tarifda cheksiz.`,
+            code: 'BUILT_TEST_QUOTA_EXCEEDED',
+            usedToday: quota.usedToday,
+            limit: quota.limit,
+          },
+          { status: 429 }
+        );
+      }
     }
 
     const now = new Date();

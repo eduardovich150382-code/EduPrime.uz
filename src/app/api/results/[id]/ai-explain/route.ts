@@ -4,6 +4,8 @@ import { auth } from '@/lib/auth';
 import { streamExplainQuestion } from '@/lib/gemini';
 import { hasActiveSubscription } from '@/lib/access';
 import { tashkentDateKey } from '@/lib/date';
+import { isSolutionUnlocked } from '@/lib/quota';
+import { resolveSolutionVisibility } from '@/lib/solution-visibility';
 
 const FREE_DAILY_AI_EXPLAIN_LIMIT = 3;
 
@@ -79,6 +81,7 @@ export async function POST(
         options: true,
         correctAnswer: true,
         explanation: true,
+        videoUrl: true,
         type: true,
         aiExplanations: true,
       },
@@ -90,13 +93,32 @@ export async function POST(
       return NextResponse.json({ error: 'Question not found' }, { status: 404 });
     }
 
+    // TESHIK: AI tushuntirish yozma yechimning (`question.explanation`)
+    // o'rnini bosadi — shuning uchun XUDDI SHU qulfni talab qiladi
+    // (GET /api/results/[id] — resolveSolutionVisibility bilan bir xil),
+    // aks holda foydalanuvchi "Yechimni ochish"ni chetlab o'tib, shu
+    // marshrut orqali bepul to'liq yechim olishi mumkin edi.
+    const { premium, teacher } = await hasActiveSubscription(userId);
+    const visibility = resolveSolutionVisibility({
+      explanation: question.explanation,
+      explanationImages: [],
+      videoUrl: question.videoUrl,
+      writtenUnlocked: role === 'ADMIN' || premium || teacher || (await isSolutionUnlocked(userId, questionId)),
+      videoUnlocked: role === 'ADMIN' || premium,
+    });
+    if (!visibility.unlocked) {
+      return NextResponse.json(
+        { error: 'Avval yechimni oching', code: 'SOLUTION_LOCKED' },
+        { status: 403 }
+      );
+    }
+
     const cache = (question.aiExplanations as Record<string, string> | null) || {};
     if (cache[lang]) {
       return NextResponse.json({ explanation: cache[lang], cached: true });
     }
 
     if (role !== 'ADMIN') {
-      const { premium, teacher } = await hasActiveSubscription(userId);
       if (!premium && !teacher) {
         const allowed = await checkAndConsumeDailyQuota(userId);
         if (!allowed) {

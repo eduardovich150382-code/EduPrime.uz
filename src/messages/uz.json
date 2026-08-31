@@ -215,7 +215,20 @@
   },
   "results": {
     "backToBuild": "Konstruktorga qaytish",
-    "backToTests": "Testlarga qaytish"
+    "backToTests": "Testlarga qaytish",
+    "solutionQuotaFree": "Bugun {remaining}/{limit} bepul yechim qoldi",
+    "solutionQuotaUnlimited": "Yechimlar cheksiz (Premium)",
+    "unlockSolution": "Yechimni ochish",
+    "unlocking": "Ochilmoqda...",
+    "videoLockedPremium": "Video yechim — faqat Premium",
+    "unlockError": "Yechimni ochishda xatolik yuz berdi",
+    "quotaExceededTitle": "Bugungi bepul yechimlar tugadi",
+    "quotaExceededBody": "\"{question}\" savolining to'liq yechimini ko'rish uchun bugungi bepul limit tugadi.",
+    "quotaExceededUsedToday": "Bugun {usedToday} ta yechim ochdingiz",
+    "quotaExceededPrice": "Premium — kuniga ≈970 so'm, cheksiz yechimlar bilan",
+    "quotaExceededTomorrow": "Yoki ertaga yana {limit} ta bepul yechim oling",
+    "quotaExceededCta": "Premium olish",
+    "quotaExceededClose": "Yopish"
   },
   "sessionSolve": {
     "exitButton": "Testdan chiqish",
