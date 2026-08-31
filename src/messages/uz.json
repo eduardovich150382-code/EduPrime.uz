@@ -228,6 +228,7 @@
   "results": {
     "backToBuild": "Konstruktorga qaytish",
     "backToTests": "Testlarga qaytish",
+    "backToDtm": "DTM Online'ga qaytish",
     "solutionQuotaFree": "Bugun {remaining}/{limit} bepul yechim qoldi",
     "solutionQuotaUnlimited": "Yechimlar cheksiz (Premium)",
     "unlockSolution": "Yechimni ochish",

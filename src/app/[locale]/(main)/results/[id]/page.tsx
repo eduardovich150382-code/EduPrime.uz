@@ -13,6 +13,7 @@ import {
   splitFillBlankText, parseFillBlankAnswer, parseFillBlankCorrectAnswer, isFillBlankIndexCorrect,
 } from '@/lib/fill-blank';
 import { parseMatchingPairs, parseMatchingAnswer, isMatchingRowCorrect } from '@/lib/matching';
+import { DTM_TITLE_PREFIX } from '@/lib/dtm-online-shared';
 import {
   CheckCircle, XCircle, SkipForward, Clock, Trophy,
   Video, FileText, ArrowLeft, Share2, RotateCcw,
@@ -350,16 +351,26 @@ export default function ResultPage() {
   const hours = Math.floor(result.timeSpent / 3600);
   const minutes = Math.floor((result.timeSpent % 3600) / 60);
 
+  // Sessiya natijasi (result.sessionId bor) — konstruktordan (/build) yoki
+  // DTM Online'dan kelgan bo'lishi mumkin; ikkalasi ham TestSession orqali
+  // topshiriladi va bir xil `result.test.titleUz`da (session.title'dan
+  // sintez qilingan, qarang GET /api/results/[id]) faqat DTM prefiksi
+  // bilan farqlanadi — "ortga" havolasi shunga qarab to'g'ri manzilga ketsin.
+  const isDtmResult = Boolean(result.sessionId) && result.test.titleUz.startsWith(DTM_TITLE_PREFIX);
+  const backHref = result.sessionId ? (isDtmResult ? '/dashboard/dtm-online' : '/build') : '/tests';
+  const backLabel = result.sessionId ? (isDtmResult ? t('backToDtm') : t('backToBuild')) : t('backToTests');
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      {/* Back button — sessiyadan (konstruktordan) kelgan natija bo'lsa
-          /build ga qaytadi, aks holda odatiy /tests ga. */}
+      {/* Back button — sessiyadan kelgan natija DTM Online bo'lsa
+          /dashboard/dtm-online ga, oddiy konstruktor bo'lsa /build ga,
+          aks holda odatiy /tests ga qaytadi. */}
       <Link
-        href={result.sessionId ? '/build' : '/tests'}
+        href={backHref}
         className="inline-flex items-center gap-2 text-sm text-text-secondary hover:text-primary-600 transition-colors"
       >
         <ArrowLeft size={16} />
-        {result.sessionId ? t('backToBuild') : t('backToTests')}
+        {backLabel}
       </Link>
 
       {/* Score card */}

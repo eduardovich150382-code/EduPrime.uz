@@ -23,7 +23,7 @@ export default function DtmOnlinePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [subjects, setSubjects] = useState<SubjectItem[]>([]);
-  const [current, setCurrent] = useState<{ testId: string; titleUz: string } | null>(null);
+  const [current, setCurrent] = useState<{ sessionId: string; titleUz: string } | null>(null);
   const [specialty1, setSpecialty1] = useState('');
   const [specialty2, setSpecialty2] = useState('');
   const [starting, setStarting] = useState(false);
@@ -73,7 +73,7 @@ export default function DtmOnlinePage() {
         setStarting(false);
         return;
       }
-      router.push(`/tests/${data.testId}/solve`);
+      router.push(`/session/${data.sessionId}`);
     } catch {
       setErrorMsg('Server xatolik. Qayta urinib ko\'ring.');
       setStarting(false);
@@ -156,7 +156,7 @@ export default function DtmOnlinePage() {
               <p className="text-xs text-text-secondary truncate">{current.titleUz}</p>
             </div>
           </div>
-          <button onClick={() => router.push(`/tests/${current.testId}/solve`)} className="btn-primary !py-2 !px-4 text-sm flex-shrink-0">
+          <button onClick={() => router.push(`/session/${current.sessionId}`)} className="btn-primary !py-2 !px-4 text-sm flex-shrink-0">
             Davom ettirish
           </button>
         </motion.div>

@@ -9,6 +9,7 @@ import QuestionDisplay from '@/components/test/QuestionDisplay';
 import TestTimer from '@/components/test/TestTimer';
 import QuestionNav from '@/components/test/QuestionNav';
 import { ChevronLeft, ChevronRight, Flag, AlertCircle, Loader2, LogOut } from 'lucide-react';
+import { DTM_TITLE_PREFIX } from '@/lib/dtm-online-shared';
 import { remainingSeconds } from './lib/remainingSeconds';
 import { resolveDraftStartTime } from './lib/sessionDraft';
 
@@ -216,15 +217,22 @@ export default function SessionSolvePage() {
     }
   }, [session, answers, sessionId, startTime, submitting, router, currentQuestion]);
 
+  // Sessiya DTM Online orqali yaratilganmi — sarlavha `DTM_TITLE_PREFIX`
+  // bilan boshlanishidan bilinadi (generateDtmOnlineExam shu prefiks bilan
+  // nomlaydi, qarang lib/dtm-online.ts). Shunga qarab "chiqish" konstruktor
+  // (/build) o'rniga DTM Online sahifasiga qaytishi kerak — aks holda DTM
+  // orqali kelgan foydalanuvchi konstruktorga tushib qolardi.
+  const exitHref = session?.title?.startsWith(DTM_TITLE_PREFIX) ? '/dashboard/dtm-online' : '/build';
+
   // "Testdan chiqish" — brauzer tarixiga tayanadigan BackButton o'rniga
-  // aniq /build ga qaytaradi. Bironta javob belgilangan bo'lsa tasdiq
+  // aniq manzilga qaytaradi. Bironta javob belgilangan bo'lsa tasdiq
   // so'raladi, chunki test o'rtasida "ortga" bosish sessiyani jimgina
   // tashlab ketishi mumkin edi (javoblar baribir qoralamada saqlanadi).
   const handleExitClick = () => {
     if (Object.keys(answers).length > 0) {
       setShowExitDialog(true);
     } else {
-      localeRouter.push('/build');
+      localeRouter.push(exitHref);
     }
   };
 
@@ -412,7 +420,7 @@ export default function SessionSolvePage() {
                   {t('exitConfirmStay')}
                 </button>
                 <button
-                  onClick={() => { setShowExitDialog(false); localeRouter.push('/build'); }}
+                  onClick={() => { setShowExitDialog(false); localeRouter.push(exitHref); }}
                   className="flex-1 btn-primary !py-2.5"
                 >
                   {t('exitConfirmLeave')}

@@ -4,7 +4,7 @@ import { db } from '@/lib/db';
 import { requireAuth } from '@/lib/api-auth';
 import { sanitizeText, sanitizeInt } from '@/lib/sanitize';
 import { gradeSubmission } from '@/lib/grading';
-import { loadSessionItems } from '@/lib/sessions';
+import { extractItemPoints, loadSessionItems } from '@/lib/sessions';
 import { refundBuiltTest } from '@/lib/quota';
 
 // POST /api/sessions/[id]/submit — sessiya javoblarini baholaydi va
@@ -55,7 +55,7 @@ export async function POST(
     }));
     const sanitizedTimeSpent = sanitizeInt(b.timeSpent, 0, 86400) || 0; // Max 24 soat
 
-    const items = await loadSessionItems(testSession.itemIds);
+    const items = await loadSessionItems(testSession.itemIds, extractItemPoints(testSession.spec));
     if (items.length === 0) {
       return NextResponse.json({ error: 'Sessiya savollari topilmadi' }, { status: 404 });
     }

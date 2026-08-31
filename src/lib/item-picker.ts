@@ -196,10 +196,10 @@ export function summarizeCandidates(rows: CountCandidate[]): {
  * ("round-robin") tekislaydi — bitta guruhdan (masalan bitta paramgen
  * shabloni) hammasi ketma-ket kelib qolmasligi uchun. `seedFn` har
  * chaqirilganda urug' (seed) qaytaradigan funksiya — chaqiruvchi buni
- * qat'iy (test/reproducible qidiruv uchun) yoki tasodifiy (masalan DTM
- * Online) qilib bera oladi. `dtm-online.ts` shu funksiyani ishlatadi —
- * ko'chirilganda mantiq bir harf ham o'zgarmagan, faqat urug' manbai
- * parametrlashtirilgan.
+ * qat'iy (test/reproducible qidiruv uchun) yoki tasodifiy qilib bera
+ * oladi. `pickItems` (pastda) shu funksiyani ishlatadi — DTM Online
+ * S18a'da bu funksiyaga to'g'ridan-to'g'ri emas, `pickItems` orqali
+ * bilvosita tayanadi (qarang `lib/sessions.ts` — `createSessionFromSections`).
  */
 export function roundRobinFlatten<T>(items: T[], keyFn: (item: T) => string, seedFn: () => number): T[] {
   const byKey = new Map<string, T[]>();

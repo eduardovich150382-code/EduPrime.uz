@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAuth } from '@/lib/api-auth';
-import { loadSessionItems, toPresentedQuestions } from '@/lib/sessions';
+import { extractItemPoints, loadSessionItems, toPresentedQuestions } from '@/lib/sessions';
 
 // GET /api/sessions/[id] — sessiya savollarini qaytaradi (aralashtirilgan,
 // `seed` bo'yicha; to'g'ri javoblarsiz). Sahifa yangilansa yoki testni
@@ -28,7 +28,7 @@ export async function GET(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const items = await loadSessionItems(testSession.itemIds);
+    const items = await loadSessionItems(testSession.itemIds, extractItemPoints(testSession.spec));
     const questions = toPresentedQuestions(items, testSession.seed);
 
     return NextResponse.json({

@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
       await db.user.update({ where: { id: user.id }, data: { dtmOnlineFreeUsedAt: new Date() } });
     }
 
-    return NextResponse.json({ testId: result.testId, titleUz: result.titleUz });
+    return NextResponse.json({ sessionId: result.sessionId, titleUz: result.titleUz });
   } catch (error) {
     console.error('POST /api/dtm-online/start error:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
