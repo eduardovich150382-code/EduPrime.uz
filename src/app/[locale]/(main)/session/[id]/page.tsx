@@ -9,6 +9,7 @@ import TestTimer from '@/components/test/TestTimer';
 import QuestionNav from '@/components/test/QuestionNav';
 import BackButton from '@/components/ui/BackButton';
 import { ChevronLeft, ChevronRight, Flag, AlertCircle, Loader2 } from 'lucide-react';
+import { remainingSeconds } from './lib/remainingSeconds';
 
 // Konstruktordan ("/build") kelgan virtual TestSession'ni yechish sahifasi.
 // `tests/[id]/solve/page.tsx`ning soddalashtirilgan nusxasi — ma'lumot
@@ -181,7 +182,7 @@ export default function SessionSolvePage() {
             <p className="text-xs text-text-secondary">{answeredCount}/{totalQuestions} javob berilgan</p>
           </div>
           <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end">
-            <TestTimer totalSeconds={session.durationMin * 60} onTimeUp={handleFinish} />
+            <TestTimer totalSeconds={remainingSeconds(session.expiresAt)} onTimeUp={handleFinish} />
             <button
               onClick={() => setShowFinishDialog(true)}
               disabled={submitting}
