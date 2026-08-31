@@ -213,6 +213,18 @@
     "subtitle": "Choose a subject, topic, and difficulty",
     "button": "Build a test"
   },
+  "build": {
+    "quotaExceededTitle": "Today's free tests are used up",
+    "quotaExceededBody": "To start a test with \"{config}\", today's free limit is used up.",
+    "quotaExceededUsedToday": "You've created {usedToday} free tests today",
+    "quotaExceededPrice": "Premium — about 970 UZS/day, unlimited tests",
+    "quotaExceededSecondary": "{limit} more free tomorrow",
+    "quotaExceededCta": "Get Premium",
+    "questionCount": "{count} questions",
+    "difficultyLow": "low difficulty",
+    "difficultyMedium": "medium difficulty",
+    "difficultyHigh": "high difficulty"
+  },
   "results": {
     "backToBuild": "Back to builder",
     "backToTests": "Back to tests",

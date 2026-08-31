@@ -213,6 +213,18 @@
     "subtitle": "Выберите предмет, тему и сложность",
     "button": "Создать тест"
   },
+  "build": {
+    "quotaExceededTitle": "Бесплатные тесты на сегодня закончились",
+    "quotaExceededBody": "Чтобы начать тест с конфигурацией «{config}», сегодняшний бесплатный лимит исчерпан.",
+    "quotaExceededUsedToday": "Сегодня вы создали {usedToday} бесплатных тестов",
+    "quotaExceededPrice": "Premium — от ≈970 сум в день, тесты без ограничений",
+    "quotaExceededSecondary": "Ещё {limit} бесплатных завтра",
+    "quotaExceededCta": "Получить Premium",
+    "questionCount": "{count} вопросов",
+    "difficultyLow": "низкая сложность",
+    "difficultyMedium": "средняя сложность",
+    "difficultyHigh": "высокая сложность"
+  },
   "results": {
     "backToBuild": "Вернуться в конструктор",
     "backToTests": "Вернуться к тестам",
