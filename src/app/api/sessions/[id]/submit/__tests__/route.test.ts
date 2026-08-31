@@ -245,6 +245,50 @@ describe("POST /api/sessions/[id]/submit", () => {
     expect(dailyUsageUpdateManyMock).not.toHaveBeenCalled();
   });
 
+  it("bo'lim-asosidagi (DTM Online) sessiyada preserveOrder=true — savol tartibi GET bilan bir xil, baholash to'g'ri ishlaydi", async () => {
+    // S18a regressiyasi: preserveOrder GET va submit'da mos kelmasa,
+    // unshuffle noto'g'ri pozitsiyaga to'g'ri kelib baholash jimgina buziladi.
+    // itemIds tartibi teskari ("item2" birinchi) — shu tartib saqlanishi kerak.
+    const sectionSpec = {
+      sections: [{ subjectId: "s1", subjectName: "Matematika", count: 2, pointsPerQuestion: 1, bias: "advanced" }],
+      itemPoints: {},
+    };
+    const testSession = buildSession({ itemIds: ["item2", "item1"], spec: sectionSpec });
+    findUniqueSessionMock.mockResolvedValue(testSession);
+    findManyItemMock.mockResolvedValue([
+      buildItem({ id: "item1", correctAnswer: "B" }),
+      buildItem({ id: "item2", correctAnswer: "A" }),
+    ]);
+    createResultMock.mockImplementation(({ data }: { data: Record<string, unknown> }) =>
+      Promise.resolve({ id: "result1", ...data })
+    );
+
+    // preserveOrder=true bo'lsa shuffledQuestions === itemIds tartibi
+    // (["item2","item1"]) — item2 shuffleIndex=0, item1 shuffleIndex=1.
+    const item2Label = LABELS[
+      shuffleArray(buildItem({ correctAnswer: "A" }).options as any[], testSession.seed + 0 + 1)
+        .findIndex((o: any) => o.text === "3") // options[0]="3" — correctAnswer "A"ga mos matn
+    ];
+    const item1Label = LABELS[
+      shuffleArray(buildItem({ correctAnswer: "B" }).options as any[], testSession.seed + 1 + 1)
+        .findIndex((o: any) => o.text === "4") // options[1]="4" — correctAnswer "B"ga mos matn
+    ];
+
+    const { status, data } = await callSubmit({
+      answers: [
+        { questionId: "item2", answer: item2Label, timeSpent: 0 },
+        { questionId: "item1", answer: item1Label, timeSpent: 0 },
+      ],
+      timeSpent: 10,
+    });
+
+    expect(status).toBe(200);
+    expect(data.result.answers.find((a: any) => a.questionId === "item2").isCorrect).toBe(true);
+    expect(data.result.answers.find((a: any) => a.questionId === "item1").isCorrect).toBe(true);
+    expect(data.result.score).toBe(2);
+    expect(data.result.maxScore).toBe(2);
+  });
+
   it("answers massiv bo'lmasa 400 qaytaradi", async () => {
     const { status } = await callSubmit({ answers: "not-an-array" });
     expect(status).toBe(400);

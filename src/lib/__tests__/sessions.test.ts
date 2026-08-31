@@ -21,7 +21,14 @@ vi.mock("../quota", () => ({
   consumeBuiltTest: (...args: unknown[]) => consumeBuiltTestMock(...args),
 }));
 
-import { createSessionFromSections, extractItemPoints, loadSessionItems, type SectionSpec } from "../sessions";
+import {
+  createSessionFromSections,
+  extractItemPoints,
+  extractNavSections,
+  loadSessionItems,
+  sessionPreserveOrder,
+  type SectionSpec,
+} from "../sessions";
 
 interface FakeItem {
   id: string;
@@ -100,6 +107,41 @@ describe("extractItemPoints", () => {
   });
 });
 
+describe("sessionPreserveOrder", () => {
+  it("spec bo'sh, obyekt bo'lmasa yoki sections yo'q bo'lsa false qaytaradi (oddiy konstruktor sessiyasi)", () => {
+    expect(sessionPreserveOrder(undefined)).toBe(false);
+    expect(sessionPreserveOrder(null)).toBe(false);
+    expect(sessionPreserveOrder({ subjectIds: ["s1"], difficultyMin: 2 })).toBe(false);
+    expect(sessionPreserveOrder({ sections: [] })).toBe(false); // bo'sh massiv — guruhlanadigan bo'lim yo'q
+  });
+
+  it("spec.sections to'ldirilgan bo'lsa true qaytaradi (DTM Online kabi bo'lim-asosidagi sessiya)", () => {
+    expect(sessionPreserveOrder({ sections: [{ subjectId: "s1", subjectName: "Matematika", count: 3 }] })).toBe(true);
+  });
+});
+
+describe("extractNavSections", () => {
+  it("spec.sections yo'q yoki noto'g'ri shaklda bo'lsa undefined qaytaradi", () => {
+    expect(extractNavSections(undefined)).toBeUndefined();
+    expect(extractNavSections({ subjectIds: ["s1"] })).toBeUndefined();
+    expect(extractNavSections({ sections: [] })).toBeUndefined();
+    expect(extractNavSections({ sections: [{ subjectId: "s1" }] })).toBeUndefined(); // subjectName/count yo'q
+  });
+
+  it("spec.sections'dan {label, count}[] ni subjectName/count'dan ajratib oladi", () => {
+    const spec = {
+      sections: [
+        { subjectId: "math", subjectName: "Matematika", count: 30, pointsPerQuestion: 3.1, bias: "advanced" },
+        { subjectId: "hist", subjectName: "Tarix", count: 10, pointsPerQuestion: 1.1, bias: "easy" },
+      ],
+    };
+    expect(extractNavSections(spec)).toEqual([
+      { label: "Matematika", count: 30 },
+      { label: "Tarix", count: 10 },
+    ]);
+  });
+});
+
 describe("loadSessionItems", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -161,6 +203,26 @@ describe("createSessionFromSections", () => {
     expect(histIds).toHaveLength(2);
     for (const id of mathIds) expect(createArgs.spec.itemPoints[id]).toBe(2);
     for (const id of histIds) expect(createArgs.spec.itemPoints[id]).toBe(1);
+  });
+
+  it("taqdim etilgan savollar tartibi DB itemIds tartibi bilan bir xil (bo'lim tuzilishi buzilmaydi)", async () => {
+    // S18 regressiyasi: bo'lim-asosidagi sessiyada preserveOrder=true bo'lishi
+    // shart — aks holda Matematika/Tarix savollari aralashib ketadi.
+    wireItemMocks([...buildPool("math", 10, 4), ...buildPool("hist", 10, 1)]);
+
+    const outcome = await createSessionFromSections({
+      userId: "user1",
+      sections,
+      durationMin: 60,
+      mode: "FIXED",
+      title: "Sinov sessiyasi",
+      countsAgainstQuota: false,
+    });
+
+    expect(outcome.ok).toBe(true);
+    if (!outcome.ok) return;
+    const createArgs = testSessionCreateMock.mock.calls[0][0].data as { itemIds: string[] };
+    expect(outcome.session.questions.map((q) => q.id)).toEqual(createArgs.itemIds);
   });
 
   it("bitta fan ikki bo'limda ishtirok etsa, ikkalasi HAR XIL savol oladi (takrorlanmaydi)", async () => {

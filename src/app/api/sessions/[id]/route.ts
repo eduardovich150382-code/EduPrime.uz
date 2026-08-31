@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAuth } from '@/lib/api-auth';
-import { extractItemPoints, loadSessionItems, toPresentedQuestions } from '@/lib/sessions';
+import { extractItemPoints, extractNavSections, loadSessionItems, sessionPreserveOrder, toPresentedQuestions } from '@/lib/sessions';
 
 // GET /api/sessions/[id] — sessiya savollarini qaytaradi (aralashtirilgan,
 // `seed` bo'yicha; to'g'ri javoblarsiz). Sahifa yangilansa yoki testni
@@ -29,7 +29,7 @@ export async function GET(
     }
 
     const items = await loadSessionItems(testSession.itemIds, extractItemPoints(testSession.spec));
-    const questions = toPresentedQuestions(items, testSession.seed);
+    const questions = toPresentedQuestions(items, testSession.seed, sessionPreserveOrder(testSession.spec));
 
     return NextResponse.json({
       session: {
@@ -42,6 +42,10 @@ export async function GET(
         submittedAt: testSession.submittedAt,
         questionCount: questions.length,
         questions,
+        // Bo'lim-asosidagi (DTM Online) sessiyada navigatorni fanlar bo'yicha
+        // guruhlash uchun — bo'limsiz (konstruktor) sessiyada undefined,
+        // QuestionNav shunda avvalgidek tekis ro'yxat ko'rsatadi.
+        sections: extractNavSections(testSession.spec),
       },
     });
   } catch (err) {

@@ -225,5 +225,15 @@ export async function gradeSubmission(params: {
 
   const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
 
-  return { answerResults, score, maxScore, percentage };
+  // `points` 3.1/2.1/1.1 kabi qiymatlar ikkilik kasrda ANIQ ifodalanmaydi —
+  // ko'p marta qo'shilgach (masalan DTM Online 90 savol) natija
+  // 188.99999999999997 kabi chiqadi. Yaxlitlash faqat YAKUNDA (har
+  // qo'shishda emas) — aks holda oraliq xatolar to'planib boshqa noto'g'ri
+  // natijaga olib kelishi mumkin.
+  return {
+    answerResults,
+    score: Math.round(score * 10) / 10,
+    maxScore: Math.round(maxScore * 10) / 10,
+    percentage,
+  };
 }

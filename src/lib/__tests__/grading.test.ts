@@ -332,6 +332,37 @@ describe("gradeSubmission — OPEN_ENDED", () => {
   });
 });
 
+describe("gradeSubmission — floating-point yaxlitlash", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("90 ta savol (DTM Online kabi 3.1/2.1/1.1 ballik) yig'indisi ANIQ 189 chiqadi, 188.99999999999997 emas", async () => {
+    // 3.1, 2.1, 1.1 ikkilik kasrda aniq ifodalanmaydi — 90 marta qo'shilgach
+    // yaxlitlashsiz 188.99999999999997 chiqadi (CLAUDE.md — nozik joylar).
+    const questions: GradableQuestion[] = [
+      ...Array.from({ length: 30 }, (_, i) => mcQuestion({ id: `a${i}`, points: 3.1 })),
+      ...Array.from({ length: 30 }, (_, i) => mcQuestion({ id: `b${i}`, points: 2.1 })),
+      ...Array.from({ length: 30 }, (_, i) => mcQuestion({ id: `c${i}`, points: 1.1 })),
+    ];
+    // preserveOrder=true — shuffleIndex DB tartibiga (idx) teng, shuning
+    // uchun har savolning optionSeed'i oldindan hisoblab bo'ladi.
+    const answers = questions.map((q, idx) => {
+      const optionSeed = BASE_SEED + idx + 1;
+      const label = labelAtShuffledPosition(q.options as any[], optionSeed, "4");
+      return { questionId: q.id, answer: label, timeSpent: 0 };
+    });
+
+    const { score, maxScore } = await gradeSubmission({
+      questions,
+      answers,
+      baseSeed: BASE_SEED,
+      preserveOrder: true,
+    });
+
+    expect(maxScore).toBe(189);
+    expect(score).toBe(189);
+  });
+});
+
 describe("gradeSubmission — preserveOrder", () => {
   beforeEach(() => vi.clearAllMocks());
 
