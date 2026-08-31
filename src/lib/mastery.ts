@@ -1,5 +1,7 @@
 import { db } from './db';
-import { shuffleArray } from './shuffle';
+import { createSessionFromSpec } from './sessions';
+import type { ItemSpec } from './item-picker';
+import { resolveTopicNodes } from './topic-bridge';
 
 /**
  * Bilim xaritasi — talabaning barcha TestResult'lari bo'yicha mavzu
@@ -117,76 +119,51 @@ export function classifyTopics(stats: TopicStat[]) {
 }
 
 /**
- * Zaif mavzu bo'yicha shaxsiy mashq testi yaratadi — platformadagi barcha
- * nashr qilingan testlardan o'sha mavzu tegi bilan belgilangan savollarni
- * yig'ib, talaba uchun alohida (katalogda ko'rinmaydigan) Test yaratadi.
- * Savollar bazasi (BankQuestion) hali kam to'lgan bo'lishi mumkinligi
- * sababli, allaqachon mavjud va ko'proq bo'lgan Question havzasidan
- * foydalaniladi. Havza juda kichik bo'lsa (odam qo'lda ishlagudek bo'lmasa),
- * null qaytaradi — chaqiruvchi mavjud testni tavsiya qilishga o'tadi.
+ * Zaif mavzu bo'yicha shaxsiy mashq sessiyasi yaratadi — S18a konstruktor
+ * infratuzilmasi (`createSessionFromSpec`) orqali Item bankidan tanlab,
+ * `TestSession` sifatida qaytaradi (Test/Question qatorlari yozilmaydi).
+ * Mavzu nomi ("Kinematika") avval `topic-bridge#resolveTopicNodes` orqali
+ * `TopicNode`ga aylantiriladi va `spec.topicPaths`ga o'tadi; mos tugun
+ * topilmasa, mavzu cheklovisiz, faqat fan bo'yicha sessiya yaratiladi —
+ * mashq umuman ishlamay qolgandan ko'ra, kengroq (lekin baribir foydali)
+ * sessiya yaxshiroq.
+ *
+ * Kunlik konstruktor test tuzish kvotasini SARFLAMAYDI
+ * (`countsAgainstQuota: false`) — bu qaror server tomonidan qat'iy
+ * belgilangan, chaqiruvchidan (so'rov tanasidan) kelmaydi (qarang
+ * `lib/sessions.ts#CreateSessionParams`).
+ *
+ * Havza (fan bo'yicha ham) bo'sh chiqsa — `null` qaytadi, chaqiruvchi
+ * mavjud nashr qilingan testni tavsiya qilishga o'tadi.
  */
-export async function generatePracticeTest(params: {
+export async function generatePracticeSession(params: {
+  userId: string;
   topic: string;
   subjectId: string;
-  excludeCorrectIds: Set<string>;
   count?: number;
-}): Promise<{ id: string; titleUz: string; questionCount: number } | null> {
-  const { topic, subjectId, excludeCorrectIds, count = 10 } = params;
+}): Promise<{ id: string; title: string; questionCount: number } | null> {
+  const { userId, topic, subjectId, count = 10 } = params;
 
-  const candidates = await db.question.findMany({
-    where: { topic, test: { subjectId, isPublished: true } },
-    select: {
-      text: true, images: true, options: true, correctAnswer: true, type: true,
-      explanation: true, explanationImages: true, topic: true, bloomLevel: true, id: true,
-    },
-    take: 60,
+  const topicMap = await resolveTopicNodes(subjectId, [topic]);
+  const node = topicMap.get(topic);
+
+  const spec: ItemSpec = {
+    subjectIds: [subjectId],
+    ...(node ? { topicPaths: [node.path] } : {}),
+  };
+
+  const outcome = await createSessionFromSpec({
+    userId,
+    spec,
+    limit: count,
+    durationMin: Math.max(10, Math.round(count * 1.5)),
+    mode: 'FIXED',
+    title: `Shaxsiy mashq: ${topic}`,
+    countsAgainstQuota: false,
   });
 
-  const MIN_POOL = 4;
-  if (candidates.length < MIN_POOL) return null;
-
-  const fresh = candidates.filter((q) => !excludeCorrectIds.has(q.id));
-  const pool = fresh.length >= MIN_POOL ? fresh : candidates;
-  // Bu yerdagi aralashtirish foydalanuvchiga bog'liq takrorlanuvchan bo'lishi
-  // shart emas — faqat mashq testi yaratishda bir martalik tekis taqsimot
-  // kerak, shu sababli har chaqiruvda yangi tasodifiy seed hosil qilinadi.
-  const seed = Math.floor(Math.random() * 2 ** 31);
-  const picked = shuffleArray(pool, seed).slice(0, Math.min(count, pool.length));
-
-  const subject = await db.subject.findUnique({ where: { id: subjectId }, select: { categoryId: true } });
-  if (!subject) return null;
-
-  const test = await db.test.create({
-    data: {
-      titleUz: `Shaxsiy mashq: ${topic}`,
-      categoryId: subject.categoryId,
-      subjectId,
-      teacherId: null,
-      duration: Math.max(10, Math.round(picked.length * 1.5)),
-      questionCount: picked.length,
-      isFree: true,
-      accessType: 'free',
-      isPublished: false,
-      questions: {
-        create: picked.map((q, index) => ({
-          text: q.text,
-          images: q.images,
-          options: q.options as any,
-          correctAnswer: q.correctAnswer,
-          type: q.type,
-          explanation: q.explanation,
-          explanationImages: q.explanationImages,
-          topic: q.topic,
-          bloomLevel: q.bloomLevel,
-          points: 1,
-          order: index,
-        })),
-      },
-    },
-    select: { id: true, titleUz: true, questionCount: true },
-  });
-
-  return test;
+  if (!outcome.ok) return null;
+  return { id: outcome.session.id, title: outcome.session.title, questionCount: outcome.session.questionCount };
 }
 
 export interface GrowthScheduleEntry {

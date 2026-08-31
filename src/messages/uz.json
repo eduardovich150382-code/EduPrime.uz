@@ -223,7 +223,10 @@
     "questionCount": "{count} ta savol",
     "difficultyLow": "past qiyinlik",
     "difficultyMedium": "o'rtacha qiyinlik",
-    "difficultyHigh": "yuqori qiyinlik"
+    "difficultyHigh": "yuqori qiyinlik",
+    "weakTopicsChip": "Zaif mavzularim",
+    "weakTopicsEmpty": "Avval bir nechta test ishlang — zaif mavzularingizni aniqlaymiz",
+    "weakTopicsError": "Xatolik yuz berdi, qayta urinib ko'ring"
   },
   "results": {
     "backToBuild": "Konstruktorga qaytish",

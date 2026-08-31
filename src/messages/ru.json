@@ -223,7 +223,10 @@
     "questionCount": "{count} вопросов",
     "difficultyLow": "низкая сложность",
     "difficultyMedium": "средняя сложность",
-    "difficultyHigh": "высокая сложность"
+    "difficultyHigh": "высокая сложность",
+    "weakTopicsChip": "Мои слабые темы",
+    "weakTopicsEmpty": "Сначала решите несколько тестов — тогда мы определим ваши слабые темы",
+    "weakTopicsError": "Произошла ошибка, попробуйте ещё раз"
   },
   "results": {
     "backToBuild": "Вернуться в конструктор",

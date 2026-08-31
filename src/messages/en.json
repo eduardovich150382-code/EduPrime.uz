@@ -223,7 +223,10 @@
     "questionCount": "{count} questions",
     "difficultyLow": "low difficulty",
     "difficultyMedium": "medium difficulty",
-    "difficultyHigh": "high difficulty"
+    "difficultyHigh": "high difficulty",
+    "weakTopicsChip": "My weak topics",
+    "weakTopicsEmpty": "Solve a few tests first — then we can identify your weak topics",
+    "weakTopicsError": "Something went wrong, please try again"
   },
   "results": {
     "backToBuild": "Back to builder",

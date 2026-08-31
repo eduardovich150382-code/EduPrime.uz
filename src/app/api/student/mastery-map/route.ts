@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAuth } from '@/lib/api-auth';
 import { hasActiveSubscription } from '@/lib/access';
-import { computeTopicStats, classifyTopics, generatePracticeTest, buildGrowthSchedule } from '@/lib/mastery';
+import { computeTopicStats, classifyTopics, generatePracticeSession, buildGrowthSchedule } from '@/lib/mastery';
 import { generateGrowthPlanTips } from '@/lib/gemini';
 import { daysSince } from '@/lib/date';
 
@@ -17,7 +17,7 @@ export async function GET() {
     const { user, error } = await requireAuth();
     if (error) return error;
 
-    const { stats, correctlyAnsweredQuestionIds, totalAttempts } = await computeTopicStats(user.id);
+    const { stats, totalAttempts } = await computeTopicStats(user.id);
 
     // Hali hech narsa yo'q bo'lsa — tarif cheklovini sarflamasdan, shunchaki
     // bo'sh holatni qaytaramiz (talaba birinchi testni yechishi kerak).
@@ -54,17 +54,17 @@ export async function GET() {
     const recommendations = (
       await Promise.all(
         topWeak.map(async (t) => {
-          const generated = await generatePracticeTest({
+          const generated = await generatePracticeSession({
+            userId: user.id,
             topic: t.topic,
             subjectId: t.subjectId,
-            excludeCorrectIds: correctlyAnsweredQuestionIds,
           });
           if (generated) {
             return {
               topic: t.topic,
               subjectName: t.subjectName,
               testId: generated.id,
-              testTitle: generated.titleUz,
+              testTitle: generated.title,
               questionCount: generated.questionCount,
               kind: 'GENERATED' as const,
             };
