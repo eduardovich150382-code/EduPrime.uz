@@ -171,6 +171,33 @@ describe("POST /api/sessions/[id]/submit", () => {
     );
   });
 
+  it("36 belgili UUID questionId (Item.id backfill formati) kesilmasdan saqlanadi", async () => {
+    // Item.id backfill'da gen_random_uuid()::text bilan yaratilgan — 36
+    // belgi. cuid (25 belgi) bilan sinalsa 30 belgigacha kesish regressiyasi
+    // bilinmay qoladi (CLAUDE.md — javoblar "javob berilmagan" ko'rsatgan edi).
+    const uuidItemId = "3f9a1c2e-7b44-4d5a-9e21-6f0c8a2b5d17";
+    const testSession = buildSession({ itemIds: [uuidItemId] });
+    findUniqueSessionMock.mockResolvedValue(testSession);
+    findManyItemMock.mockResolvedValue([buildItem({ id: uuidItemId })]);
+    createResultMock.mockImplementation(({ data }: { data: Record<string, unknown> }) =>
+      Promise.resolve({ id: "result1", ...data })
+    );
+
+    const optionSeed = testSession.seed + 0 + 1;
+    const shuffled = shuffleArray(buildItem().options as any[], optionSeed);
+    const studentPickedLabel = LABELS[shuffled.findIndex((o: any) => o.text === "4")];
+
+    const { status, data } = await callSubmit({
+      answers: [{ questionId: uuidItemId, answer: studentPickedLabel, timeSpent: 9 }],
+      timeSpent: 15,
+    });
+
+    expect(status).toBe(200);
+    expect(data.result.answers[0].answer).not.toBe("");
+    expect(data.result.answers[0].isCorrect).toBe(true);
+    expect(data.result.answers[0].timeSpent).toBe(9);
+  });
+
   it("answers massiv bo'lmasa 400 qaytaradi", async () => {
     const { status } = await callSubmit({ answers: "not-an-array" });
     expect(status).toBe(400);

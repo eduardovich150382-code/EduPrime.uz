@@ -45,7 +45,10 @@ export async function POST(
     }
 
     const sanitizedAnswers = answers.slice(0, 200).map((a: any) => ({
-      questionId: typeof a.questionId === 'string' ? a.questionId.trim().slice(0, 30) : '',
+      // 64 — cuid (25) va gen_random_uuid()::text (36) kabi Item/Question id
+      // formatlarining barchasiga yetadi; 30 da UUID id'lar kesilib, javob
+      // hech qachon mos kelmay qolgan (natija "javob berilmagan" ko'rsatgan).
+      questionId: typeof a.questionId === 'string' ? a.questionId.trim().slice(0, 64) : '',
       answer: sanitizeText(a.answer, 500),
       timeSpent: typeof a.timeSpent === 'number' ? Math.max(0, Math.min(a.timeSpent, 86400)) : 0,
     }));

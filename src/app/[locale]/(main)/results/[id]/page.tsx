@@ -272,13 +272,14 @@ export default function ResultPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      {/* Back button */}
+      {/* Back button — sessiyadan (konstruktordan) kelgan natija bo'lsa
+          /build ga qaytadi, aks holda odatiy /tests ga. */}
       <Link
-        href="/tests"
+        href={result.sessionId ? '/build' : '/tests'}
         className="inline-flex items-center gap-2 text-sm text-text-secondary hover:text-primary-600 transition-colors"
       >
         <ArrowLeft size={16} />
-        Testlarga qaytish
+        {result.sessionId ? 'Konstruktorga qaytish' : 'Testlarga qaytish'}
       </Link>
 
       {/* Score card */}

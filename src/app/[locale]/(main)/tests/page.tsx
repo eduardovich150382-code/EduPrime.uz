@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { useTranslations } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import Image from 'next/image';
@@ -10,7 +11,7 @@ import {
   GraduationCap, School, Award, Globe2, Atom, FileCheck,
   BookOpen, Search, Clock, Lock, Loader2, Building2,
   ArrowLeft, ChevronRight, TrendingUp, Sparkles, CheckCircle,
-  SortAsc, Filter,
+  SortAsc, Filter, Wand2,
 } from 'lucide-react';
 
 // ===================== TYPES =====================
@@ -163,6 +164,37 @@ function SubjectCard({
         </div>
         <ChevronRight size={18} className="text-gray-400 group-hover:text-primary-500 transition-colors" />
       </div>
+    </motion.div>
+  );
+}
+
+// Konstruktorga ("/build") ko'zga tashlanadigan kirish yo'li — ekran mavjud
+// bo'lsa ham hech qanday havola yo'q edi, foydalanuvchi URL'ni qo'lda
+// yozib kirishga majbur bo'lgan.
+function TestBuilderCta() {
+  const t = useTranslations('testBuilderCta');
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+    >
+      <Link
+        href="/build"
+        className="flex items-center gap-4 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-primary-600 to-purple-600 text-white shadow-lg shadow-primary-500/20 hover:shadow-xl transition-all group"
+      >
+        <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-white/15 flex items-center justify-center flex-shrink-0">
+          <Wand2 size={22} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h2 className="font-semibold text-sm sm:text-base">{t('title')}</h2>
+          <p className="text-xs sm:text-sm text-white/80">{t('subtitle')}</p>
+        </div>
+        <span className="hidden sm:flex items-center gap-1.5 text-sm font-medium bg-white/15 px-3 py-2 rounded-xl group-hover:bg-white/25 transition-colors flex-shrink-0">
+          {t('button')}
+          <ChevronRight size={16} />
+        </span>
+        <ChevronRight size={20} className="sm:hidden flex-shrink-0" />
+      </Link>
     </motion.div>
   );
 }
@@ -409,6 +441,9 @@ function TestsPageContent() {
             Barcha turdagi testlarni tanlang va yechishni boshlang
           </p>
         </motion.div>
+
+        {/* Test constructor CTA */}
+        <TestBuilderCta />
 
         {/* Search */}
         <div className="relative">
