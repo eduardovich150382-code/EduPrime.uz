@@ -72,6 +72,12 @@ describe("GET /api/results/[id]", () => {
     subscriptionFindManyMock.mockResolvedValue([]);
     solutionUnlockFindManyMock.mockResolvedValue([]);
     dailyUsageFindUniqueMock.mockResolvedValue(null);
+    // Test tarmog'ida resolveUnlockKeys (lib/quota.ts) shu mock orqali
+    // legacyQuestionId'larni qidiradi — default: hech biri Item'ga
+    // ko'chirilmagan (bo'sh massiv), kalitlar o'zgarishsiz qoladi. Sessiya
+    // tarmog'i testlari buni loadSessionItems uchun o'zining to'liq item
+    // ro'yxati bilan qayta belgilaydi.
+    itemFindManyMock.mockResolvedValue([]);
   });
 
   describe("Test tarmog'i (result.test bor)", () => {

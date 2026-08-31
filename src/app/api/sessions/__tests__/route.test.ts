@@ -1,12 +1,21 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { findManyItemMock, createSessionMock, requireAuthMock, userFindUniqueMock, subscriptionFindManyMock, dailyUsageUpsertMock } = vi.hoisted(() => ({
+const {
+  findManyItemMock,
+  createSessionMock,
+  requireAuthMock,
+  userFindUniqueMock,
+  subscriptionFindManyMock,
+  dailyUsageUpsertMock,
+  dailyUsageUpdateManyMock,
+} = vi.hoisted(() => ({
   findManyItemMock: vi.fn(),
   createSessionMock: vi.fn(),
   requireAuthMock: vi.fn(),
   userFindUniqueMock: vi.fn(),
   subscriptionFindManyMock: vi.fn(),
   dailyUsageUpsertMock: vi.fn(),
+  dailyUsageUpdateManyMock: vi.fn(),
 }));
 
 vi.mock("@/lib/db", () => ({
@@ -17,7 +26,13 @@ vi.mock("@/lib/db", () => ({
     // (limit tekshiruvi quota.test.ts'da alohida sinaladi).
     user: { findUnique: (...args: unknown[]) => userFindUniqueMock(...args) },
     subscription: { findMany: (...args: unknown[]) => subscriptionFindManyMock(...args) },
-    dailyUsage: { upsert: (...args: unknown[]) => dailyUsageUpsertMock(...args) },
+    dailyUsage: {
+      upsert: (...args: unknown[]) => dailyUsageUpsertMock(...args),
+      // Rad etilgan urinishda consumeBuiltTest hisoblagichni darhol
+      // qaytaradi (lib/quota.ts) — bu yerda haqiqiy qiymat muhim emas,
+      // faqat chaqiruv xatosiz o'tishi kerak.
+      updateMany: (...args: unknown[]) => dailyUsageUpdateManyMock(...args),
+    },
   },
 }));
 
@@ -113,6 +128,23 @@ describe("POST /api/sessions", () => {
     dailyUsageUpsertMock.mockResolvedValue({ builtTests: 4 });
 
     const { status, data } = await callPost({ limit: 2, durationMin: 30, subjectIds: ["subj1"] });
+
+    expect(status).toBe(429);
+    expect(data.code).toBe("BUILT_TEST_QUOTA_EXCEEDED");
+    expect(createSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("{source:'mastery'} yuborilgan so'rov ham kvotani sarflaydi (limitdan keyin 429 qaytaradi)", async () => {
+    // Kritik xavfsizlik tuzatishi: `source` mijoz tomonidan erkin yuboriladigan
+    // maydon — bu marshrut orqali kvota sarflashni chetlab o'tishning yo'li
+    // yo'q, `source` qanday qiymatda bo'lishidan qat'i nazar.
+    findManyItemMock.mockImplementation((args: { select?: Record<string, unknown> }) => {
+      if (args.select && "text" in args.select) return Promise.resolve([fullItem("item1"), fullItem("item2")]);
+      return Promise.resolve([pickableItem("item1"), pickableItem("item2")]);
+    });
+    dailyUsageUpsertMock.mockResolvedValue({ builtTests: 4 }); // limitdan oshgan
+
+    const { status, data } = await callPost({ limit: 2, durationMin: 30, subjectIds: ["subj1"], source: "mastery" });
 
     expect(status).toBe(429);
     expect(data.code).toBe("BUILT_TEST_QUOTA_EXCEEDED");

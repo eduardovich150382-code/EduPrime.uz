@@ -16,6 +16,7 @@ const {
   systemSettingFindUniqueMock,
   systemSettingUpsertMock,
   streamExplainQuestionMock,
+  itemFindUniqueMock,
 } = vi.hoisted(() => ({
   findUniqueResultMock: vi.fn(),
   findUniqueQuestionMock: vi.fn(),
@@ -27,6 +28,7 @@ const {
   systemSettingFindUniqueMock: vi.fn(),
   systemSettingUpsertMock: vi.fn(),
   streamExplainQuestionMock: vi.fn(),
+  itemFindUniqueMock: vi.fn(),
 }));
 
 vi.mock("@/lib/db", () => ({
@@ -43,6 +45,9 @@ vi.mock("@/lib/db", () => ({
       findUnique: (...args: unknown[]) => systemSettingFindUniqueMock(...args),
       upsert: (...args: unknown[]) => systemSettingUpsertMock(...args),
     },
+    // resolveUnlockKey (lib/quota.ts) — questionId Item'ga ko'chirilganini
+    // legacyQuestionId orqali tekshiradi.
+    item: { findUnique: (...args: unknown[]) => itemFindUniqueMock(...args) },
   },
 }));
 
@@ -109,6 +114,9 @@ describe("POST /api/results/[id]/ai-explain", () => {
     updateQuestionMock.mockResolvedValue({});
     streamExplainQuestionMock.mockReturnValue(fakeChunks());
     findUniqueResultMock.mockResolvedValue({ userId: "user1", testId: "test1" });
+    // Default: questionId hali Item'ga ko'chirilmagan (resolveUnlockKey
+    // o'zini qaytaradi).
+    itemFindUniqueMock.mockResolvedValue(null);
   });
 
   it("yechim ochilmagan savolda 403 (SOLUTION_LOCKED) qaytaradi", async () => {

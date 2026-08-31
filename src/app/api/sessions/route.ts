@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Prisma } from '@prisma/client';
-import { db } from '@/lib/db';
 import { requireAuth } from '@/lib/api-auth';
 import { sanitizeText } from '@/lib/sanitize';
-import { getRecentlyCorrectItemIds, parseItemSpec, pickItemsForSpec } from '@/lib/item-picker';
-import { loadSessionItems, toPresentedQuestions } from '@/lib/sessions';
-import { consumeBuiltTest } from '@/lib/quota';
+import { parseItemSpec } from '@/lib/item-picker';
+import { createSessionFromSpec } from '@/lib/sessions';
 
 const MAX_LIMIT = 200;
 const MAX_DURATION_MIN = 600; // 10 soat — yetarlicha keng yuqori chegara
@@ -44,77 +41,36 @@ export async function POST(request: NextRequest) {
     const mode = b.mode === 'ADAPTIVE' ? 'ADAPTIVE' : 'FIXED';
     const title = sanitizeText(b.title, 200) || "Konstruktor testi";
 
-    const excludeItemIds = spec.excludeAnsweredCorrectlyDays
-      ? await getRecentlyCorrectItemIds(user.id, spec.excludeAnsweredCorrectlyDays)
-      : [];
+    // `b.source` (yoki boshqa har qanday so'rov tanasi maydoni) ATAYLAB
+    // e'tiborsiz qoldiriladi — bu marshrut orqali kvota sarflashni chetlab
+    // o'tishning YO'LI YO'Q, chunki mijoz so'rov tanasini to'liq nazorat
+    // qiladi (kritik xavfsizlik tuzatishi: avval `source: 'mastery'` bepul
+    // konstruktor test kvotasini butunlay chetlab o'tar edi). Kvotasiz
+    // sessiya kerak bo'lgan server-tomon chaqiruvchilar (masalan bilim
+    // xaritasi mashq testlari) HTTP orqali emas, `createSessionFromSpec`ni
+    // to'g'ridan-to'g'ri chaqirsin — qarang lib/sessions.ts.
+    const outcome = await createSessionFromSpec({
+      userId: user.id,
+      spec,
+      limit,
+      durationMin,
+      mode,
+      title,
+      countsAgainstQuota: true,
+    });
 
-    // Test sessiyasining o'zi bir martalik — har chaqiriqda yangi tasodifiy
-    // urug' hosil qilinadi (items/search'dagi ixtiyoriy `seed` parametridan
-    // farqli, bu yerda takrorlanuvchan bo'lishning hojati yo'q, faqat GET
-    // va submit ORASIDA bir xil bo'lishi kerak — shuning uchun DB'da
-    // saqlanadi).
-    const seed = Math.floor(Math.random() * 2 ** 31);
-    const { ids: itemIds, relaxed } = await pickItemsForSpec({ spec, limit, seed, excludeItemIds });
-
-    if (itemIds.length === 0) {
-      return NextResponse.json({ error: "Berilgan filtrga mos savol topilmadi" }, { status: 404 });
-    }
-
-    // Bepul foydalanuvchi uchun kunlik konstruktor test limiti (S17) —
-    // sessiya YARATILGANDA hisoblanadi, tugatilganda emas. Havza bo'sh
-    // chiqib 404 qaytadigan urinish kvotani sarflamasligi uchun shu
-    // tekshiruv sessiya haqiqatan yaratilishidan OLDIN, lekin havza
-    // tasdiqlangandan KEYIN turibdi. Bilim xaritasi mashq testlari bu
-    // yerga kirmasligi kerak — ular `source: 'mastery'` bilan kelsa kvota
-    // chetlab o'tiladi (hozircha bunday chaqiruvchi yo'q, bu — kelajakdagi
-    // bog'lanish uchun tayyor joy).
-    const isMasteryPractice = b.source === 'mastery';
-    if (!isMasteryPractice) {
-      const quota = await consumeBuiltTest(user.id);
-      if (!quota.allowed) {
+    if (!outcome.ok) {
+      const { error } = outcome;
+      if (error.status === 429) {
         return NextResponse.json(
-          {
-            error: `Bugungi bepul test tuzish limiti (${quota.limit} ta) tugadi. Ertaga yana ${quota.limit} ta bepul bo'ladi, yoki Premium tarifda cheksiz.`,
-            code: 'BUILT_TEST_QUOTA_EXCEEDED',
-            usedToday: quota.usedToday,
-            limit: quota.limit,
-          },
+          { error: error.error, code: error.code, usedToday: error.usedToday, limit: error.limit },
           { status: 429 }
         );
       }
+      return NextResponse.json({ error: error.error }, { status: error.status });
     }
 
-    const now = new Date();
-    const testSession = await db.testSession.create({
-      data: {
-        userId: user.id,
-        title,
-        spec: spec as Prisma.InputJsonValue,
-        itemIds,
-        seed,
-        mode,
-        durationMin,
-        startedAt: now,
-        expiresAt: new Date(now.getTime() + durationMin * 60_000),
-      },
-    });
-
-    const items = await loadSessionItems(testSession.itemIds);
-    const questions = toPresentedQuestions(items, testSession.seed);
-
-    return NextResponse.json({
-      session: {
-        id: testSession.id,
-        title: testSession.title,
-        mode: testSession.mode,
-        durationMin: testSession.durationMin,
-        startedAt: testSession.startedAt,
-        expiresAt: testSession.expiresAt,
-        questionCount: questions.length,
-        questions,
-      },
-      relaxed,
-    });
+    return NextResponse.json({ session: outcome.session, relaxed: outcome.relaxed });
   } catch (err) {
     console.error('POST /api/sessions error:', err);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });

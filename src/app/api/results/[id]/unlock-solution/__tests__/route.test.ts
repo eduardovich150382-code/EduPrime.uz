@@ -109,7 +109,7 @@ describe("POST /api/results/[id]/unlock-solution", () => {
     expect(solutionUnlockCreateMock).toHaveBeenCalledWith({ data: { userId: "user1", itemId: "q1" } });
   });
 
-  it("video yechim mavjud bo'lsa yozma yechim baribir yashirin qaytadi", async () => {
+  it("video yechim mavjud bo'lsa 403 VIDEO_ONLY qaytadi va kvota sarflanmaydi", async () => {
     findUniqueResultMock.mockResolvedValue({ userId: "user1", testId: "test1", sessionId: null });
     findUniqueQuestionMock.mockResolvedValue({
       testId: "test1",
@@ -118,8 +118,43 @@ describe("POST /api/results/[id]/unlock-solution", () => {
       videoUrl: "https://youtube.com/watch?v=x",
     });
 
-    const { data } = await callPost({ questionId: "q1" });
-    expect(data.explanation).toBeNull();
+    const { status, data } = await callPost({ questionId: "q1" });
+    expect(status).toBe(403);
+    expect(data.code).toBe("VIDEO_ONLY");
+    expect(dailyUsageUpsertMock).not.toHaveBeenCalled();
+    expect(solutionUnlockCreateMock).not.toHaveBeenCalled();
+  });
+
+  it("savolda yechim umuman bo'lmasa 404 NO_SOLUTION qaytadi va kvota sarflanmaydi", async () => {
+    findUniqueResultMock.mockResolvedValue({ userId: "user1", testId: "test1", sessionId: null });
+    findUniqueQuestionMock.mockResolvedValue({
+      testId: "test1",
+      explanation: null,
+      explanationImages: [],
+      videoUrl: null,
+    });
+
+    const { status, data } = await callPost({ questionId: "q1" });
+    expect(status).toBe(404);
+    expect(data.code).toBe("NO_SOLUTION");
+    expect(dailyUsageUpsertMock).not.toHaveBeenCalled();
+    expect(solutionUnlockCreateMock).not.toHaveBeenCalled();
+  });
+
+  it("legacyQuestionId orqali Item'ga ko'chirilgan savol uchun SolutionUnlock Item.id bilan yoziladi", async () => {
+    findUniqueResultMock.mockResolvedValue({ userId: "user1", testId: "test1", sessionId: null });
+    findUniqueQuestionMock.mockResolvedValue({
+      testId: "test1",
+      explanation: "Yechim matni",
+      explanationImages: [],
+      videoUrl: null,
+    });
+    // resolveUnlockKey — legacyQuestionId "q1" bo'yicha Item topiladi.
+    findUniqueItemMock.mockResolvedValue({ id: "item-migrated-1" });
+
+    const { status } = await callPost({ questionId: "q1" });
+    expect(status).toBe(200);
+    expect(solutionUnlockCreateMock).toHaveBeenCalledWith({ data: { userId: "user1", itemId: "item-migrated-1" } });
   });
 
   it("Sessiya tarmog'ida itemIds ichida bo'lmagan itemId uchun 404 qaytaradi", async () => {
@@ -140,7 +175,7 @@ describe("POST /api/results/[id]/unlock-solution", () => {
 
   it("kunlik yechim kvotasi tugagan bo'lsa 429 qaytaradi", async () => {
     findUniqueResultMock.mockResolvedValue({ userId: "user1", testId: "test1", sessionId: null });
-    findUniqueQuestionMock.mockResolvedValue({ testId: "test1" });
+    findUniqueQuestionMock.mockResolvedValue({ testId: "test1", explanation: "Yechim matni", explanationImages: [], videoUrl: null });
     dailyUsageUpsertMock.mockResolvedValue({ solutionsUnlocked: 11 }); // FREE_DAILY_SOLUTIONS (10) dan oshgan
 
     const { status, data } = await callPost({ questionId: "q1" });
@@ -151,7 +186,7 @@ describe("POST /api/results/[id]/unlock-solution", () => {
 
   it("allaqachon ochilgan savol kvotani sarflamasdan 200 qaytaradi", async () => {
     findUniqueResultMock.mockResolvedValue({ userId: "user1", testId: "test1", sessionId: null });
-    findUniqueQuestionMock.mockResolvedValue({ testId: "test1" });
+    findUniqueQuestionMock.mockResolvedValue({ testId: "test1", explanation: "Yechim matni", explanationImages: [], videoUrl: null });
     solutionUnlockFindUniqueMock.mockResolvedValue({ userId: "user1", itemId: "q1" });
 
     const { status, data } = await callPost({ questionId: "q1" });

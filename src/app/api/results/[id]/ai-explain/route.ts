@@ -4,7 +4,7 @@ import { auth } from '@/lib/auth';
 import { streamExplainQuestion } from '@/lib/gemini';
 import { hasActiveSubscription } from '@/lib/access';
 import { tashkentDateKey } from '@/lib/date';
-import { isSolutionUnlocked } from '@/lib/quota';
+import { isSolutionUnlocked, resolveUnlockKey } from '@/lib/quota';
 import { resolveSolutionVisibility } from '@/lib/solution-visibility';
 
 const FREE_DAILY_AI_EXPLAIN_LIMIT = 3;
@@ -99,11 +99,17 @@ export async function POST(
     // aks holda foydalanuvchi "Yechimni ochish"ni chetlab o'tib, shu
     // marshrut orqali bepul to'liq yechim olishi mumkin edi.
     const { premium, teacher } = await hasActiveSubscription(userId);
+    // `questionId` bu yerda `Question.id` — `SolutionUnlock`ga yozilganda
+    // `unlock-solution` uni Item.id'ga normallashtiradi (lib/quota.ts —
+    // resolveUnlockKey), shu sababli o'qishda ham AYNAN shu kalit
+    // ishlatilsin, aks holda "Yechimni ochish" orqali ochilgan savol shu
+    // yerda hali qulflangan ko'rinadi.
+    const unlockKey = await resolveUnlockKey(questionId);
     const visibility = resolveSolutionVisibility({
       explanation: question.explanation,
       explanationImages: [],
       videoUrl: question.videoUrl,
-      writtenUnlocked: role === 'ADMIN' || premium || teacher || (await isSolutionUnlocked(userId, questionId)),
+      writtenUnlocked: role === 'ADMIN' || premium || teacher || (await isSolutionUnlocked(userId, unlockKey)),
       videoUnlocked: role === 'ADMIN' || premium,
     });
     if (!visibility.unlocked) {
