@@ -16,6 +16,7 @@ const {
   transactionMock,
   requireAuthMock,
   checkOpenEndedEquivalenceMock,
+  dailyUsageUpdateManyMock,
 } = vi.hoisted(() => ({
   findUniqueSessionMock: vi.fn(),
   findManyItemMock: vi.fn(),
@@ -24,6 +25,7 @@ const {
   transactionMock: vi.fn(),
   requireAuthMock: vi.fn(),
   checkOpenEndedEquivalenceMock: vi.fn(),
+  dailyUsageUpdateManyMock: vi.fn(),
 }));
 
 vi.mock("@/lib/db", () => ({
@@ -34,6 +36,8 @@ vi.mock("@/lib/db", () => ({
     },
     item: { findMany: (...args: unknown[]) => findManyItemMock(...args) },
     testResult: { create: (...args: unknown[]) => createResultMock(...args) },
+    // refundBuiltTest (lib/quota.ts) — javobsiz tashlangan sessiyada chaqiriladi.
+    dailyUsage: { updateMany: (...args: unknown[]) => dailyUsageUpdateManyMock(...args) },
     $transaction: (ops: unknown[]) => transactionMock(ops),
   },
 }));
@@ -105,6 +109,7 @@ describe("POST /api/sessions/[id]/submit", () => {
     requireAuthMock.mockReturnValue({ user: { id: "user1", role: "USER" }, error: null });
     transactionMock.mockImplementation((ops: unknown[]) => Promise.all(ops));
     updateSessionMock.mockResolvedValue({});
+    dailyUsageUpdateManyMock.mockResolvedValue({ count: 1 });
   });
 
   it("sessiya topilmasa 404 qaytaradi", async () => {
@@ -196,6 +201,48 @@ describe("POST /api/sessions/[id]/submit", () => {
     expect(data.result.answers[0].answer).not.toBe("");
     expect(data.result.answers[0].isCorrect).toBe(true);
     expect(data.result.answers[0].timeSpent).toBe(9);
+  });
+
+  it("hech qanday javob berilmasdan (bo'sh javoblar bilan) topshirilsa, 2 daqiqa ichida bo'lgani uchun kvota qaytariladi", async () => {
+    const testSession = buildSession({ startedAt: new Date(NOW.getTime() - 90_000) }); // 90s oldin boshlangan
+    findUniqueSessionMock.mockResolvedValue(testSession);
+    findManyItemMock.mockResolvedValue([buildItem()]);
+    createResultMock.mockImplementation(({ data }: { data: Record<string, unknown> }) =>
+      Promise.resolve({ id: "result1", ...data })
+    );
+
+    const { status } = await callSubmit({
+      answers: [{ questionId: "item1", answer: "", timeSpent: 5 }],
+      timeSpent: 90,
+    });
+
+    expect(status).toBe(200);
+    expect(dailyUsageUpdateManyMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ userId: "user1", builtTests: { gt: 0 } }),
+        data: { builtTests: { decrement: 1 } },
+      })
+    );
+  });
+
+  it("javob berilgan bo'lsa kvota qaytarilmaydi", async () => {
+    const testSession = buildSession({ startedAt: new Date(NOW.getTime() - 90_000) });
+    findUniqueSessionMock.mockResolvedValue(testSession);
+    findManyItemMock.mockResolvedValue([buildItem()]);
+    createResultMock.mockImplementation(({ data }: { data: Record<string, unknown> }) =>
+      Promise.resolve({ id: "result1", ...data })
+    );
+
+    const optionSeed = testSession.seed + 0 + 1;
+    const shuffled = shuffleArray(buildItem().options as any[], optionSeed);
+    const studentPickedLabel = LABELS[shuffled.findIndex((o: any) => o.text === "4")];
+
+    await callSubmit({
+      answers: [{ questionId: "item1", answer: studentPickedLabel, timeSpent: 12 }],
+      timeSpent: 20,
+    });
+
+    expect(dailyUsageUpdateManyMock).not.toHaveBeenCalled();
   });
 
   it("answers massiv bo'lmasa 400 qaytaradi", async () => {

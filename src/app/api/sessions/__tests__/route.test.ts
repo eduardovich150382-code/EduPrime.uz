@@ -1,15 +1,23 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { findManyItemMock, createSessionMock, requireAuthMock } = vi.hoisted(() => ({
+const { findManyItemMock, createSessionMock, requireAuthMock, userFindUniqueMock, subscriptionFindManyMock, dailyUsageUpsertMock } = vi.hoisted(() => ({
   findManyItemMock: vi.fn(),
   createSessionMock: vi.fn(),
   requireAuthMock: vi.fn(),
+  userFindUniqueMock: vi.fn(),
+  subscriptionFindManyMock: vi.fn(),
+  dailyUsageUpsertMock: vi.fn(),
 }));
 
 vi.mock("@/lib/db", () => ({
   db: {
     testSession: { create: (...args: unknown[]) => createSessionMock(...args) },
     item: { findMany: (...args: unknown[]) => findManyItemMock(...args) },
+    // consumeBuiltTest (lib/quota.ts) — bepul foydalanuvchi, kvota ostida
+    // (limit tekshiruvi quota.test.ts'da alohida sinaladi).
+    user: { findUnique: (...args: unknown[]) => userFindUniqueMock(...args) },
+    subscription: { findMany: (...args: unknown[]) => subscriptionFindManyMock(...args) },
+    dailyUsage: { upsert: (...args: unknown[]) => dailyUsageUpsertMock(...args) },
   },
 }));
 
@@ -44,6 +52,9 @@ describe("POST /api/sessions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     requireAuthMock.mockReturnValue({ user: { id: "user1", role: "USER" }, error: null });
+    userFindUniqueMock.mockResolvedValue({ role: "USER" });
+    subscriptionFindManyMock.mockResolvedValue([]);
+    dailyUsageUpsertMock.mockResolvedValue({ builtTests: 1 });
   });
 
   it("limit noto'g'ri bo'lsa 400 qaytaradi", async () => {
@@ -91,5 +102,20 @@ describe("POST /api/sessions", () => {
         data: expect.objectContaining({ userId: "user1", durationMin: 45, mode: "FIXED" }),
       })
     );
+  });
+
+  it("kunlik konstruktor test kvotasi tugagan bo'lsa 429 qaytaradi va sessiya yaratmaydi", async () => {
+    findManyItemMock.mockImplementation((args: { select?: Record<string, unknown> }) => {
+      if (args.select && "text" in args.select) return Promise.resolve([fullItem("item1"), fullItem("item2")]);
+      return Promise.resolve([pickableItem("item1"), pickableItem("item2")]);
+    });
+    // FREE_DAILY_BUILT_TESTS (3) dan oshib ketgan kunlik hisoblagich.
+    dailyUsageUpsertMock.mockResolvedValue({ builtTests: 4 });
+
+    const { status, data } = await callPost({ limit: 2, durationMin: 30, subjectIds: ["subj1"] });
+
+    expect(status).toBe(429);
+    expect(data.code).toBe("BUILT_TEST_QUOTA_EXCEEDED");
+    expect(createSessionMock).not.toHaveBeenCalled();
   });
 });
