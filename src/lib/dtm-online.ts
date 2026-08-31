@@ -1,5 +1,8 @@
 import { db } from './db';
 import { createSessionFromSections, type SectionSpec } from './sessions';
+import { DTM_TITLE_PREFIX } from './dtm-online-shared';
+
+export { DTM_TITLE_PREFIX };
 
 /**
  * DTM Online — haqiqiy DTM imtihoni simulyatsiyasi. Har urinishda 90 ta
@@ -21,8 +24,20 @@ export const DTM_TOTAL_QUESTIONS = 90;
 export const DTM_DURATION_MINUTES = 180;
 export const DTM_MAX_SCORE = 189; // 30*3.1 + 30*2.1 + 30*1.1 (3x10*1.1)
 
-/** DTM Online sessiyalari shu prefiks bilan nomlanadi — `/api/dtm-online/current` shu bo'yicha "yakunlanmagan urinish"ni boshqa (masalan /build) sessiyalardan ajratadi. */
-export const DTM_TITLE_PREFIX = 'DTM Online — ';
+/**
+ * Majburiy (10 ta) bo'limlar uchun mavzu cheklovi — real DTM tuzilishiga
+ * mos: Tarix majburiy qismida faqat O'zbekiston tarixi (Jahon tarixi emas),
+ * Ona tili va adabiyotda faqat ona tili/grammatika (Adabiyot emas). Slug'lar
+ * `prisma/seeds/topics/tarix.json` va `ona-tili-va-adabiyot.json`dagi
+ * ILDIZ (root) tugun slug'lari bilan AYNAN mos — bu fayllar o'zgarsa shu
+ * yerdagi qiymatlar ham yangilanishi kerak. Matematika (va boshqa har
+ * qanday fan) uchun kirit yo'q — cheklovsiz, butun fan havzasidan tanlanadi.
+ * MUTAXASSISLIK (30 ta) bo'limida bu cheklov UMUMAN qo'llanilmaydi.
+ */
+const MANDATORY_TOPIC_PATHS: Partial<Record<string, string[]>> = {
+  'Tarix': ['ozbekiston-tarixi'],
+  "Ona tili va adabiyot": ['ona-tili'],
+};
 
 export type DtmGenerationError =
   | { code: 'CATEGORY_NOT_FOUND' }
@@ -33,7 +48,10 @@ export async function generateDtmOnlineExam(params: {
   userId: string;
   specialty1SubjectId: string;
   specialty2SubjectId: string;
-}): Promise<{ ok: true; sessionId: string; titleUz: string } | { ok: false; error: DtmGenerationError }> {
+}): Promise<
+  | { ok: true; sessionId: string; titleUz: string; relaxedSections: string[] }
+  | { ok: false; error: DtmGenerationError }
+> {
   const { userId, specialty1SubjectId, specialty2SubjectId } = params;
 
   const category = await db.testCategory.findFirst({ where: { type: 'DTM' }, select: { id: true } });
@@ -69,6 +87,7 @@ export async function generateDtmOnlineExam(params: {
     { subjectId: specialty2.id, subjectName: specialty2.nameUz, count: 30, pointsPerQuestion: 2.1, bias: 'advanced' },
     ...mandatorySubjects.map((s) => ({
       subjectId: s.id, subjectName: s.nameUz, count: 10, pointsPerQuestion: 1.1, bias: 'easy' as const,
+      topicPaths: MANDATORY_TOPIC_PATHS[s.nameUz],
     })),
   ];
 
@@ -102,7 +121,17 @@ export async function generateDtmOnlineExam(params: {
     throw new Error(`createSessionFromSections DTM uchun kutilmagan xato qaytardi: ${error.status}`);
   }
 
-  return { ok: true, sessionId: outcome.session.id, titleUz: outcome.session.title };
+  // Mavzu cheklovi (Tarix/Ona tili majburiy bo'limi) havza yetishmagani
+  // sababli olib tashlangan bo'lsa — jimgina kengaymasin: server logiga
+  // yoziladi (bu 4 616 tadan ~9% mavzuga bog'lanmagan savol tufayli kamdan
+  // kam, lekin kutilishi mumkin bo'lgan holat).
+  if (outcome.relaxedSections.length > 0) {
+    console.warn(
+      `generateDtmOnlineExam: mavzu cheklovi bo'shatildi (havza yetishmadi) — ${outcome.relaxedSections.join(', ')}`
+    );
+  }
+
+  return { ok: true, sessionId: outcome.session.id, titleUz: outcome.session.title, relaxedSections: outcome.relaxedSections };
 }
 
 /**

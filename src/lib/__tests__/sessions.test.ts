@@ -27,6 +27,8 @@ interface FakeItem {
   id: string;
   subjectId: string;
   difficulty: number;
+  /** `topics.some.topic.path.startsWith` filtri shu maydonga tekshiriladi — qarang buildItemWhere (lib/item-picker.ts). */
+  topicPath?: string;
 }
 
 function matchesWhere(item: FakeItem, where: Record<string, any>): boolean {
@@ -36,6 +38,13 @@ function matchesWhere(item: FakeItem, where: Record<string, any>): boolean {
     if (where.difficulty.lte !== undefined && item.difficulty > where.difficulty.lte) return false;
   }
   if (where.id?.notIn && where.id.notIn.includes(item.id)) return false;
+  if (where.OR) {
+    const matchesAnyPath = (where.OR as any[]).some((clause) => {
+      const startsWith = clause?.topics?.some?.topic?.path?.startsWith;
+      return typeof startsWith === "string" && !!item.topicPath && item.topicPath.startsWith(startsWith);
+    });
+    if (!matchesAnyPath) return false;
+  }
   return true;
 }
 
@@ -67,6 +76,10 @@ function wireItemMocks(pool: FakeItem[]) {
 
 function buildPool(subjectId: string, count: number, difficulty = 3): FakeItem[] {
   return Array.from({ length: count }, (_, i) => ({ id: `${subjectId}-${i}`, subjectId, difficulty }));
+}
+
+function buildTopicPool(subjectId: string, topicPath: string, count: number, difficulty = 1): FakeItem[] {
+  return Array.from({ length: count }, (_, i) => ({ id: `${subjectId}-${topicPath}-${i}`, subjectId, difficulty, topicPath }));
 }
 
 describe("extractItemPoints", () => {
@@ -135,6 +148,7 @@ describe("createSessionFromSections", () => {
     expect(outcome.ok).toBe(true);
     if (!outcome.ok) return;
     expect(outcome.session.questionCount).toBe(5);
+    expect(outcome.relaxedSections).toEqual([]); // topicPaths berilmagan — bo'shatish umuman ishga tushmaydi
     expect(consumeBuiltTestMock).not.toHaveBeenCalled();
 
     const createArgs = testSessionCreateMock.mock.calls[0][0].data as {
@@ -172,6 +186,52 @@ describe("createSessionFromSections", () => {
     const createArgs = testSessionCreateMock.mock.calls[0][0].data as { itemIds: string[] };
     expect(createArgs.itemIds).toHaveLength(5);
     expect(new Set(createArgs.itemIds).size).toBe(5); // hech biri takrorlanmagan
+  });
+
+  it("topicPaths berilgan bo'lim mos mavzudan tanlaydi, mos kelmasa BUTUN fandan to'ldirib relaxedSections'da qayd etadi", async () => {
+    const topicSections: SectionSpec[] = [
+      { subjectId: "hist", subjectName: "Tarix", count: 5, pointsPerQuestion: 1, bias: "easy", topicPaths: ["uz-tarixi"] },
+    ];
+
+    // Faqat 2 ta "uz-tarixi" tegli (kerak — 5 ta), lekin fanning o'zida jami 8 ta bor.
+    wireItemMocks([...buildTopicPool("hist", "uz-tarixi", 2), ...buildTopicPool("hist", "jahon-tarixi", 6)]);
+
+    const outcome = await createSessionFromSections({
+      userId: "user1",
+      sections: topicSections,
+      durationMin: 60,
+      mode: "FIXED",
+      title: "Sinov",
+      countsAgainstQuota: false,
+    });
+
+    expect(outcome.ok).toBe(true);
+    if (!outcome.ok) return;
+    expect(outcome.session.questionCount).toBe(5); // bo'lim baribir to'liq to'lgan
+    expect(outcome.relaxedSections).toEqual(["Tarix"]); // jimgina emas — aniq qayd etilgan
+
+    const createArgs = testSessionCreateMock.mock.calls[0][0].data as { itemIds: string[] };
+    expect(createArgs.itemIds.some((id) => id.includes("jahon-tarixi"))).toBe(true); // faqat 2 ta uz-tarixi bor edi, qolgani albatta bo'shatilgandan keladi
+  });
+
+  it("topicPaths bilan havza (mavzu bo'shatilgandan keyin ham) yetarli bo'lmasa aniq xato qaytaradi", async () => {
+    const topicSections: SectionSpec[] = [
+      { subjectId: "hist", subjectName: "Tarix", count: 5, pointsPerQuestion: 1, bias: "easy", topicPaths: ["uz-tarixi"] },
+    ];
+    wireItemMocks(buildTopicPool("hist", "uz-tarixi", 2)); // jami fan havzasi ham 2 ta — bo'shatish qutqarmaydi
+
+    const outcome = await createSessionFromSections({
+      userId: "user1",
+      sections: topicSections,
+      durationMin: 60,
+      mode: "FIXED",
+      title: "Sinov",
+      countsAgainstQuota: false,
+    });
+
+    expect(outcome.ok).toBe(false);
+    if (outcome.ok) return;
+    expect(outcome.error).toMatchObject({ code: "SECTION_INSUFFICIENT_POOL", subjectName: "Tarix", available: 2, required: 5 });
   });
 
   it("bo'lim uchun havza yetarli bo'lmasa aniq xato qaytaradi va sessiya yaratmaydi", async () => {

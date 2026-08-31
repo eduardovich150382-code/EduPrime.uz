@@ -229,11 +229,18 @@ export async function createSessionFromSpec(params: CreateSessionParams): Promis
  * `bias` `pickItemsForSpec`ning qiyinlik oralig'iga (`ItemSpec.difficultyMin/
  * Max`) aylantiriladi: 'easy' — asosan oson (1-2), 'advanced' — asosan
  * o'rta+qiyin (3-5) havzadan tanlaydi (Item.difficulty 1-5 shkalasi,
- * `QuestionEditorForm.tsx`dagi bilan bir xil). Havza yetarli bo'lmasa,
- * `pickItemsForSpec`ning o'zidagi bo'shatish (relaxation) mantig'i qiyinlik
- * cheklovini olib tashlaydi va butun fan havzasidan to'ldiradi — bu
+ * `QuestionEditorForm.tsx`dagi bilan bir xil).
+ *
+ * `topicPaths` — ixtiyoriy, `ItemSpec.topicPaths`ga o'tadi (masalan DTM
+ * majburiy Tarix bo'limi faqat "ozbekiston-tarixi" shoxini xohlaydi, Jahon
+ * tarixini emas — qarang `dtm-online.ts`). Havza (qiyinlik VA mavzu bilan
+ * birga) yetarli bo'lmasa, `pickItemsForSpec`ning o'zidagi bo'shatish
+ * (relaxation) mantig'i AVVAL qiyinlik cheklovini, keyin (hali yetmasa)
+ * mavzu cheklovini olib tashlaydi va butun fan havzasidan to'ldiradi — bu
  * DTM Online eski (Test-asosidagi) generatorining "asosiy havza + zaxira"
- * fallback'iga muqobil.
+ * (`fetchCandidatesWithFallback`) fallback'iga muqobil. Mavzu cheklovi
+ * olib tashlangan bo'lsa, chaqiruvchi buni `createSessionFromSections`ning
+ * `relaxedSections` natijasidan bilib oladi (jimgina kengaymaydi).
  */
 export interface SectionSpec {
   subjectId: string;
@@ -241,6 +248,7 @@ export interface SectionSpec {
   count: number;
   pointsPerQuestion: number;
   bias: 'easy' | 'advanced';
+  topicPaths?: string[];
 }
 
 function biasToDifficultyRange(bias: SectionSpec['bias']): { min: number; max: number } {
@@ -270,22 +278,28 @@ export type CreateSessionFromSectionsError =
     };
 
 export type CreateSessionFromSectionsOutcome =
-  | { ok: true; session: CreatedSession }
+  | { ok: true; session: CreatedSession; relaxedSections: string[] }
   | { ok: false; error: CreateSessionFromSectionsError };
 
 /**
  * `sections`dagi har bir bo'lim uchun ALOHIDA `pickItemsForSpec` chaqiradi
- * (bo'lim subjectId + bias'iga mos qiyinlik oralig'i bilan) va natijalarni
- * bitta sessiyaga birlashtiradi. Boshqa bo'lim allaqachon olib qo'ygan
- * item'lar (`excludeItemIds`) takrorlanmasligi uchun bo'limlar KETMA-KET
- * (parallel emas) tanlanadi — bitta fan (masalan Matematika) ham
- * mutaxassislik, ham majburiy bo'lim sifatida ishtirok etsa, ikkalasi har
- * xil savol olishi shu tartib bilan kafolatlanadi.
+ * (bo'lim subjectId + bias'iga mos qiyinlik oralig'i, bor bo'lsa
+ * `topicPaths` bilan) va natijalarni bitta sessiyaga birlashtiradi. Boshqa
+ * bo'lim allaqachon olib qo'ygan item'lar (`excludeItemIds`) takrorlanmasligi
+ * uchun bo'limlar KETMA-KET (parallel emas) tanlanadi — bitta fan (masalan
+ * Matematika) ham mutaxassislik, ham majburiy bo'lim sifatida ishtirok etsa,
+ * ikkalasi har xil savol olishi shu tartib bilan kafolatlanadi.
  *
  * Ballar POZITSIYA emas, ITEM ID bo'yicha `itemPoints`ga yoziladi va
  * `TestSession.spec.itemPoints` sifatida saqlanadi — `toPresentedQuestions`
  * savollarni `seed` bo'yicha aralashtirgandan keyin ham to'g'ri ball
  * ko'rsatilishi shu orqali kafolatlanadi (qarang `loadSessionItems`).
+ *
+ * `relaxedSections` — `topicPaths` berilgan bo'limlardan qaysi biri
+ * (`subjectName` bo'yicha) havza yetishmagani sababli mavzu cheklovisiz
+ * to'ldirilganini bildiradi (`pickItemsForSpec`ning `relaxed` natijasida
+ * `'neighborTopics'` bo'lsa). Bo'sh massiv — barcha bo'lim o'z mavzu
+ * cheklovi ichida to'liq to'ldirilgan.
  */
 export async function createSessionFromSections(
   params: CreateSessionFromSectionsParams
@@ -296,11 +310,20 @@ export async function createSessionFromSections(
   const excludeItemIds: string[] = [];
   const itemIds: string[] = [];
   const itemPoints: Record<string, number> = {};
+  const relaxedSections: string[] = [];
 
   for (const section of sections) {
     const range = biasToDifficultyRange(section.bias);
-    const spec: ItemSpec = { subjectIds: [section.subjectId], difficultyMin: range.min, difficultyMax: range.max };
-    const { ids: pickedIds } = await pickItemsForSpec({ spec, limit: section.count, seed, excludeItemIds });
+    const spec: ItemSpec = {
+      subjectIds: [section.subjectId],
+      difficultyMin: range.min,
+      difficultyMax: range.max,
+      ...(section.topicPaths?.length ? { topicPaths: section.topicPaths } : {}),
+    };
+    const { ids: pickedIds, relaxed } = await pickItemsForSpec({ spec, limit: section.count, seed, excludeItemIds });
+    if (section.topicPaths?.length && relaxed.includes('neighborTopics')) {
+      relaxedSections.push(section.subjectName);
+    }
 
     if (pickedIds.length < section.count) {
       // Xabarda ko'rsatiladigan "mavjud" son — qiyinlik cheklovisiz, butun
@@ -381,5 +404,6 @@ export async function createSessionFromSections(
       questionCount: questions.length,
       questions,
     },
+    relaxedSections,
   };
 }
