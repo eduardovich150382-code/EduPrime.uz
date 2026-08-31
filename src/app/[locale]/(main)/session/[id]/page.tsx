@@ -3,13 +3,30 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter, useParams } from 'next/navigation';
-import { Link } from '@/i18n/routing';
+import { useTranslations } from 'next-intl';
+import { Link, useRouter as useLocaleRouter } from '@/i18n/routing';
 import QuestionDisplay from '@/components/test/QuestionDisplay';
 import TestTimer from '@/components/test/TestTimer';
 import QuestionNav from '@/components/test/QuestionNav';
-import BackButton from '@/components/ui/BackButton';
-import { ChevronLeft, ChevronRight, Flag, AlertCircle, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Flag, AlertCircle, Loader2, LogOut } from 'lucide-react';
 import { remainingSeconds } from './lib/remainingSeconds';
+import { resolveDraftStartTime } from './lib/sessionDraft';
+
+// Sahifa yangilansa (Android'da brauzer tabni tashlab yuborishi odatiy
+// hol) javoblar yo'qolmasligi uchun qoralama localStorage'ga yoziladi.
+// Baholash SERVERDA bo'ladi — bu faqat foydalanuvchi qulayligi uchun,
+// xavfsizlik chegarasi emas.
+function draftKey(sessionId: string): string {
+  return `session-draft:${sessionId}`;
+}
+
+function clearDraft(sessionId: string): void {
+  try {
+    localStorage.removeItem(draftKey(sessionId));
+  } catch {
+    // private rejim yoki storage bloklangan bo'lishi mumkin — e'tiborsiz qoldiramiz
+  }
+}
 
 // Konstruktordan ("/build") kelgan virtual TestSession'ni yechish sahifasi.
 // `tests/[id]/solve/page.tsx`ning soddalashtirilgan nusxasi — ma'lumot
@@ -39,8 +56,10 @@ interface SessionData {
 
 export default function SessionSolvePage() {
   const router = useRouter();
+  const localeRouter = useLocaleRouter();
   const params = useParams();
   const sessionId = params.id as string;
+  const t = useTranslations('sessionSolve');
 
   const [session, setSession] = useState<SessionData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -48,8 +67,9 @@ export default function SessionSolvePage() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [showFinishDialog, setShowFinishDialog] = useState(false);
+  const [showExitDialog, setShowExitDialog] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [startTime] = useState(Date.now());
+  const [startTime, setStartTime] = useState(Date.now());
   const [flaggedQuestions, setFlaggedQuestions] = useState<Set<number>>(new Set());
   const questionTimeSpentRef = useRef<Record<number, number>>({});
   const questionStartTimeRef = useRef<number>(Date.now());
@@ -65,17 +85,49 @@ export default function SessionSolvePage() {
           return;
         }
         if (data.session.submittedAt) {
+          clearDraft(sessionId);
           setLoadError('Bu sessiya allaqachon topshirilgan');
           setLoading(false);
           return;
         }
         if (new Date(data.session.expiresAt).getTime() < Date.now()) {
+          clearDraft(sessionId);
           setLoadError('Sessiya muddati tugagan');
           setLoading(false);
           return;
         }
         setSession(data.session);
         questionStartTimeRef.current = Date.now();
+
+        // Qoralamani tiklash — yangilashdan oldingi holatga qaytarish.
+        try {
+          const raw = localStorage.getItem(draftKey(sessionId));
+          if (raw) {
+            const draft = JSON.parse(raw);
+            const questionCount = data.session.questions.length;
+            if (draft.answers && typeof draft.answers === 'object') {
+              setAnswers(draft.answers);
+            }
+            if (Array.isArray(draft.flaggedQuestions)) {
+              setFlaggedQuestions(new Set(draft.flaggedQuestions));
+            }
+            if (draft.questionTimeSpent && typeof draft.questionTimeSpent === 'object') {
+              questionTimeSpentRef.current = draft.questionTimeSpent;
+            }
+            if (
+              typeof draft.currentQuestion === 'number' &&
+              draft.currentQuestion >= 0 &&
+              draft.currentQuestion < questionCount
+            ) {
+              setCurrentQuestion(draft.currentQuestion);
+            }
+            // Eski qoralamalarda (bu maydon qo'shilishidan oldingi) startTime
+            // yo'q — shunday holatda `prev` (shu sahifa ochilgan payt) qoladi.
+            setStartTime((prev) => resolveDraftStartTime(draft.startTime, prev));
+          }
+        } catch {
+          // Qoralama buzilgan yoki storage o'qilmadi — bo'sh holatdan boshlaymiz
+        }
       } catch {
         setLoadError('Server xatolik');
       }
@@ -83,6 +135,29 @@ export default function SessionSolvePage() {
     }
     fetchSession();
   }, [sessionId]);
+
+  // Har o'zgarishda qoralamani localStorage'ga yozadi (debounce 500ms) —
+  // Android'da tab tashlab yuborilsa ham javoblar joyida qoladi.
+  useEffect(() => {
+    if (!session) return;
+    const timeout = setTimeout(() => {
+      try {
+        localStorage.setItem(
+          draftKey(sessionId),
+          JSON.stringify({
+            answers,
+            flaggedQuestions: Array.from(flaggedQuestions),
+            questionTimeSpent: questionTimeSpentRef.current,
+            currentQuestion,
+            startTime,
+          })
+        );
+      } catch {
+        // private rejim yoki storage to'lgan bo'lishi mumkin — sahifa baribir ishlashi kerak
+      }
+    }, 500);
+    return () => clearTimeout(timeout);
+  }, [session, sessionId, answers, flaggedQuestions, currentQuestion, startTime]);
 
   const handleAnswer = (answer: string) => {
     setAnswers((prev) => ({ ...prev, [currentQuestion]: answer }));
@@ -129,6 +204,7 @@ export default function SessionSolvePage() {
       });
       const data = await res.json();
       if (res.ok && data.result) {
+        clearDraft(sessionId);
         router.push(`/results/${data.result.id}`);
       } else {
         alert(data.error || 'Xatolik yuz berdi');
@@ -139,6 +215,18 @@ export default function SessionSolvePage() {
       setSubmitting(false);
     }
   }, [session, answers, sessionId, startTime, submitting, router, currentQuestion]);
+
+  // "Testdan chiqish" — brauzer tarixiga tayanadigan BackButton o'rniga
+  // aniq /build ga qaytaradi. Bironta javob belgilangan bo'lsa tasdiq
+  // so'raladi, chunki test o'rtasida "ortga" bosish sessiyani jimgina
+  // tashlab ketishi mumkin edi (javoblar baribir qoralamada saqlanadi).
+  const handleExitClick = () => {
+    if (Object.keys(answers).length > 0) {
+      setShowExitDialog(true);
+    } else {
+      localeRouter.push('/build');
+    }
+  };
 
   if (loading) {
     return (
@@ -170,7 +258,13 @@ export default function SessionSolvePage() {
 
   return (
     <div className="max-w-7xl mx-auto">
-      <BackButton className="mb-4" />
+      <button
+        onClick={handleExitClick}
+        className="inline-flex items-center gap-2 text-sm text-text-secondary hover:text-primary-600 transition-colors mb-4"
+      >
+        <LogOut size={16} />
+        <span>{t('exitButton')}</span>
+      </button>
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -295,6 +389,33 @@ export default function SessionSolvePage() {
                 >
                   {submitting ? <Loader2 size={14} className="animate-spin" /> : null}
                   Tugatish
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {showExitDialog && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl"
+          >
+            <div className="text-center">
+              <AlertCircle size={48} className="text-yellow-500 mx-auto mb-4" />
+              <h3 className="text-lg font-bold text-text-primary mb-2">{t('exitConfirmTitle')}</h3>
+              <p className="text-sm text-text-secondary mb-6">{t('exitConfirmBody')}</p>
+              <div className="flex gap-3">
+                <button onClick={() => setShowExitDialog(false)} className="flex-1 btn-secondary !py-2.5">
+                  {t('exitConfirmStay')}
+                </button>
+                <button
+                  onClick={() => { setShowExitDialog(false); localeRouter.push('/build'); }}
+                  className="flex-1 btn-primary !py-2.5"
+                >
+                  {t('exitConfirmLeave')}
                 </button>
               </div>
             </div>

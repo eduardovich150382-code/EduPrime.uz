@@ -163,6 +163,7 @@
   "nav": {
     "home": "Bosh sahifa",
     "tests": "Testlar",
+    "build": "Test tuzish",
     "dashboard": "Dashboard",
     "rating": "Reyting",
     "pricing": "Tariflar",
@@ -206,6 +207,22 @@
     "viewSolution": "Yechimni ko'rish",
     "videoSolution": "Video yechim",
     "writtenSolution": "Yozma yechim"
+  },
+  "testBuilderCta": {
+    "title": "O'zingiz test tuzing",
+    "subtitle": "Fan, mavzu va qiyinlikni tanlang",
+    "button": "Test tuzish"
+  },
+  "results": {
+    "backToBuild": "Konstruktorga qaytish",
+    "backToTests": "Testlarga qaytish"
+  },
+  "sessionSolve": {
+    "exitButton": "Testdan chiqish",
+    "exitConfirmTitle": "Testdan chiqmoqchimisiz?",
+    "exitConfirmBody": "Javoblaringiz saqlanadi, keyinroq davom ettirasiz.",
+    "exitConfirmStay": "Davom etish",
+    "exitConfirmLeave": "Chiqish"
   },
   "footer": {
     "description": "EduPrime — O'zbekistondagi eng zamonaviy test platformasi",

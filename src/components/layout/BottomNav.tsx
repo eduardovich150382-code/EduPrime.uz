@@ -1,8 +1,9 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
-import { Menu, LayoutDashboard, User, BookOpen } from 'lucide-react';
+import { Menu, LayoutDashboard, User, BookOpen, Wand2 } from 'lucide-react';
 
 interface BottomNavProps {
   onMenuClick: () => void;
@@ -10,14 +11,17 @@ interface BottomNavProps {
 
 export default function BottomNav({ onMenuClick }: BottomNavProps) {
   const pathname = usePathname();
+  const t = useTranslations('nav');
 
-  // Hide during test solving
-  const isTestSolving = /\/tests\/[^/]+\/solve/.test(pathname);
+  // Hide during test solving — MainLayoutClient'dagi bir xil qoida bilan
+  // mos (konstruktordan kelgan /session/[id] ham shu yerga kiradi).
+  const isTestSolving = /\/tests\/[^/]+\/solve/.test(pathname) || /\/session\/[^/]+/.test(pathname);
   if (isTestSolving) return null;
 
   // Determine active state
   const isDashboard = pathname.endsWith('/dashboard') || pathname.includes('/dashboard/');
   const isTests = pathname.endsWith('/tests') || (pathname.includes('/tests') && !pathname.includes('/solve'));
+  const isBuild = pathname.includes('/build');
   const isProfile = pathname.endsWith('/profile');
 
   return (
@@ -60,6 +64,22 @@ export default function BottomNav({ onMenuClick }: BottomNavProps) {
             Testlar
           </span>
           {isTests && (
+            <span className="absolute bottom-1 w-6 h-0.5 rounded-full bg-primary-600" />
+          )}
+        </Link>
+
+        {/* Build (test constructor) */}
+        <Link
+          href="/build"
+          className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors relative ${
+            isBuild ? 'text-primary-600' : 'text-text-secondary hover:text-primary-600'
+          }`}
+        >
+          <Wand2 size={22} />
+          <span className={`text-[10px] font-medium ${isBuild ? 'text-primary-600' : ''}`}>
+            {t('build')}
+          </span>
+          {isBuild && (
             <span className="absolute bottom-1 w-6 h-0.5 rounded-full bg-primary-600" />
           )}
         </Link>

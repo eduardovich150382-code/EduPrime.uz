@@ -163,6 +163,7 @@
   "nav": {
     "home": "Главная",
     "tests": "Тесты",
+    "build": "Создать тест",
     "dashboard": "Панель",
     "rating": "Рейтинг",
     "pricing": "Тарифы",
@@ -206,6 +207,22 @@
     "viewSolution": "Смотреть решение",
     "videoSolution": "Видео решение",
     "writtenSolution": "Письменное решение"
+  },
+  "testBuilderCta": {
+    "title": "Составьте свой тест",
+    "subtitle": "Выберите предмет, тему и сложность",
+    "button": "Создать тест"
+  },
+  "results": {
+    "backToBuild": "Вернуться в конструктор",
+    "backToTests": "Вернуться к тестам"
+  },
+  "sessionSolve": {
+    "exitButton": "Выйти из теста",
+    "exitConfirmTitle": "Выйти из теста?",
+    "exitConfirmBody": "Ваши ответы будут сохранены, вы сможете продолжить позже.",
+    "exitConfirmStay": "Продолжить",
+    "exitConfirmLeave": "Выйти"
   },
   "footer": {
     "description": "EduPrime — самая современная тестовая платформа в Узбекистане",

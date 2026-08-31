@@ -41,7 +41,10 @@ export async function POST(
 
     const { id } = await params;
     const body = await request.json();
-    const questionId = typeof body.questionId === 'string' ? body.questionId.trim().slice(0, 30) : '';
+    // 64 — cuid (25) va gen_random_uuid()::text (36) formatlariga yetadi
+    // (bu chegara /api/sessions/[id]/submit va /api/tests/[id]/submit bilan
+    // izchil bo'lsin).
+    const questionId = typeof body.questionId === 'string' ? body.questionId.trim().slice(0, 64) : '';
 
     if (!questionId) {
       return NextResponse.json({ error: 'questionId required' }, { status: 400 });

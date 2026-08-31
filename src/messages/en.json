@@ -163,6 +163,7 @@
   "nav": {
     "home": "Home",
     "tests": "Tests",
+    "build": "Build a test",
     "dashboard": "Dashboard",
     "rating": "Rating",
     "pricing": "Pricing",
@@ -206,6 +207,22 @@
     "viewSolution": "View solution",
     "videoSolution": "Video solution",
     "writtenSolution": "Written solution"
+  },
+  "testBuilderCta": {
+    "title": "Build your own test",
+    "subtitle": "Choose a subject, topic, and difficulty",
+    "button": "Build a test"
+  },
+  "results": {
+    "backToBuild": "Back to builder",
+    "backToTests": "Back to tests"
+  },
+  "sessionSolve": {
+    "exitButton": "Exit test",
+    "exitConfirmTitle": "Exit the test?",
+    "exitConfirmBody": "Your answers will be saved — you can continue later.",
+    "exitConfirmStay": "Continue",
+    "exitConfirmLeave": "Exit"
   },
   "footer": {
     "description": "EduPrime — the most modern test platform in Uzbekistan",
