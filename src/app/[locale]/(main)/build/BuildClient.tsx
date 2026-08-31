@@ -2,10 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
 import BackButton from '@/components/ui/BackButton';
-import { Wand2 } from 'lucide-react';
+import QuotaUpsellDialog from '@/components/premium/QuotaUpsellDialog';
+import { CheckCircle, Clock, Crown, Wand2 } from 'lucide-react';
 import ChipGroup from './components/ChipGroup';
 import PresetChips from './components/PresetChips';
 import TopicTree, { type TopicTreeNode } from './components/TopicTree';
@@ -44,17 +45,36 @@ interface TopicsResponse {
 }
 
 interface SessionResponse {
-  session: { id: string };
+  session?: { id: string };
   error?: string;
+  /** 429 — kunlik konstruktor test kvotasi tugaganda (`lib/sessions.ts#CreateSessionError`). */
+  code?: string;
+  usedToday?: number;
+  limit?: number;
 }
 
 const GRADE_OPTIONS = GRADES.map((g) => ({ value: String(g), label: `${g}-sinf` }));
+
+/** `topicPaths`ga mos node'larning (allaqachon locale bo'yicha hal qilingan) nomlarini daraxtdan qidiradi — taklif oynasidagi konfiguratsiya xulosasi uchun. */
+function findTopicNames(nodes: TopicTreeNode[], paths: string[]): string[] {
+  if (paths.length === 0) return [];
+  const names: string[] = [];
+  const walk = (list: TopicTreeNode[]) => {
+    for (const node of list) {
+      if (paths.includes(node.path)) names.push(node.name);
+      if (node.children.length) walk(node.children);
+    }
+  };
+  walk(nodes);
+  return names;
+}
 
 export default function BuildClient() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const locale = useLocale();
+  const t = useTranslations('build');
 
   const [state, setState] = useState<BuildState>(() => buildStateFromParams(searchParams));
   const [subjects, setSubjects] = useState<SubjectItem[]>([]);
@@ -66,6 +86,15 @@ export default function BuildClient() {
 
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
+
+  // S17/PR124 uslubi — kunlik konstruktor test kvotasi tugagani BIR MARTA
+  // aniqlanadi va shu kun davomida qayta so'ralmaydi (server javobi
+  // filtrlardan mustaqil, kvota kunlik hisoblagich). `showQuotaDialog`
+  // oynani ochib-yopadi, `builtTestQuota` esa serverdan kelgan qiymatni
+  // saqlab qoladi — keyingi "Testni boshlash" bosilganda so'rovsiz oyna
+  // qayta ochiladi.
+  const [builtTestQuota, setBuiltTestQuota] = useState<{ usedToday: number; limit: number } | null>(null);
+  const [showQuotaDialog, setShowQuotaDialog] = useState(false);
 
   // Holat URL'da — sahifa yangilansa yoki havola ulashilsa saqlanadi.
   useEffect(() => {
@@ -144,7 +173,46 @@ export default function BuildClient() {
   });
   const topicTree = state.subjectIds.length === 0 ? [] : topicsData?.tree ?? [];
 
+  // Taklif oynasidagi "nimadan mahrum bo'layapti" xulosasi — masalan
+  // "Fizika · Mexanika · 10 ta savol · o'rtacha qiyinlik". Qiyinlik 5
+  // darajaning o'rtacha nuqtasi bo'yicha 3 ta blokka (past/o'rtacha/yuqori)
+  // yig'iladi — aniq son emas, tez o'qiladigan tavsif kerak.
+  const difficultyLabel = useMemo(() => {
+    const mid = (state.difficultyMin + state.difficultyMax) / 2;
+    if (mid <= 2) return t('difficultyLow');
+    if (mid >= 4) return t('difficultyHigh');
+    return t('difficultyMedium');
+  }, [state.difficultyMin, state.difficultyMax, t]);
+
+  const configSummary = useMemo(() => {
+    const parts: string[] = [];
+    const subjectNames = state.subjectIds
+      .map((id) => subjects.find((s) => s.id === id)?.nameUz)
+      .filter((n): n is string => !!n);
+    if (subjectNames.length) parts.push(subjectNames.join(', '));
+    const topicNames = findTopicNames(topicTree, state.topicPaths);
+    if (topicNames.length) parts.push(topicNames.join(', '));
+    parts.push(t('questionCount', { count: state.questionCount }));
+    parts.push(difficultyLabel);
+    return parts.join(' · ');
+  }, [state.subjectIds, state.topicPaths, state.questionCount, subjects, topicTree, difficultyLabel, t]);
+
+  // Tariflar sahifasiga o'tishda joriy /build holatini saqlaydi — holat
+  // allaqachon URL'da (yuqoridagi effekt orqali), shuning uchun shu yerda
+  // faqat o'sha URL'ni returnUrl sifatida qayta ishlatamiz.
+  const buildReturnUrl = useMemo(() => {
+    const query = buildStateToParams(state).toString();
+    return query ? `${pathname}?${query}` : pathname;
+  }, [state, pathname]);
+
   const handleStart = useCallback(async () => {
+    // Kvota bugun allaqachon tugagani ma'lum — server bilan gaplashmasdan
+    // oynani darhol ochamiz (kvota kunlik hisoblagich, filtr o'zgarishi
+    // uni o'zgartirmaydi).
+    if (builtTestQuota) {
+      setShowQuotaDialog(true);
+      return;
+    }
     setStarting(true);
     setStartError(null);
     try {
@@ -155,6 +223,12 @@ export default function BuildClient() {
       });
       const data: SessionResponse = await res.json();
       if (!res.ok || !data.session) {
+        if (data.code === 'BUILT_TEST_QUOTA_EXCEEDED') {
+          setBuiltTestQuota({ usedToday: data.usedToday ?? 0, limit: data.limit ?? 0 });
+          setShowQuotaDialog(true);
+          setStarting(false);
+          return;
+        }
         setStartError(data.error || 'Xatolik yuz berdi');
         setStarting(false);
         return;
@@ -166,7 +240,7 @@ export default function BuildClient() {
     }
     // itemSpecKey — itemSpec obyektining o'zi har renderda yangi referens, shuning uchun bog'liqlik uning JSON kaliti orqali kuzatiladi.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [itemSpecKey, state.questionCount, state.durationMin, router]);
+  }, [itemSpecKey, state.questionCount, state.durationMin, router, builtTestQuota]);
 
   return (
     <div className="max-w-3xl mx-auto space-y-4 pb-4">
@@ -264,6 +338,32 @@ export default function BuildClient() {
         errorMsg={startError}
         onExpandDifficulty={() => updateFilter({ difficultyMin: DIFFICULTY_MIN, difficultyMax: DIFFICULTY_MAX })}
         onStart={handleStart}
+      />
+
+      {/* Eng yuqori niyat nuqtasi — foydalanuvchi aynan shu sekundda
+          testni boshlamoqchi. Devor emas, taklif (QuotaUpsellDialog.tsx). */}
+      <QuotaUpsellDialog
+        open={showQuotaDialog && !!builtTestQuota}
+        onClose={() => setShowQuotaDialog(false)}
+        title={t('quotaExceededTitle')}
+        body={t('quotaExceededBody', { config: configSummary })}
+        items={
+          builtTestQuota
+            ? [
+                {
+                  icon: <CheckCircle size={14} className="text-green-600 flex-shrink-0" />,
+                  text: t('quotaExceededUsedToday', { usedToday: builtTestQuota.usedToday }),
+                },
+                {
+                  icon: <Crown size={14} className="text-purple-600 flex-shrink-0" />,
+                  text: t('quotaExceededPrice'),
+                },
+              ]
+            : []
+        }
+        primaryHref={`/pricing?returnUrl=${encodeURIComponent(buildReturnUrl)}`}
+        primaryLabel={t('quotaExceededCta')}
+        secondaryLabel={t('quotaExceededSecondary', { limit: builtTestQuota?.limit ?? 0 })}
       />
     </div>
   );

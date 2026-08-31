@@ -8,6 +8,7 @@ import { Link } from '@/i18n/routing';
 import LatexRenderer from '@/components/ui/LatexRenderer';
 import SecureYouTubePlayer from '@/components/ui/SecureYouTubePlayer';
 import PremiumCTA from '@/components/ui/PremiumCTA';
+import QuotaUpsellDialog from '@/components/premium/QuotaUpsellDialog';
 import {
   splitFillBlankText, parseFillBlankAnswer, parseFillBlankCorrectAnswer, isFillBlankIndexCorrect,
 } from '@/lib/fill-blank';
@@ -1169,68 +1170,39 @@ export default function ResultPage() {
         </div>
       </motion.div>
 
-      {/* S17 — kvota tugagan taklif ekrani. Devor emas: nima yo'qotayotgani,
-          bugun nima olgani, kunlik narx va ertangi bepul muqobili — hammasi
-          bitta oyna ichida. Markazdagi modal (BottomNav bilan to'qnashuv
-          xavfi yo'q — sticky/fixed bottom emas). */}
-      {quotaExceeded && (
-        <div
-          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
-          onClick={() => setQuotaExceeded(null)}
-        >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
-                <Lock size={18} className="text-white" />
-              </div>
-              <button
-                onClick={() => setQuotaExceeded(null)}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors min-h-11 min-w-11 flex items-center justify-center"
-              >
-                <X size={18} className="text-text-secondary" />
-              </button>
-            </div>
-
-            <h3 className="text-lg font-bold text-text-primary mb-2">{t('quotaExceededTitle')}</h3>
-            <p className="text-sm text-text-secondary mb-4">
-              {t('quotaExceededBody', { question: quotaExceeded.questionText })}
-            </p>
-
-            <div className="space-y-2 mb-5 text-sm">
-              <p className="flex items-center gap-2 text-text-secondary">
-                <CheckCircle size={14} className="text-green-600 flex-shrink-0" />
-                {t('quotaExceededUsedToday', { usedToday: quotaExceeded.usedToday })}
-              </p>
-              <p className="flex items-center gap-2 text-text-secondary">
-                <Crown size={14} className="text-purple-600 flex-shrink-0" />
-                {t('quotaExceededPrice')}
-              </p>
-              <p className="flex items-center gap-2 text-text-secondary">
-                <Clock size={14} className="text-blue-600 flex-shrink-0" />
-                {quotaExceeded.limit !== null && t('quotaExceededTomorrow', { limit: quotaExceeded.limit })}
-              </p>
-            </div>
-
-            <div className="flex gap-3">
-              <button onClick={() => setQuotaExceeded(null)} className="flex-1 btn-secondary !py-2.5 min-h-11">
-                {t('quotaExceededClose')}
-              </button>
-              <Link
-                href="/pricing"
-                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold min-h-11"
-              >
-                <Crown size={16} />
-                {t('quotaExceededCta')}
-              </Link>
-            </div>
-          </motion.div>
-        </div>
-      )}
+      {/* S17 — kvota tugagan taklif ekrani (umumiy komponent, /build ham
+          shu komponentni ishlatadi — qarang QuotaUpsellDialog.tsx). */}
+      <QuotaUpsellDialog
+        open={!!quotaExceeded}
+        onClose={() => setQuotaExceeded(null)}
+        title={t('quotaExceededTitle')}
+        body={quotaExceeded ? t('quotaExceededBody', { question: quotaExceeded.questionText }) : ''}
+        items={
+          quotaExceeded
+            ? [
+                {
+                  icon: <CheckCircle size={14} className="text-green-600 flex-shrink-0" />,
+                  text: t('quotaExceededUsedToday', { usedToday: quotaExceeded.usedToday }),
+                },
+                {
+                  icon: <Crown size={14} className="text-purple-600 flex-shrink-0" />,
+                  text: t('quotaExceededPrice'),
+                },
+                ...(quotaExceeded.limit !== null
+                  ? [
+                      {
+                        icon: <Clock size={14} className="text-blue-600 flex-shrink-0" />,
+                        text: t('quotaExceededTomorrow', { limit: quotaExceeded.limit }),
+                      },
+                    ]
+                  : []),
+              ]
+            : []
+        }
+        primaryHref="/pricing"
+        primaryLabel={t('quotaExceededCta')}
+        secondaryLabel={t('quotaExceededClose')}
+      />
     </div>
   );
 }

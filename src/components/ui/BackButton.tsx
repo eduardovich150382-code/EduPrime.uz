@@ -5,12 +5,18 @@ import { ArrowLeft } from 'lucide-react';
 
 interface BackButtonProps {
   className?: string;
+  /** Berilsa, brauzer tarixi o'rniga to'g'ridan-to'g'ri shu manzilga qaytadi — masalan tariflar sahifasidagi `returnUrl` (qarang PricingPage). */
+  href?: string;
 }
 
-export default function BackButton({ className = '' }: BackButtonProps) {
+export default function BackButton({ className = '', href }: BackButtonProps) {
   const router = useRouter();
 
   const handleBack = () => {
+    if (href) {
+      router.push(href);
+      return;
+    }
     if (window.history.length <= 1) {
       router.push('/dashboard');
     } else {

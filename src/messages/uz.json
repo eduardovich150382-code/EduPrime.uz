@@ -213,6 +213,18 @@
     "subtitle": "Fan, mavzu va qiyinlikni tanlang",
     "button": "Test tuzish"
   },
+  "build": {
+    "quotaExceededTitle": "Bugungi bepul testlar tugadi",
+    "quotaExceededBody": "\"{config}\" konfiguratsiyasi bilan testni boshlash uchun bugungi bepul limit tugadi.",
+    "quotaExceededUsedToday": "Bugun {usedToday} ta bepul test tuzdingiz",
+    "quotaExceededPrice": "Premium — kuniga ≈970 so'm, cheksiz testlar bilan",
+    "quotaExceededSecondary": "Ertaga yana {limit} ta bepul",
+    "quotaExceededCta": "Premium olish",
+    "questionCount": "{count} ta savol",
+    "difficultyLow": "past qiyinlik",
+    "difficultyMedium": "o'rtacha qiyinlik",
+    "difficultyHigh": "yuqori qiyinlik"
+  },
   "results": {
     "backToBuild": "Konstruktorga qaytish",
     "backToTests": "Testlarga qaytish",
