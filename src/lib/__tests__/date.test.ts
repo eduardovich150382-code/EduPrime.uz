@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { daysSince, tashkentDateKey } from "../date";
+import { daysSince, tashkentDateKey, tashkentDayRangeUtc } from "../date";
 
 describe("tashkentDateKey", () => {
   it("UTC 23:30 — Tashkent'da ertasi kun ertalabki soatlarda (04:30)", () => {
@@ -51,5 +51,38 @@ describe("daysSince", () => {
     const now = new Date("2026-08-26T00:00:00.000Z");
     const usedAt = new Date("2026-07-20T00:00:00.000Z"); // 37 kun oldin
     expect(daysSince(usedAt, now)).toBeGreaterThan(30);
+  });
+});
+
+describe("tashkentDayRangeUtc", () => {
+  it("daysAgo=0 — Tashkent kuni tush paytida chaqirilsa, o'sha kunning to'liq [00:00,24:00) Tashkent oralig'ini beradi", () => {
+    // 2026-08-26T10:00:00Z + 5soat = 2026-08-26T15:00 Tashkent — hali o'sha kun
+    const { start, end } = tashkentDayRangeUtc(0, new Date("2026-08-26T10:00:00.000Z"));
+    expect(start.toISOString()).toBe("2026-08-25T19:00:00.000Z"); // 2026-08-26T00:00 Tashkent
+    expect(end.toISOString()).toBe("2026-08-26T19:00:00.000Z"); // 2026-08-27T00:00 Tashkent
+  });
+
+  it("daysAgo=1 — 'kecha'ni bir kun orqaga suradi", () => {
+    const { start, end } = tashkentDayRangeUtc(1, new Date("2026-08-26T10:00:00.000Z"));
+    expect(start.toISOString()).toBe("2026-08-24T19:00:00.000Z");
+    expect(end.toISOString()).toBe("2026-08-25T19:00:00.000Z");
+  });
+
+  it("Tashkent kun chegarasiga yaqin chaqiruv ham to'g'ri kunni tanlaydi (UTC kechqurun, Tashkent allaqachon ertasi kun)", () => {
+    // 2026-08-25T23:30:00Z + 5soat = 2026-08-26T04:30 Tashkent — 'bugun' allaqachon 26-avgust
+    const { start, end } = tashkentDayRangeUtc(0, new Date("2026-08-25T23:30:00.000Z"));
+    expect(start.toISOString()).toBe("2026-08-25T19:00:00.000Z");
+    expect(end.toISOString()).toBe("2026-08-26T19:00:00.000Z");
+  });
+
+  it("oy/yil chegarasidan o'tganda ham to'g'ri ishlaydi", () => {
+    const { start, end } = tashkentDayRangeUtc(1, new Date("2026-01-01T02:00:00.000Z")); // Tashkent: 2026-01-01T07:00
+    expect(start.toISOString()).toBe("2025-12-30T19:00:00.000Z"); // 2025-12-31T00:00 Tashkent
+    expect(end.toISOString()).toBe("2025-12-31T19:00:00.000Z");
+  });
+
+  it("oraliq aynan 24 soat", () => {
+    const { start, end } = tashkentDayRangeUtc(0, new Date("2026-05-10T12:00:00.000Z"));
+    expect(end.getTime() - start.getTime()).toBe(24 * 60 * 60 * 1000);
   });
 });

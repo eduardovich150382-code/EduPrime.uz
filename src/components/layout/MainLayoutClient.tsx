@@ -22,8 +22,10 @@ export default function MainLayoutClient({ role, children }: MainLayoutClientPro
     setBannerVisible(dismissed !== 'true');
   }, []);
 
-  // Hide sidebar when user is solving a test
-  const isTestSolving = /\/tests\/[^/]+\/solve/.test(pathname);
+  // Hide sidebar when user is solving a test — konstruktordan ("/build")
+  // kelgan virtual sessiyalar /session/[id] da yechiladi, xuddi shu holat
+  // (sidebar/bottomnav chalg'itmasligi) shu yerda ham qo'llanadi.
+  const isTestSolving = /\/tests\/[^/]+\/solve/.test(pathname) || /\/session\/[^/]+/.test(pathname);
 
   return (
     <div className={`flex ${bannerVisible ? 'pt-[104px]' : 'pt-16'}`}>

@@ -262,6 +262,27 @@ describe("buildItemWhere", () => {
     const where = buildItemWhere({}, ["x1", "x2"]);
     expect(where.id).toEqual({ notIn: ["x1", "x2"] });
   });
+
+  it("lang berilsa in bilan filtrlanadi", () => {
+    expect(buildItemWhere({ lang: ["uz", "ru"] }).lang).toEqual({ in: ["uz", "ru"] });
+  });
+
+  it("onlyItemIds berilsa id in bilan cheklanadi", () => {
+    const where = buildItemWhere({ onlyItemIds: ["a1", "a2"] });
+    expect(where.id).toEqual({ in: ["a1", "a2"] });
+  });
+
+  it("onlyItemIds va excludeItemIds birga berilsa, ikkalasi ham bitta id shartiga birlashadi", () => {
+    const where = buildItemWhere({ onlyItemIds: ["a1", "a2"] }, ["a2"]);
+    expect(where.id).toEqual({ in: ["a1", "a2"], notIn: ["a2"] });
+  });
+
+  it("onlyItemIds boshqa shartlarni almashtirmaydi — AND bo'lib qoladi", () => {
+    const where = buildItemWhere({ onlyItemIds: ["a1"], subjectIds: ["s1"], difficultyMin: 2 });
+    expect(where.subjectId).toEqual({ in: ["s1"] });
+    expect(where.difficulty).toEqual({ gte: 2 });
+    expect(where.id).toEqual({ in: ["a1"] });
+  });
 });
 
 describe("summarizeCandidates", () => {
@@ -319,5 +340,16 @@ describe("parseItemSpec", () => {
 
   it("difficultyMin difficultyMax'dan katta bo'lsa rad etadi", () => {
     expect("error" in parseItemSpec({ difficultyMin: 4, difficultyMax: 2 })).toBe(true);
+  });
+
+  it("lang va onlyItemIds'ni qabul qiladi", () => {
+    const result = parseItemSpec({ lang: ["uz"], onlyItemIds: ["i1", "i2"] });
+    expect("spec" in result).toBe(true);
+    if ("spec" in result) expect(result.spec).toEqual({ lang: ["uz"], onlyItemIds: ["i1", "i2"] });
+  });
+
+  it("onlyItemIds 200 tadan ko'p bo'lsa rad etadi", () => {
+    const tooMany = Array.from({ length: 201 }, (_, i) => `id${i}`);
+    expect("error" in parseItemSpec({ onlyItemIds: tooMany })).toBe(true);
   });
 });
