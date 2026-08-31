@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import { motion } from 'framer-motion';
 import BackButton from '@/components/ui/BackButton';
 import { Wand2 } from 'lucide-react';
@@ -53,6 +54,7 @@ export default function BuildClient() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const locale = useLocale();
 
   const [state, setState] = useState<BuildState>(() => buildStateFromParams(searchParams));
   const [subjects, setSubjects] = useState<SubjectItem[]>([]);
@@ -131,9 +133,13 @@ export default function BuildClient() {
 
   const itemSpec = useMemo(() => buildStateToItemSpec(state, onlyItemIds), [state, onlyItemIds]);
   const itemSpecKey = useMemo(() => JSON.stringify(itemSpec), [itemSpec]);
+  // /api/topics `/[locale]` segmentidan tashqarida (middleware API yo'llarini
+  // next-intl'dan chetlab o'tadi) — mavzu nomini joriy tilda qaytarishi uchun
+  // locale'ni o'zi bilan birga yuboradi.
+  const topicsBody = useMemo(() => ({ ...itemSpec, locale }), [itemSpec, locale]);
 
   const { data: countData, loading: loadingCount } = useDebouncedPost<CountResponse>('/api/items/count', itemSpec);
-  const { data: topicsData } = useDebouncedPost<TopicsResponse>('/api/topics', itemSpec, {
+  const { data: topicsData } = useDebouncedPost<TopicsResponse>('/api/topics', topicsBody, {
     skip: state.subjectIds.length === 0,
   });
   const topicTree = state.subjectIds.length === 0 ? [] : topicsData?.tree ?? [];

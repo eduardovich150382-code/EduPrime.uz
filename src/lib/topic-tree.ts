@@ -10,23 +10,56 @@ export interface FlatTopicNode {
   path: string;
   level: number;
   nameUz: string;
+  nameRu: string | null;
+  nameEn: string | null;
   order: number;
 }
 
-export interface TopicTreeNode extends FlatTopicNode {
+export interface TopicTreeNode {
+  id: string;
+  path: string;
+  level: number;
+  /** Locale bo'yicha hal qilingan nom — `resolveTopicName`ga qarang. */
+  name: string;
+  order: number;
   count: number;
   children: TopicTreeNode[];
 }
 
 /**
- * Tekis TopicNode ro'yxatini (`parentId` orqali) ichma-ich daraxtga
- * yig'adi va har tuguniga `counts`dan mos sonni biriktiradi. `parentId`si
- * ro'yxatda topilmagan tugun (masalan boshqa fanning ildizi) ildiz daraja
- * sifatida qaraladi. Bir xil darajadagi tugunlar `order` bo'yicha saralanadi.
+ * `nameRu`/`nameEn` ixtiyoriy (ko'p TopicNode hali faqat o'zbekcha
+ * kiritilgan) — bo'sh/`null` bo'lsa `nameUz`ga tushadi, hech qachon bo'sh
+ * qator qaytarmaydi.
  */
-export function buildTopicTree(nodes: FlatTopicNode[], counts: Record<string, number>): TopicTreeNode[] {
+export function resolveTopicName(
+  node: { nameUz: string; nameRu: string | null; nameEn: string | null },
+  locale: string
+): string {
+  if (locale === 'ru') return node.nameRu || node.nameUz;
+  if (locale === 'en') return node.nameEn || node.nameUz;
+  return node.nameUz;
+}
+
+/**
+ * Tekis TopicNode ro'yxatini (`parentId` orqali) ichma-ich daraxtga
+ * yig'adi, har tuguniga `counts`dan mos sonni va `locale` bo'yicha hal
+ * qilingan nomni biriktiradi. `parentId`si ro'yxatda topilmagan tugun
+ * (masalan boshqa fanning ildizi) ildiz daraja sifatida qaraladi. Bir xil
+ * darajadagi tugunlar `order` bo'yicha saralanadi.
+ */
+export function buildTopicTree(nodes: FlatTopicNode[], counts: Record<string, number>, locale: string): TopicTreeNode[] {
   const byId = new Map<string, TopicTreeNode>();
-  for (const n of nodes) byId.set(n.id, { ...n, count: counts[n.id] ?? 0, children: [] });
+  for (const n of nodes) {
+    byId.set(n.id, {
+      id: n.id,
+      path: n.path,
+      level: n.level,
+      order: n.order,
+      name: resolveTopicName(n, locale),
+      count: counts[n.id] ?? 0,
+      children: [],
+    });
+  }
 
   const roots: TopicTreeNode[] = [];
   for (const n of nodes) {

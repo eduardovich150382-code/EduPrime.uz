@@ -7,7 +7,8 @@ import { cn } from '@/lib/utils';
 export interface TopicTreeNode {
   id: string;
   path: string;
-  nameUz: string;
+  /** Locale bo'yicha hal qilingan nom — `lib/topic-tree.ts#resolveTopicName`ga qarang. */
+  name: string;
   count: number;
   children: TopicTreeNode[];
 }
@@ -89,7 +90,7 @@ function TopicNodeRow({
             onChange={toggle}
             className="w-5 h-5 rounded border-border text-primary-600 focus:ring-primary-500 flex-shrink-0"
           />
-          <span className="text-sm text-text-primary flex-1 min-w-0 break-words">{node.nameUz}</span>
+          <span className="text-sm text-text-primary flex-1 min-w-0 break-words">{node.name}</span>
           <span className="text-xs text-text-secondary flex-shrink-0 bg-gray-100 rounded-full px-2 py-0.5">
             {node.count}
           </span>
