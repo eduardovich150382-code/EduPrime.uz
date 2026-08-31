@@ -73,11 +73,19 @@ export async function consumeBuiltTest(userId: string): Promise<ConsumeQuotaResu
   }
   const dateKey = tashkentDateKey();
   const used = await bumpDailyUsage(userId, dateKey, 'builtTests');
-  return {
-    allowed: used <= FREE_DAILY_BUILT_TESTS,
-    usedToday: Math.min(used, FREE_DAILY_BUILT_TESTS),
-    limit: FREE_DAILY_BUILT_TESTS,
-  };
+  if (used > FREE_DAILY_BUILT_TESTS) {
+    // Rad etilgan urinish ham hisoblagichni oshirib qo'yganda, foydalanuvchi
+    // tugmani qayta-qayta bossa `builtTests` haqiqiy sarflangan sondan
+    // ancha oshib ketardi (refundBuiltTest esa faqat haqiqiy sessiyalar
+    // uchun ishlaydi) — shu sababli rad etilgan urinishning o'zi darhol
+    // qaytariladi, chunki bu chaqiruv baribir sessiya yaratmaydi.
+    await db.dailyUsage.updateMany({
+      where: { userId, date: dailyUsageDate(dateKey), builtTests: { gt: 0 } },
+      data: { builtTests: { decrement: 1 } },
+    });
+    return { allowed: false, usedToday: FREE_DAILY_BUILT_TESTS, limit: FREE_DAILY_BUILT_TESTS };
+  }
+  return { allowed: true, usedToday: used, limit: FREE_DAILY_BUILT_TESTS };
 }
 
 // Sessiya boshlangandan keyin shu vaqt ICHIDA hech qanday javob
@@ -196,6 +204,45 @@ export async function isSolutionUnlocked(userId: string, itemId: string): Promis
   });
   if (existing) return true;
   return isUnlimited(userId);
+}
+
+/**
+ * `SolutionUnlock.itemId` HAR DOIM Item.id bo'lishi kerak (sessiya tarmog'i
+ * shunday yozadi) — lekin Test tarmog'idan keladigan eski `questionId`lar
+ * `Question.id`. Ikkalasi turli manbadan kelib, bir xil jadvalga yozilsa,
+ * bitta savol ikki xil kalit ostida IKKI MARTA ochilgan/kvota sarflangan
+ * bo'lib qoladi (item-picker.ts#getRecentlyCorrectItemIds'dagi bilan bir
+ * xil muammo, o'sha yerdagi bilan bir xil yechim): `questionId` Item'ga
+ * ko'chirilgan bo'lsa (`legacyQuestionId`), uning Item.id'sini qaytaradi;
+ * hali ko'chirilmagan bo'lsa (backfill qilinmagan eski savol) — berilgan
+ * id bilan davom etiladi, Item paydo bo'lgach keyingi chaqiruv avtomatik
+ * to'g'ri kalitga o'tadi. Sessiya tarmog'idagi itemId'lar uchun bu funksiya
+ * zararsiz — `legacyQuestionId` bo'yicha hech narsa topilmay, o'zi qaytadi.
+ *
+ * `consumeSolution`/`isSolutionUnlocked`ga berilgan HAR BIR yozish/o'qish
+ * shu orqali o'tishi shart (unlock-solution, ai-explain, GET /api/results/[id]).
+ */
+export async function resolveUnlockKey(questionId: string): Promise<string> {
+  const item = await db.item.findUnique({
+    where: { legacyQuestionId: questionId },
+    select: { id: true },
+  });
+  return item?.id ?? questionId;
+}
+
+/** {@link resolveUnlockKey}ning ko'p id uchun bitta so'rovda ishlaydigan versiyasi — GET /api/results/[id] har bir savol uchun alohida so'rov yubormasin. */
+export async function resolveUnlockKeys(questionIds: string[]): Promise<Map<string, string>> {
+  const map = new Map<string, string>();
+  if (questionIds.length === 0) return map;
+  const items = await db.item.findMany({
+    where: { legacyQuestionId: { in: questionIds } },
+    select: { id: true, legacyQuestionId: true },
+  });
+  const byLegacy = new Map(items.map((it) => [it.legacyQuestionId as string, it.id]));
+  for (const qid of questionIds) {
+    map.set(qid, byLegacy.get(qid) ?? qid);
+  }
+  return map;
 }
 
 /** Berilgan `itemId`larning qaysilari shu foydalanuvchi uchun allaqachon ochilganini qaytaradi. */

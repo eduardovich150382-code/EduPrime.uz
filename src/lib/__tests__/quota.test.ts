@@ -14,7 +14,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  * ichida yaratiladi, aks holda hali ishga tushmagan `const`ga murojaat
  * qilingan bo'lardi.
  */
-const { fakeDb, testSessions } = vi.hoisted(() => {
+const { fakeDb, testSessions, items } = vi.hoisted(() => {
   interface FakeDailyUsageRow {
     id: string;
     userId: string;
@@ -29,12 +29,17 @@ const { fakeDb, testSessions } = vi.hoisted(() => {
     itemId: string;
     unlockedAt: Date;
   }
+  interface FakeItemRow {
+    id: string;
+    legacyQuestionId: string | null;
+  }
 
   const users = new Map<string, { role: string }>();
   const subscriptions: { userId: string; isActive: boolean; endDate: Date; plan: string }[] = [];
   const dailyUsage = new Map<string, FakeDailyUsageRow>();
   const solutionUnlock = new Map<string, FakeSolutionUnlockRow>();
   const testSessions = new Map<string, { userId: string; startedAt: Date }>();
+  const items = new Map<string, FakeItemRow>();
   let nextId = 1;
 
   const dailyUsageKey = (userId: string, date: Date) => `${userId}|${date.toISOString()}`;
@@ -151,9 +156,21 @@ const { fakeDb, testSessions } = vi.hoisted(() => {
     testSession: {
       findUnique: async ({ where }: { where: { id: string } }) => testSessions.get(where.id) ?? null,
     },
+    item: {
+      findUnique: async ({ where }: { where: { legacyQuestionId: string } }) => {
+        for (const it of items.values()) {
+          if (it.legacyQuestionId === where.legacyQuestionId) return { ...it };
+        }
+        return null;
+      },
+      findMany: async ({ where }: { where: { legacyQuestionId: { in: string[] } } }) =>
+        Array.from(items.values()).filter(
+          (it) => it.legacyQuestionId !== null && where.legacyQuestionId.in.includes(it.legacyQuestionId)
+        ),
+    },
   };
 
-  return { fakeDb, testSessions };
+  return { fakeDb, testSessions, items };
 });
 
 vi.mock("../db", () => ({ db: fakeDb }));
@@ -164,6 +181,8 @@ import {
   getSolutionQuotaStatus,
   getUnlockedItemIds,
   refundBuiltTest,
+  resolveUnlockKey,
+  resolveUnlockKeys,
   FREE_DAILY_BUILT_TESTS,
   FREE_DAILY_SOLUTIONS,
 } from "../quota";
@@ -174,6 +193,7 @@ beforeEach(() => {
   fakeDb.__dailyUsage.clear();
   fakeDb.__solutionUnlock.clear();
   testSessions.clear();
+  items.clear();
   vi.useRealTimers();
 });
 
@@ -237,6 +257,20 @@ describe("consumeBuiltTest", () => {
     // kerak (4-chaqiruv rad etiladi, lekin usedToday limitga qisqartiriladi).
     expect(usedValues).toEqual([1, 2, 3, 3]);
     expect(results.filter((r) => r.allowed).length).toBe(FREE_DAILY_BUILT_TESTS);
+  });
+
+  it("rad etilgan urinish hisoblagichni oshirib qo'ymaydi (darhol qaytariladi)", async () => {
+    vi.setSystemTime(new Date("2026-08-31T10:00:00.000Z"));
+    for (let i = 0; i < FREE_DAILY_BUILT_TESTS; i++) await consumeBuiltTest("user-15");
+
+    const row = Array.from(fakeDb.__dailyUsage.values())[0];
+    expect(row.builtTests).toBe(FREE_DAILY_BUILT_TESTS);
+
+    // Foydalanuvchi tugmani limitdan keyin yana bir necha marta bossa ham
+    // hisoblagich haqiqiy sarflangan sondan (limit) oshib ketmasligi kerak.
+    await consumeBuiltTest("user-15");
+    await consumeBuiltTest("user-15");
+    expect(row.builtTests).toBe(FREE_DAILY_BUILT_TESTS);
   });
 });
 
@@ -363,5 +397,40 @@ describe("getSolutionQuotaStatus / getUnlockedItemIds", () => {
     await consumeSolution("user-14", "item-a");
     const unlocked = await getUnlockedItemIds("user-14", ["item-a", "item-b", "item-c"]);
     expect(unlocked).toEqual(new Set(["item-a"]));
+  });
+});
+
+describe("resolveUnlockKey / resolveUnlockKeys", () => {
+  it("Item'ga ko'chirilgan questionId uchun Item.id'ni qaytaradi", async () => {
+    items.set("item-1", { id: "item-1", legacyQuestionId: "question-1" });
+    const key = await resolveUnlockKey("question-1");
+    expect(key).toBe("item-1");
+  });
+
+  it("hali Item'ga ko'chirilmagan questionId uchun o'zini qaytaradi", async () => {
+    const key = await resolveUnlockKey("question-orphan");
+    expect(key).toBe("question-orphan");
+  });
+
+  it("resolveUnlockKeys bir nechta id'ni bitta so'rovda aralash (ko'chirilgan/ko'chirilmagan) holda normallashtiradi", async () => {
+    items.set("item-1", { id: "item-1", legacyQuestionId: "question-1" });
+    const map = await resolveUnlockKeys(["question-1", "question-orphan"]);
+    expect(map.get("question-1")).toBe("item-1");
+    expect(map.get("question-orphan")).toBe("question-orphan");
+  });
+
+  it("legacyQuestionId orqali bog'langan savol test natijasida ochilgach, sessiya (Item) tarmog'ida ham 'allaqachon ochilgan' deb topiladi", async () => {
+    vi.setSystemTime(new Date("2026-08-31T10:00:00.000Z"));
+    // Test tarmog'ida "question-1" ochiladi — unlock-solution avval
+    // resolveUnlockKey orqali uni "item-1"ga normallashtiradi.
+    items.set("item-1", { id: "item-1", legacyQuestionId: "question-1" });
+    const unlockKey = await resolveUnlockKey("question-1");
+    await consumeSolution("user-16", unlockKey);
+
+    // Sessiya tarmog'ida xuddi shu savol allaqachon Item.id ("item-1")
+    // bilan keladi — getUnlockedItemIds shu kalit bilan "ochilgan" topishi
+    // kerak, ikkinchi marta kvota sarflanmasligi kerak.
+    const unlocked = await getUnlockedItemIds("user-16", ["item-1"]);
+    expect(unlocked).toEqual(new Set(["item-1"]));
   });
 });

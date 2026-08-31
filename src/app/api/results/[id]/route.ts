@@ -3,7 +3,7 @@ import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { loadSessionItems } from '@/lib/sessions';
 import { hasActiveSubscription } from '@/lib/access';
-import { getSolutionQuotaStatus, getUnlockedItemIds } from '@/lib/quota';
+import { getSolutionQuotaStatus, getUnlockedItemIds, resolveUnlockKeys } from '@/lib/quota';
 import { resolveSolutionVisibility, type RawSolutionData } from '@/lib/solution-visibility';
 
 // GET /api/results/[id] — bitta natijani to'liq olish (savollar bilan).
@@ -74,9 +74,16 @@ export async function GET(
     const solutionQuota = await getSolutionQuotaStatus(userId);
 
     if (result.test) {
+      // `SolutionUnlock.itemId` yozishda `unlock-solution` marshruti
+      // `Question.id`ni Item.id'ga normallashtiradi (lib/quota.ts —
+      // resolveUnlockKey) — o'qishda ham AYNAN shu normallashtirish
+      // qo'llanmasa, savol ochilgan bo'lsa ham bu yerda "yopiq" ko'rinib
+      // qoladi (yozish/o'qish kalitlari mos kelmaydi).
+      const questionIds = result.test.questions.map((q) => q.id);
+      const unlockKeyMap = writtenUnlimited ? new Map<string, string>() : await resolveUnlockKeys(questionIds);
       const unlockedIds = writtenUnlimited
         ? null
-        : await getUnlockedItemIds(userId, result.test.questions.map((q) => q.id));
+        : await getUnlockedItemIds(userId, Array.from(new Set(unlockKeyMap.values())));
 
       return NextResponse.json({
         result: {
@@ -85,7 +92,7 @@ export async function GET(
             ...result.test,
             questions: result.test.questions.map((q) =>
               applySolutionVisibility(q, {
-                writtenUnlocked: writtenUnlimited || (unlockedIds?.has(q.id) ?? false),
+                writtenUnlocked: writtenUnlimited || (unlockedIds?.has(unlockKeyMap.get(q.id) ?? q.id) ?? false),
                 videoUnlocked,
               })
             ),

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
-import { consumeSolution } from '@/lib/quota';
+import { consumeSolution, resolveUnlockKey } from '@/lib/quota';
 import { resolveSolutionVisibility } from '@/lib/solution-visibility';
 
 // POST /api/results/[id]/unlock-solution — bitta savol yechimini ochadi
@@ -56,7 +56,8 @@ export async function POST(
     // edi (ai-explain'dagi bir xil himoya naqshi).
     let belongsToResult = false;
     let raw: { explanation: string | null; explanationImages: string[]; videoUrl: string | null } | null = null;
-    if (result.testId) {
+    const isTestNetwork = !!result.testId;
+    if (isTestNetwork) {
       const question = await db.question.findUnique({
         where: { id: questionId },
         select: { testId: true, explanation: true, explanationImages: true, videoUrl: true },
@@ -81,7 +82,39 @@ export async function POST(
       return NextResponse.json({ error: 'Question not found' }, { status: 404 });
     }
 
-    const quota = await consumeSolution(userId, questionId);
+    // `SolutionUnlock.itemId` HAR DOIM Item.id — Test tarmog'ida `questionId`
+    // hali `Question.id` bo'lgani uchun (lib/quota.ts#resolveUnlockKey)
+    // orqali normallashtiriladi, aks holda yozish (bu yerda) va o'qish
+    // (GET /api/results/[id]) turli kalitlardan foydalanib, bir-biriga mos
+    // kelmay qoladi. Sessiya tarmog'ida `questionId` allaqachon Item.id —
+    // normallashtirish shart emas.
+    const unlockKey = isTestNetwork ? await resolveUnlockKey(questionId) : questionId;
+
+    // Kvota sarflashdan OLDIN yechim qanday turdaligini aniqlaymiz —
+    // savolda yozma yechim umuman bo'lmasa yoki faqat video (Premium)
+    // bo'lsa, foydalanuvchi baribir hech narsa ololmaydi, shuning uchun
+    // bunday holatlarda `consumeSolution` UMUMAN chaqirilmasin (aks holda
+    // kvota bekorga sarflanadi — havzadagi ko'p savolda yozma yechim yo'q,
+    // bu odatiy holat).
+    const visibility = resolveSolutionVisibility({
+      explanation: raw?.explanation ?? null,
+      explanationImages: raw?.explanationImages ?? [],
+      videoUrl: raw?.videoUrl ?? null,
+      writtenUnlocked: true,
+      videoUnlocked: false,
+    });
+
+    if (visibility.solutionKind === 'none') {
+      return NextResponse.json({ error: 'Bu savol uchun yechim mavjud emas', code: 'NO_SOLUTION' }, { status: 404 });
+    }
+    if (visibility.solutionKind === 'video') {
+      return NextResponse.json(
+        { error: "Bu savol uchun faqat video yechim mavjud — uni ochish uchun Premium kerak", code: 'VIDEO_ONLY' },
+        { status: 403 }
+      );
+    }
+
+    const quota = await consumeSolution(userId, unlockKey);
 
     if (!quota.allowed) {
       return NextResponse.json(
@@ -97,18 +130,6 @@ export async function POST(
 
     // Frontend darhol ko'rsata olishi uchun ochilgan yozma yechimning o'zini
     // ham qaytaramiz (aks holda butun natijani qayta so'rash kerak bo'lardi).
-    // `videoUnlocked: false` — bu marshrut faqat yozma yechim qulfini ochadi,
-    // video yechim alohida (Premium orqali) ochiladi, shu sababli video
-    // mavjud bo'lsa yozma yechim baribir yashirin qoladi (GET bilan bir xil
-    // qoida — resolveSolutionVisibility).
-    const visibility = resolveSolutionVisibility({
-      explanation: raw?.explanation ?? null,
-      explanationImages: raw?.explanationImages ?? [],
-      videoUrl: raw?.videoUrl ?? null,
-      writtenUnlocked: true,
-      videoUnlocked: false,
-    });
-
     return NextResponse.json({
       unlocked: true,
       alreadyUnlocked: quota.alreadyUnlocked,
