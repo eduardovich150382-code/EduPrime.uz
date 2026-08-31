@@ -3,6 +3,7 @@ import { db } from './db';
 import { shuffleQuestionsWithSeed } from './shuffle';
 import type { GradableQuestion } from './grading';
 import {
+  buildItemWhere,
   getRecentlyCorrectItemIds,
   pickItemsForSpec,
   type ItemSpec,
@@ -17,9 +18,14 @@ import { consumeBuiltTest } from './quota';
  * ikkalasi ham shu tartibdan boshlanadi, keyin shuffleQuestionsWithSeed bilan
  * bir xil seed'da qayta aralashtiradi (grading.ts'dagi kabi).
  *
- * Item'da `points` ustuni yo'q — har bir savol uchun 1 ball beriladi
- * (Question.points'ning default qiymati bilan bir xil, konstruktor hozircha
- * og'irlik tanlashni qo'llab-quvvatlamaydi).
+ * `itemPoints` — agar berilsa, har bir savolga shu xaritadagi ball beriladi
+ * (kalit — Item.id, qarang `extractItemPoints`). Berilmasa yoki xaritada
+ * yo'q bo'lsa, savol 1 ball oladi (Question.points'ning default qiymati
+ * bilan bir xil, konstruktor odatiy holda og'irlik tanlashni qo'llab-
+ * quvvatlamaydi). DTM Online kabi bo'lim ballari har xil sessiyalar
+ * `TestSession.spec.itemPoints`da shu xaritani saqlaydi — ball POZITSIYA
+ * emas, ITEM ID bo'yicha ekanligi muhim, chunki savollar `seed` bo'yicha
+ * qayta aralashtiriladi (qarang `toPresentedQuestions`).
  *
  * Item o'chirilgan yoki keyinchalik nashrdan olib tashlangan bo'lsa —
  * natijada shunchaki tushib qoladi (itemIds ataylab Item'ga FK emas).
@@ -32,7 +38,10 @@ export interface SessionQuestion extends GradableQuestion {
   subject: { nameUz: string; nameRu: string; nameEn: string };
 }
 
-export async function loadSessionItems(itemIds: string[]): Promise<SessionQuestion[]> {
+export async function loadSessionItems(
+  itemIds: string[],
+  itemPoints?: Record<string, number>
+): Promise<SessionQuestion[]> {
   const items = await db.item.findMany({
     where: { id: { in: itemIds } },
     select: {
@@ -45,9 +54,30 @@ export async function loadSessionItems(itemIds: string[]): Promise<SessionQuesti
 
   return itemIds.reduce<SessionQuestion[]>((acc, itemId) => {
     const it = byId.get(itemId);
-    if (it) acc.push({ ...it, points: 1 });
+    if (it) acc.push({ ...it, points: itemPoints?.[itemId] ?? 1 });
     return acc;
   }, []);
+}
+
+/**
+ * `TestSession.spec`dan (agar mavjud bo'lsa) `itemPoints` xaritasini xavfsiz
+ * ajratib oladi. Oddiy konstruktor sessiyasida `spec` — sof `ItemSpec`
+ * (itemPoints yo'q, `loadSessionItems` standart 1 ball beradi); DTM Online
+ * kabi bo'lim-asosidagi sessiyalarda `spec` — `{ sections, itemPoints }`
+ * (qarang `createSessionFromSections`). Shakl kutilganidek bo'lmasa (yoki
+ * spec umuman yo'q) — `undefined`, chaqiruvchi shunda standart 1 ballga
+ * qaytadi.
+ */
+export function extractItemPoints(spec: unknown): Record<string, number> | undefined {
+  if (!spec || typeof spec !== 'object' || Array.isArray(spec)) return undefined;
+  const rawItemPoints = (spec as Record<string, unknown>).itemPoints;
+  if (!rawItemPoints || typeof rawItemPoints !== 'object' || Array.isArray(rawItemPoints)) return undefined;
+
+  const itemPoints: Record<string, number> = {};
+  for (const [itemId, points] of Object.entries(rawItemPoints as Record<string, unknown>)) {
+    if (typeof points === 'number' && Number.isFinite(points)) itemPoints[itemId] = points;
+  }
+  return itemPoints;
 }
 
 export interface PresentedQuestion {
@@ -188,5 +218,168 @@ export async function createSessionFromSpec(params: CreateSessionParams): Promis
       questions,
     },
     relaxed,
+  };
+}
+
+// ===================== Bo'lim-asosidagi sessiya (DTM Online) =====================
+
+/**
+ * Bitta bo'lim (masalan "30 ta mutaxassislik fani, 3.1 balldan, advanced
+ * og'irlik bilan") — `createSessionFromSections`ga beriladigan tuzilma.
+ * `bias` `pickItemsForSpec`ning qiyinlik oralig'iga (`ItemSpec.difficultyMin/
+ * Max`) aylantiriladi: 'easy' — asosan oson (1-2), 'advanced' — asosan
+ * o'rta+qiyin (3-5) havzadan tanlaydi (Item.difficulty 1-5 shkalasi,
+ * `QuestionEditorForm.tsx`dagi bilan bir xil). Havza yetarli bo'lmasa,
+ * `pickItemsForSpec`ning o'zidagi bo'shatish (relaxation) mantig'i qiyinlik
+ * cheklovini olib tashlaydi va butun fan havzasidan to'ldiradi — bu
+ * DTM Online eski (Test-asosidagi) generatorining "asosiy havza + zaxira"
+ * fallback'iga muqobil.
+ */
+export interface SectionSpec {
+  subjectId: string;
+  subjectName: string;
+  count: number;
+  pointsPerQuestion: number;
+  bias: 'easy' | 'advanced';
+}
+
+function biasToDifficultyRange(bias: SectionSpec['bias']): { min: number; max: number } {
+  return bias === 'easy' ? { min: 1, max: 2 } : { min: 3, max: 5 };
+}
+
+export interface CreateSessionFromSectionsParams {
+  userId: string;
+  sections: SectionSpec[];
+  durationMin: number;
+  mode: 'FIXED' | 'ADAPTIVE';
+  title: string;
+  /** createSessionFromSpec'dagi bilan bir xil qoida — qarang shu faylning yuqorisidagi izoh. */
+  countsAgainstQuota: boolean;
+}
+
+export type CreateSessionFromSectionsError =
+  | { status: 404; error: string }
+  | { status: 429; error: string; code: 'BUILT_TEST_QUOTA_EXCEEDED'; usedToday: number; limit: number | null }
+  | {
+      status: 422;
+      error: string;
+      code: 'SECTION_INSUFFICIENT_POOL';
+      subjectName: string;
+      available: number;
+      required: number;
+    };
+
+export type CreateSessionFromSectionsOutcome =
+  | { ok: true; session: CreatedSession }
+  | { ok: false; error: CreateSessionFromSectionsError };
+
+/**
+ * `sections`dagi har bir bo'lim uchun ALOHIDA `pickItemsForSpec` chaqiradi
+ * (bo'lim subjectId + bias'iga mos qiyinlik oralig'i bilan) va natijalarni
+ * bitta sessiyaga birlashtiradi. Boshqa bo'lim allaqachon olib qo'ygan
+ * item'lar (`excludeItemIds`) takrorlanmasligi uchun bo'limlar KETMA-KET
+ * (parallel emas) tanlanadi — bitta fan (masalan Matematika) ham
+ * mutaxassislik, ham majburiy bo'lim sifatida ishtirok etsa, ikkalasi har
+ * xil savol olishi shu tartib bilan kafolatlanadi.
+ *
+ * Ballar POZITSIYA emas, ITEM ID bo'yicha `itemPoints`ga yoziladi va
+ * `TestSession.spec.itemPoints` sifatida saqlanadi — `toPresentedQuestions`
+ * savollarni `seed` bo'yicha aralashtirgandan keyin ham to'g'ri ball
+ * ko'rsatilishi shu orqali kafolatlanadi (qarang `loadSessionItems`).
+ */
+export async function createSessionFromSections(
+  params: CreateSessionFromSectionsParams
+): Promise<CreateSessionFromSectionsOutcome> {
+  const { userId, sections, durationMin, mode, title, countsAgainstQuota } = params;
+
+  const seed = Math.floor(Math.random() * 2 ** 31);
+  const excludeItemIds: string[] = [];
+  const itemIds: string[] = [];
+  const itemPoints: Record<string, number> = {};
+
+  for (const section of sections) {
+    const range = biasToDifficultyRange(section.bias);
+    const spec: ItemSpec = { subjectIds: [section.subjectId], difficultyMin: range.min, difficultyMax: range.max };
+    const { ids: pickedIds } = await pickItemsForSpec({ spec, limit: section.count, seed, excludeItemIds });
+
+    if (pickedIds.length < section.count) {
+      // Xabarda ko'rsatiladigan "mavjud" son — qiyinlik cheklovisiz, butun
+      // fan havzasi (boshqa bo'lim allaqachon olganlarni hisobga olmagan
+      // holda) — foydalanuvchiga "necha ta yetishmayapti" haqida to'g'ri
+      // tasavvur berish uchun.
+      const available = await db.item.count({
+        where: buildItemWhere({ subjectIds: [section.subjectId] }, excludeItemIds),
+      });
+      return {
+        ok: false,
+        error: {
+          status: 422,
+          error: `"${section.subjectName}" fani bo'yicha bazada yetarli savol yo'q (${available}/${section.count}).`,
+          code: 'SECTION_INSUFFICIENT_POOL',
+          subjectName: section.subjectName,
+          available,
+          required: section.count,
+        },
+      };
+    }
+
+    for (const id of pickedIds) {
+      excludeItemIds.push(id);
+      itemIds.push(id);
+      itemPoints[id] = section.pointsPerQuestion;
+    }
+  }
+
+  if (itemIds.length === 0) {
+    return { ok: false, error: { status: 404, error: "Berilgan bo'limlarga mos savol topilmadi" } };
+  }
+
+  // Kvota — sessiya YARATILGANDA hisoblanadi (createSessionFromSpec bilan bir xil qoida).
+  if (countsAgainstQuota) {
+    const quota = await consumeBuiltTest(userId);
+    if (!quota.allowed) {
+      return {
+        ok: false,
+        error: {
+          status: 429,
+          error: `Bugungi bepul test tuzish limiti (${quota.limit} ta) tugadi. Ertaga yana ${quota.limit} ta bepul bo'ladi, yoki Premium tarifda cheksiz.`,
+          code: 'BUILT_TEST_QUOTA_EXCEEDED',
+          usedToday: quota.usedToday,
+          limit: quota.limit,
+        },
+      };
+    }
+  }
+
+  const now = new Date();
+  const testSession = await db.testSession.create({
+    data: {
+      userId,
+      title,
+      spec: { sections, itemPoints } as unknown as Prisma.InputJsonValue,
+      itemIds,
+      seed,
+      mode,
+      durationMin,
+      startedAt: now,
+      expiresAt: new Date(now.getTime() + durationMin * 60_000),
+    },
+  });
+
+  const items = await loadSessionItems(testSession.itemIds, itemPoints);
+  const questions = toPresentedQuestions(items, testSession.seed);
+
+  return {
+    ok: true,
+    session: {
+      id: testSession.id,
+      title: testSession.title,
+      mode: testSession.mode,
+      durationMin: testSession.durationMin,
+      startedAt: testSession.startedAt,
+      expiresAt: testSession.expiresAt,
+      questionCount: questions.length,
+      questions,
+    },
   };
 }

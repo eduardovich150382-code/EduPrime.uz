@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
-import { loadSessionItems } from '@/lib/sessions';
+import { extractItemPoints, loadSessionItems } from '@/lib/sessions';
 import { hasActiveSubscription } from '@/lib/access';
 import { getSolutionQuotaStatus, getUnlockedItemIds, resolveUnlockKeys } from '@/lib/quota';
 import { resolveSolutionVisibility, type RawSolutionData } from '@/lib/solution-visibility';
@@ -108,7 +108,7 @@ export async function GET(
       return NextResponse.json({ error: 'Result not found' }, { status: 404 });
     }
 
-    const items = await loadSessionItems(result.session.itemIds);
+    const items = await loadSessionItems(result.session.itemIds, extractItemPoints(result.session.spec));
     const distinctSubjects = new Set(items.map((it) => it.subject.nameUz));
     const subject = distinctSubjects.size === 1
       ? items[0]?.subject
