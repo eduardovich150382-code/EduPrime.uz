@@ -213,6 +213,10 @@
     "subtitle": "Fan, mavzu va qiyinlikni tanlang",
     "button": "Test tuzish"
   },
+  "results": {
+    "backToBuild": "Konstruktorga qaytish",
+    "backToTests": "Testlarga qaytish"
+  },
   "sessionSolve": {
     "exitButton": "Testdan chiqish",
     "exitConfirmTitle": "Testdan chiqmoqchimisiz?",

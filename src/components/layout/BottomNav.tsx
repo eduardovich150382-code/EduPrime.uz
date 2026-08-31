@@ -13,8 +13,9 @@ export default function BottomNav({ onMenuClick }: BottomNavProps) {
   const pathname = usePathname();
   const t = useTranslations('nav');
 
-  // Hide during test solving
-  const isTestSolving = /\/tests\/[^/]+\/solve/.test(pathname);
+  // Hide during test solving — MainLayoutClient'dagi bir xil qoida bilan
+  // mos (konstruktordan kelgan /session/[id] ham shu yerga kiradi).
+  const isTestSolving = /\/tests\/[^/]+\/solve/.test(pathname) || /\/session\/[^/]+/.test(pathname);
   if (isTestSolving) return null;
 
   // Determine active state

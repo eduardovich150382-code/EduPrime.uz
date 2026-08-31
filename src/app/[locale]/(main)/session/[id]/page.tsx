@@ -10,6 +10,7 @@ import TestTimer from '@/components/test/TestTimer';
 import QuestionNav from '@/components/test/QuestionNav';
 import { ChevronLeft, ChevronRight, Flag, AlertCircle, Loader2, LogOut } from 'lucide-react';
 import { remainingSeconds } from './lib/remainingSeconds';
+import { resolveDraftStartTime } from './lib/sessionDraft';
 
 // Sahifa yangilansa (Android'da brauzer tabni tashlab yuborishi odatiy
 // hol) javoblar yo'qolmasligi uchun qoralama localStorage'ga yoziladi.
@@ -68,7 +69,7 @@ export default function SessionSolvePage() {
   const [showFinishDialog, setShowFinishDialog] = useState(false);
   const [showExitDialog, setShowExitDialog] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [startTime] = useState(Date.now());
+  const [startTime, setStartTime] = useState(Date.now());
   const [flaggedQuestions, setFlaggedQuestions] = useState<Set<number>>(new Set());
   const questionTimeSpentRef = useRef<Record<number, number>>({});
   const questionStartTimeRef = useRef<number>(Date.now());
@@ -120,6 +121,9 @@ export default function SessionSolvePage() {
             ) {
               setCurrentQuestion(draft.currentQuestion);
             }
+            // Eski qoralamalarda (bu maydon qo'shilishidan oldingi) startTime
+            // yo'q — shunday holatda `prev` (shu sahifa ochilgan payt) qoladi.
+            setStartTime((prev) => resolveDraftStartTime(draft.startTime, prev));
           }
         } catch {
           // Qoralama buzilgan yoki storage o'qilmadi — bo'sh holatdan boshlaymiz
@@ -145,6 +149,7 @@ export default function SessionSolvePage() {
             flaggedQuestions: Array.from(flaggedQuestions),
             questionTimeSpent: questionTimeSpentRef.current,
             currentQuestion,
+            startTime,
           })
         );
       } catch {
@@ -152,7 +157,7 @@ export default function SessionSolvePage() {
       }
     }, 500);
     return () => clearTimeout(timeout);
-  }, [session, sessionId, answers, flaggedQuestions, currentQuestion]);
+  }, [session, sessionId, answers, flaggedQuestions, currentQuestion, startTime]);
 
   const handleAnswer = (answer: string) => {
     setAnswers((prev) => ({ ...prev, [currentQuestion]: answer }));

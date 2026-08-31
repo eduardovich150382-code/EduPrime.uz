@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import LatexRenderer from '@/components/ui/LatexRenderer';
@@ -66,6 +67,7 @@ interface ResultData {
 export default function ResultPage() {
   const params = useParams();
   const resultId = params.id as string;
+  const t = useTranslations('results');
 
   const [result, setResult] = useState<ResultData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -279,7 +281,7 @@ export default function ResultPage() {
         className="inline-flex items-center gap-2 text-sm text-text-secondary hover:text-primary-600 transition-colors"
       >
         <ArrowLeft size={16} />
-        {result.sessionId ? 'Konstruktorga qaytish' : 'Testlarga qaytish'}
+        {result.sessionId ? t('backToBuild') : t('backToTests')}
       </Link>
 
       {/* Score card */}

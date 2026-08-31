@@ -213,6 +213,10 @@
     "subtitle": "Выберите предмет, тему и сложность",
     "button": "Создать тест"
   },
+  "results": {
+    "backToBuild": "Вернуться в конструктор",
+    "backToTests": "Вернуться к тестам"
+  },
   "sessionSolve": {
     "exitButton": "Выйти из теста",
     "exitConfirmTitle": "Выйти из теста?",

@@ -213,6 +213,10 @@
     "subtitle": "Choose a subject, topic, and difficulty",
     "button": "Build a test"
   },
+  "results": {
+    "backToBuild": "Back to builder",
+    "backToTests": "Back to tests"
+  },
   "sessionSolve": {
     "exitButton": "Exit test",
     "exitConfirmTitle": "Exit the test?",
