@@ -230,14 +230,16 @@ describe("generateDtmOnlineExam", () => {
     // birortasida allaqachon xato bilan yiqilardi.
     expect(createArgs.spec.sections).toHaveLength(5);
 
-    // ENG MUHIM: `toPresentedQuestions` savollarni ATAYLAB boshqa (yangi)
-    // seed bilan qayta aralashtiradi — bu haqiqiy GET so'rovidagi tartibni
-    // simulyatsiya qiladi. Har bir taqdim etilgan savolning balli, u qaysi
+    // ENG MUHIM: `toPresentedQuestions`ga ATAYLAB boshqa (yangi) seed va
+    // `preserveOrder: true` beriladi — haqiqiy GET so'rovi shu ikkalasini
+    // ishlatadi (DTM sessiyasida `spec.sections` bor, qarang
+    // `sessionPreserveOrder`, bo'lim tartibi saqlanadi, faqat variantlar
+    // aralashtiriladi). Har bir taqdim etilgan savolning balli, u qaysi
     // pozitsiyada turishidan qat'i nazar, `itemPoints` xaritasidagi bilan
     // (ITEM ID bo'yicha) mos kelishi shart — pozitsiya bo'yicha saqlangan
     // bo'lsa, shu tekshiruv (boshqa seed bilan) buzilardi.
     const items = await loadSessionItems(createArgs.itemIds, createArgs.spec.itemPoints);
-    const shuffledDifferentSeed = toPresentedQuestions(items, 987654321);
+    const shuffledDifferentSeed = toPresentedQuestions(items, 987654321, true);
     expect(shuffledDifferentSeed).toHaveLength(DTM_TOTAL_QUESTIONS);
     for (const q of shuffledDifferentSeed) {
       expect(q.points).toBeCloseTo(createArgs.spec.itemPoints[q.id], 9);

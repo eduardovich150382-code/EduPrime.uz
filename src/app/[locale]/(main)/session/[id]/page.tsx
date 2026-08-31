@@ -33,9 +33,10 @@ function clearDraft(sessionId: string): void {
 // `tests/[id]/solve/page.tsx`ning soddalashtirilgan nusxasi — ma'lumot
 // manbai boshqa (`/api/sessions/[id]`, Test o'rniga), paywall/access
 // tekshiruvi yo'q (sessiya allaqachon egasiga tegishli — item-picker faqat
-// ochiq/PUBLIC itemlardan tanlaydi) va DTM Online uslubidagi bo'lim
-// guruhlash (sections) yo'q, chunki sessiya savollari bunday tuzilishga
-// ega emas.
+// ochiq/PUBLIC itemlardan tanlaydi). Bo'lim-asosidagi (DTM Online) sessiyada
+// `session.sections` API'dan keladi (qarang `extractNavSections`,
+// lib/sessions.ts) va navigator shu bo'yicha guruhlanadi — bo'limsiz
+// (konstruktor) sessiyada bu maydon `undefined`, avvalgidek tekis ro'yxat.
 interface SessionQuestion {
   id: string;
   text: string;
@@ -53,7 +54,16 @@ interface SessionData {
   submittedAt: string | null;
   questionCount: number;
   questions: SessionQuestion[];
+  sections?: { label: string; count: number }[];
 }
+
+// Bitta-javobli savol turlari — javob tanlangach avtomatik keyingi savolga
+// o'tish faqat shularda xavfsiz. MULTI_SELECT/FILL_BLANK/MATCHING/OPEN_ENDED
+// da foydalanuvchi hali javobini tugatmagan bo'lishi mumkin (masalan
+// MULTI_SELECT'da yana bir variant belgilamoqchi), shuning uchun bu
+// turlarda avtomatik o'tish BO'LMAYDI (qarang `tests/[id]/solve/page.tsx`
+// dagi asosiy autoNext naqshi — bu yerda turga qarab cheklov qo'shilgan).
+const AUTO_NEXT_TYPES = new Set(['MULTIPLE_CHOICE', 'TRUE_FALSE']);
 
 export default function SessionSolvePage() {
   const router = useRouter();
@@ -72,6 +82,7 @@ export default function SessionSolvePage() {
   const [submitting, setSubmitting] = useState(false);
   const [startTime, setStartTime] = useState(Date.now());
   const [flaggedQuestions, setFlaggedQuestions] = useState<Set<number>>(new Set());
+  const [autoNext, setAutoNext] = useState(false);
   const questionTimeSpentRef = useRef<Record<number, number>>({});
   const questionStartTimeRef = useRef<number>(Date.now());
 
@@ -160,15 +171,23 @@ export default function SessionSolvePage() {
     return () => clearTimeout(timeout);
   }, [session, sessionId, answers, flaggedQuestions, currentQuestion, startTime]);
 
-  const handleAnswer = (answer: string) => {
-    setAnswers((prev) => ({ ...prev, [currentQuestion]: answer }));
-  };
-
   const trackTimeAndGo = (index: number) => {
     const elapsed = Math.floor((Date.now() - questionStartTimeRef.current) / 1000);
     questionTimeSpentRef.current[currentQuestion] = (questionTimeSpentRef.current[currentQuestion] || 0) + elapsed;
     questionStartTimeRef.current = Date.now();
     setCurrentQuestion(index);
+  };
+
+  const handleAnswer = (answer: string) => {
+    setAnswers((prev) => ({ ...prev, [currentQuestion]: answer }));
+
+    // Avtomatik keyingi savolga o'tish (`tests/[id]/solve/page.tsx`dagi
+    // autoNext naqshi) — faqat bitta-javobli turlarda (AUTO_NEXT_TYPES) va
+    // oxirgi savol bo'lmasa.
+    const currentType = session?.questions[currentQuestion]?.type;
+    if (autoNext && session && currentType && AUTO_NEXT_TYPES.has(currentType) && currentQuestion < session.questions.length - 1) {
+      setTimeout(() => trackTimeAndGo(currentQuestion + 1), 300);
+    }
   };
 
   const toggleFlag = (index: number) => {
@@ -264,6 +283,18 @@ export default function SessionSolvePage() {
   const totalQuestions = session.questions.length;
   const answeredCount = Object.keys(answers).length;
 
+  // Joriy savol qaysi bo'limga tegishli ekanini aniqlaydi (faqat sections
+  // mavjud bo'lsa, masalan DTM Online) — `tests/[id]/solve/page.tsx`dagi
+  // bilan bir xil naqsh.
+  let currentSectionLabel: string | null = null;
+  if (session.sections && session.sections.length > 1) {
+    let acc = 0;
+    for (const s of session.sections) {
+      if (currentQuestion < acc + s.count) { currentSectionLabel = s.label; break; }
+      acc += s.count;
+    }
+  }
+
   return (
     <div className="max-w-7xl mx-auto">
       <button
@@ -305,6 +336,18 @@ export default function SessionSolvePage() {
         </div>
       </motion.div>
 
+      <div className="flex items-center justify-end gap-3 mb-4">
+        <label className="flex items-center gap-2 text-xs text-text-secondary cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={autoNext}
+            onChange={(e) => setAutoNext(e.target.checked)}
+            className="w-3.5 h-3.5 rounded border-border text-primary-600 focus:ring-primary-500"
+          />
+          Javobdan keyin keyingiga o&apos;tish
+        </label>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
         <div className="lg:col-span-3 order-2 lg:order-1">
           <motion.div
@@ -314,6 +357,11 @@ export default function SessionSolvePage() {
             transition={{ duration: 0.3 }}
             className="card p-4 sm:p-6"
           >
+            {currentSectionLabel && (
+              <span className="inline-block text-xs font-medium text-primary-700 bg-primary-50 px-2.5 py-1 rounded-full mb-3">
+                {currentSectionLabel}
+              </span>
+            )}
             <QuestionDisplay
               questionNumber={currentQuestion + 1}
               totalQuestions={totalQuestions}
@@ -364,6 +412,7 @@ export default function SessionSolvePage() {
             answers={answers}
             onNavigate={trackTimeAndGo}
             flaggedQuestions={flaggedQuestions}
+            sections={session.sections}
           />
         </div>
       </div>

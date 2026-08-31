@@ -4,7 +4,7 @@ import { db } from '@/lib/db';
 import { requireAuth } from '@/lib/api-auth';
 import { sanitizeText, sanitizeInt } from '@/lib/sanitize';
 import { gradeSubmission } from '@/lib/grading';
-import { extractItemPoints, loadSessionItems } from '@/lib/sessions';
+import { extractItemPoints, loadSessionItems, sessionPreserveOrder } from '@/lib/sessions';
 import { refundBuiltTest } from '@/lib/quota';
 
 // POST /api/sessions/[id]/submit — sessiya javoblarini baholaydi va
@@ -60,14 +60,16 @@ export async function POST(
       return NextResponse.json({ error: 'Sessiya savollari topilmadi' }, { status: 404 });
     }
 
-    // `session.seed` — GET paytida ishlatilgan XUDDI SHU urug', savol
-    // tartibi hech qachon "sinf/bo'lim" tuzilishiga ega emas (spec ichida
-    // bunday tushuncha yo'q), shuning uchun preserveOrder har doim false.
+    // `session.seed` — GET paytida ishlatilgan XUDDI SHU urug'.
+    // `preserveOrder` ham GET'dagi bilan AYNAN bir xil hisoblanishi shart —
+    // shu sababli ikkalasi bitta yordamchidan (`sessionPreserveOrder`)
+    // oladi, aks holda bo'lim-asosidagi (DTM Online) sessiyalarda savol
+    // pozitsiyasi mos kelmay, baholash jimgina buziladi.
     const { answerResults, score, maxScore, percentage } = await gradeSubmission({
       questions: items,
       answers: sanitizedAnswers,
       baseSeed: testSession.seed,
-      preserveOrder: false,
+      preserveOrder: sessionPreserveOrder(testSession.spec),
     });
 
     const [result] = await db.$transaction([

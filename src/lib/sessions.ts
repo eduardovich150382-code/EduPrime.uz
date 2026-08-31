@@ -90,15 +90,68 @@ export interface PresentedQuestion {
 }
 
 /**
+ * `TestSession.spec`da `sections` massivi bormi — bo'lim-asosidagi (DTM
+ * Online, `createSessionFromSections`) sessiyalarda savol TARTIBI
+ * (Matematika → Fizika → ... ) taqdimotning bir qismi, shuning uchun u
+ * saqlanishi kerak (faqat variantlar aralashtiriladi). Oddiy konstruktor
+ * sessiyasida (`createSessionFromSpec`) `spec` sof `ItemSpec` — `sections`
+ * yo'q, savollar odatdagidek to'liq aralashtiriladi.
+ *
+ * !!! Bu funksiya GET (`toPresentedQuestions` orqali) VA submit
+ * (`gradeSubmission`ga `preserveOrder` sifatida) ikkalasida ham CHAQIRILISHI
+ * SHART — ikkisi bir xil natija bermasa, savol pozitsiyasi va unshuffle
+ * formulasi mos kelmay qoladi va imtihonlar JIMGINA noto'g'ri baholanadi
+ * (qarang CLAUDE.md — "Nozik joylar").
+ */
+export function sessionPreserveOrder(spec: unknown): boolean {
+  if (!spec || typeof spec !== 'object' || Array.isArray(spec)) return false;
+  const sections = (spec as Record<string, unknown>).sections;
+  return Array.isArray(sections) && sections.length > 0;
+}
+
+export interface NavSection {
+  label: string;
+  count: number;
+}
+
+/**
+ * `TestSession.spec.sections`dan (bor bo'lsa) `QuestionNav`ning `sections`
+ * prop'iga mos `{label, count}[]` ro'yxatini ajratib oladi — guruhlash
+ * uchun `subjectName` va `count` yetarli (qarang `SectionSpec`). Shakl
+ * kutilganidek bo'lmasa — `undefined`, chaqiruvchi shunda tekis (guruhsiz)
+ * ro'yxatga qaytadi.
+ */
+export function extractNavSections(spec: unknown): NavSection[] | undefined {
+  if (!spec || typeof spec !== 'object' || Array.isArray(spec)) return undefined;
+  const sections = (spec as Record<string, unknown>).sections;
+  if (!Array.isArray(sections) || sections.length === 0) return undefined;
+
+  const result: NavSection[] = [];
+  for (const section of sections) {
+    if (!section || typeof section !== 'object') return undefined;
+    const subjectName = (section as Record<string, unknown>).subjectName;
+    const count = (section as Record<string, unknown>).count;
+    if (typeof subjectName !== 'string' || typeof count !== 'number') return undefined;
+    result.push({ label: subjectName, count });
+  }
+  return result;
+}
+
+/**
  * GET/POST /api/sessions javobiga ketadigan (talabaga ko'rsatiladigan)
  * shakl — `correctAnswer`, `explanation`, `explanationImages`, `videoUrl`
- * chiqarib tashlanadi (submit'gacha ochilmasligi kerak). Savol/variant
- * tartibi `seed` bo'yicha aralashtiriladi — xuddi shu `seed` submit
- * paytida `gradeSubmission`ga `baseSeed` sifatida beriladi, shu sababli
+ * chiqarib tashlanadi (submit'gacha ochilmasligi kerak). Variantlar har
+ * doim `seed` bo'yicha aralashtiriladi; savol TARTIBI `preserveOrder`ga
+ * bog'liq (qarang `sessionPreserveOrder`) — xuddi shu `seed` VA
+ * `preserveOrder` submit paytida `gradeSubmission`ga beriladi, shu sababli
  * ikkala tomon bir xil tartibni ko'radi.
  */
-export function toPresentedQuestions(items: SessionQuestion[], seed: number): PresentedQuestion[] {
-  const shuffled = shuffleQuestionsWithSeed(items, seed, { preserveOrder: false });
+export function toPresentedQuestions(
+  items: SessionQuestion[],
+  seed: number,
+  preserveOrder: boolean
+): PresentedQuestion[] {
+  const shuffled = shuffleQuestionsWithSeed(items, seed, { preserveOrder });
   return shuffled.map(({ id, text, images, options, type, points }) => ({
     id, text, images, options, type, points,
   }));
@@ -203,7 +256,7 @@ export async function createSessionFromSpec(params: CreateSessionParams): Promis
   });
 
   const items = await loadSessionItems(testSession.itemIds);
-  const questions = toPresentedQuestions(items, testSession.seed);
+  const questions = toPresentedQuestions(items, testSession.seed, sessionPreserveOrder(spec));
 
   return {
     ok: true,
@@ -374,12 +427,13 @@ export async function createSessionFromSections(
     }
   }
 
+  const spec = { sections, itemPoints };
   const now = new Date();
   const testSession = await db.testSession.create({
     data: {
       userId,
       title,
-      spec: { sections, itemPoints } as unknown as Prisma.InputJsonValue,
+      spec: spec as unknown as Prisma.InputJsonValue,
       itemIds,
       seed,
       mode,
@@ -390,7 +444,7 @@ export async function createSessionFromSections(
   });
 
   const items = await loadSessionItems(testSession.itemIds, itemPoints);
-  const questions = toPresentedQuestions(items, testSession.seed);
+  const questions = toPresentedQuestions(items, testSession.seed, sessionPreserveOrder(spec));
 
   return {
     ok: true,

@@ -96,4 +96,33 @@ describe("GET /api/sessions/[id]", () => {
       expect(q.videoUrl).toBeUndefined();
     }
   });
+
+  it("bo'limsiz (konstruktor) sessiyada sections undefined qaytadi", async () => {
+    findUniqueSessionMock.mockResolvedValue(buildSession()); // spec yo'q — sof ItemSpec
+    findManyItemMock.mockResolvedValue(buildItems());
+
+    const { data } = await callGet();
+    expect(data.session.sections).toBeUndefined();
+  });
+
+  it("bo'lim-asosidagi (DTM Online) sessiyada savollar itemIds tartibida (aralashtirilmagan) qaytadi va sections to'ldiriladi", async () => {
+    // S18a regressiyasi: itemIds tartibi teskari — preserveOrder=true bo'lsa
+    // shu tartib SAQLANISHI kerak (Matematika/Tarix aralashib ketmasin).
+    findUniqueSessionMock.mockResolvedValue(
+      buildSession({
+        itemIds: ["item2", "item1"],
+        spec: {
+          sections: [{ subjectId: "s1", subjectName: "Matematika", count: 2, pointsPerQuestion: 1, bias: "advanced" }],
+          itemPoints: {},
+        },
+      })
+    );
+    findManyItemMock.mockResolvedValue(buildItems()); // findMany [item1, item2] tartibida qaytaradi
+
+    const { status, data } = await callGet();
+
+    expect(status).toBe(200);
+    expect(data.session.questions.map((q: { id: string }) => q.id)).toEqual(["item2", "item1"]);
+    expect(data.session.sections).toEqual([{ label: "Matematika", count: 2 }]);
+  });
 });
