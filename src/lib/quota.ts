@@ -11,6 +11,7 @@ import { tashkentDateKey } from './date';
  */
 export const FREE_DAILY_BUILT_TESTS = 3;
 export const FREE_DAILY_SOLUTIONS = 10;
+export const FREE_DAILY_AI_EXPLAIN = 3;
 
 /** `DailyUsage.date` (`@db.Date`) ustuniga yoziladigan qiymat — Postgres
  * faqat sana qismini saqlaydi, vaqt qismi e'tiborga olinmaydi, shuning
@@ -118,6 +119,25 @@ export async function refundBuiltTest(sessionId: string): Promise<void> {
     where: { userId: testSession.userId, date, builtTests: { gt: 0 } },
     data: { builtTests: { decrement: 1 } },
   });
+}
+
+/**
+ * Bepul foydalanuvchi uchun kuniga {@link FREE_DAILY_AI_EXPLAIN} ta yangi AI
+ * tushuntirish (S19). Faqat YANGI generatsiya sarflaydi — keshdan
+ * (`ItemExplanation`) qaytarilgan javob bu funksiyani UMUMAN chaqirmaydi
+ * (chaqiruvchi — `POST /api/results/[id]/ai-explain` — avval keshni
+ * tekshiradi). Premium/Teacher/ADMIN uchun cheklovsiz.
+ */
+export async function consumeTutorMessage(userId: string): Promise<ConsumeQuotaResult> {
+  if (await isUnlimited(userId)) {
+    return { allowed: true, usedToday: 0, limit: null };
+  }
+  const dateKey = tashkentDateKey();
+  const used = await bumpDailyUsage(userId, dateKey, 'tutorMessages');
+  if (used > FREE_DAILY_AI_EXPLAIN) {
+    return { allowed: false, usedToday: FREE_DAILY_AI_EXPLAIN, limit: FREE_DAILY_AI_EXPLAIN };
+  }
+  return { allowed: true, usedToday: used, limit: FREE_DAILY_AI_EXPLAIN };
 }
 
 export interface ConsumeSolutionResult {
