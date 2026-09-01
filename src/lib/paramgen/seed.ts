@@ -19,11 +19,11 @@ import fs from "fs";
 import path from "path";
 import { PrismaClient, TestType, PlanType, QuestionType } from "@prisma/client";
 import { generateVariants, qaTemplate, Template } from "./paramgen";
+import { PARAMGEN_SEED, PARAMGEN_PER_TEMPLATE } from "./constants";
 
 const prisma = new PrismaClient();
 
 const LANGS = ["uz"] as const;          // keyin ["uz","ru","en"] qo'shasiz
-const PER_TEMPLATE = 200;
 
 const templates: Template[] = JSON.parse(
   fs.readFileSync(path.join(__dirname, "templates.json"), "utf8")
@@ -94,7 +94,7 @@ async function main() {
   const poolTestCache = new Map<string, Awaited<ReturnType<typeof resolvePoolTest>>>();
 
   for (const t of templates) {
-    const targetCount = t.seedCount ?? PER_TEMPLATE;
+    const targetCount = t.seedCount ?? PARAMGEN_PER_TEMPLATE;
     const qa = qaTemplate(t, targetCount);
     if (qa.problems.some((p) => p.startsWith("Xunuk") || p.startsWith("Stem"))) {
       console.error(`❌ ${t.id} sifat tekshiruvidan o'tmadi:`, qa.problems);
@@ -113,7 +113,7 @@ async function main() {
     }
 
     for (const lang of LANGS) {
-      const variants = generateVariants(t, { count: targetCount, seed: 42, lang });
+      const variants = generateVariants(t, { count: targetCount, seed: PARAMGEN_SEED, lang });
 
       for (const v of variants) {
         const correct = v.choices.find((c) => c.correct)!;

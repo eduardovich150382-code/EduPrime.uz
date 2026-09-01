@@ -17,13 +17,7 @@
 import fs from "fs";
 import path from "path";
 import { generateVariants, type Template, type Variant, type Lang } from "./paramgen";
-
-// `seed.ts`dagi `PER_TEMPLATE`/`seed: 42` bilan AYNAN bir xil bo'lishi
-// SHART (qarang yuqoridagi fayl izohi) — biri o'zgarsa, ikkinchisi ham
-// qo'lda yangilansin, aks holda eski variantlarning why/hints'i "topilmadi"
-// holatiga tushib qoladi.
-const SEED = 42;
-const DEFAULT_COUNT = 200;
+import { PARAMGEN_SEED, PARAMGEN_PER_TEMPLATE } from "./constants";
 
 let templatesCache: Template[] | null | undefined;
 
@@ -41,12 +35,25 @@ function loadTemplates(): Template[] | null {
 // Bitta so'rov (yoki bitta issiq server nusxasi) davomida bir xil
 // (templateId, lang) bir necha marta so'ralishi mumkin (masalan bir nechta
 // savol bir shablondan) — har birini faqat bir marta generatsiya qilamiz.
+// Chegaralangan LRU: amalda bitta natijalar sahifasi 1-3 ta shablonga
+// tegadi, shuning uchun 12 ta juftlik uzoq ishlaydigan server nusxasida ham
+// xotirani cheksiz o'stirmaydi (68 shablon × til × 200 variant to'planib
+// qolmasin deb).
+const MAX_CACHED_TEMPLATES = 12;
 const variantsCache = new Map<string, Variant[]>();
 
 function variantsFor(templateId: string, lang: Lang): Variant[] | null {
   const cacheKey = `${templateId}:${lang}`;
   const cached = variantsCache.get(cacheKey);
-  if (cached) return cached;
+  if (cached) {
+    // Eng oxirgi ishlatilgan sifatida qayta qo'yamiz — Map kiritish
+    // tartibini saqlaydi, shuning uchun qayta `set` uni oxiriga suradi va
+    // pastdagi eviction eng ESKI (eng uzoq ishlatilmagan) juftlikni chiqarib
+    // tashlaydi.
+    variantsCache.delete(cacheKey);
+    variantsCache.set(cacheKey, cached);
+    return cached;
+  }
 
   const templates = loadTemplates();
   const t = templates?.find((tpl) => tpl.id === templateId);
@@ -54,9 +61,14 @@ function variantsFor(templateId: string, lang: Lang): Variant[] | null {
 
   let variants: Variant[];
   try {
-    variants = generateVariants(t, { count: t.seedCount ?? DEFAULT_COUNT, seed: SEED, lang });
+    variants = generateVariants(t, { count: t.seedCount ?? PARAMGEN_PER_TEMPLATE, seed: PARAMGEN_SEED, lang });
   } catch {
     return null; // masalan korpus fayli o'qilmadi — jimgina o'tkazib yuboramiz
+  }
+
+  if (variantsCache.size >= MAX_CACHED_TEMPLATES) {
+    const oldest = variantsCache.keys().next().value;
+    if (oldest) variantsCache.delete(oldest);
   }
   variantsCache.set(cacheKey, variants);
   return variants;
