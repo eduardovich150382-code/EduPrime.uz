@@ -244,7 +244,9 @@
     "quotaExceededPrice": "Premium — kuniga ≈970 so'm, cheksiz yechimlar bilan",
     "quotaExceededTomorrow": "Yoki ertaga yana {limit} ta bepul yechim oling",
     "quotaExceededCta": "Premium olish",
-    "quotaExceededClose": "Yopish"
+    "quotaExceededClose": "Yopish",
+    "distractorWhyLabel": "Nega bu javob noto'g'ri:",
+    "wasHelpful": "Foydali bo'ldimi?"
   },
   "sessionSolve": {
     "exitButton": "Testdan chiqish",
@@ -252,6 +254,10 @@
     "exitConfirmBody": "Javoblaringiz saqlanadi, keyinroq davom ettirasiz.",
     "exitConfirmStay": "Davom etish",
     "exitConfirmLeave": "Chiqish"
+  },
+  "hint": {
+    "button": "Ko'rsatma",
+    "buttonNext": "Yana ko'rsatma"
   },
   "footer": {
     "description": "EduPrime — O'zbekistondagi eng zamonaviy test platformasi",

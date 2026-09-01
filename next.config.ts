@@ -5,6 +5,17 @@ import type { NextConfig } from 'next';
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 const nextConfig: NextConfig = {
+  // S20a — `lib/paramgen/regenerate.ts` (`/api/results/[id]`,
+  // `/api/sessions*` orqali) parametrik savol variantlarini `templates.json`
+  // va `corpora/*.json`dan RUNTIME'da (`fs.readFileSync`) o'qiydi — Vercel
+  // serverless funksiyalarining fayl kuzatuvi (`@vercel/nft`) `__dirname`
+  // orqali qurilgan dinamik yo'llarni har doim ham avtomatik topolmaydi,
+  // shuning uchun aniq ko'rsatib qo'yamiz — bo'lmasa bu fayllar deploy
+  // paketiga tushmay, tushuntirish/ko'rsatma funksiyalari jimgina (xato
+  // bermay, faqat bo'sh natija bilan) ishlamay qoladi.
+  outputFileTracingIncludes: {
+    '/api/**/*': ['./src/lib/paramgen/templates.json', './src/lib/paramgen/corpora/**/*.json'],
+  },
   images: {
     remotePatterns: [
       {

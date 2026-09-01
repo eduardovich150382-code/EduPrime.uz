@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter, useParams } from 'next/navigation';
 import QuestionDisplay from '@/components/test/QuestionDisplay';
+import HintPanel from '@/components/test/HintPanel';
 import TestTimer from '@/components/test/TestTimer';
 import QuestionNav from '@/components/test/QuestionNav';
 import BackButton from '@/components/ui/BackButton';
@@ -18,6 +19,7 @@ interface QuestionData {
   points: number;
   order: number;
   subjectId?: string | null; // Faqat generatsiya qilingan (DTM Online) testlarda — bo'lim belgisi
+  hints?: string[]; // S20a — bo'lim-asosidagi (generatsiya qilingan) testlarda ataylab bo'sh (qarang GET /api/tests/[id])
 }
 
 interface TestData {
@@ -490,6 +492,8 @@ export default function TestSolvePage() {
               onAnswer={handleAnswer}
               questionType={question.type}
             />
+
+            <HintPanel hints={question.hints ?? []} />
 
             {/* Navigation */}
             <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">

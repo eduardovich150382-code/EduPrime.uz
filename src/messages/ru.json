@@ -244,7 +244,9 @@
     "quotaExceededPrice": "Premium — от ≈970 сум в день, решения без ограничений",
     "quotaExceededTomorrow": "Или получите ещё {limit} бесплатных решений завтра",
     "quotaExceededCta": "Получить Premium",
-    "quotaExceededClose": "Закрыть"
+    "quotaExceededClose": "Закрыть",
+    "distractorWhyLabel": "Почему этот ответ неверный:",
+    "wasHelpful": "Это было полезно?"
   },
   "sessionSolve": {
     "exitButton": "Выйти из теста",
@@ -252,6 +254,10 @@
     "exitConfirmBody": "Ваши ответы будут сохранены, вы сможете продолжить позже.",
     "exitConfirmStay": "Продолжить",
     "exitConfirmLeave": "Выйти"
+  },
+  "hint": {
+    "button": "Подсказка",
+    "buttonNext": "Ещё подсказка"
   },
   "footer": {
     "description": "EduPrime — самая современная тестовая платформа в Узбекистане",

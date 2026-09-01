@@ -5,6 +5,7 @@ import { extractItemPoints, loadSessionItems } from '@/lib/sessions';
 import { hasActiveSubscription } from '@/lib/access';
 import { getSolutionQuotaStatus, getUnlockedItemIds, resolveUnlockKeys } from '@/lib/quota';
 import { resolveSolutionVisibility, type RawSolutionData } from '@/lib/solution-visibility';
+import { getDistractorWhy, toLang } from '@/lib/paramgen/regenerate';
 
 // GET /api/results/[id] — bitta natijani to'liq olish (savollar bilan).
 // Natija Test orqali (testId) yoki TestSession orqali (sessionId) kelgan
@@ -48,6 +49,12 @@ export async function GET(
                 points: true,
                 order: true,
                 type: true,
+                // S20a — distraktor izohi (`why`) bazaga yozilmagan, faqat
+                // shu uch maydon orqali qayta hisoblanadi (qarang pastdagi
+                // `attachDistractorWhy`).
+                templateId: true,
+                variantSig: true,
+                lang: true,
               },
             },
             subject: { select: { nameUz: true, nameRu: true, nameEn: true } },
@@ -73,6 +80,11 @@ export async function GET(
     const videoUnlocked = role === 'ADMIN' || premium;
     const solutionQuota = await getSolutionQuotaStatus(userId);
 
+    // S20a — distraktor izohi har doim bepul (S17 dagi "bir qatorli sabab"
+    // darajasi, yechim qulfiga kirmaydi), shuning uchun yuqoridagi
+    // writtenUnlimited/videoUnlocked hisobiga bog'liq emas.
+    const answers = (result.answers as { questionId: string; answer: string; isCorrect: boolean }[] | null) ?? [];
+
     if (result.test) {
       // `SolutionUnlock.itemId` yozishda `unlock-solution` marshruti
       // `Question.id`ni Item.id'ga normallashtiradi (lib/quota.ts —
@@ -91,10 +103,13 @@ export async function GET(
           test: {
             ...result.test,
             questions: result.test.questions.map((q) =>
-              applySolutionVisibility(q, {
-                writtenUnlocked: writtenUnlimited || (unlockedIds?.has(unlockKeyMap.get(q.id) ?? q.id) ?? false),
-                videoUnlocked,
-              })
+              attachDistractorWhy(
+                applySolutionVisibility(q, {
+                  writtenUnlocked: writtenUnlimited || (unlockedIds?.has(unlockKeyMap.get(q.id) ?? q.id) ?? false),
+                  videoUnlocked,
+                }),
+                answers
+              )
             ),
           },
         },
@@ -131,24 +146,30 @@ export async function GET(
           duration: result.session.durationMin,
           questionCount: items.length,
           questions: items.map((it, order) =>
-            applySolutionVisibility(
-              {
-                id: it.id,
-                text: it.text,
-                images: it.images,
-                options: it.options,
-                correctAnswer: it.correctAnswer,
-                explanation: it.explanation,
-                explanationImages: it.explanationImages,
-                videoUrl: it.videoUrl,
-                points: it.points,
-                order,
-                type: it.type,
-              },
-              {
-                writtenUnlocked: writtenUnlimited || (unlockedIds?.has(it.id) ?? false),
-                videoUnlocked,
-              }
+            attachDistractorWhy(
+              applySolutionVisibility(
+                {
+                  id: it.id,
+                  text: it.text,
+                  images: it.images,
+                  options: it.options,
+                  correctAnswer: it.correctAnswer,
+                  explanation: it.explanation,
+                  explanationImages: it.explanationImages,
+                  videoUrl: it.videoUrl,
+                  points: it.points,
+                  order,
+                  type: it.type,
+                  templateId: it.templateId,
+                  variantSig: it.variantSig,
+                  lang: it.lang,
+                },
+                {
+                  writtenUnlocked: writtenUnlimited || (unlockedIds?.has(it.id) ?? false),
+                  videoUnlocked,
+                }
+              ),
+              answers
             )
           ),
           subject: subject ?? { nameUz: 'Turli fanlar', nameRu: 'Разные предметы', nameEn: 'Various subjects' },
@@ -181,5 +202,32 @@ function applySolutionVisibility<T extends RawSolutionData>(
     videoUrl: visibility.videoUrl,
     solutionKind: visibility.solutionKind,
     solutionUnlocked: visibility.unlocked,
+  };
+}
+
+/**
+ * S20a — foydalanuvchi tanlagan (noto'g'ri) variantning "nega xato" izohini
+ * qo'shadi. Faqat parametrik savolda (`templateId`+`variantSig` bor) VA
+ * foydalanuvchi shu savolga NOTO'G'RI javob bergan bo'lsa hisoblanadi —
+ * to'g'ri javob/javobsiz holatda va oddiy (mualliflik) savollarda `null`.
+ * Bepul — `applySolutionVisibility`dagi qulfga bog'liq emas (qarang GET
+ * funksiyasidagi izoh).
+ */
+function attachDistractorWhy<
+  T extends { id: string; templateId?: string | null; variantSig?: string | null; lang?: string | null }
+>(
+  question: T,
+  answers: { questionId: string; answer: string; isCorrect: boolean }[]
+): T & { distractorWhy: string | null } {
+  if (!question.templateId || !question.variantSig) {
+    return { ...question, distractorWhy: null };
+  }
+  const record = answers.find((a) => a.questionId === question.id);
+  if (!record || !record.answer || record.isCorrect) {
+    return { ...question, distractorWhy: null };
+  }
+  return {
+    ...question,
+    distractorWhy: getDistractorWhy(question.templateId, question.variantSig, toLang(question.lang), record.answer),
   };
 }

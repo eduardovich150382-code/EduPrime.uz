@@ -244,7 +244,9 @@
     "quotaExceededPrice": "Premium — about 970 UZS/day, unlimited solutions",
     "quotaExceededTomorrow": "Or get {limit} more free solutions tomorrow",
     "quotaExceededCta": "Get Premium",
-    "quotaExceededClose": "Close"
+    "quotaExceededClose": "Close",
+    "distractorWhyLabel": "Why this answer is wrong:",
+    "wasHelpful": "Was this helpful?"
   },
   "sessionSolve": {
     "exitButton": "Exit test",
@@ -252,6 +254,10 @@
     "exitConfirmBody": "Your answers will be saved — you can continue later.",
     "exitConfirmStay": "Continue",
     "exitConfirmLeave": "Exit"
+  },
+  "hint": {
+    "button": "Hint",
+    "buttonNext": "Another hint"
   },
   "footer": {
     "description": "EduPrime — the most modern test platform in Uzbekistan",
