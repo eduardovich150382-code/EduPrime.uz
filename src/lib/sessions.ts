@@ -10,6 +10,7 @@ import {
   type RelaxationStep,
 } from './item-picker';
 import { consumeBuiltTest } from './quota';
+import { getRegeneratedHints, toLang } from './paramgen/regenerate';
 
 /**
  * `TestSession.itemIds`dagi Item'larni SHU tartibda (findMany o'zi tartibni
@@ -36,6 +37,13 @@ export interface SessionQuestion extends GradableQuestion {
   explanationImages: string[];
   videoUrl: string | null;
   subject: { nameUz: string; nameRu: string; nameEn: string };
+  // S20a — Item o'zi `why`/`hints` saqlamaydi (Question'dan farqli) —
+  // natija/yechish sahifalari shu ikkitasidan `paramgen/regenerate.ts`
+  // orqali qayta hosil qiladi (qarang `toPresentedQuestions` va
+  // `results/[id]/route.ts`dagi `attachDistractorWhy`).
+  templateId: string | null;
+  variantSig: string | null;
+  lang: string;
 }
 
 export async function loadSessionItems(
@@ -47,6 +55,7 @@ export async function loadSessionItems(
     select: {
       id: true, text: true, images: true, options: true, correctAnswer: true, type: true,
       explanation: true, explanationImages: true, videoUrl: true,
+      templateId: true, variantSig: true, lang: true,
       subject: { select: { nameUz: true, nameRu: true, nameEn: true } },
     },
   });
@@ -87,6 +96,13 @@ export interface PresentedQuestion {
   options: unknown;
   type: QuestionType;
   points: number;
+  /**
+   * S20a — "Ko'rsatma" tugmasi uchun (progressiv: birinchi, keyin
+   * ikkinchi...). Faqat parametrik savolda (templateId+variantSig bor) va
+   * `preserveOrder` bo'lganda (bo'lim-asosidagi DTM Online) BO'SH — haqiqiy
+   * imtihonni takrorlashi kerak (qarang `toPresentedQuestions`).
+   */
+  hints: string[];
 }
 
 /**
@@ -152,8 +168,13 @@ export function toPresentedQuestions(
   preserveOrder: boolean
 ): PresentedQuestion[] {
   const shuffled = shuffleQuestionsWithSeed(items, seed, { preserveOrder });
-  return shuffled.map(({ id, text, images, options, type, points }) => ({
+  return shuffled.map(({ id, text, images, options, type, points, templateId, variantSig, lang }) => ({
     id, text, images, options, type, points,
+    // `preserveOrder` — bo'lim-asosidagi (DTM Online) sessiyaning aynan shu
+    // belgisi (qarang `sessionPreserveOrder`) — haqiqiy imtihonda ko'rsatma
+    // bo'lmasligi kerak, shuning uchun bunda hisoblab ham o'tirmaymiz
+    // (button yashirish yetarli emas — javobda umuman bo'lmasin).
+    hints: preserveOrder || !templateId || !variantSig ? [] : getRegeneratedHints(templateId, variantSig, toLang(lang)),
   }));
 }
 

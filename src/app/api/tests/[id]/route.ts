@@ -63,6 +63,7 @@ export async function GET(
         points: true,
         order: true,
         subjectId: true, // Faqat generatsiya qilingan (masalan DTM Online) testlarda to'ldirilgan — bo'lim belgisi
+        hints: true, // S20a — "Ko'rsatma" tugmasi (yechish sahifasida)
         // NOT including correctAnswer — foydalanuvchi ko'rmasligi kerak
       },
     });
@@ -73,10 +74,17 @@ export async function GET(
     // faqat variantlar aralashtiriladi.
     const preserveOrder = rawQuestions.some((q) => q.subjectId);
 
+    // S20a — bo'lim-asosidagi (generatsiya qilingan, masalan DTM Online)
+    // testlar haqiqiy imtihonni takrorlashi kerak — ko'rsatma UMUMAN
+    // yubormaymiz (faqat frontendda tugmani yashirish yetarli emas).
+    const questionsWithHints = preserveOrder
+      ? rawQuestions.map((q) => ({ ...q, hints: [] as string[] }))
+      : rawQuestions;
+
     // Shuffle questions and options for authenticated users (anti-cheating)
-    let questions = rawQuestions;
+    let questions = questionsWithHints;
     if (userId) {
-      questions = shuffleTest(rawQuestions, userId, id, { preserveOrder });
+      questions = shuffleTest(questionsWithHints, userId, id, { preserveOrder });
     }
 
     return NextResponse.json({

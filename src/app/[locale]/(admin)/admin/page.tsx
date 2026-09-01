@@ -18,6 +18,8 @@ interface DashboardData {
     totalUsers: number;
     totalTests: number;
   };
+  // S20a — sifat halqasi ko'rsatkichi: "Yozma yechimi bor savollar" (Item.explanationSource !== NONE).
+  explanationCoverage: { withExplanation: number; total: number };
   weeklyGrowth: { date: string; count: number }[];
   recentPayments: {
     id: string;
@@ -65,8 +67,11 @@ export default function AdminDashboard() {
     );
   }
 
-  const { stats, weeklyGrowth, recentPayments, topTests } = data;
+  const { stats, explanationCoverage, weeklyGrowth, recentPayments, topTests } = data;
   const maxGrowth = Math.max(...weeklyGrowth.map(d => d.count), 1);
+  const explanationCoveragePct = explanationCoverage.total > 0
+    ? Math.round((explanationCoverage.withExplanation / explanationCoverage.total) * 1000) / 10
+    : 0;
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -116,6 +121,27 @@ export default function AdminDashboard() {
           <p className="text-2xl font-bold text-text-primary">{stats.totalTests}</p>
           <p className="text-xs text-text-secondary">Jami test</p>
         </div>
+      </motion.div>
+
+      {/* S20a — sifat halqasi ko'rsatkichi: yozma/AI (mualliflikka
+          ko'tarilgan) yechimi bor savollar ulushi. Bu raqam pastga
+          tushayotgan bo'lsa — parametrik shablonlar yoki o'qituvchi
+          savollari qo'shilishi tezlashgan, lekin ularga yechim yozish
+          ortda qolgan degani. */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+        className="card p-4 flex items-center gap-3"
+      >
+        <BookOpen size={18} className="text-primary-600 flex-shrink-0" />
+        <p className="text-sm text-text-primary">
+          Yozma yechimi bor savollar:{' '}
+          <span className="font-semibold">
+            {explanationCoverage.withExplanation} / {explanationCoverage.total}
+          </span>{' '}
+          <span className="text-text-secondary">({explanationCoveragePct}%)</span>
+        </p>
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

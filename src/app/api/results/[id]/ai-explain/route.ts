@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
@@ -237,11 +238,21 @@ export async function POST(
     const forAnswer = rawUserAnswer.trim() && !answeredCorrectly ? rawUserAnswer.trim().slice(0, 300) : '';
 
     if (cacheItemId) {
+      // S20a — ovoz berish tugmalari uchun `id` va joriy sanoqlar/foydalanuvchi
+      // ovozi shu yerda birga qaytariladi — frontend qayta so'rov qilmasin.
       const cached = await db.itemExplanation.findUnique({
         where: { itemId_lang_forAnswer: { itemId: cacheItemId, lang, forAnswer } },
+        include: { votes: { where: { userId } } },
       });
       if (cached) {
-        return NextResponse.json({ explanation: cached.text, cached: true });
+        return NextResponse.json({
+          explanation: cached.text,
+          cached: true,
+          explanationId: cached.id,
+          upvotes: cached.upvotes,
+          downvotes: cached.downvotes,
+          userVote: cached.votes[0]?.value ?? null,
+        });
       }
     }
 
@@ -273,6 +284,17 @@ export async function POST(
       answeredCorrectly,
     });
 
+    // S20a — ovoz berish tugmasi shu ID'ga muhtoj, lekin `ItemExplanation`
+    // qatori faqat OQIM TUGAGANDA yoziladi (pastda). Header'lar esa oqim
+    // boshlanishidan OLDIN, `NextResponse` qurilganda qat'iylashadi — shuning
+    // uchun ID'ni bazaga emas, shu yerda (Prisma emas, o'zimiz) oldindan
+    // hosil qilamiz va `create`ga aynan shu qiymatni beramiz. Juda kamdan-kam
+    // poyga holatida (parallel so'rov bir zumda ulgurib qolsa) yozuv boshqa
+    // ID bilan saqlanib qolishi mumkin — matn baribir talabaga yetkazilgan
+    // (qarang pastdagi izoh), faqat shu holatda ovoz tugmasi keyinroq 404
+    // qaytarishi mumkin.
+    const explanationId = randomUUID();
+
     // Stream the response to the client as it's generated (instead of
     // waiting for the full text) so the student sees it appear immediately.
     const encoder = new TextEncoder();
@@ -290,7 +312,7 @@ export async function POST(
           if (fullText.trim() && cacheItemId) {
             try {
               await db.itemExplanation.create({
-                data: { itemId: cacheItemId, lang, forAnswer, text: fullText.trim() },
+                data: { id: explanationId, itemId: cacheItemId, lang, forAnswer, text: fullText.trim() },
               });
             } catch (err) {
               // Poyga sharti: parallel so'rov xuddi shu (itemId, lang,
@@ -316,7 +338,12 @@ export async function POST(
     });
 
     return new NextResponse(readable, {
-      headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        // Faqat keshlanadigan (cacheItemId bor) holatda — aks holda tugma
+        // baribir ishlamaydigan ID'ga ishora qilmasin.
+        ...(cacheItemId ? { 'X-Explanation-Id': explanationId } : {}),
+      },
     });
   } catch (error) {
     console.error('POST /api/results/[id]/ai-explain error:', error);

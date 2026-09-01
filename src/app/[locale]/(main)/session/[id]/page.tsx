@@ -6,6 +6,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Link, useRouter as useLocaleRouter } from '@/i18n/routing';
 import QuestionDisplay from '@/components/test/QuestionDisplay';
+import HintPanel from '@/components/test/HintPanel';
 import TestTimer from '@/components/test/TestTimer';
 import QuestionNav from '@/components/test/QuestionNav';
 import { ChevronLeft, ChevronRight, Flag, AlertCircle, Loader2, LogOut } from 'lucide-react';
@@ -44,6 +45,9 @@ interface SessionQuestion {
   options: { label: string; text: string; image: string | null }[] | { left: string[]; right: string[] };
   type: string;
   points: number;
+  // S20a — bo'sh massiv: oddiy savol YOKI bo'lim-asosidagi (DTM Online)
+  // sessiya (qarang lib/sessions.ts — `toPresentedQuestions`).
+  hints: string[];
 }
 
 interface SessionData {
@@ -372,6 +376,8 @@ export default function SessionSolvePage() {
               onAnswer={handleAnswer}
               questionType={question.type}
             />
+
+            <HintPanel hints={question.hints} />
 
             <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
               <button

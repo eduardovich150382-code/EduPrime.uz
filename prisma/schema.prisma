@@ -414,10 +414,28 @@ model ItemExplanation {
   promotedAt DateTime?
   createdAt  DateTime  @default(now())
 
-  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  item  Item              @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  votes ExplanationVote[]
 
   @@unique([itemId, lang, forAnswer])
   @@index([itemId, lang])
+}
+
+// Bitta foydalanuvchi bitta tushuntirishga faqat BIR MARTA ovoz beradi
+// (S20a). Ovoz o'zgartirilishi mumkin (👍 dan 👎 ga) — shu vaqtda
+// `ItemExplanation.upvotes`/`downvotes` bitta tranzaksiyada mos ravishda
+// yangilanadi (qarang POST /api/explanations/[id]/vote). `userId` ataylab
+// FK emas — `SolutionUnlock`dagi bilan bir xil naqsh (schema.prisma'dagi
+// shu model izohiga qarang).
+model ExplanationVote {
+  userId        String
+  explanationId String
+  value         Int // +1 yoki -1
+  createdAt     DateTime @default(now())
+
+  explanation ItemExplanation @relation(fields: [explanationId], references: [id], onDelete: Cascade)
+
+  @@id([userId, explanationId])
 }
 
 model ItemTopic {

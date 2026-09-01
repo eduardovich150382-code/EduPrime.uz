@@ -269,9 +269,10 @@ describe("POST /api/results/[id]/ai-explain", () => {
 
       expect(itemExplanationFindUniqueMock).toHaveBeenCalledWith({
         where: { itemId_lang_forAnswer: { itemId: "item-real", lang: "uz", forAnswer: "B" } },
+        include: { votes: { where: { userId: "user1" } } },
       });
       expect(itemExplanationCreateMock).toHaveBeenCalledWith({
-        data: { itemId: "item-real", lang: "uz", forAnswer: "B", text: "AI tushuntirishi" },
+        data: { id: expect.any(String), itemId: "item-real", lang: "uz", forAnswer: "B", text: "AI tushuntirishi" },
       });
     });
 
@@ -288,9 +289,10 @@ describe("POST /api/results/[id]/ai-explain", () => {
 
       expect(itemExplanationFindUniqueMock).toHaveBeenCalledWith({
         where: { itemId_lang_forAnswer: { itemId: "item-real", lang: "uz", forAnswer: "" } },
+        include: { votes: { where: { userId: "user1" } } },
       });
       expect(itemExplanationCreateMock).toHaveBeenCalledWith({
-        data: { itemId: "item-real", lang: "uz", forAnswer: "", text: "AI tushuntirishi" },
+        data: { id: expect.any(String), itemId: "item-real", lang: "uz", forAnswer: "", text: "AI tushuntirishi" },
       });
     });
 
@@ -327,14 +329,23 @@ describe("POST /api/results/[id]/ai-explain", () => {
 
     it("kesh mavjud bo'lsa AI UMUMAN chaqirilmaydi, kvota sarflanmaydi", async () => {
       itemFindUniqueMock.mockResolvedValue({ id: "item-real" });
-      itemExplanationFindUniqueMock.mockResolvedValue({ text: "Keshdagi tushuntirish" });
+      itemExplanationFindUniqueMock.mockResolvedValue({
+        id: "expl1", text: "Keshdagi tushuntirish", upvotes: 3, downvotes: 1, votes: [{ value: 1 }],
+      });
       findUniqueQuestionMock.mockResolvedValue(baseQuestion());
 
       const response = await callPost({ questionId: "q1" });
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data).toEqual({ explanation: "Keshdagi tushuntirish", cached: true });
+      expect(data).toEqual({
+        explanation: "Keshdagi tushuntirish",
+        cached: true,
+        explanationId: "expl1",
+        upvotes: 3,
+        downvotes: 1,
+        userVote: 1,
+      });
       expect(streamExplainQuestionMock).not.toHaveBeenCalled();
       expect(dailyUsageUpsertMock).not.toHaveBeenCalled();
     });

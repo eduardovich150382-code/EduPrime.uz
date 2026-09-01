@@ -22,6 +22,8 @@ export async function GET() {
       activeSubscriptions,
       totalUsers,
       totalTests,
+      itemsWithExplanation,
+      totalItems,
     ] = await Promise.all([
       db.user.count({ where: { createdAt: { gte: todayStart } } }),
       db.testResult.count({ where: { completedAt: { gte: todayStart } } }),
@@ -29,6 +31,11 @@ export async function GET() {
       db.subscription.count({ where: { isActive: true, endDate: { gte: now } } }),
       db.user.count(),
       db.test.count({ where: { isPublished: true } }),
+      // S20a — sifat halqasi ko'rsatkichi: "Yozma yechimi bor savollar".
+      // `explanationSource` — AUTHORED (o'qituvchi yozgan) YOKI AI (S20b'da
+      // mualliflikka ko'tarilgan) — ikkalasi ham "yozma yechim BOR" hisoblanadi.
+      db.item.count({ where: { explanationSource: { not: 'NONE' } } }),
+      db.item.count(),
     ]);
 
     // Weekly growth (users registered per day for last 7 days)
@@ -80,6 +87,7 @@ export async function GET() {
         totalUsers,
         totalTests,
       },
+      explanationCoverage: { withExplanation: itemsWithExplanation, total: totalItems },
       weeklyGrowth,
       recentPayments: recentPayments.map(p => ({
         id: p.id,

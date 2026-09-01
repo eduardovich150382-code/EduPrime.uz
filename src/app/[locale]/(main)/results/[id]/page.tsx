@@ -19,7 +19,7 @@ import {
   Video, FileText, ArrowLeft, Share2, RotateCcw,
   Loader2, AlertCircle, Play,
   X, Copy, ExternalLink, Filter, Bookmark, BarChart3, Bot,
-  Lock, Unlock, Crown, Sparkles,
+  Lock, Unlock, Crown, Sparkles, Info, ThumbsUp, ThumbsDown,
 } from 'lucide-react';
 
 interface QuestionOption {
@@ -45,6 +45,10 @@ interface QuestionData {
   // shu foydalanuvchi uni ko'ra oladimi.
   solutionKind?: 'none' | 'video' | 'written';
   solutionUnlocked?: boolean;
+  // S20a — foydalanuvchi tanlagan (noto'g'ri) parametrik variantning "nega
+  // xato" izohi. Faqat parametrik shablondan kelgan va NOTO'G'RI javob
+  // berilgan savolda bor — bepul, S17 yechim qulfiga kirmaydi.
+  distractorWhy?: string | null;
 }
 
 interface SolutionQuota {
@@ -89,7 +93,13 @@ export default function ResultPage() {
   const [showExplanation, setShowExplanation] = useState<Record<string, boolean>>({});
   const [showVideo, setShowVideo] = useState<Record<string, boolean>>({});
   const [showAiExplain, setShowAiExplain] = useState<Record<string, boolean>>({});
-  const [aiExplain, setAiExplain] = useState<Record<string, { text?: string; loading?: boolean; error?: string }>>({});
+  const [aiExplain, setAiExplain] = useState<Record<string, {
+    text?: string; loading?: boolean; error?: string;
+    // S20a — ovoz berish faqat kesh yozuvi bo'lgan (backfill qilingan Item)
+    // tushuntirishlarda mumkin, shuning uchun `explanationId` yo'q bo'lishi
+    // mumkin — shunda tugmalar chizilmaydi.
+    explanationId?: string | null; upvotes?: number; downvotes?: number; userVote?: number | null;
+  }>>({});
   const [showGeneralVideo, setShowGeneralVideo] = useState(false);
   const [shareSuccess, setShareSuccess] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
@@ -233,7 +243,13 @@ export default function ResultPage() {
       // Cached explanations come back as plain JSON (already known, instant)
       if (contentType.includes('application/json')) {
         const data = await res.json();
-        setAiExplain(prev => ({ ...prev, [questionId]: { text: data.explanation } }));
+        setAiExplain(prev => ({ ...prev, [questionId]: {
+          text: data.explanation,
+          explanationId: data.explanationId ?? null,
+          upvotes: data.upvotes ?? 0,
+          downvotes: data.downvotes ?? 0,
+          userVote: data.userVote ?? null,
+        } }));
         return;
       }
 
@@ -244,6 +260,12 @@ export default function ResultPage() {
         return;
       }
 
+      // S20a — kesh yozuvi (agar keshlansa) qaysi ID bilan yaratilishi
+      // response HEADER'ida oldindan ma'lum (qarang ai-explain/route.ts —
+      // headerlar oqim boshlanishidan oldin qat'iylashadi), shuning uchun
+      // matn hali oqib kelayotganda ham ovoz tugmalari darhol ishlaydi.
+      const streamedExplanationId = res.headers.get('X-Explanation-Id');
+
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let accumulated = '';
@@ -251,7 +273,13 @@ export default function ResultPage() {
         const { done, value } = await reader.read();
         if (done) break;
         accumulated += decoder.decode(value, { stream: true });
-        setAiExplain(prev => ({ ...prev, [questionId]: { text: accumulated } }));
+        setAiExplain(prev => ({ ...prev, [questionId]: {
+          text: accumulated,
+          explanationId: streamedExplanationId,
+          upvotes: 0,
+          downvotes: 0,
+          userVote: null,
+        } }));
       }
 
       if (!accumulated.trim()) {
@@ -259,6 +287,27 @@ export default function ResultPage() {
       }
     } catch {
       setAiExplain(prev => ({ ...prev, [questionId]: { error: "Server bilan bog'lanishda xatolik" } }));
+    }
+  };
+
+  // S20a — AI tushuntirishga ovoz berish/o'zgartirish (👍↔👎). Ikkinchi
+  // darajali funksiya — server xato qaytarsa jimgina e'tiborsiz qoldiriladi,
+  // sahifa yiqilmaydi va tugma oldingi holatida qoladi.
+  const handleVote = async (questionId: string, explanationId: string, value: 1 | -1) => {
+    try {
+      const res = await fetch(`/api/explanations/${explanationId}/vote`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ value }),
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      setAiExplain(prev => ({
+        ...prev,
+        [questionId]: { ...prev[questionId], upvotes: data.upvotes, downvotes: data.downvotes, userVote: data.userVote },
+      }));
+    } catch {
+      // Server bilan bog'lanish xatosi — ovoz jimgina o'tkazib yuboriladi
     }
   };
 
@@ -1006,6 +1055,18 @@ export default function ResultPage() {
                                 className="mt-2 max-h-32 w-auto object-contain rounded-lg border border-border"
                               />
                             )}
+                            {/* S20a — parametrik distraktor izohi: bepul,
+                                faqat foydalanuvchi shu (noto'g'ri) variantni
+                                tanlagan bo'lsa ko'rinadi. */}
+                            {isWrongChoice && question.distractorWhy && (
+                              <div className="mt-2 flex items-start gap-1.5 text-xs text-red-700">
+                                <Info size={13} className="flex-shrink-0 mt-0.5" />
+                                <span>
+                                  <span className="font-medium">{t('distractorWhyLabel')}</span>{' '}
+                                  {question.distractorWhy}
+                                </span>
+                              </div>
+                            )}
                           </div>
                           {isCorrectOption && (
                             <CheckCircle size={16} className="text-green-600 flex-shrink-0 mt-1" />
@@ -1171,6 +1232,34 @@ export default function ResultPage() {
                       {aiExplain[question.id]?.text && (
                         <div className="text-sm text-text-primary leading-relaxed">
                           <LatexRenderer content={aiExplain[question.id]!.text!} />
+                        </div>
+                      )}
+                      {/* S20a — ovoz berish: faqat kesh yozuvi bo'lgan
+                          (backfill qilingan Item) tushuntirishlarda —
+                          `explanationId` yo'q bo'lsa tugmalar chizilmaydi. */}
+                      {aiExplain[question.id]?.text && aiExplain[question.id]?.explanationId && (
+                        <div className="flex items-center gap-3 mt-3 pt-3 border-t border-emerald-100">
+                          <span className="text-xs text-emerald-700">{t('wasHelpful')}</span>
+                          <button
+                            onClick={() => handleVote(question.id, aiExplain[question.id]!.explanationId!, 1)}
+                            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+                              aiExplain[question.id]?.userVote === 1
+                                ? 'bg-emerald-600 text-white'
+                                : 'bg-white text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
+                            }`}
+                          >
+                            <ThumbsUp size={12} /> {aiExplain[question.id]?.upvotes ?? 0}
+                          </button>
+                          <button
+                            onClick={() => handleVote(question.id, aiExplain[question.id]!.explanationId!, -1)}
+                            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+                              aiExplain[question.id]?.userVote === -1
+                                ? 'bg-red-600 text-white'
+                                : 'bg-white text-red-700 border border-red-200 hover:bg-red-100'
+                            }`}
+                          >
+                            <ThumbsDown size={12} /> {aiExplain[question.id]?.downvotes ?? 0}
+                          </button>
                         </div>
                       )}
                     </motion.div>
