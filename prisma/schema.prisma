@@ -395,15 +395,19 @@ model Item {
 // === NONE` (mualliflik yozma/video yechimi yo'q) savollar uchun to'ldiriladi
 // — AI mualliflik kontentining o'rnini bosmaydi, uning bo'shlig'ini
 // to'ldiradi (qarang POST /api/results/[id]/ai-explain). `forAnswer` —
-// talaba tanlagan (noto'g'ri) javob, to'g'ri javob uchun yoki javob
-// berilmagan (o'tkazib yuborilgan) holat uchun `null` — shu sababli bitta
+// talaba tanlagan (noto'g'ri) javob; to'g'ri javob YOKI javob berilmagan
+// (o'tkazib yuborilgan) holat uchun bo'sh satr (`""`), `null` EMAS —
+// Postgres unique indeksida NULL qiymatlar bir-biriga teng emas, shuning
+// uchun `null` ishlatilsa `@@unique` shu eng ko'p uchraydigan holatni
+// (to'g'ri javob/skip) TAKRORLANISHDAN UMUMAN HIMOYA QILMAS EDI. Bo'sh satr
+// esa oddiy qiymat sifatida cheklovni to'liq ishlatadi. Shu sababli bitta
 // savolga har xil noto'g'ri javob bergan ikki talaba ikki xil, ularning
 // aynan xatosiga qaratilgan tushuntirish oladi.
 model ItemExplanation {
   id         String    @id @default(cuid())
   itemId     String
   lang       String
-  forAnswer  String?
+  forAnswer  String    @default("")
   text       String
   upvotes    Int       @default(0)
   downvotes  Int       @default(0)

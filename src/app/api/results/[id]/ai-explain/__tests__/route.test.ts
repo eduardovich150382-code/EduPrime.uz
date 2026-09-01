@@ -16,7 +16,7 @@ const {
   findUniqueQuestionMock,
   itemFindUniqueMock,
   testSessionFindUniqueMock,
-  itemExplanationFindFirstMock,
+  itemExplanationFindUniqueMock,
   itemExplanationCreateMock,
   authMock,
   userFindUniqueMock,
@@ -29,7 +29,7 @@ const {
   findUniqueQuestionMock: vi.fn(),
   itemFindUniqueMock: vi.fn(),
   testSessionFindUniqueMock: vi.fn(),
-  itemExplanationFindFirstMock: vi.fn(),
+  itemExplanationFindUniqueMock: vi.fn(),
   itemExplanationCreateMock: vi.fn(),
   authMock: vi.fn(),
   userFindUniqueMock: vi.fn(),
@@ -46,7 +46,7 @@ vi.mock("@/lib/db", () => ({
     item: { findUnique: (...args: unknown[]) => itemFindUniqueMock(...args) },
     testSession: { findUnique: (...args: unknown[]) => testSessionFindUniqueMock(...args) },
     itemExplanation: {
-      findFirst: (...args: unknown[]) => itemExplanationFindFirstMock(...args),
+      findUnique: (...args: unknown[]) => itemExplanationFindUniqueMock(...args),
       create: (...args: unknown[]) => itemExplanationCreateMock(...args),
     },
     user: { findUnique: (...args: unknown[]) => userFindUniqueMock(...args) },
@@ -133,7 +133,7 @@ describe("POST /api/results/[id]/ai-explain", () => {
     userFindUniqueMock.mockResolvedValue({ role: "USER" });
     subscriptionFindManyMock.mockResolvedValue([]);
     solutionUnlockFindUniqueMock.mockResolvedValue(null);
-    itemExplanationFindFirstMock.mockResolvedValue(null);
+    itemExplanationFindUniqueMock.mockResolvedValue(null);
     itemExplanationCreateMock.mockResolvedValue({});
     dailyUsageUpsertMock.mockResolvedValue({ tutorMessages: 1 });
     streamExplainQuestionMock.mockReturnValue(fakeChunks());
@@ -267,15 +267,15 @@ describe("POST /api/results/[id]/ai-explain", () => {
       const response = await callPost({ questionId: "q1" });
       await readBody(response);
 
-      expect(itemExplanationFindFirstMock).toHaveBeenCalledWith({
-        where: { itemId: "item-real", lang: "uz", forAnswer: "B" },
+      expect(itemExplanationFindUniqueMock).toHaveBeenCalledWith({
+        where: { itemId_lang_forAnswer: { itemId: "item-real", lang: "uz", forAnswer: "B" } },
       });
       expect(itemExplanationCreateMock).toHaveBeenCalledWith({
         data: { itemId: "item-real", lang: "uz", forAnswer: "B", text: "AI tushuntirishi" },
       });
     });
 
-    it("to'g'ri javobda forAnswer=null bilan keshlanadi", async () => {
+    it("to'g'ri javobda forAnswer='' (bo'sh satr) bilan keshlanadi — NULL emas, aks holda Postgres unique cheklovi bu holatni himoya qilmas edi", async () => {
       itemFindUniqueMock.mockResolvedValue({ id: "item-real" });
       findUniqueResultMock.mockResolvedValue({
         userId: "user1", testId: "test1", sessionId: null,
@@ -286,9 +286,31 @@ describe("POST /api/results/[id]/ai-explain", () => {
       const response = await callPost({ questionId: "q1" });
       await readBody(response);
 
-      expect(itemExplanationFindFirstMock).toHaveBeenCalledWith({
-        where: { itemId: "item-real", lang: "uz", forAnswer: null },
+      expect(itemExplanationFindUniqueMock).toHaveBeenCalledWith({
+        where: { itemId_lang_forAnswer: { itemId: "item-real", lang: "uz", forAnswer: "" } },
       });
+      expect(itemExplanationCreateMock).toHaveBeenCalledWith({
+        data: { itemId: "item-real", lang: "uz", forAnswer: "", text: "AI tushuntirishi" },
+      });
+    });
+
+    it("kesh yozishda P2002 (poyga sharti) jimgina yutiladi — javob baribir talabaga yuborilgan", async () => {
+      itemFindUniqueMock.mockResolvedValue({ id: "item-real" });
+      findUniqueQuestionMock.mockResolvedValue(baseQuestion());
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+      // Bir xil (itemId, lang, forAnswer) bilan parallel so'rov allaqachon
+      // yozgan — DB unique cheklovi (forAnswer endi bo'sh satr, `null` emas,
+      // shuning uchun bu cheklov haqiqatan ishlaydi) P2002 qaytaradi.
+      itemExplanationCreateMock.mockRejectedValue({ code: "P2002" });
+
+      const response = await callPost({ questionId: "q1" });
+      const text = await readBody(response);
+
+      expect(text).toBe("AI tushuntirishi"); // talaba baribir javobni oladi
+      expect(consoleErrorSpy).not.toHaveBeenCalledWith(
+        "ItemExplanation cache write error:", expect.anything()
+      );
+      consoleErrorSpy.mockRestore();
     });
 
     it("Item topilmagan bo'lsa (hali backfill qilinmagan) AI chaqiriladi, lekin KESHLANMAYDI", async () => {
@@ -299,13 +321,13 @@ describe("POST /api/results/[id]/ai-explain", () => {
       await readBody(response);
 
       expect(streamExplainQuestionMock).toHaveBeenCalled();
-      expect(itemExplanationFindFirstMock).not.toHaveBeenCalled();
+      expect(itemExplanationFindUniqueMock).not.toHaveBeenCalled();
       expect(itemExplanationCreateMock).not.toHaveBeenCalled();
     });
 
     it("kesh mavjud bo'lsa AI UMUMAN chaqirilmaydi, kvota sarflanmaydi", async () => {
       itemFindUniqueMock.mockResolvedValue({ id: "item-real" });
-      itemExplanationFindFirstMock.mockResolvedValue({ text: "Keshdagi tushuntirish" });
+      itemExplanationFindUniqueMock.mockResolvedValue({ text: "Keshdagi tushuntirish" });
       findUniqueQuestionMock.mockResolvedValue(baseQuestion());
 
       const response = await callPost({ questionId: "q1" });

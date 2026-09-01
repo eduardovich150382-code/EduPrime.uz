@@ -3,7 +3,7 @@ CREATE TABLE "ItemExplanation" (
     "id" TEXT NOT NULL,
     "itemId" TEXT NOT NULL,
     "lang" TEXT NOT NULL,
-    "forAnswer" TEXT,
+    "forAnswer" TEXT NOT NULL DEFAULT '',
     "text" TEXT NOT NULL,
     "upvotes" INTEGER NOT NULL DEFAULT 0,
     "downvotes" INTEGER NOT NULL DEFAULT 0,

@@ -228,18 +228,17 @@ export async function POST(
     const answeredCorrectly = answerRecord?.isCorrect ?? false;
 
     // Kesh kaliti — forAnswer: talaba tanlagan (noto'g'ri) javob; to'g'ri
-    // javob YOKI javob berilmagan (o'tkazib yuborilgan) holat uchun `null`.
-    // Shu sababli bir xil savolga har xil noto'g'ri javob bergan ikki
-    // talaba har xil tushuntirish oladi (S19 qabul mezoni).
-    const forAnswer = rawUserAnswer.trim() && !answeredCorrectly ? rawUserAnswer.trim().slice(0, 300) : null;
+    // javob YOKI javob berilmagan (o'tkazib yuborilgan) holat uchun bo'sh
+    // satr (`''`), `null` EMAS — Postgres unique indeksida NULL qiymatlar
+    // bir-biriga teng emas, shuning uchun `null` ishlatilsa `@@unique` shu
+    // ENG KO'P uchraydigan holatni takrorlanishdan himoya qilmas edi (qarang
+    // schema.prisma — ItemExplanation izohi). Shu sababli bir xil savolga
+    // har xil noto'g'ri javob bergan ikki talaba har xil tushuntirish oladi.
+    const forAnswer = rawUserAnswer.trim() && !answeredCorrectly ? rawUserAnswer.trim().slice(0, 300) : '';
 
     if (cacheItemId) {
-      // `findUnique` bu yerda ishlatilmaydi — Prisma 6'da nullable ustunli
-      // compound unique kalitning generatsiya qilingan turi `null`ni qabul
-      // qilmaydi (kalit DB darajasida bor, faqat TS turi cheklangan),
-      // shuning uchun oddiy `findFirst` bilan qidiramiz.
-      const cached = await db.itemExplanation.findFirst({
-        where: { itemId: cacheItemId, lang, forAnswer },
+      const cached = await db.itemExplanation.findUnique({
+        where: { itemId_lang_forAnswer: { itemId: cacheItemId, lang, forAnswer } },
       });
       if (cached) {
         return NextResponse.json({ explanation: cached.text, cached: true });
