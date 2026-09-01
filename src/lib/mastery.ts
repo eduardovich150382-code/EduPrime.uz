@@ -118,6 +118,15 @@ export function classifyTopics(stats: TopicStat[]) {
   return { strong, medium, weak, insufficient };
 }
 
+// So'nggi shuncha kun ichida TO'G'RI javob berilgan savollarni mashqdan
+// chetlaymiz — mashqning maqsadi mavzuni o'rgatish, yodda qolgan javobni
+// takrorlatish emas. `getRecentlyCorrectItemIds` ikki bosqichli qidiradi
+// (Item.id VA Item.legacyQuestionId orqali), shuning uchun S18a'gacha
+// (eski Question jadvaliga) yozilgan natijalar ham hisobga olinadi — S26
+// (Attempt jadvali) kutilmaydi. 30 kundan eskisi baribir esdan chiqadi —
+// qayta berish foydali.
+const EXCLUDE_RECENTLY_CORRECT_DAYS = 30;
+
 /**
  * Zaif mavzu bo'yicha shaxsiy mashq sessiyasi yaratadi — S18a konstruktor
  * infratuzilmasi (`createSessionFromSpec`) orqali Item bankidan tanlab,
@@ -128,12 +137,20 @@ export function classifyTopics(stats: TopicStat[]) {
  * mashq umuman ishlamay qolgandan ko'ra, kengroq (lekin baribir foydali)
  * sessiya yaxshiroq.
  *
+ * Birinchi urinish `excludeAnsweredCorrectlyDays` bilan (yuqoridagi izoh) —
+ * agar shu cheklov havzani bo'shatib qo'ysa (masalan kichik mavzu, deyarli
+ * hammasi yaqinda to'g'ri javob berilgan), IKKINCHI urinish shu cheklovsiz
+ * qilinadi: takrorlangan savol bilan mashq — mashq umuman ishlamay
+ * qolgandan yaxshiroq. `pickItemsForSpec`ning o'zi bu chetlatishni
+ * bo'shatmaydi (u spec maydoni emas, alohida parametr), shuning uchun
+ * qayta urinish shu yerda, qo'lda qilinadi.
+ *
  * Kunlik konstruktor test tuzish kvotasini SARFLAMAYDI
  * (`countsAgainstQuota: false`) — bu qaror server tomonidan qat'iy
  * belgilangan, chaqiruvchidan (so'rov tanasidan) kelmaydi (qarang
  * `lib/sessions.ts#CreateSessionParams`).
  *
- * Havza (fan bo'yicha ham) bo'sh chiqsa — `null` qaytadi, chaqiruvchi
+ * Ikkala urinish ham havza bo'sh chiqsa — `null` qaytadi, chaqiruvchi
  * mavjud nashr qilingan testni tavsiya qilishga o'tadi.
  */
 export async function generatePracticeSession(params: {
@@ -147,23 +164,33 @@ export async function generatePracticeSession(params: {
   const topicMap = await resolveTopicNodes(subjectId, [topic]);
   const node = topicMap.get(topic);
 
-  const spec: ItemSpec = {
+  const baseSpec: ItemSpec = {
     subjectIds: [subjectId],
     ...(node ? { topicPaths: [node.path] } : {}),
   };
 
-  const outcome = await createSessionFromSpec({
+  const createParams = {
     userId,
-    spec,
     limit: count,
     durationMin: Math.max(10, Math.round(count * 1.5)),
-    mode: 'FIXED',
+    mode: 'FIXED' as const,
     title: `Shaxsiy mashq: ${topic}`,
     countsAgainstQuota: false,
-  });
+  };
 
-  if (!outcome.ok) return null;
-  return { id: outcome.session.id, title: outcome.session.title, questionCount: outcome.session.questionCount };
+  const withExclusion = await createSessionFromSpec({
+    ...createParams,
+    spec: { ...baseSpec, excludeAnsweredCorrectlyDays: EXCLUDE_RECENTLY_CORRECT_DAYS },
+  });
+  if (withExclusion.ok) {
+    const { session } = withExclusion;
+    return { id: session.id, title: session.title, questionCount: session.questionCount };
+  }
+
+  const withoutExclusion = await createSessionFromSpec({ ...createParams, spec: baseSpec });
+  if (!withoutExclusion.ok) return null;
+  const { session } = withoutExclusion;
+  return { id: session.id, title: session.title, questionCount: session.questionCount };
 }
 
 export interface GrowthScheduleEntry {
