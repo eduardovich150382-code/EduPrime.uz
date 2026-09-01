@@ -380,14 +380,40 @@ model Item {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  subject   Subject     @relation(fields: [subjectId], references: [id])
-  topics    ItemTopic[]
-  testItems TestItem[]
-  stat      ItemStat?
+  subject      Subject             @relation(fields: [subjectId], references: [id])
+  topics       ItemTopic[]
+  testItems    TestItem[]
+  stat         ItemStat?
+  explanations ItemExplanation[]
 
   @@index([subjectId, status, visibility])
   @@index([subjectId, difficulty])
   @@index([templateId])
+}
+
+// AI repetitor tushuntirishlari keshi (S19). Faqat `Item.explanationSource
+// === NONE` (mualliflik yozma/video yechimi yo'q) savollar uchun to'ldiriladi
+// — AI mualliflik kontentining o'rnini bosmaydi, uning bo'shlig'ini
+// to'ldiradi (qarang POST /api/results/[id]/ai-explain). `forAnswer` —
+// talaba tanlagan (noto'g'ri) javob, to'g'ri javob uchun yoki javob
+// berilmagan (o'tkazib yuborilgan) holat uchun `null` — shu sababli bitta
+// savolga har xil noto'g'ri javob bergan ikki talaba ikki xil, ularning
+// aynan xatosiga qaratilgan tushuntirish oladi.
+model ItemExplanation {
+  id         String    @id @default(cuid())
+  itemId     String
+  lang       String
+  forAnswer  String?
+  text       String
+  upvotes    Int       @default(0)
+  downvotes  Int       @default(0)
+  promotedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([itemId, lang, forAnswer])
+  @@index([itemId, lang])
 }
 
 model ItemTopic {

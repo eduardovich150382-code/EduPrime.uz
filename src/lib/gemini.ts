@@ -381,14 +381,24 @@ interface ExplainQuestionParams {
   questionText: string;
   options: { label: string; text: string }[];
   correctAnswer: string;
-  existingExplanation?: string | null;
   type: string;
   lang: string;
+  /**
+   * Talabaning shu savolga bergan javobi, inson o'qiy oladigan shaklda
+   * (masalan "B) 12" yoki bo'shliqlar ro'yxati) — chaqiruvchi
+   * (`ai-explain` route) tayyorlaydi, chunki savol turiga qarab format har
+   * xil (MATCHING/FILL_BLANK — lib/matching.ts, lib/fill-blank.ts).
+   * Bo'sh/undefined — talaba javob bermagan (o'tkazib yuborgan).
+   */
+  userAnswer?: string;
+  /** `userAnswer` to'g'ri javobga teng bo'lsa `true` — ohangni moslashtirish uchun. */
+  answeredCorrectly?: boolean;
 }
 
 /**
  * AI Tutor: given a question and its already-known correct answer, stream a
- * simple, step-by-step explanation in the student's language.
+ * simple, step-by-step explanation in the student's language, PERSONALIZED
+ * to what the student actually answered.
  *
  * IMPORTANT: this is intentionally "grounded" — the correct answer is passed
  * in as ground truth and the model is instructed never to re-derive or
@@ -398,34 +408,52 @@ interface ExplainQuestionParams {
  * Streams token-by-token (instead of waiting for the full response) so the
  * student sees text appear immediately rather than staring at a spinner, and
  * caps maxOutputTokens as a hard ceiling on worst-case latency/cost — the
- * prompt's own "250 so'z" instruction is only a soft guideline the model can
- * ignore.
+ * prompt's own "600 so'z" instruction is only a soft guideline the model can
+ * ignore (kept in sync with maxOutputTokens — raising one without the other
+ * just gets the response cut off mid-formula).
  */
 export async function* streamExplainQuestion(
   params: ExplainQuestionParams
 ): AsyncGenerator<string> {
   const langName = TUTOR_LANG_NAMES[params.lang] || TUTOR_LANG_NAMES.uz;
 
+  // MATCHING/FILL_BLANK'da `options` MC shaklida emas (lib/matching.ts,
+  // lib/fill-blank.ts) — chaqiruvchi bunday holatda bo'sh massiv beradi,
+  // shu sababli faqat haqiqatan A/B/C/D... shaklidagi turlarda ko'rsatiladi.
   const optionsText =
-    params.type === 'OPEN_ENDED' || params.options.length === 0
+    params.options.length === 0
       ? ''
       : `\nVariantlar:\n${params.options.map((o) => `${o.label}) ${o.text}`).join('\n')}`;
 
+  const hasAnswer = !!params.userAnswer?.trim();
+  const studentAnswerText = hasAnswer
+    ? `\nTalaba javobi: ${params.userAnswer}${params.answeredCorrectly ? " (TO'G'RI)" : " (NOTO'G'RI)"}`
+    : '';
+
+  // Ohang talaba nima qilganiga qarab moslashadi — "siz X ni tanladingiz,
+  // bu ... sababli noto'g'ri" (xato aynan qayerda ekanini ko'rsatish) vs.
+  // to'g'ri javobni tasdiqlab mustahkamlash vs. umuman javob bermaganda
+  // (o'tkazib yuborilgan) neytral qadamma-qadam yechim.
+  const toneInstruction = !hasAnswer
+    ? "Talaba bu savolga javob bermagan (o'tkazib yuborgan) — to'g'ri javobga qanday kelish kerakligini qadamma-qadam tushuntir."
+    : params.answeredCorrectly
+      ? "Talaba TO'G'RI javob bergan — avval qisqa tabrikla, so'ng NEGA bu javob to'g'ri ekanini qadamma-qadam tushuntirib, tushunchani mustahkamla."
+      : "Talaba NOTO'G'RI javob bergan (yuqorida ko'rsatilgan) — avval uning xatosi aynan QAYERDA/NIMADA ekanini tushuntir (qaysi qadamda yoki tushunchada adashgan bo'lishi mumkin), so'ng to'g'ri javobga qanday kelish kerakligini qadamma-qadam ko'rsat.";
+
   const prompt = `Sen o'quvchilarga sodda va tushunarli tilda tushuntiradigan mehribon repetitor-o'qituvchisan.
 
-QAT'IY QOIDA: Pastda berilgan "TO'G'RI JAVOB" har doim to'g'ri hisoblanadi. Sen uni qayta tekshirmaysan, shubha qilmaysan va boshqa variantni to'g'ri deb aytmaysan — sening yagona vazifang shu javob NEGA to'g'ri ekanini sodda, qadamma-qadam tushuntirishdir.
+QAT'IY QOIDA: Pastda berilgan "TO'G'RI JAVOB" har doim to'g'ri hisoblanadi. Sen uni qayta tekshirmaysan, shubha qilmaysan va boshqa variantni to'g'ri deb aytmaysan — sening yagona vazifang shu javob NEGA to'g'ri ekanini, talabaning O'ZI bergan javobga qaratilgan holda, sodda va qadamma-qadam tushuntirishdir.
 
 Savol: ${params.questionText}${optionsText}
 
-TO'G'RI JAVOB: ${params.correctAnswer}
-${params.existingExplanation ? `\nUstozning yozma yechimi (shunga asoslan, kengaytir):\n${params.existingExplanation}` : ''}
+TO'G'RI JAVOB: ${params.correctAnswer}${studentAnswerText}
 
-Vazifa: Yuqoridagi to'g'ri javobni ${langName} tilida, o'quvchiga tushunarli, qadamma-qadam, do'stona ohangda tushuntir. Formulalar uchun LaTeX belgilaridan foydalan ($...$ inline, $$...$$ katta formulalar uchun). Javobing 250 so'zdan oshmasin. Faqat tushuntirish matnini yoz — sarlavha, "mana javob" kabi kirish so'zlari yozma.`;
+Vazifa: ${toneInstruction} Buni ${langName} tilida, o'quvchiga tushunarli, do'stona ohangda yoz. Formulalar uchun LaTeX belgilaridan foydalan ($...$ inline, $$...$$ katta formulalar uchun). Javobing 600 so'zdan oshmasin. Faqat tushuntirish matnini yoz — sarlavha, "mana javob" kabi kirish so'zlari yozma.`;
 
   const model = genAI.getGenerativeModel({
     model: 'gemini-3.5-flash',
     generationConfig: {
-      maxOutputTokens: 600,
+      maxOutputTokens: 1500,
       temperature: 0.4,
     },
   });

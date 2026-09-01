@@ -1,53 +1,58 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
- * S17 — "teshik": AI tushuntirish yozma yechimning o'rnini bosadi, shuning
- * uchun XUDDI SHU qulfni (`resolveSolutionVisibility`) talab qiladi.
- * Naqsh `courses/[id]/__tests__/route.test.ts` bilan bir xil.
+ * S19 — AI tushuntirishni qayta qurish.
+ *
+ * - Test tarmog'i (testId → Question) VA sessiya tarmog'i (sessionId →
+ *   TestSession.itemIds → Item) ikkalasi ham ishlashi shart (S19 kritik
+ *   nuqson #1: eski kod faqat Question'ni bilar edi).
+ * - AI FAQAT `solutionKind === 'none'`da chaqiriladi — mualliflik yozma/
+ *   video yechimi bor joyda hech qachon chaqirilmaydi.
+ * - Kesh kaliti (itemId, lang, forAnswer) — talabaning javobiga bog'liq.
+ * - Kvota `DailyUsage.tutorMessages`da, `SystemSetting`da emas.
  */
 const {
   findUniqueResultMock,
   findUniqueQuestionMock,
-  updateQuestionMock,
+  itemFindUniqueMock,
+  testSessionFindUniqueMock,
+  itemExplanationFindFirstMock,
+  itemExplanationCreateMock,
   authMock,
   userFindUniqueMock,
   subscriptionFindManyMock,
   solutionUnlockFindUniqueMock,
-  systemSettingFindUniqueMock,
-  systemSettingUpsertMock,
+  dailyUsageUpsertMock,
   streamExplainQuestionMock,
-  itemFindUniqueMock,
 } = vi.hoisted(() => ({
   findUniqueResultMock: vi.fn(),
   findUniqueQuestionMock: vi.fn(),
-  updateQuestionMock: vi.fn(),
+  itemFindUniqueMock: vi.fn(),
+  testSessionFindUniqueMock: vi.fn(),
+  itemExplanationFindFirstMock: vi.fn(),
+  itemExplanationCreateMock: vi.fn(),
   authMock: vi.fn(),
   userFindUniqueMock: vi.fn(),
   subscriptionFindManyMock: vi.fn(),
   solutionUnlockFindUniqueMock: vi.fn(),
-  systemSettingFindUniqueMock: vi.fn(),
-  systemSettingUpsertMock: vi.fn(),
+  dailyUsageUpsertMock: vi.fn(),
   streamExplainQuestionMock: vi.fn(),
-  itemFindUniqueMock: vi.fn(),
 }));
 
 vi.mock("@/lib/db", () => ({
   db: {
     testResult: { findUnique: (...args: unknown[]) => findUniqueResultMock(...args) },
-    question: {
-      findUnique: (...args: unknown[]) => findUniqueQuestionMock(...args),
-      update: (...args: unknown[]) => updateQuestionMock(...args),
+    question: { findUnique: (...args: unknown[]) => findUniqueQuestionMock(...args) },
+    item: { findUnique: (...args: unknown[]) => itemFindUniqueMock(...args) },
+    testSession: { findUnique: (...args: unknown[]) => testSessionFindUniqueMock(...args) },
+    itemExplanation: {
+      findFirst: (...args: unknown[]) => itemExplanationFindFirstMock(...args),
+      create: (...args: unknown[]) => itemExplanationCreateMock(...args),
     },
     user: { findUnique: (...args: unknown[]) => userFindUniqueMock(...args) },
     subscription: { findMany: (...args: unknown[]) => subscriptionFindManyMock(...args) },
     solutionUnlock: { findUnique: (...args: unknown[]) => solutionUnlockFindUniqueMock(...args) },
-    systemSetting: {
-      findUnique: (...args: unknown[]) => systemSettingFindUniqueMock(...args),
-      upsert: (...args: unknown[]) => systemSettingUpsertMock(...args),
-    },
-    // resolveUnlockKey (lib/quota.ts) — questionId Item'ga ko'chirilganini
-    // legacyQuestionId orqali tekshiradi.
-    item: { findUnique: (...args: unknown[]) => itemFindUniqueMock(...args) },
+    dailyUsage: { upsert: (...args: unknown[]) => dailyUsageUpsertMock(...args) },
   },
 }));
 
@@ -70,12 +75,31 @@ function baseQuestion(overrides: Partial<Record<string, unknown>> = {}) {
     id: "q1",
     testId: "test1",
     text: "2+2=?",
-    options: [{ label: "A", text: "4", image: null }],
+    options: [
+      { label: "A", text: "4", image: null },
+      { label: "B", text: "5", image: null },
+    ],
     correctAnswer: "A",
-    explanation: "Chunki 2+2=4",
+    explanation: null,
+    explanationImages: [],
     videoUrl: null,
     type: "MULTIPLE_CHOICE",
-    aiExplanations: null,
+    ...overrides,
+  };
+}
+
+function baseItem(overrides: Partial<Record<string, unknown>> = {}) {
+  return {
+    text: "2+2=?",
+    options: [
+      { label: "A", text: "4", image: null },
+      { label: "B", text: "5", image: null },
+    ],
+    correctAnswer: "A",
+    explanation: null,
+    explanationImages: [],
+    videoUrl: null,
+    type: "MULTIPLE_CHOICE",
     ...overrides,
   };
 }
@@ -109,60 +133,229 @@ describe("POST /api/results/[id]/ai-explain", () => {
     userFindUniqueMock.mockResolvedValue({ role: "USER" });
     subscriptionFindManyMock.mockResolvedValue([]);
     solutionUnlockFindUniqueMock.mockResolvedValue(null);
-    systemSettingFindUniqueMock.mockResolvedValue(null);
-    systemSettingUpsertMock.mockResolvedValue({});
-    updateQuestionMock.mockResolvedValue({});
+    itemExplanationFindFirstMock.mockResolvedValue(null);
+    itemExplanationCreateMock.mockResolvedValue({});
+    dailyUsageUpsertMock.mockResolvedValue({ tutorMessages: 1 });
     streamExplainQuestionMock.mockReturnValue(fakeChunks());
-    findUniqueResultMock.mockResolvedValue({ userId: "user1", testId: "test1" });
-    // Default: questionId hali Item'ga ko'chirilmagan (resolveUnlockKey
-    // o'zini qaytaradi).
+    // Default: test tarmog'i, talaba "B" ni tanlagan (noto'g'ri)
+    findUniqueResultMock.mockResolvedValue({
+      userId: "user1",
+      testId: "test1",
+      sessionId: null,
+      answers: [{ questionId: "q1", answer: "B", isCorrect: false }],
+    });
+    // Default: questionId hali Item'ga ko'chirilmagan
     itemFindUniqueMock.mockResolvedValue(null);
   });
 
-  it("yechim ochilmagan savolda 403 (SOLUTION_LOCKED) qaytaradi", async () => {
-    findUniqueQuestionMock.mockResolvedValue(baseQuestion());
+  describe("ikkala tarmoq (Test va TestSession)", () => {
+    it("test tarmog'ida (Question) ishlaydi", async () => {
+      findUniqueQuestionMock.mockResolvedValue(baseQuestion());
+      const response = await callPost({ questionId: "q1" });
+      expect(response.status).toBe(200);
+      expect(streamExplainQuestionMock).toHaveBeenCalled();
+    });
 
-    const response = await callPost({ questionId: "q1" });
-    const data = await response.json();
+    it("S19 kritik nuqson #1: sessiya natijasida (TestSession → Item) ham ishlaydi", async () => {
+      findUniqueResultMock.mockResolvedValue({
+        userId: "user1",
+        testId: null,
+        sessionId: "sess1",
+        answers: [{ questionId: "item1", answer: "B", isCorrect: false }],
+      });
+      testSessionFindUniqueMock.mockResolvedValue({ itemIds: ["item1"] });
+      itemFindUniqueMock.mockResolvedValue(baseItem());
 
-    expect(response.status).toBe(403);
-    expect(data.code).toBe("SOLUTION_LOCKED");
-    expect(streamExplainQuestionMock).not.toHaveBeenCalled();
+      const response = await callPost({ questionId: "item1" });
+      expect(response.status).toBe(200);
+      expect(streamExplainQuestionMock).toHaveBeenCalled();
+    });
+
+    it("sessiyada itemIds tarkibida bo'lmagan itemId uchun 404", async () => {
+      findUniqueResultMock.mockResolvedValue({
+        userId: "user1", testId: null, sessionId: "sess1", answers: [],
+      });
+      testSessionFindUniqueMock.mockResolvedValue({ itemIds: ["other-item"] });
+
+      const response = await callPost({ questionId: "item1" });
+      expect(response.status).toBe(404);
+      expect(streamExplainQuestionMock).not.toHaveBeenCalled();
+    });
   });
 
-  it("SolutionUnlock mavjud bo'lsa AI tushuntirishga ruxsat beradi", async () => {
-    findUniqueQuestionMock.mockResolvedValue(baseQuestion());
-    solutionUnlockFindUniqueMock.mockResolvedValue({ userId: "user1", itemId: "q1" });
+  describe("mualliflik yechimi bor joyda AI CHAQIRILMAYDI", () => {
+    it("yozma yechim ochilmagan bo'lsa 403 SOLUTION_LOCKED, AI chaqirilmaydi", async () => {
+      findUniqueQuestionMock.mockResolvedValue(baseQuestion({ explanation: "Chunki 2+2=4" }));
 
-    const response = await callPost({ questionId: "q1" });
-    expect(response.status).toBe(200);
-    const text = await readBody(response);
-    expect(text).toBe("AI tushuntirishi");
+      const response = await callPost({ questionId: "q1" });
+      const data = await response.json();
+      expect(response.status).toBe(403);
+      expect(data.code).toBe("SOLUTION_LOCKED");
+      expect(streamExplainQuestionMock).not.toHaveBeenCalled();
+    });
+
+    it("yozma yechim OCHILGAN bo'lsa ham AI chaqirilmaydi (400 AI_NOT_APPLICABLE)", async () => {
+      findUniqueQuestionMock.mockResolvedValue(baseQuestion({ explanation: "Chunki 2+2=4" }));
+      solutionUnlockFindUniqueMock.mockResolvedValue({ userId: "user1", itemId: "q1" });
+
+      const response = await callPost({ questionId: "q1" });
+      const data = await response.json();
+      expect(response.status).toBe(400);
+      expect(data.code).toBe("AI_NOT_APPLICABLE");
+      expect(streamExplainQuestionMock).not.toHaveBeenCalled();
+    });
+
+    it("video yechim OCHILGAN (Premium) bo'lsa ham AI chaqirilmaydi", async () => {
+      findUniqueQuestionMock.mockResolvedValue(
+        baseQuestion({ explanation: null, videoUrl: "https://youtube.com/watch?v=x" })
+      );
+      subscriptionFindManyMock.mockResolvedValue([{ plan: "PREMIUM" }]);
+
+      const response = await callPost({ questionId: "q1" });
+      const data = await response.json();
+      expect(response.status).toBe(400);
+      expect(data.code).toBe("AI_NOT_APPLICABLE");
+      expect(streamExplainQuestionMock).not.toHaveBeenCalled();
+    });
+
+    it("video yechim ochilmagan bo'lsa 403 SOLUTION_LOCKED", async () => {
+      findUniqueQuestionMock.mockResolvedValue(
+        baseQuestion({ explanation: null, videoUrl: "https://youtube.com/watch?v=x" })
+      );
+
+      const response = await callPost({ questionId: "q1" });
+      const data = await response.json();
+      expect(response.status).toBe(403);
+      expect(data.code).toBe("SOLUTION_LOCKED");
+    });
+
+    it("mualliflik yechimi UMUMAN yo'q (solutionKind: none) bo'lsa cheklovsiz chaqiriladi", async () => {
+      findUniqueQuestionMock.mockResolvedValue(baseQuestion());
+      const response = await callPost({ questionId: "q1" });
+      expect(response.status).toBe(200);
+      expect(streamExplainQuestionMock).toHaveBeenCalled();
+    });
   });
 
-  it("PREMIUM obunachi uchun har doim ruxsat beradi", async () => {
-    findUniqueQuestionMock.mockResolvedValue(baseQuestion());
-    subscriptionFindManyMock.mockResolvedValue([{ plan: "PREMIUM" }]);
+  describe("talaba javobiga moslashtirish va kesh kaliti", () => {
+    it("talaba javobi va to'g'riligi streamExplainQuestion'ga uzatiladi", async () => {
+      findUniqueQuestionMock.mockResolvedValue(baseQuestion());
+      await callPost({ questionId: "q1" });
 
-    const response = await callPost({ questionId: "q1" });
-    expect(response.status).toBe(200);
+      expect(streamExplainQuestionMock).toHaveBeenCalledWith(
+        expect.objectContaining({ userAnswer: "B) 5", answeredCorrectly: false })
+      );
+    });
+
+    it("to'g'ri javob berilganda ohang moslashadi (answeredCorrectly: true)", async () => {
+      findUniqueResultMock.mockResolvedValue({
+        userId: "user1", testId: "test1", sessionId: null,
+        answers: [{ questionId: "q1", answer: "A", isCorrect: true }],
+      });
+      findUniqueQuestionMock.mockResolvedValue(baseQuestion());
+      await callPost({ questionId: "q1" });
+
+      expect(streamExplainQuestionMock).toHaveBeenCalledWith(
+        expect.objectContaining({ userAnswer: "A) 4", answeredCorrectly: true })
+      );
+    });
+
+    it("Item topilgan bo'lsa (backfill qilingan) forAnswer=javob bilan keshlanadi", async () => {
+      itemFindUniqueMock.mockResolvedValue({ id: "item-real" });
+      findUniqueQuestionMock.mockResolvedValue(baseQuestion());
+
+      const response = await callPost({ questionId: "q1" });
+      await readBody(response);
+
+      expect(itemExplanationFindFirstMock).toHaveBeenCalledWith({
+        where: { itemId: "item-real", lang: "uz", forAnswer: "B" },
+      });
+      expect(itemExplanationCreateMock).toHaveBeenCalledWith({
+        data: { itemId: "item-real", lang: "uz", forAnswer: "B", text: "AI tushuntirishi" },
+      });
+    });
+
+    it("to'g'ri javobda forAnswer=null bilan keshlanadi", async () => {
+      itemFindUniqueMock.mockResolvedValue({ id: "item-real" });
+      findUniqueResultMock.mockResolvedValue({
+        userId: "user1", testId: "test1", sessionId: null,
+        answers: [{ questionId: "q1", answer: "A", isCorrect: true }],
+      });
+      findUniqueQuestionMock.mockResolvedValue(baseQuestion());
+
+      const response = await callPost({ questionId: "q1" });
+      await readBody(response);
+
+      expect(itemExplanationFindFirstMock).toHaveBeenCalledWith({
+        where: { itemId: "item-real", lang: "uz", forAnswer: null },
+      });
+    });
+
+    it("Item topilmagan bo'lsa (hali backfill qilinmagan) AI chaqiriladi, lekin KESHLANMAYDI", async () => {
+      itemFindUniqueMock.mockResolvedValue(null); // legacyQuestionId bo'yicha topilmadi
+      findUniqueQuestionMock.mockResolvedValue(baseQuestion());
+
+      const response = await callPost({ questionId: "q1" });
+      await readBody(response);
+
+      expect(streamExplainQuestionMock).toHaveBeenCalled();
+      expect(itemExplanationFindFirstMock).not.toHaveBeenCalled();
+      expect(itemExplanationCreateMock).not.toHaveBeenCalled();
+    });
+
+    it("kesh mavjud bo'lsa AI UMUMAN chaqirilmaydi, kvota sarflanmaydi", async () => {
+      itemFindUniqueMock.mockResolvedValue({ id: "item-real" });
+      itemExplanationFindFirstMock.mockResolvedValue({ text: "Keshdagi tushuntirish" });
+      findUniqueQuestionMock.mockResolvedValue(baseQuestion());
+
+      const response = await callPost({ questionId: "q1" });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data).toEqual({ explanation: "Keshdagi tushuntirish", cached: true });
+      expect(streamExplainQuestionMock).not.toHaveBeenCalled();
+      expect(dailyUsageUpsertMock).not.toHaveBeenCalled();
+    });
   });
 
-  it("savolda faqat video yechim bor (yozma yo'q), Premium emas — 403 qaytaradi", async () => {
-    findUniqueQuestionMock.mockResolvedValue(
-      baseQuestion({ explanation: null, videoUrl: "https://youtube.com/watch?v=x" })
-    );
+  describe("kvota — DailyUsage.tutorMessages", () => {
+    it("kvota tugaganda 429 AI_QUOTA_EXCEEDED qaytaradi", async () => {
+      findUniqueQuestionMock.mockResolvedValue(baseQuestion());
+      dailyUsageUpsertMock.mockResolvedValue({ tutorMessages: 4 }); // FREE_DAILY_AI_EXPLAIN=3 dan oshgan
 
-    const response = await callPost({ questionId: "q1" });
-    const data = await response.json();
-    expect(response.status).toBe(403);
-    expect(data.code).toBe("SOLUTION_LOCKED");
-  });
+      const response = await callPost({ questionId: "q1" });
+      const data = await response.json();
+      expect(response.status).toBe(429);
+      expect(data.code).toBe("AI_QUOTA_EXCEEDED");
+      expect(streamExplainQuestionMock).not.toHaveBeenCalled();
+    });
 
-  it("savolda hech qanday yechim yo'q bo'lsa (solutionKind: none) cheklovsiz ruxsat beradi", async () => {
-    findUniqueQuestionMock.mockResolvedValue(baseQuestion({ explanation: null, videoUrl: null }));
+    it("kvota DailyUsage orqali sarflanadi (bumpDailyUsage → upsert)", async () => {
+      findUniqueQuestionMock.mockResolvedValue(baseQuestion());
+      await callPost({ questionId: "q1" });
+      expect(dailyUsageUpsertMock).toHaveBeenCalled();
+    });
 
-    const response = await callPost({ questionId: "q1" });
-    expect(response.status).toBe(200);
+    it("PREMIUM obunachi uchun kvota cheklovsiz (upsert chaqirilmaydi)", async () => {
+      findUniqueQuestionMock.mockResolvedValue(baseQuestion());
+      subscriptionFindManyMock.mockResolvedValue([{ plan: "PREMIUM" }]);
+
+      const response = await callPost({ questionId: "q1" });
+      expect(response.status).toBe(200);
+      expect(dailyUsageUpsertMock).not.toHaveBeenCalled();
+    });
+
+    it("ADMIN uchun kvota tekshirilmaydi", async () => {
+      authMock.mockReturnValue({ user: { id: "user1", role: "ADMIN", lang: "uz" } });
+      findUniqueResultMock.mockResolvedValue({
+        userId: "someone-else", testId: "test1", sessionId: null,
+        answers: [{ questionId: "q1", answer: "B", isCorrect: false }],
+      });
+      findUniqueQuestionMock.mockResolvedValue(baseQuestion());
+
+      const response = await callPost({ questionId: "q1" });
+      expect(response.status).toBe(200);
+      expect(dailyUsageUpsertMock).not.toHaveBeenCalled();
+    });
   });
 });

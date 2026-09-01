@@ -1081,12 +1081,13 @@ export default function ResultPage() {
                       </Link>
                     )}
 
-                    {/* AI tushuntirish yozma yechimning o'rnini bosadi —
-                        yechim hali ochilmagan bo'lsa server baribir 403
-                        qaytaradi (ai-explain — S17 "teshik"), shuning uchun
-                        bu holatda tugmani ko'rsatib, foydalanuvchini
-                        muvaffaqiyatsiz so'rovga yo'naltirmaymiz. */}
-                    {(question.solutionKind === 'none' || question.solutionUnlocked) && (
+                    {/* AI tushuntirish mualliflik yechimining (yozma yoki
+                        video) o'RNINI BOSMAYDI, uning bo'shlig'ini
+                        to'ldiradi — shuning uchun faqat mualliflik yechimi
+                        UMUMAN yo'q savollarda ko'rsatiladi (S19). Boshqa
+                        holatda server baribir AI_NOT_APPLICABLE bilan rad
+                        etadi. */}
+                    {question.solutionKind === 'none' && (
                       <button
                         onClick={() => toggleAiExplain(question.id)}
                         className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all min-h-11 ${
