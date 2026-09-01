@@ -84,6 +84,13 @@ export default function BuildClient() {
   const [loadingYesterday, setLoadingYesterday] = useState(false);
   const [yesterdayMsg, setYesterdayMsg] = useState<string | null>(null);
 
+  // "Zaif mavzularim" chipi — bilim xaritasidagi zaif mavzularni topicPaths
+  // sifatida oladi (GET /api/items/weak-topics). DIQQAT: bu orqali tuzilgan
+  // test ODATIY konstruktor testi — kunlik kvotaga KIRADI (mashq tugmasidan
+  // farqli, qarang lib/mastery.ts#generatePracticeSession).
+  const [loadingWeakTopics, setLoadingWeakTopics] = useState(false);
+  const [weakTopicsMsg, setWeakTopicsMsg] = useState<string | null>(null);
+
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
 
@@ -117,6 +124,7 @@ export default function BuildClient() {
   const updateFilter = useCallback((patch: Partial<BuildState>) => {
     setOnlyItemIds(undefined);
     setYesterdayMsg(null);
+    setWeakTopicsMsg(null);
     setState((s) => ({ ...s, ...patch }));
   }, []);
 
@@ -137,12 +145,14 @@ export default function BuildClient() {
     if (!preset) return;
     setOnlyItemIds(undefined);
     setYesterdayMsg(null);
+    setWeakTopicsMsg(null);
     setState((s) => ({ ...s, ...preset.apply() }));
   }, []);
 
   const applyYesterdayMistakes = useCallback(async () => {
     setLoadingYesterday(true);
     setYesterdayMsg(null);
+    setWeakTopicsMsg(null);
     try {
       const res = await fetch('/api/items/yesterday-mistakes');
       const data = await res.json();
@@ -159,6 +169,32 @@ export default function BuildClient() {
       setLoadingYesterday(false);
     }
   }, []);
+
+  // DIQQAT: bu preset orqali tuzilgan test ODATIY konstruktor testi —
+  // kunlik test tuzish kvotasiga KIRADI. Bilim xaritasi sahifasidagi mashq
+  // tugmasi (lib/mastery.ts#generatePracticeSession) esa kvotasiz — ikkisini
+  // aralashtirmaslik uchun bu yerda hech qanday kvota-chetlash bayrog'i yo'q.
+  const applyWeakTopics = useCallback(async () => {
+    setLoadingWeakTopics(true);
+    setWeakTopicsMsg(null);
+    setYesterdayMsg(null);
+    try {
+      const res = await fetch('/api/items/weak-topics');
+      const data = await res.json();
+      const paths: string[] = Array.isArray(data.topicPaths) ? data.topicPaths : [];
+      const subjIds: string[] = Array.isArray(data.subjectIds) ? data.subjectIds : [];
+      if (paths.length === 0) {
+        setWeakTopicsMsg(t('weakTopicsEmpty'));
+      } else {
+        setOnlyItemIds(undefined);
+        setState((s) => ({ ...s, subjectIds: subjIds.length ? subjIds : s.subjectIds, topicPaths: paths }));
+      }
+    } catch {
+      setWeakTopicsMsg(t('weakTopicsError'));
+    } finally {
+      setLoadingWeakTopics(false);
+    }
+  }, [t]);
 
   const itemSpec = useMemo(() => buildStateToItemSpec(state, onlyItemIds), [state, onlyItemIds]);
   const itemSpecKey = useMemo(() => JSON.stringify(itemSpec), [itemSpec]);
@@ -259,8 +295,11 @@ export default function BuildClient() {
           onApplyPreset={applyPreset}
           onApplyYesterdayMistakes={applyYesterdayMistakes}
           loadingYesterdayMistakes={loadingYesterday}
+          onApplyWeakTopics={applyWeakTopics}
+          loadingWeakTopics={loadingWeakTopics}
         />
         {yesterdayMsg && <p className="text-xs text-amber-700">{yesterdayMsg}</p>}
+        {weakTopicsMsg && <p className="text-xs text-amber-700">{weakTopicsMsg}</p>}
       </section>
 
       <section className="card p-4 sm:p-5 space-y-3">

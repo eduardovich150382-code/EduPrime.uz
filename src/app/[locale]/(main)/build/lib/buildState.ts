@@ -189,11 +189,11 @@ export function buildStateToItemSpec(state: BuildState, onlyItemIds?: string[]):
 export type PresetOverride = Partial<Pick<BuildState, 'exams' | 'questionCount' | 'durationMin' | 'durationManual' | 'difficultyMin' | 'difficultyMax'>>;
 
 /**
- * "Kechagi xatolarim" bu yerda YO'Q — u `onlyItemIds`ni server'dan
- * (`GET /api/items/yesterday-mistakes`) olib kelishi kerak, shuning uchun
- * BuildClient.tsx'da alohida (async) ishlov beriladi. "Zaif mavzularim"
- * umuman yo'q — bilim xaritasi hozircha Item bankiga bog'lanmagan (qarang:
- * PR tavsifidagi "Keyingi sessiyaga" bo'limi).
+ * "Kechagi xatolarim" va "Zaif mavzularim" bu yerda YO'Q — ikkalasi ham
+ * serverdan (mos ravishda `GET /api/items/yesterday-mistakes` va
+ * `GET /api/items/weak-topics`) ma'lumot olib kelishi kerak, shuning uchun
+ * BuildClient.tsx'da alohida (async) ishlov beriladi (qarang
+ * `PresetChips.tsx`).
  */
 export const PRESETS: { id: string; label: string; apply: () => PresetOverride }[] = [
   {

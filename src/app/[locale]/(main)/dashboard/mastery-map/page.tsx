@@ -212,7 +212,7 @@ export default function MasteryMapPage() {
             {recommendations.map((r, i) => (
               <Link
                 key={i}
-                href={`/tests/${r.testId}/solve`}
+                href={r.kind === 'GENERATED' ? `/session/${r.testId}` : `/tests/${r.testId}/solve`}
                 className="flex items-center gap-3 p-3 rounded-xl border border-border hover:border-primary-200 hover:bg-primary-50/50 transition-colors"
               >
                 <div className="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center flex-shrink-0">
