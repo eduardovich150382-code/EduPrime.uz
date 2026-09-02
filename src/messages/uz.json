@@ -259,6 +259,16 @@
     "button": "Ko'rsatma",
     "buttonNext": "Yana ko'rsatma"
   },
+  "courseLearn": {
+    "lessonPosition": "{current}-dars / {total}",
+    "lessonListButton": "Ro'yxat",
+    "lessonListTitle": "Barcha darslar",
+    "close": "Yopish",
+    "stepsTitle": "Dars bosqichlari",
+    "stepLockedNote": "Avval tekshiruvni topshiring",
+    "pdfOpenExternally": "Boshqa ilovada ochish",
+    "pdfDownload": "Yuklab olish"
+  },
   "footer": {
     "description": "EduPrime — O'zbekistondagi eng zamonaviy test platformasi",
     "links": "Foydali havolalar",

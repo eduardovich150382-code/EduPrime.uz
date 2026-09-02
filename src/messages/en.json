@@ -259,6 +259,16 @@
     "button": "Hint",
     "buttonNext": "Another hint"
   },
+  "courseLearn": {
+    "lessonPosition": "Lesson {current} / {total}",
+    "lessonListButton": "Lessons",
+    "lessonListTitle": "All lessons",
+    "close": "Close",
+    "stepsTitle": "Lesson steps",
+    "stepLockedNote": "Complete the quiz first",
+    "pdfOpenExternally": "Open in another app",
+    "pdfDownload": "Download"
+  },
   "footer": {
     "description": "EduPrime — the most modern test platform in Uzbekistan",
     "links": "Useful links",

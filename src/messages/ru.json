@@ -259,6 +259,16 @@
     "button": "Подсказка",
     "buttonNext": "Ещё подсказка"
   },
+  "courseLearn": {
+    "lessonPosition": "Урок {current} / {total}",
+    "lessonListButton": "Список",
+    "lessonListTitle": "Все уроки",
+    "close": "Закрыть",
+    "stepsTitle": "Этапы урока",
+    "stepLockedNote": "Сначала пройдите проверку",
+    "pdfOpenExternally": "Открыть в другом приложении",
+    "pdfDownload": "Скачать"
+  },
   "footer": {
     "description": "EduPrime — самая современная тестовая платформа в Узбекистане",
     "links": "Полезные ссылки",
