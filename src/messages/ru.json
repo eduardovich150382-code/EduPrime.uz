@@ -266,6 +266,7 @@
     "close": "Закрыть",
     "stepsTitle": "Этапы урока",
     "stepLockedNote": "Сначала пройдите проверку",
+    "pdfLoadError": "Не удалось открыть PDF",
     "pdfOpenExternally": "Открыть в другом приложении",
     "pdfDownload": "Скачать"
   },

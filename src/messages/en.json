@@ -266,6 +266,7 @@
     "close": "Close",
     "stepsTitle": "Lesson steps",
     "stepLockedNote": "Complete the quiz first",
+    "pdfLoadError": "Couldn't open the PDF",
     "pdfOpenExternally": "Open in another app",
     "pdfDownload": "Download"
   },

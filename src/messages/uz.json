@@ -266,6 +266,7 @@
     "close": "Yopish",
     "stepsTitle": "Dars bosqichlari",
     "stepLockedNote": "Avval tekshiruvni topshiring",
+    "pdfLoadError": "PDF ochilmadi",
     "pdfOpenExternally": "Boshqa ilovada ochish",
     "pdfDownload": "Yuklab olish"
   },
