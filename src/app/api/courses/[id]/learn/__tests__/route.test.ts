@@ -70,6 +70,8 @@ function buildCourse() {
                 videoUrl: null,
                 testId: "test-quiz-1",
                 revealAfterQuiz: false,
+                embedUrl: null,
+                itemIds: [] as string[],
                 test: { id: "test-quiz-1", titleUz: "Mashq testi", questionCount: 5, duration: 10 },
               },
               {
@@ -81,6 +83,8 @@ function buildCourse() {
                 videoUrl: "https://youtube.com/watch?v=solution",
                 testId: null,
                 revealAfterQuiz: true,
+                embedUrl: null,
+                itemIds: [] as string[],
                 test: null,
               },
             ],

@@ -278,6 +278,7 @@ export default function CourseCurriculumEditor({ sections, onSectionsChange, tea
                 uploadingKey={uploadingKey}
                 generatingQuizKey={generatingQuizKey}
                 teacherTests={teacherTests}
+                subjectId={subjectId}
               />
             ))}
           </div>
@@ -309,6 +310,7 @@ interface SortableSectionCardProps {
   uploadingKey: string | null;
   generatingQuizKey: string | null;
   teacherTests: TeacherTestItem[];
+  subjectId: string;
 }
 
 function SortableSectionCard(props: SortableSectionCardProps) {
@@ -358,6 +360,7 @@ function SortableSectionCard(props: SortableSectionCardProps) {
                   uploading={props.uploadingKey === lesson._key}
                   generatingQuiz={props.generatingQuizKey === lesson._key}
                   teacherTests={props.teacherTests}
+                  subjectId={props.subjectId}
                 />
               ))}
             </div>
@@ -384,10 +387,11 @@ interface SortableLessonCardProps {
   uploading: boolean;
   generatingQuiz: boolean;
   teacherTests: TeacherTestItem[];
+  subjectId: string;
 }
 
 function SortableLessonCard(props: SortableLessonCardProps) {
-  const { sortId, lesson, isExpanded, onToggle, onRemove, canRemove, onUpdate, onGenerateQuiz, onFileUpload, uploading, generatingQuiz, teacherTests } = props;
+  const { sortId, lesson, isExpanded, onToggle, onRemove, canRemove, onUpdate, onGenerateQuiz, onFileUpload, uploading, generatingQuiz, teacherTests, subjectId } = props;
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: sortId });
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.6 : 1 };
   const TypeIcon = LESSON_TYPE_META[lesson.type].icon;
@@ -553,7 +557,7 @@ function SortableLessonCard(props: SortableLessonCardProps) {
           </div>
 
           <div className="pl-6 pt-1">
-            <LessonBlocksEditor blocks={lesson.blocks} onChange={(blocks) => onUpdate({ blocks })} teacherTests={teacherTests} />
+            <LessonBlocksEditor blocks={lesson.blocks} onChange={(blocks) => onUpdate({ blocks })} teacherTests={teacherTests} subjectId={subjectId} />
           </div>
         </>
       )}

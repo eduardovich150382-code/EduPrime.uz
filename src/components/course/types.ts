@@ -4,11 +4,15 @@
 
 export interface LessonBlockItem {
   id: string;
-  type: 'FILE' | 'QUIZ' | 'VIDEO_SOLUTION';
+  type: 'FILE' | 'QUIZ' | 'VIDEO_SOLUTION' | 'EMBED' | 'PRACTICE';
   labelUz: string | null;
   fileUrl: string | null;
   videoUrl: string | null;
   test: { id: string; titleUz: string; questionCount: number; duration: number } | null;
+  /** EMBED — tashqi simulyatsiya havolasi (allowlist server tomonda saqlashda tekshirilgan). */
+  embedUrl: string | null;
+  /** PRACTICE — savollar soni; savollarning o'zi /api/lesson-blocks/[id]/practice/start orqali alohida keladi. */
+  itemCount: number;
 }
 
 export interface LessonItem {

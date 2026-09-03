@@ -121,6 +121,8 @@ export async function GET(
               submittedTestIds,
             }),
             test: b.test,
+            embedUrl: b.embedUrl,
+            itemCount: b.itemIds.length,
           })),
         };
       }),

@@ -12,6 +12,8 @@ import PdfViewer from '@/components/ui/PdfViewer';
 import CourseCurriculum, { LESSON_ICONS } from '@/components/course/CourseCurriculum';
 import LessonListSheet from '@/components/course/LessonListSheet';
 import LessonStepRow from '@/components/course/LessonStepRow';
+import EmbedBlock from '@/components/course/EmbedBlock';
+import PracticeBlock from '@/components/course/PracticeBlock';
 import { withReturnTo } from '@/lib/safe-return-path';
 import type { LearnCourse } from './types';
 import type { LessonItem } from '@/components/course/types';
@@ -324,6 +326,36 @@ export default function CourseLearnPage() {
                         onToggle={() => setRevealedSolutions((prev) => new Set(prev).add(block.id))}
                       >
                         <SecureYouTubePlayer videoUrl={block.videoUrl} title={block.labelUz || 'Yechim videosi'} />
+                      </LessonStepRow>
+                    );
+                  }
+                  if (block.type === 'EMBED' && block.embedUrl) {
+                    const revealed = revealedSolutions.has(block.id);
+                    return (
+                      <LessonStepRow
+                        key={block.id}
+                        index={stepIndex}
+                        icon={<ExternalLink size={16} />}
+                        label={block.labelUz || t('embedDefaultLabel')}
+                        expanded={revealed}
+                        onToggle={() => setRevealedSolutions((prev) => new Set(prev).add(block.id))}
+                      >
+                        <EmbedBlock url={block.embedUrl} title={block.labelUz || t('embedDefaultLabel')} />
+                      </LessonStepRow>
+                    );
+                  }
+                  if (block.type === 'PRACTICE') {
+                    const revealed = revealedSolutions.has(block.id);
+                    return (
+                      <LessonStepRow
+                        key={block.id}
+                        index={stepIndex}
+                        icon={<ListChecks size={16} />}
+                        label={`${block.labelUz || t('practiceDefaultLabel')} (${block.itemCount})`}
+                        expanded={revealed}
+                        onToggle={() => setRevealedSolutions((prev) => new Set(prev).add(block.id))}
+                      >
+                        <PracticeBlock blockId={block.id} itemCount={block.itemCount} />
                       </LessonStepRow>
                     );
                   }

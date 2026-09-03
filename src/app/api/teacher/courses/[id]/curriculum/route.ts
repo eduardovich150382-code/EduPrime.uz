@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireTeacher } from '@/lib/api-auth';
+import { isAllowedEmbedUrl, EMBED_ALLOWED_DOMAINS } from '@/lib/embed-allowlist';
 
 const MAX_BLOCKS_PER_LESSON = 8;
-const BLOCK_TYPES = ['FILE', 'QUIZ', 'VIDEO_SOLUTION'] as const;
+const MAX_PRACTICE_ITEMS = 30; // /api/lesson-blocks/[id]/practice/start dagi bilan bir xil chegara
+const BLOCK_TYPES = ['FILE', 'QUIZ', 'VIDEO_SOLUTION', 'EMBED', 'PRACTICE'] as const;
 type BlockType = (typeof BLOCK_TYPES)[number];
 
 // PUT /api/teacher/courses/[id]/curriculum — bo'lim va darslarni bir yo'la
@@ -64,6 +66,27 @@ export async function PUT(
           if (b.type === 'QUIZ' && !b.testId) {
             return NextResponse.json({ error: "Qo'shimcha test bloki uchun test tanlanishi shart" }, { status: 400 });
           }
+          // EMBED — havola tahrirlagichda ham tekshiriladi, lekin o'qituvchi
+          // so'rovni qo'lda (tahrirlagichni chetlab o'tib) yuborishi mumkin,
+          // shuning uchun SERVER tomonda qayta tekshiriladi (haqiqiy chegara
+          // shu yerda).
+          if (b.type === 'EMBED') {
+            if (!b.embedUrl || !isAllowedEmbedUrl(b.embedUrl)) {
+              return NextResponse.json(
+                { error: `Bu domen ruxsat etilmagan. Ruxsat etilganlar: ${EMBED_ALLOWED_DOMAINS.join(', ')}` },
+                { status: 400 }
+              );
+            }
+          }
+          if (b.type === 'PRACTICE') {
+            const itemIds = Array.isArray(b.itemIds) ? b.itemIds : null;
+            if (!itemIds || itemIds.some((iid: unknown) => typeof iid !== 'string') || itemIds.length === 0) {
+              return NextResponse.json({ error: "Mashq bloki uchun kamida bitta savol tanlanishi kerak" }, { status: 400 });
+            }
+            if (itemIds.length > MAX_PRACTICE_ITEMS) {
+              return NextResponse.json({ error: `Mashq blokida ko'pi bilan ${MAX_PRACTICE_ITEMS} ta savol bo'lishi mumkin` }, { status: 400 });
+            }
+          }
         }
       }
     }
@@ -92,6 +115,34 @@ export async function PUT(
       if (referencedTestIds.some((tid) => !ownedIds.has(tid))) {
         return NextResponse.json(
           { error: "Faqat o'zingizning testlaringizni tekshiruv sifatida biriktirishingiz mumkin" },
+          { status: 400 }
+        );
+      }
+    }
+
+    // PRACTICE bloklari — havzadagi barcha item ID'lar haqiqatan mavjud VA
+    // nashr etilgan/ochiq (PUBLISHED/PUBLIC) bo'lishi shart, aks holda
+    // /api/lesson-blocks/[id]/practice/start bo'sh havza qaytaradi.
+    // Egalik tekshirilmaydi — testlardan farqli, Item havzasi umumiy
+    // (barcha o'qituvchilar bir xil PUBLIC havzadan mashq tanlaydi).
+    const referencedItemIds: string[] = Array.from(
+      new Set(
+        sections.flatMap((s: any) =>
+          (s.lessons || []).flatMap((l: any) =>
+            (l.blocks || []).flatMap((b: any) => (b.type === 'PRACTICE' && Array.isArray(b.itemIds) ? b.itemIds : []))
+          )
+        )
+      )
+    );
+    if (referencedItemIds.length > 0) {
+      const publishedItems = await db.item.findMany({
+        where: { id: { in: referencedItemIds }, status: 'PUBLISHED', visibility: 'PUBLIC' },
+        select: { id: true },
+      });
+      const publishedIds = new Set(publishedItems.map((it) => it.id));
+      if (referencedItemIds.some((iid) => !publishedIds.has(iid))) {
+        return NextResponse.json(
+          { error: "Ba'zi tanlangan savollar topilmadi yoki hali nashr etilmagan" },
           { status: 400 }
         );
       }
@@ -180,6 +231,8 @@ export async function PUT(
               videoUrl: b.type === 'VIDEO_SOLUTION' ? (b.videoUrl || null) : null,
               testId: b.type === 'QUIZ' ? (b.testId || null) : null,
               revealAfterQuiz: b.type === 'VIDEO_SOLUTION' ? !!b.revealAfterQuiz : false,
+              embedUrl: b.type === 'EMBED' ? (b.embedUrl || null) : null,
+              itemIds: b.type === 'PRACTICE' && Array.isArray(b.itemIds) ? b.itemIds.slice(0, MAX_PRACTICE_ITEMS) : [],
             };
             if (b.id && existingBlockIds.has(b.id)) {
               await tx.lessonBlock.update({ where: { id: b.id }, data: blockData });
