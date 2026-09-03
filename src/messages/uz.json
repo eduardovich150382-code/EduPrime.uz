@@ -232,6 +232,7 @@
     "backToBuild": "Konstruktorga qaytish",
     "backToTests": "Testlarga qaytish",
     "backToDtm": "DTM Online'ga qaytish",
+    "backToLesson": "Darsga qaytish",
     "solutionQuotaFree": "Bugun {remaining}/{limit} bepul yechim qoldi",
     "solutionQuotaUnlimited": "Yechimlar cheksiz (Premium)",
     "unlockSolution": "Yechimni ochish",

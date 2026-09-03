@@ -232,6 +232,7 @@
     "backToBuild": "Вернуться в конструктор",
     "backToTests": "Вернуться к тестам",
     "backToDtm": "Вернуться в DTM Online",
+    "backToLesson": "Вернуться к уроку",
     "solutionQuotaFree": "Сегодня осталось {remaining}/{limit} бесплатных решений",
     "solutionQuotaUnlimited": "Решения без ограничений (Premium)",
     "unlockSolution": "Открыть решение",

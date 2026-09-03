@@ -232,6 +232,7 @@
     "backToBuild": "Back to builder",
     "backToTests": "Back to tests",
     "backToDtm": "Back to DTM Online",
+    "backToLesson": "Back to lesson",
     "solutionQuotaFree": "{remaining}/{limit} free solutions left today",
     "solutionQuotaUnlimited": "Unlimited solutions (Premium)",
     "unlockSolution": "Unlock solution",

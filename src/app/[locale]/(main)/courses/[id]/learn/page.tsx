@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
 import BackButton from '@/components/ui/BackButton';
@@ -12,6 +12,7 @@ import PdfViewer from '@/components/ui/PdfViewer';
 import CourseCurriculum, { LESSON_ICONS } from '@/components/course/CourseCurriculum';
 import LessonListSheet from '@/components/course/LessonListSheet';
 import LessonStepRow from '@/components/course/LessonStepRow';
+import { withReturnTo } from '@/lib/safe-return-path';
 import type { LearnCourse } from './types';
 import type { LessonItem } from '@/components/course/types';
 import {
@@ -22,6 +23,7 @@ import {
 
 export default function CourseLearnPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const courseId = params.id as string;
   const t = useTranslations('courseLearn');
 
@@ -63,8 +65,11 @@ export default function CourseLearnPage() {
       .then((c) => {
         if (!c) return;
         const lessons = c.sections.flatMap((s) => s.lessons);
+        // ?lesson= bo'lsa (masalan test tugatib "ortga" bosilganda) o'sha darsga qaytadi
+        const requestedId = searchParams.get('lesson');
+        const requested = requestedId ? lessons.find((l) => l.id === requestedId) : undefined;
         const firstIncomplete = lessons.find((l) => !l.completed);
-        setCurrentLessonId((firstIncomplete || lessons[0])?.id || null);
+        setCurrentLessonId((requested || firstIncomplete || lessons[0])?.id || null);
       })
       .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -141,6 +146,8 @@ export default function CourseLearnPage() {
   }
 
   const progressPct = course.totalLessons > 0 ? Math.round((course.completedLessons / course.totalLessons) * 100) : 0;
+  // Test tugatib "ortga" bosilganda shu darsga qaytsin, /tests emas (qarang results/[id])
+  const lessonReturnTo = currentLesson ? `/courses/${courseId}/learn?lesson=${currentLesson.id}` : null;
 
   return (
     <div className="max-w-7xl mx-auto space-y-4">
@@ -246,7 +253,7 @@ export default function CourseLearnPage() {
 
                   {currentLesson.type === 'QUIZ' && currentLesson.test && (
                     <div className="space-y-2">
-                      <Link href={`/tests/${currentLesson.test.id}/solve`} className="btn-primary inline-flex items-center gap-2 text-sm !py-2.5 !px-4">
+                      <Link href={withReturnTo(`/tests/${currentLesson.test.id}/solve`, lessonReturnTo)} className="btn-primary inline-flex items-center gap-2 text-sm !py-2.5 !px-4">
                         <ListChecks size={16} /> Tekshiruvni boshlash ({currentLesson.test.questionCount} savol)
                       </Link>
                       {currentLesson.minPassPercent != null && (
@@ -285,7 +292,7 @@ export default function CourseLearnPage() {
                         icon={<ListChecks size={16} />}
                         label={`${block.labelUz || "Qo'shimcha mashq"} (${block.test.questionCount} savol)`}
                         statusIcon={<ArrowRight size={16} className="text-gray-300 flex-shrink-0" />}
-                        href={`/tests/${block.test.id}/solve`}
+                        href={withReturnTo(`/tests/${block.test.id}/solve`, lessonReturnTo)}
                       />
                     );
                   }
