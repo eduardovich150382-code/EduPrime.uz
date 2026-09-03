@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import QuestionDisplay from '@/components/test/QuestionDisplay';
 import HintPanel from '@/components/test/HintPanel';
 import TestTimer from '@/components/test/TestTimer';
 import QuestionNav from '@/components/test/QuestionNav';
 import BackButton from '@/components/ui/BackButton';
+import { withReturnTo, sanitizeReturnPath } from '@/lib/safe-return-path';
 import { ChevronLeft, ChevronRight, Flag, AlertCircle, Loader2, Keyboard, Maximize, Bookmark } from 'lucide-react';
 
 interface QuestionData {
@@ -34,7 +35,12 @@ interface TestData {
 export default function TestSolvePage() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const testId = params.id as string;
+  // Kurs darsidan kelingan bo'lsa (qarang `courses/[id]/learn`), test
+  // tugatilgach natija sahifasi orqali aynan shu manzilga qaytish uchun —
+  // tekshirilgan holda saqlanadi, xavfsiz bo'lmasa e'tiborsiz qoldiriladi.
+  const returnTo = sanitizeReturnPath(searchParams.get('returnTo'));
 
   const [test, setTest] = useState<TestData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -301,7 +307,7 @@ export default function TestSolvePage() {
       if (res.ok && data.result) {
         // Clear saved progress
         localStorage.removeItem(`test_progress_${testId}`);
-        router.push(`/results/${data.result.id}`);
+        router.push(withReturnTo(`/results/${data.result.id}`, returnTo));
       } else {
         alert(data.error || 'Xatolik yuz berdi');
         setSubmitting(false);
@@ -310,7 +316,7 @@ export default function TestSolvePage() {
       alert('Server xatolik');
       setSubmitting(false);
     }
-  }, [test, answers, testId, startTime, submitting, router]);
+  }, [test, answers, testId, startTime, submitting, router, returnTo]);
 
   if (loading) {
     return (

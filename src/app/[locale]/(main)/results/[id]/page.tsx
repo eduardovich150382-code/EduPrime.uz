@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
@@ -14,6 +14,7 @@ import {
 } from '@/lib/fill-blank';
 import { parseMatchingPairs, parseMatchingAnswer, isMatchingRowCorrect } from '@/lib/matching';
 import { DTM_TITLE_PREFIX } from '@/lib/dtm-online-shared';
+import { sanitizeReturnPath } from '@/lib/safe-return-path';
 import {
   CheckCircle, XCircle, SkipForward, Clock, Trophy,
   Video, FileText, ArrowLeft, Share2, RotateCcw,
@@ -84,8 +85,12 @@ interface ResultData {
 
 export default function ResultPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const resultId = params.id as string;
   const t = useTranslations('results');
+  // Kurs darsidagi testdan kelingan bo'lsa (qarang `tests/[id]/solve`),
+  // "ortga" tugmasi aynan shu darsga qaytsin — tekshirilgan holda.
+  const returnTo = sanitizeReturnPath(searchParams.get('returnTo'));
 
   const [result, setResult] = useState<ResultData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -405,9 +410,11 @@ export default function ResultPage() {
   // topshiriladi va bir xil `result.test.titleUz`da (session.title'dan
   // sintez qilingan, qarang GET /api/results/[id]) faqat DTM prefiksi
   // bilan farqlanadi — "ortga" havolasi shunga qarab to'g'ri manzilga ketsin.
+  // Kurs darsidagi testdan kelingan bo'lsa (`returnTo`, har doim tekshirilgan
+  // holda) — sessiya/oddiy test farqidan qat'i nazar, ustuvor.
   const isDtmResult = Boolean(result.sessionId) && result.test.titleUz.startsWith(DTM_TITLE_PREFIX);
-  const backHref = result.sessionId ? (isDtmResult ? '/dashboard/dtm-online' : '/build') : '/tests';
-  const backLabel = result.sessionId ? (isDtmResult ? t('backToDtm') : t('backToBuild')) : t('backToTests');
+  const backHref = returnTo || (result.sessionId ? (isDtmResult ? '/dashboard/dtm-online' : '/build') : '/tests');
+  const backLabel = returnTo ? t('backToLesson') : (result.sessionId ? (isDtmResult ? t('backToDtm') : t('backToBuild')) : t('backToTests'));
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
