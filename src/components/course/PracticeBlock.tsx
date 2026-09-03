@@ -18,8 +18,11 @@ interface PracticeQuestion {
 interface CheckResult {
   isCorrect: boolean;
   correctAnswer: string;
+  /** S17 pullik yechim — `SolutionUnlock` ortida, ochilmagan bo'lsa `null`. */
   explanation: string | null;
   explanationImages: string[];
+  /** S20a bepul daraja — noto'g'ri javobda tanlangan chalg'ituvchining "nega xato" izohi (parametrik savollarda). */
+  distractorWhy: string | null;
 }
 
 interface Props {
@@ -156,9 +159,9 @@ export default function PracticeBlock({ blockId, itemCount }: Props) {
             <p className={checked.isCorrect ? 'text-green-700 font-medium' : 'text-red-700 font-medium'}>
               {checked.isCorrect ? t('practiceCorrect') : t('practiceIncorrect')}
             </p>
-            {checked.explanation && (
+            {(checked.explanation || checked.distractorWhy) && (
               <div className="mt-1 text-text-secondary">
-                <LatexRenderer content={checked.explanation} />
+                <LatexRenderer content={checked.explanation || checked.distractorWhy || ''} />
               </div>
             )}
           </div>

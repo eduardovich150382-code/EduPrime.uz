@@ -5,6 +5,10 @@ import { sanitizeText, sanitizeInt } from '@/lib/sanitize';
 import { gradeSubmission } from '@/lib/grading';
 import { loadSessionItems, sessionPreserveOrder } from '@/lib/sessions';
 import { loadPracticeBlockAccess } from '@/lib/lesson-access';
+import { hasActiveSubscription } from '@/lib/access';
+import { isSolutionUnlocked } from '@/lib/quota';
+import { resolveSolutionVisibility } from '@/lib/solution-visibility';
+import { getDistractorWhy, toLang } from '@/lib/paramgen/regenerate';
 
 // POST /api/lesson-blocks/[id]/practice/check — PRACTICE blokidagi BITTA
 // savolni darhol baholaydi. `/api/sessions/[id]/submit`dagi bilan AYNAN bir
@@ -13,6 +17,15 @@ import { loadPracticeBlockAccess } from '@/lib/lesson-access';
 // belgilanmaydi — shuning uchun talaba xohlagan tartibda, xohlagancha
 // qayta-qayta har bir savolni tekshira oladi va bu hech qanday kunlik
 // kvotaga (start/route.ts — countsAgainstQuota: false) kirmaydi.
+//
+// S17 paywall — `correctAnswer` PRACTICE'ning o'zi ma'nosi bo'lgani uchun
+// har doim qaytadi, lekin TO'LIQ yozma yechim (`explanation`) `GET
+// /api/results/[id]`dagi bilan AYNAN bir xil qulf (`resolveSolutionVisibility`
+// + `SolutionUnlock`) ortida — aks holda mashq bloki S17 pullik yechimni
+// bepul chetlab o'tish yo'liga aylanadi. Bepul daraja — S20a distraktor
+// `why` izohi (`getDistractorWhy`), parametrik savolda noto'g'ri javob
+// uchun har doim ochiq (`results/[id]/route.ts#attachDistractorWhy` bilan
+// bir xil qoida).
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -68,11 +81,39 @@ export async function POST(
       return NextResponse.json({ error: 'Savol bu sessiyada topilmadi' }, { status: 400 });
     }
 
+    // `SolutionUnlock.itemId` — PRACTICE har doim Item.id bilan ishlaydi
+    // (loadSessionItems), Test tarmog'idagi eski Question.id'dan farqli
+    // hech qanday `resolveUnlockKey` normallashtirish shart emas (ai-explain
+    // route'dagi sessiya tarmog'i tarmog'i bilan bir xil holat).
+    const { premium, teacher } = await hasActiveSubscription(user.id);
+    const writtenUnlocked =
+      user.role === 'ADMIN' || premium || teacher || (await isSolutionUnlocked(user.id, item.id));
+    const visibility = resolveSolutionVisibility({
+      explanation: item.explanation,
+      explanationImages: item.explanationImages,
+      videoUrl: item.videoUrl,
+      writtenUnlocked,
+      // PRACTICE video yechim ko'rsatmaydi (frontend uni umuman render
+      // qilmaydi) — `false` shunchaki videoUrl javobda hech qachon
+      // chiqmasligini kafolatlaydi; video mavjud bo'lsa yozma yechim
+      // baribir (resolveSolutionVisibility qoidasi bo'yicha) yashiriladi.
+      videoUnlocked: false,
+    });
+
+    // S20a — bepul daraja: parametrik savolda, javob NOTO'G'RI bo'lsa,
+    // tanlangan chalg'ituvchining "nega xato" izohi. S17 qulfiga bog'liq
+    // emas (results/[id]/route.ts#attachDistractorWhy bilan bir xil qoida).
+    const distractorWhy =
+      !result.isCorrect && result.answer && item.templateId && item.variantSig
+        ? getDistractorWhy(item.templateId, item.variantSig, toLang(item.lang), result.answer)
+        : null;
+
     return NextResponse.json({
       isCorrect: result.isCorrect,
       correctAnswer: result.correctAnswer,
-      explanation: item.explanation,
-      explanationImages: item.explanationImages,
+      explanation: visibility.explanation,
+      explanationImages: visibility.explanationImages,
+      distractorWhy,
     });
   } catch (err) {
     console.error('POST /api/lesson-blocks/[id]/practice/check error:', err);
