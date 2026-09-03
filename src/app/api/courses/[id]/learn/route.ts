@@ -126,6 +126,13 @@ export async function GET(
               submittedTestIds,
             }),
             test: b.test,
+            // EMBED — allowlist saqlash paytida (PUT /api/teacher/courses/[id]/curriculum)
+            // tekshirilgan, shu sababli bu yerda qayta tekshirilmaydi.
+            embedUrl: b.embedUrl,
+            // PRACTICE — savollarning o'zi (Item.id lar) bu yerda YO'Q, faqat
+            // soni: talaba /api/lesson-blocks/[id]/practice/start orqali
+            // alohida olib keladi (paywall — savol matni shu yerdan sizmasin).
+            itemCount: b.itemIds.length,
           })),
         };
       }),

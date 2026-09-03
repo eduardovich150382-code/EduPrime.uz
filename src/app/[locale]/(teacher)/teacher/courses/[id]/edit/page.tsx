@@ -104,6 +104,8 @@ export default function EditCoursePage() {
                 videoUrl: b.videoUrl || '',
                 testId: b.testId || '',
                 revealAfterQuiz: !!b.revealAfterQuiz,
+                embedUrl: b.embedUrl || '',
+                itemIds: b.itemIds || [],
               })),
             })) : [createEmptyLesson()],
           })));
@@ -146,6 +148,8 @@ export default function EditCoursePage() {
             videoUrl: b.type === 'VIDEO_SOLUTION' ? b.videoUrl || null : null,
             testId: b.type === 'QUIZ' ? b.testId || null : null,
             revealAfterQuiz: b.type === 'VIDEO_SOLUTION' ? !!b.revealAfterQuiz : false,
+            embedUrl: b.type === 'EMBED' ? b.embedUrl || null : null,
+            itemIds: b.type === 'PRACTICE' ? b.itemIds : [],
           })),
         })),
       })),

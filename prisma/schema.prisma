@@ -555,10 +555,16 @@ model CourseLesson {
 // darslar butunlay o'zgarishsiz qoladi. Sof qo'shimcha material — dars
 // tugatish/qulflash (LessonProgress, course-lock.ts, creditQuizLessonProgress)
 // mantig'iga umuman ta'sir qilmaydi.
+// EMBED va PRACTICE — S22b. `embedUrl`/`itemIds` qo'shilishi Postgres enum
+// qiymat qo'shish + ishlatishni bitta tranzaksiyada qila olmasligi bilan
+// bog'liq emas (bular oddiy nullable ustunlar) — cheklov faqat ENUM
+// qiymatlarining o'ziga tegishli (qarang shu migratsiya papkasidagi izoh).
 enum LessonBlockType {
   FILE
   QUIZ
   VIDEO_SOLUTION
+  EMBED
+  PRACTICE
 }
 
 model LessonBlock {
@@ -571,6 +577,8 @@ model LessonBlock {
   videoUrl        String?         // VIDEO_SOLUTION
   testId          String?         // QUIZ — mavjud Test'ga ishora (CourseLesson.testId bilan bir xil naqsh)
   revealAfterQuiz Boolean         @default(false) // VIDEO_SOLUTION — true bo'lsa, foydalanuvchi shu darsning QUIZ blokini (yoki dars testId'sini) topshirmaguncha GET /api/courses/[id]/learn videoUrl'ni null qaytaradi (qulflangan dars bilan bir xil naqsh)
+  embedUrl        String?         // EMBED — tashqi simulyatsiya havolasi; ruxsat etilgan domenlar src/lib/embed-allowlist.ts da, SERVER tomonda ham tekshiriladi (qarang PUT /api/teacher/courses/[id]/curriculum)
+  itemIds         String[]        @default([]) // PRACTICE — Item.id lar (baholanmaydigan mashq havzasi); FK EMAS, TestSession.itemIds bilan bir xil naqsh
   createdAt       DateTime        @default(now())
 
   lesson CourseLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
