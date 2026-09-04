@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, forwardRef, useImperativeHandle } from 'react';
 import {
   Play, Pause, Maximize, Minimize, X,
   RotateCcw, RotateCw, Volume2, VolumeX,
@@ -18,6 +18,19 @@ interface SecureYouTubePlayerProps {
   onEnded?: () => void;
 }
 
+/**
+ * Tashqaridan boshqarish uchun ochilgan minimal yuza — S23 video nazorat
+ * nuqtalari (`VideoWithCheckpoints`) checkpoint'ga yetganda videoni
+ * to'xtatishi/davom ettirishi kerak, lekin pleyerning ICHKI holatiga
+ * (isPlaying va h.k.) hech qanday tashqi kod tegmasin deb shu ikkita metod
+ * bundan ortiq ochilmagan — mavjud `pauseVideo`/`playVideo` chaqiruvlarining
+ * o'zi (pastda, `togglePlay`dagi bilan bir xil), ichki mantiq o'zgarmagan.
+ */
+export interface SecureYouTubePlayerHandle {
+  pause: () => void;
+  play: () => void;
+}
+
 declare global {
   interface Window {
     YT: any;
@@ -31,9 +44,9 @@ declare global {
  * Kanal nomi, reklamalar va boshqa videolar ko'rinmaydi
  * Error 153 muammosi hal qilingan (origin parametri)
  */
-export default function SecureYouTubePlayer({
+const SecureYouTubePlayer = forwardRef<SecureYouTubePlayerHandle, SecureYouTubePlayerProps>(function SecureYouTubePlayer({
   videoUrl, title, onClose, startPositionSeconds, onProgress, onEnded,
-}: SecureYouTubePlayerProps) {
+}, ref) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -206,6 +219,11 @@ export default function SecureYouTubePlayer({
         setError('Video yuklanmadi');
     }
   };
+
+  useImperativeHandle(ref, () => ({
+    pause: () => { if (playerRef.current && isReady) playerRef.current.pauseVideo(); },
+    play: () => { if (playerRef.current && isReady) playerRef.current.playVideo(); },
+  }), [isReady]);
 
   // Controls
   const togglePlay = useCallback(() => {
@@ -477,4 +495,6 @@ export default function SecureYouTubePlayer({
       </div>
     </div>
   );
-}
+});
+
+export default SecureYouTubePlayer;

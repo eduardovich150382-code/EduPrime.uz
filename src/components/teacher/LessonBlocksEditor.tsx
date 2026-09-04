@@ -3,6 +3,9 @@
 import { useState } from 'react';
 import { Plus, Trash2, ChevronUp, ChevronDown, Paperclip, ListChecks, Video, Loader2, Link2, Dumbbell } from 'lucide-react';
 import { isAllowedEmbedUrl, EMBED_ALLOWED_DOMAINS } from '@/lib/embed-allowlist';
+import type { Checkpoint } from '@/lib/video-checkpoints';
+import PracticeBlockEditor from './PracticeBlockEditor';
+import VideoCheckpointsEditor from './VideoCheckpointsEditor';
 
 export type LessonBlockType = 'FILE' | 'QUIZ' | 'VIDEO_SOLUTION' | 'EMBED' | 'PRACTICE';
 
@@ -17,11 +20,12 @@ export interface LessonBlockForm {
   revealAfterQuiz: boolean;
   /** EMBED — tashqi simulyatsiya havolasi; ruxsat etilgan domenlar lib/embed-allowlist.ts da, saqlashda SERVER tomonda ham tekshiriladi. */
   embedUrl: string;
-  /** PRACTICE — tanlangan Item.id lar (/api/items/search orqali havzadan tanlanadi). */
+  /** PRACTICE — tanlangan Item.id lar (PracticeBlockEditor — /api/teacher/items/search-preview orqali havzadan qidirib tanlanadi). */
   itemIds: string[];
-  /** PRACTICE — faqat tahrirlagich uchun (serverga yuborilsa ham e'tiborsiz qoldiriladi): oxirgi "Savollarni tanlash" so'rovida ishlatilgan mavzu/son — qayta bosilganda formani bo'sh boshlamaslik uchun. */
+  /** PRACTICE — faqat tahrirlagich uchun (serverga yuborilsa ham e'tiborsiz qoldiriladi): qidiruvni toraytiruvchi so'nggi mavzu yo'li — qayta ochilganda formani bo'sh boshlamaslik uchun. */
   practiceTopic?: string;
-  practiceCount?: number;
+  /** VIDEO_SOLUTION — video nazorat nuqtalari (S23), qarang lib/video-checkpoints.ts. */
+  checkpoints: Checkpoint[];
 }
 
 interface TeacherTestItem {
@@ -33,7 +37,7 @@ interface Props {
   blocks: LessonBlockForm[];
   onChange: (blocks: LessonBlockForm[]) => void;
   teacherTests: TeacherTestItem[];
-  /** PRACTICE bloki uchun — /api/items/search shu fan ichidan tanlaydi (kurs bitta fanga tegishli). */
+  /** PRACTICE va VIDEO_SOLUTION bloklari uchun — savol qidiruvi shu fan ichidan tanlaydi (kurs bitta fanga tegishli). */
   subjectId: string;
 }
 
@@ -46,8 +50,6 @@ const BLOCK_META: Record<LessonBlockType, { label: string; icon: typeof Papercli
 };
 
 const MAX_BLOCKS = 8;
-const MAX_PRACTICE_ITEMS = 30; // /api/lesson-blocks/[id]/practice/start va curriculum/route.ts dagi bilan bir xil chegara
-const DEFAULT_PRACTICE_COUNT = 10;
 
 /**
  * Darsning asosiy kontentiga (video/matn/test/PDF) QO'SHIMCHA ravishda
@@ -59,13 +61,12 @@ const DEFAULT_PRACTICE_COUNT = 10;
  */
 export default function LessonBlocksEditor({ blocks, onChange, teacherTests, subjectId }: Props) {
   const [uploadingIdx, setUploadingIdx] = useState<number | null>(null);
-  const [pickingIdx, setPickingIdx] = useState<number | null>(null);
 
   const addBlock = (type: LessonBlockType) => {
     if (blocks.length >= MAX_BLOCKS) return;
     onChange([...blocks, {
       type, labelUz: '', fileUrl: '', videoUrl: '', testId: '', revealAfterQuiz: false,
-      embedUrl: '', itemIds: [], practiceTopic: '', practiceCount: DEFAULT_PRACTICE_COUNT,
+      embedUrl: '', itemIds: [], practiceTopic: '', checkpoints: [],
     }]);
   };
   const removeBlock = (idx: number) => onChange(blocks.filter((_, i) => i !== idx));
@@ -102,37 +103,6 @@ export default function LessonBlocksEditor({ blocks, onChange, teacherTests, sub
       alert('Faylni yuklashda xatolik');
     }
     setUploadingIdx(null);
-  };
-
-  // PRACTICE — mavjud /api/items/search'ni qayta ishlatadi (S14), yangi
-  // qidiruv yozilmagan. `subjectId` — kursning o'zi ega bo'lgan fan, shuning
-  // uchun bu yerda alohida fan tanlash shart emas; ixtiyoriy mavzu yo'li
-  // (masalan "mexanika/kinematika") havzani toraytiradi.
-  const pickPracticeItems = async (idx: number, block: LessonBlockForm) => {
-    setPickingIdx(idx);
-    try {
-      const topicPaths = block.practiceTopic?.trim() ? [block.practiceTopic.trim()] : [];
-      const limit = Math.min(Math.max(block.practiceCount || DEFAULT_PRACTICE_COUNT, 1), MAX_PRACTICE_ITEMS);
-      const res = await fetch('/api/items/search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          subjectIds: subjectId ? [subjectId] : [],
-          topicPaths,
-          limit,
-        }),
-      });
-      const data = await res.json();
-      if (res.ok && Array.isArray(data.ids)) {
-        updateBlock(idx, { itemIds: data.ids });
-        if (data.ids.length === 0) alert("Bu shartlarga mos savol topilmadi");
-      } else {
-        alert(data.error || 'Savollarni tanlashda xatolik');
-      }
-    } catch {
-      alert('Savollarni tanlashda xatolik');
-    }
-    setPickingIdx(null);
   };
 
   return (
@@ -207,6 +177,11 @@ export default function LessonBlocksEditor({ blocks, onChange, teacherTests, sub
                         />
                         Faqat tekshiruv topshirilgach ko&apos;rinsin
                       </label>
+                      <VideoCheckpointsEditor
+                        checkpoints={block.checkpoints}
+                        onChange={(checkpoints) => updateBlock(idx, { checkpoints })}
+                        subjectId={subjectId}
+                      />
                     </>
                   )}
                   {block.type === 'QUIZ' && (
@@ -238,37 +213,13 @@ export default function LessonBlocksEditor({ blocks, onChange, teacherTests, sub
                     </>
                   )}
                   {block.type === 'PRACTICE' && (
-                    <div className="space-y-1.5">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <input
-                          type="text"
-                          value={block.practiceTopic || ''}
-                          onChange={(e) => updateBlock(idx, { practiceTopic: e.target.value })}
-                          placeholder="Mavzu (ixtiyoriy, masalan: mexanika)"
-                          className="flex-1 min-w-[140px] px-2.5 py-1.5 rounded-lg border border-border text-xs"
-                        />
-                        <input
-                          type="number"
-                          min={1}
-                          max={MAX_PRACTICE_ITEMS}
-                          value={block.practiceCount ?? DEFAULT_PRACTICE_COUNT}
-                          onChange={(e) => updateBlock(idx, { practiceCount: Number(e.target.value) })}
-                          className="w-16 px-2 py-1.5 rounded-lg border border-border text-xs"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => pickPracticeItems(idx, block)}
-                          disabled={pickingIdx === idx || !subjectId}
-                          className="text-xs font-medium px-2.5 py-1.5 rounded-lg border border-border bg-gray-50 text-text-secondary hover:bg-gray-100 disabled:opacity-50 flex items-center gap-1.5"
-                        >
-                          {pickingIdx === idx ? <Loader2 size={11} className="animate-spin" /> : <Dumbbell size={11} />}
-                          Savollarni tanlash
-                        </button>
-                      </div>
-                      <p className={`text-[11px] ${block.itemIds.length > 0 ? 'text-green-600' : 'text-text-secondary'}`}>
-                        {block.itemIds.length > 0 ? `✓ ${block.itemIds.length} ta savol tanlandi` : 'Hali savol tanlanmagan'}
-                      </p>
-                    </div>
+                    <PracticeBlockEditor
+                      itemIds={block.itemIds}
+                      onChange={(itemIds) => updateBlock(idx, { itemIds })}
+                      subjectId={subjectId}
+                      topicPath={block.practiceTopic || ''}
+                      onTopicPathChange={(practiceTopic) => updateBlock(idx, { practiceTopic })}
+                    />
                   )}
                 </div>
                 <button type="button" onClick={() => removeBlock(idx)} className="p-1 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 flex-shrink-0 mt-0.5">

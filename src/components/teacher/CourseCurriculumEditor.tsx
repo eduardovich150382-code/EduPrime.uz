@@ -13,6 +13,8 @@ import {
   GripVertical, ChevronDown, ChevronRight,
 } from 'lucide-react';
 import LessonBlocksEditor, { type LessonBlockForm } from './LessonBlocksEditor';
+import VideoCheckpointsEditor from './VideoCheckpointsEditor';
+import type { Checkpoint } from '@/lib/video-checkpoints';
 
 export type LessonType = 'VIDEO' | 'TEXT' | 'QUIZ' | 'PDF';
 
@@ -29,6 +31,8 @@ export interface LessonForm {
   minPassPercent: number | '';
   durationMinutes: number | '';
   isPreviewable: boolean;
+  /** VIDEO — video nazorat nuqtalari (S23), qarang lib/video-checkpoints.ts. */
+  checkpoints: Checkpoint[];
   blocks: LessonBlockForm[];
 }
 
@@ -51,7 +55,7 @@ function genKey(): string {
 export function createEmptyLesson(): LessonForm {
   return {
     _key: genKey(), titleUz: '', type: 'VIDEO', videoUrl: '', content: '', testId: '', fileUrl: '',
-    minPassPercent: '', durationMinutes: '', isPreviewable: false, blocks: [],
+    minPassPercent: '', durationMinutes: '', isPreviewable: false, checkpoints: [], blocks: [],
   };
 }
 
@@ -471,13 +475,20 @@ function SortableLessonCard(props: SortableLessonCardProps) {
 
           <div className="pl-6">
             {lesson.type === 'VIDEO' && (
-              <input
-                type="url"
-                value={lesson.videoUrl}
-                onChange={(e) => onUpdate({ videoUrl: e.target.value })}
-                placeholder="https://youtube.com/watch?v=..."
-                className="w-full px-3 py-2 rounded-lg border border-border focus:ring-2 focus:ring-primary-500/20 text-sm"
-              />
+              <div className="space-y-2">
+                <input
+                  type="url"
+                  value={lesson.videoUrl}
+                  onChange={(e) => onUpdate({ videoUrl: e.target.value })}
+                  placeholder="https://youtube.com/watch?v=..."
+                  className="w-full px-3 py-2 rounded-lg border border-border focus:ring-2 focus:ring-primary-500/20 text-sm"
+                />
+                <VideoCheckpointsEditor
+                  checkpoints={lesson.checkpoints}
+                  onChange={(checkpoints) => onUpdate({ checkpoints })}
+                  subjectId={subjectId}
+                />
+              </div>
             )}
             {lesson.type === 'TEXT' && (
               <div className="space-y-2">

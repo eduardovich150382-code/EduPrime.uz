@@ -1,12 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { db } from '@/lib/db';
 import { requireTeacher } from '@/lib/api-auth';
 import { isAllowedEmbedUrl, EMBED_ALLOWED_DOMAINS } from '@/lib/embed-allowlist';
+import { parseCheckpoints, checkpointsToStorage, MAX_CHECKPOINTS, type Checkpoint } from '@/lib/video-checkpoints';
 
 const MAX_BLOCKS_PER_LESSON = 8;
 const MAX_PRACTICE_ITEMS = 30; // /api/lesson-blocks/[id]/practice/start dagi bilan bir xil chegara
 const BLOCK_TYPES = ['FILE', 'QUIZ', 'VIDEO_SOLUTION', 'EMBED', 'PRACTICE'] as const;
 type BlockType = (typeof BLOCK_TYPES)[number];
+const CHECKPOINTS_ERROR = `Video nazorat nuqtalari shakli noto'g'ri (ko'pi bilan ${MAX_CHECKPOINTS} ta, har biri vaqt+savol, bitta vaqtga ikkita nuqta bo'lmasin)`;
+
+// Prisma'ning Json ustuni uchun "SQL NULL" (Prisma.JsonNull) va oddiy JS
+// `null` (Prisma tur tizimida "qiymat berilmadi" — `undefined` bilan bir xil
+// muomala qilinadi) turlicha — checkpointsToStorage'dan kelgan `null`
+// ("bo'sh, tozalash kerak") shu funksiya orqali Prisma kutgan shaklga
+// aylantiriladi.
+function checkpointsJsonInput(checkpoints: Checkpoint[] | null): Prisma.InputJsonValue | typeof Prisma.JsonNull {
+  return checkpoints === null ? Prisma.JsonNull : (checkpoints as unknown as Prisma.InputJsonValue);
+}
 
 // PUT /api/teacher/courses/[id]/curriculum — bo'lim va darslarni bir yo'la
 // yangilash. Mavjud bo'lim/dars/blok ID saqlab qolib yangilanadi (savollarni
@@ -46,6 +58,14 @@ export async function PUT(
     // qilingan maydon bo'sh emasligi.
     for (const s of sections) {
       for (const l of (s.lessons || [])) {
+        // S23 — VIDEO turi darsning nazorat nuqtalari. Boshqa dars turlarida
+        // `checkpoints` yuborilsa ham e'tiborsiz qoldiriladi (pastda,
+        // saqlashda), lekin YUBORILGAN bo'lsa shakli baribir tekshiriladi —
+        // aks holda noto'g'ri shakl jim yutilib ketadi.
+        if (l.type === 'VIDEO' && l.checkpoints !== undefined && parseCheckpoints(l.checkpoints) === null) {
+          return NextResponse.json({ error: CHECKPOINTS_ERROR }, { status: 400 });
+        }
+
         const blocks = Array.isArray(l.blocks) ? l.blocks : [];
         if (blocks.length > MAX_BLOCKS_PER_LESSON) {
           return NextResponse.json(
@@ -62,6 +82,9 @@ export async function PUT(
           }
           if (b.type === 'VIDEO_SOLUTION' && !b.videoUrl) {
             return NextResponse.json({ error: "Video-yechim bloki uchun video havolasi shart" }, { status: 400 });
+          }
+          if (b.type === 'VIDEO_SOLUTION' && b.checkpoints !== undefined && parseCheckpoints(b.checkpoints) === null) {
+            return NextResponse.json({ error: CHECKPOINTS_ERROR }, { status: 400 });
           }
           if (b.type === 'QUIZ' && !b.testId) {
             return NextResponse.json({ error: "Qo'shimcha test bloki uchun test tanlanishi shart" }, { status: 400 });
@@ -120,17 +143,30 @@ export async function PUT(
       }
     }
 
-    // PRACTICE bloklari — havzadagi barcha item ID'lar haqiqatan mavjud VA
-    // nashr etilgan/ochiq (PUBLISHED/PUBLIC) bo'lishi shart, aks holda
-    // /api/lesson-blocks/[id]/practice/start bo'sh havza qaytaradi.
+    // PRACTICE bloklari VA video nazorat nuqtalari (S23) — havzadagi barcha
+    // item ID'lar haqiqatan mavjud VA nashr etilgan/ochiq (PUBLISHED/PUBLIC)
+    // bo'lishi shart, aks holda /api/lesson-blocks/[id]/practice/start yoki
+    // /api/video-checkpoints/[kind]/[id]/start bo'sh havza qaytaradi.
     // Egalik tekshirilmaydi — testlardan farqli, Item havzasi umumiy
-    // (barcha o'qituvchilar bir xil PUBLIC havzadan mashq tanlaydi).
+    // (barcha o'qituvchilar bir xil PUBLIC havzadan tanlaydi).
     const referencedItemIds: string[] = Array.from(
       new Set(
         sections.flatMap((s: any) =>
-          (s.lessons || []).flatMap((l: any) =>
-            (l.blocks || []).flatMap((b: any) => (b.type === 'PRACTICE' && Array.isArray(b.itemIds) ? b.itemIds : []))
-          )
+          (s.lessons || []).flatMap((l: any) => {
+            const ids: string[] = [];
+            if (l.type === 'VIDEO') {
+              const cps = parseCheckpoints(l.checkpoints);
+              if (cps) ids.push(...cps.map((c) => c.itemId));
+            }
+            for (const b of (l.blocks || [])) {
+              if (b.type === 'PRACTICE' && Array.isArray(b.itemIds)) ids.push(...b.itemIds);
+              if (b.type === 'VIDEO_SOLUTION') {
+                const cps = parseCheckpoints(b.checkpoints);
+                if (cps) ids.push(...cps.map((c) => c.itemId));
+              }
+            }
+            return ids;
+          })
         )
       )
     );
@@ -197,6 +233,7 @@ export async function PUT(
               : null,
             durationMinutes: l.durationMinutes || null,
             isPreviewable: !!l.isPreviewable,
+            checkpoints: checkpointsJsonInput(l.type === 'VIDEO' ? checkpointsToStorage(parseCheckpoints(l.checkpoints) ?? []) : null),
           };
 
           let lessonId: string;
@@ -233,6 +270,7 @@ export async function PUT(
               revealAfterQuiz: b.type === 'VIDEO_SOLUTION' ? !!b.revealAfterQuiz : false,
               embedUrl: b.type === 'EMBED' ? (b.embedUrl || null) : null,
               itemIds: b.type === 'PRACTICE' && Array.isArray(b.itemIds) ? b.itemIds.slice(0, MAX_PRACTICE_ITEMS) : [],
+              checkpoints: checkpointsJsonInput(b.type === 'VIDEO_SOLUTION' ? checkpointsToStorage(parseCheckpoints(b.checkpoints) ?? []) : null),
             };
             if (b.id && existingBlockIds.has(b.id)) {
               await tx.lessonBlock.update({ where: { id: b.id }, data: blockData });

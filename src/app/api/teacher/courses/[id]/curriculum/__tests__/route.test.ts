@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { Prisma } from "@prisma/client";
 
 const {
   findUniqueCourseMock,
@@ -139,6 +140,88 @@ describe("PUT /api/teacher/courses/[id]/curriculum — EMBED/PRACTICE", () => {
       expect.objectContaining({
         data: expect.objectContaining({ type: "PRACTICE", itemIds: ["item1", "item2"], embedUrl: null }),
       })
+    );
+  });
+});
+
+describe("PUT /api/teacher/courses/[id]/curriculum — video nazorat nuqtalari (S23)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    requireTeacherMock.mockReturnValue({ user: { id: "teacher-user-1", role: "TEACHER" }, error: null });
+    findUniqueCourseMock.mockResolvedValue({ id: "course1", teacherId: "teacherRow1", teacher: { userId: "teacher-user-1" } });
+    findManySectionMock.mockResolvedValue([]);
+    transactionMock.mockImplementation(async (fn: any) => fn(buildTx()));
+  });
+
+  function sectionsWithLessonCheckpoints(checkpoints: unknown) {
+    return [{ titleUz: "Bo'lim 1", lessons: [{ titleUz: "Dars 1", type: "VIDEO", checkpoints, blocks: [] }] }];
+  }
+
+  it("dars videosi noto'g'ri shakldagi checkpoints bilan rad etiladi", async () => {
+    const { status, data } = await callPut(sectionsWithLessonCheckpoints([{ atSeconds: -1, itemId: "item1" }]));
+    expect(status).toBe(400);
+    expect(data.error).toContain("nazorat nuqtalari");
+    expect(transactionMock).not.toHaveBeenCalled();
+  });
+
+  it("bir xil vaqtga ikkita nuqta bilan rad etiladi", async () => {
+    const { status } = await callPut(
+      sectionsWithLessonCheckpoints([{ atSeconds: 10, itemId: "item1" }, { atSeconds: 10, itemId: "item2" }])
+    );
+    expect(status).toBe(400);
+  });
+
+  it("nashr etilmagan savolga ishora qilgan checkpoint rad etiladi", async () => {
+    findManyItemMock.mockResolvedValue([]); // item1 topilmadi/nashr etilmagan
+    const { status, data } = await callPut(sectionsWithLessonCheckpoints([{ atSeconds: 5, itemId: "item1" }]));
+    expect(status).toBe(400);
+    expect(data.error).toContain("nashr etilmagan");
+  });
+
+  it("to'g'ri checkpoints dars videosiga saqlanadi (vaqt bo'yicha tartiblanib)", async () => {
+    findManyItemMock.mockResolvedValue([{ id: "item1" }, { id: "item2" }]);
+    const tx = buildTx();
+    transactionMock.mockImplementation(async (fn: any) => fn(tx));
+
+    const { status } = await callPut(
+      sectionsWithLessonCheckpoints([{ atSeconds: 20, itemId: "item2" }, { atSeconds: 5, itemId: "item1" }])
+    );
+
+    expect(status).toBe(200);
+    expect(tx.courseLesson.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          checkpoints: [{ atSeconds: 5, itemId: "item1" }, { atSeconds: 20, itemId: "item2" }],
+        }),
+      })
+    );
+  });
+
+  it("VIDEO_SOLUTION blokidagi checkpoints ham xuddi shunday saqlanadi", async () => {
+    findManyItemMock.mockResolvedValue([{ id: "item1" }]);
+
+    const { status } = await callPut(
+      sectionsWithBlocks([{ type: "VIDEO_SOLUTION", videoUrl: "https://youtube.com/watch?v=x", checkpoints: [{ atSeconds: 5, itemId: "item1" }] }])
+    );
+
+    expect(status).toBe(200);
+    expect(txLessonBlockCreateMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ type: "VIDEO_SOLUTION", checkpoints: [{ atSeconds: 5, itemId: "item1" }] }),
+      })
+    );
+  });
+
+  it("boshqa dars/blok turlarida checkpoints saqlanmaydi (null)", async () => {
+    findManyItemMock.mockResolvedValue([]);
+    const tx = buildTx();
+    transactionMock.mockImplementation(async (fn: any) => fn(tx));
+
+    const { status } = await callPut([{ titleUz: "Bo'lim 1", lessons: [{ titleUz: "Dars 1", type: "TEXT", content: "matn", blocks: [] }] }]);
+
+    expect(status).toBe(200);
+    expect(tx.courseLesson.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ checkpoints: Prisma.JsonNull }) })
     );
   });
 });

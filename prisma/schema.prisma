@@ -538,6 +538,7 @@ model CourseLesson {
   minPassPercent  Int?       // Faqat QUIZ turi uchun — sequentialUnlock yoqilgan kursda keyingi darsni ochish uchun talab qilinadigan minimal ball foizi
   durationMinutes Int?
   isPreviewable   Boolean    @default(false) // yozilmagan foydalanuvchi ham ko'ra oladigan bepul namuna (MVP-B)
+  checkpoints     Json?      // S23 — VIDEO turi dars uchun video nazorat nuqtalari: [{ atSeconds, itemId }], qarang lib/video-checkpoints.ts
   createdAt       DateTime   @default(now())
 
   section  CourseSection    @relation(fields: [sectionId], references: [id], onDelete: Cascade)
@@ -579,6 +580,7 @@ model LessonBlock {
   revealAfterQuiz Boolean         @default(false) // VIDEO_SOLUTION — true bo'lsa, foydalanuvchi shu darsning QUIZ blokini (yoki dars testId'sini) topshirmaguncha GET /api/courses/[id]/learn videoUrl'ni null qaytaradi (qulflangan dars bilan bir xil naqsh)
   embedUrl        String?         // EMBED — tashqi simulyatsiya havolasi; ruxsat etilgan domenlar src/lib/embed-allowlist.ts da, SERVER tomonda ham tekshiriladi (qarang PUT /api/teacher/courses/[id]/curriculum)
   itemIds         String[]        @default([]) // PRACTICE — Item.id lar (baholanmaydigan mashq havzasi); FK EMAS, TestSession.itemIds bilan bir xil naqsh
+  checkpoints     Json?           // S23 — VIDEO_SOLUTION bloki uchun video nazorat nuqtalari; CourseLesson.checkpoints bilan bir xil shakl, qarang lib/video-checkpoints.ts
   createdAt       DateTime        @default(now())
 
   lesson CourseLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)

@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAuth } from '@/lib/api-auth';
 import { computeLockedLessonIds } from '@/lib/course-lock';
-import { collectLessonQuizTestIds, flattenGatingTestIds, resolveSolutionBlockVideoUrl } from '@/lib/solution-lock';
+import { collectLessonQuizTestIds, flattenGatingTestIds, resolveSolutionBlockVideoUrl, isSolutionBlockUnlocked } from '@/lib/solution-lock';
+import { parseCheckpoints } from '@/lib/video-checkpoints';
 
 // GET /api/courses/[id]/learn — kursni to'liq iste'mol qilish uchun kerak
 // bo'lgan hamma narsa: barcha dars kontenti (video/matn/test) + shu
@@ -31,6 +32,9 @@ export async function GET(
             lessons: {
               orderBy: { order: 'asc' },
               include: {
+                // `lessons`/`blocks` `include` bilan olinadi — yangi
+                // `checkpoints` ustuni (S23) ham skalyar maydon sifatida
+                // avtomatik keladi, alohida select shart emas.
                 test: { select: { id: true, titleUz: true, questionCount: true, duration: true } },
                 blocks: {
                   orderBy: { order: 'asc' },
@@ -107,6 +111,11 @@ export async function GET(
           test: locked ? null : l.test,
           fileUrl: locked ? null : l.fileUrl,
           minPassPercent: l.minPassPercent,
+          // S23 — video nazorat nuqtalari soni. Boshqa dars kontenti kabi
+          // qulflangan darsda 0 (PRACTICE'dagi itemCount naqshi bilan bir
+          // xil — itemId'larning o'zi bu yerda YO'Q, faqat soni: talaba
+          // /api/video-checkpoints/lesson/[id]/start orqali alohida oladi).
+          checkpointCount: locked || l.type !== 'VIDEO' ? 0 : (parseCheckpoints(l.checkpoints)?.length ?? 0),
           locked,
           completed: p?.completed || false,
           bestScorePercent: p?.bestScorePercent ?? null,
@@ -126,6 +135,19 @@ export async function GET(
               submittedTestIds,
             }),
             test: b.test,
+            // S23 — VIDEO_SOLUTION bloki uchun nazorat nuqtalari soni.
+            // videoUrl bilan BIR XIL qulf (isSolutionBlockUnlocked) — aks
+            // holda checkpoint orqali savol qulf yonidan sizib chiqadi.
+            checkpointCount: (() => {
+              if (b.type !== 'VIDEO_SOLUTION') return 0;
+              const unlocked = isSolutionBlockUnlocked({
+                lessonId: l.id,
+                block: { type: b.type, revealAfterQuiz: b.revealAfterQuiz },
+                lessonQuizTestIds,
+                submittedTestIds,
+              });
+              return unlocked ? (parseCheckpoints(b.checkpoints)?.length ?? 0) : 0;
+            })(),
             // EMBED — allowlist saqlash paytida (PUT /api/teacher/courses/[id]/curriculum)
             // tekshirilgan, shu sababli bu yerda qayta tekshirilmaydi.
             embedUrl: b.embedUrl,

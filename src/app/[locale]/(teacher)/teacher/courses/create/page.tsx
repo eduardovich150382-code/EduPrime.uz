@@ -85,6 +85,7 @@ export default function CreateCoursePage() {
           minPassPercent: l.type === 'QUIZ' && l.minPassPercent !== '' ? l.minPassPercent : null,
           durationMinutes: l.durationMinutes === '' ? null : l.durationMinutes,
           isPreviewable: l.isPreviewable,
+          checkpoints: l.type === 'VIDEO' ? l.checkpoints : [],
           blocks: l.blocks.map((b) => ({
             id: b.id,
             type: b.type,
@@ -95,6 +96,7 @@ export default function CreateCoursePage() {
             revealAfterQuiz: b.type === 'VIDEO_SOLUTION' ? !!b.revealAfterQuiz : false,
             embedUrl: b.type === 'EMBED' ? b.embedUrl || null : null,
             itemIds: b.type === 'PRACTICE' ? b.itemIds : [],
+            checkpoints: b.type === 'VIDEO_SOLUTION' ? b.checkpoints : [],
           })),
         })),
       })),

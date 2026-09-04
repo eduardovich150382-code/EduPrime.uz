@@ -41,6 +41,23 @@ export function flattenGatingTestIds(lessonQuizTestIds: Map<string, string[]>): 
   return Array.from(new Set(Array.from(lessonQuizTestIds.values()).flat()));
 }
 
+// "Qulf ochiqmi" — sof boolean qoida, `resolveSolutionBlockVideoUrl` (pastda)
+// VA S23 video nazorat nuqtalari (`lib/lesson-access.ts` —
+// `loadVideoSolutionCheckpointAccess`) ikkalasi ham shu yerga tayanadi:
+// checkpoints ham, videoUrl ham BIR XIL qulf ortida — aks holda savol
+// matni checkpoint orqali qulfning yonidan sizib chiqishi mumkin edi.
+export function isSolutionBlockUnlocked(params: {
+  lessonId: string;
+  block: { type: string; revealAfterQuiz: boolean };
+  lessonQuizTestIds: Map<string, string[]>;
+  submittedTestIds: Set<string>;
+}): boolean {
+  const { lessonId, block, lessonQuizTestIds, submittedTestIds } = params;
+  if (block.type !== 'VIDEO_SOLUTION' || !block.revealAfterQuiz) return true;
+  const quizIds = lessonQuizTestIds.get(lessonId) || [];
+  return quizIds.some((tid) => submittedTestIds.has(tid));
+}
+
 // Blokning videoUrl'ini qaytaradi — VIDEO_SOLUTION va revealAfterQuiz
 // yoqilgan bo'lib, foydalanuvchi hali topshirmagan bo'lsa `null`.
 // Foydalanuvchi umuman yo'q bo'lsa (masalan autentifikatsiyasiz preview),
@@ -51,9 +68,5 @@ export function resolveSolutionBlockVideoUrl(params: {
   lessonQuizTestIds: Map<string, string[]>;
   submittedTestIds: Set<string>;
 }): string | null {
-  const { lessonId, block, lessonQuizTestIds, submittedTestIds } = params;
-  if (block.type !== 'VIDEO_SOLUTION' || !block.revealAfterQuiz) return block.videoUrl;
-  const quizIds = lessonQuizTestIds.get(lessonId) || [];
-  const hasSubmitted = quizIds.some((tid) => submittedTestIds.has(tid));
-  return hasSubmitted ? block.videoUrl : null;
+  return isSolutionBlockUnlocked(params) ? params.block.videoUrl : null;
 }
