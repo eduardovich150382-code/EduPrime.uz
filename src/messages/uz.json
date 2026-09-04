@@ -285,7 +285,9 @@
     "practiceNext": "Keyingisi",
     "practiceFinish": "Yakunlash",
     "practiceResult": "{correct}/{total} to'g'ri",
-    "practiceRetry": "Qaytadan"
+    "practiceRetry": "Qaytadan",
+    "checkpointPausedNote": "Video to'xtatildi — savolga javob bering",
+    "checkpointContinue": "Davom etish"
   },
   "footer": {
     "description": "EduPrime — O'zbekistondagi eng zamonaviy test platformasi",

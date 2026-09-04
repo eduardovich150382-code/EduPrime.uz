@@ -13,6 +13,8 @@ export interface LessonBlockItem {
   embedUrl: string | null;
   /** PRACTICE — savollar soni; savollarning o'zi /api/lesson-blocks/[id]/practice/start orqali alohida keladi. */
   itemCount: number;
+  /** VIDEO_SOLUTION — nazorat nuqtalari soni (S23); itemId'larning o'zi /api/video-checkpoints/block/[id]/start orqali alohida keladi. */
+  checkpointCount: number;
 }
 
 export interface LessonItem {
@@ -29,6 +31,8 @@ export interface LessonItem {
   completed: boolean;
   bestScorePercent: number | null;
   lastPositionSeconds: number;
+  /** VIDEO — nazorat nuqtalari soni (S23); itemId'larning o'zi /api/video-checkpoints/lesson/[id]/start orqali alohida keladi. */
+  checkpointCount: number;
   blocks: LessonBlockItem[];
 }
 

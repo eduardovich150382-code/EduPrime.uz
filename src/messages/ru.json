@@ -285,7 +285,9 @@
     "practiceNext": "Далее",
     "practiceFinish": "Завершить",
     "practiceResult": "{correct}/{total} верно",
-    "practiceRetry": "Заново"
+    "practiceRetry": "Заново",
+    "checkpointPausedNote": "Видео остановлено — ответьте на вопрос",
+    "checkpointContinue": "Продолжить"
   },
   "footer": {
     "description": "EduPrime — самая современная тестовая платформа в Узбекистане",

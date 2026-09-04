@@ -7,7 +7,7 @@ import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
 import BackButton from '@/components/ui/BackButton';
 import LatexRenderer from '@/components/ui/LatexRenderer';
-import SecureYouTubePlayer from '@/components/ui/SecureYouTubePlayer';
+import VideoWithCheckpoints from '@/components/course/VideoWithCheckpoints';
 import PdfViewer from '@/components/ui/PdfViewer';
 import CourseCurriculum, { LESSON_ICONS } from '@/components/course/CourseCurriculum';
 import LessonListSheet from '@/components/course/LessonListSheet';
@@ -238,12 +238,14 @@ export default function CourseLearnPage() {
                   }
                 >
                   {currentLesson.type === 'VIDEO' && currentLesson.videoUrl && (
-                    <SecureYouTubePlayer
+                    <VideoWithCheckpoints
                       videoUrl={currentLesson.videoUrl}
                       title={currentLesson.titleUz}
                       startPositionSeconds={currentLesson.lastPositionSeconds}
                       onProgress={(seconds) => handleVideoProgress(currentLesson.id, seconds)}
                       onEnded={() => !currentLesson.completed && handleMarkComplete(currentLesson.id)}
+                      checkpointSource={{ kind: 'lesson', id: currentLesson.id }}
+                      checkpointCount={currentLesson.checkpointCount}
                     />
                   )}
 
@@ -325,7 +327,12 @@ export default function CourseLearnPage() {
                         expanded={revealed}
                         onToggle={() => setRevealedSolutions((prev) => new Set(prev).add(block.id))}
                       >
-                        <SecureYouTubePlayer videoUrl={block.videoUrl} title={block.labelUz || 'Yechim videosi'} />
+                        <VideoWithCheckpoints
+                          videoUrl={block.videoUrl}
+                          title={block.labelUz || 'Yechim videosi'}
+                          checkpointSource={{ kind: 'block', id: block.id }}
+                          checkpointCount={block.checkpointCount}
+                        />
                       </LessonStepRow>
                     );
                   }
