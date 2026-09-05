@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import {
   BookOpen, Plus, Eye, Users, DollarSign,
-  ArrowRight, FileText, Loader2, Pencil, Trash2, Copy, Library, GraduationCap,
+  ArrowRight, FileText, Loader2, Pencil, Trash2, Copy, Library, GraduationCap, Gauge,
 } from 'lucide-react';
 
 interface StatsData {
@@ -143,6 +143,10 @@ export default function TeacherDashboard() {
           <Link href="/teacher/question-bank" className="btn-secondary flex items-center gap-2">
             <Library size={18} />
             Savollar bazasi
+          </Link>
+          <Link href="/teacher/item-quality" className="btn-secondary flex items-center gap-2">
+            <Gauge size={18} />
+            Savol sifati
           </Link>
           <Link href="/teacher/tests/create" className="btn-primary flex items-center gap-2">
             <Plus size={18} />

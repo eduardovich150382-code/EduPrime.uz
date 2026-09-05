@@ -6,6 +6,7 @@ import { generateSeed } from '@/lib/shuffle';
 import { checkTestAccess } from '@/lib/access';
 import { gradeSubmission } from '@/lib/grading';
 import { creditQuizLessonProgress } from '@/lib/course-progress';
+import { resolveAttemptCandidates, toAttemptCreateInput } from '@/lib/attempts';
 
 // POST /api/tests/[id]/submit — test javoblarini yuborish va natija olish
 export async function POST(
@@ -81,17 +82,34 @@ export async function POST(
       preserveOrder,
     });
 
-    // Save result
-    const result = await db.testResult.create({
-      data: {
-        userId,
-        testId: id,
-        score,
-        maxScore,
-        percentage,
-        answers: answerResults as any,
-        timeSpent: sanitizedTimeSpent,
-      },
+    // S27 — Item topilgan javoblarni Attempt sifatida yozish uchun oldindan
+    // hisoblanadi (sof o'qish, tranzaksiyadan TASHQARIDA) — TestResult.create
+    // ichida Item mavjudligi o'zgarmaydi, shuning uchun bu xavfsiz.
+    const attemptCandidates = await resolveAttemptCandidates(answerResults);
+
+    // Save result — Attempt yozuvi bilan BITTA tranzaksiyada (S27 qabul
+    // mezoni): ikkalasi ham baholashning bir qismi, biri muvaffaqiyatsiz
+    // bo'lsa ikkalasi ham qaytariladi.
+    const result = await db.$transaction(async (tx) => {
+      const created = await tx.testResult.create({
+        data: {
+          userId,
+          testId: id,
+          score,
+          maxScore,
+          percentage,
+          answers: answerResults as any,
+          timeSpent: sanitizedTimeSpent,
+        },
+      });
+
+      if (attemptCandidates.length > 0) {
+        await tx.attempt.createMany({
+          data: toAttemptCreateInput(attemptCandidates, { userId, testResultId: created.id }),
+        });
+      }
+
+      return created;
     });
 
     // Bu test biror kurs darsining QUIZ turi bilan bog'langan bo'lsa —

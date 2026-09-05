@@ -6,6 +6,7 @@ import { sanitizeText, sanitizeInt } from '@/lib/sanitize';
 import { gradeSubmission } from '@/lib/grading';
 import { extractItemPoints, loadSessionItems, sessionPreserveOrder } from '@/lib/sessions';
 import { refundBuiltTest } from '@/lib/quota';
+import { resolveAttemptCandidates, toAttemptCreateInput } from '@/lib/attempts';
 
 // POST /api/sessions/[id]/submit — sessiya javoblarini baholaydi va
 // TestResult yaratadi. Baholash mantig'i /api/tests/[id]/submit bilan
@@ -72,8 +73,17 @@ export async function POST(
       preserveOrder: sessionPreserveOrder(testSession.spec),
     });
 
-    const [result] = await db.$transaction([
-      db.testResult.create({
+    // S27 — Item topilgan javoblarni Attempt sifatida yozish uchun oldindan
+    // hisoblanadi (sof o'qish, tranzaksiyadan TASHQARIDA) — sessiya
+    // savollari allaqachon Item'dan kelgani uchun deyarli hammasi topiladi,
+    // faqat o'chirilgan Item'lar chiqarib tashlanadi.
+    const attemptCandidates = await resolveAttemptCandidates(answerResults);
+
+    // Interaktiv tranzaksiya (avvalgi massiv-shaklidagi $transaction'dan
+    // farqli) — `testResultId` (Attempt uchun) faqat TestResult yaratilgach
+    // ma'lum bo'ladi (`@default(cuid())` oldindan hisoblab bo'lmaydi).
+    const result = await db.$transaction(async (tx) => {
+      const created = await tx.testResult.create({
         data: {
           userId: user.id,
           sessionId: testSession.id,
@@ -83,12 +93,25 @@ export async function POST(
           answers: answerResults as unknown as Prisma.InputJsonValue,
           timeSpent: sanitizedTimeSpent,
         },
-      }),
-      db.testSession.update({
+      });
+
+      await tx.testSession.update({
         where: { id: testSession.id },
         data: { submittedAt: new Date() },
-      }),
-    ]);
+      });
+
+      if (attemptCandidates.length > 0) {
+        await tx.attempt.createMany({
+          data: toAttemptCreateInput(attemptCandidates, {
+            userId: user.id,
+            sessionId: testSession.id,
+            testResultId: created.id,
+          }),
+        });
+      }
+
+      return created;
+    });
 
     // Kvota qaytarish (S17) — sessiya boshlanganidan 2 daqiqa ICHIDA hech
     // qanday javob bermay "Tugatish" bosilgan (yoki vaqt tugab avtomatik
