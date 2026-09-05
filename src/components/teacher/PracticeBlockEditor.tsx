@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { ChevronUp, ChevronDown, X, Loader2 } from 'lucide-react';
-import ItemSearchPicker, { type FoundItem } from './ItemSearchPicker';
+import { Loader2 } from 'lucide-react';
+import ItemBrowser, { type BrowseItem } from './ItemBrowser';
+import SelectedItemsPanel from './SelectedItemsPanel';
 
 const MAX_PRACTICE_ITEMS = 30; // curriculum/route.ts va lesson-blocks/[id]/practice/start dagi bilan bir xil chegara
 
@@ -10,26 +11,23 @@ interface Props {
   itemIds: string[];
   onChange: (itemIds: string[]) => void;
   subjectId: string;
-  topicPath: string;
-  onTopicPathChange: (v: string) => void;
 }
 
 /**
  * PRACTICE bloki savol havzasi tahrirlagichi — LessonBlocksEditor'dan
- * ajratilgan (S23 PR sharh). Avval "Savollarni tanlash" tugmasi
- * bosilganda qidiruv natijalari AVTOMATIK itemIds sifatida saqlanardi
- * (o'qituvchi ko'rmasdan/tanlamasdan). Endi: o'qituvchi qidiradi
- * (`ItemSearchPicker`), natijalarni matni bilan ko'radi, O'ZI birma-bir
- * qo'shadi. Tanlanganlar alohida ro'yxatda — har birini olib tashlash va
- * tartibini o'zgartirish mumkin (BOSHLANG'ICH HOLAT — bo'sh).
+ * ajratilgan (S23 PR sharh). O'qituvchi `ItemBrowser` (S26 — mavzu daraxti
+ * bo'yicha ko'rib tanlash, qarang uning izohi) orqali savol qidiradi,
+ * natijalarni matni bilan ko'radi, O'ZI birma-bir qo'shadi. Tanlanganlar
+ * `SelectedItemsPanel`da — tartibini @dnd-kit bilan o'zgartirish mumkin
+ * (PRACTICE'da tartib ma'noli — talaba shu ketma-ketlikda ko'radi).
  *
  * `itemIds` — faqat id massivi (server shakli); ko'rsatish uchun matn
  * kerak bo'lgani sababli mahalliy `textCache` bilan hydratsiya qilinadi —
- * yangi qo'shilganlar `ItemSearchPicker`dan matn bilan keladi, avval
- * saqlangan (edit sahifasida yuklangan) itemIds uchun esa mount paytida
- * `/api/teacher/items/search-preview`dan `onlyItemIds` bilan so'raladi.
+ * yangi qo'shilganlar `ItemBrowser`dan matn bilan keladi, avval saqlangan
+ * (edit sahifasida yuklangan) itemIds uchun esa mount paytida
+ * `/api/items/browse`dan `onlyItemIds` bilan so'raladi.
  */
-export default function PracticeBlockEditor({ itemIds, onChange, subjectId, topicPath, onTopicPathChange }: Props) {
+export default function PracticeBlockEditor({ itemIds, onChange, subjectId }: Props) {
   const [textCache, setTextCache] = useState<Record<string, string>>({});
   const [hydrating, setHydrating] = useState(false);
   const hydratedRef = useRef<Set<string>>(new Set());
@@ -41,16 +39,16 @@ export default function PracticeBlockEditor({ itemIds, onChange, subjectId, topi
     setHydrating(true);
     (async () => {
       try {
-        const res = await fetch('/api/teacher/items/search-preview', {
+        const res = await fetch('/api/items/browse', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ subjectIds: [subjectId], onlyItemIds: missing }),
+          body: JSON.stringify({ subjectIds: [subjectId], onlyItemIds: missing, pageSize: 50 }),
         });
         const data = await res.json();
         if (res.ok && Array.isArray(data.items)) {
           setTextCache((prev) => {
             const next = { ...prev };
-            for (const it of data.items as FoundItem[]) next[it.id] = it.text;
+            for (const it of data.items as BrowseItem[]) next[it.id] = it.text;
             return next;
           });
         }
@@ -62,32 +60,20 @@ export default function PracticeBlockEditor({ itemIds, onChange, subjectId, topi
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [itemIds, subjectId]);
 
-  const addItem = (item: FoundItem) => {
+  const addItem = (item: BrowseItem) => {
     if (itemIds.includes(item.id) || itemIds.length >= MAX_PRACTICE_ITEMS) return;
     setTextCache((prev) => ({ ...prev, [item.id]: item.text }));
     onChange([...itemIds, item.id]);
   };
   const removeItem = (id: string) => onChange(itemIds.filter((iid) => iid !== id));
-  const moveItem = (idx: number, dir: -1 | 1) => {
-    const j = idx + dir;
-    if (j < 0 || j >= itemIds.length) return;
-    const updated = [...itemIds];
-    [updated[idx], updated[j]] = [updated[j], updated[idx]];
-    onChange(updated);
-  };
+  const reorder = (orderedIds: string[]) => onChange(orderedIds);
+
+  const selectedRows = itemIds.map((id) => ({ id, text: textCache[id] || id }));
 
   return (
     <div className="space-y-2">
-      <input
-        type="text"
-        value={topicPath}
-        onChange={(e) => onTopicPathChange(e.target.value)}
-        placeholder="Mavzu bilan toraytirish (ixtiyoriy, masalan: mexanika)"
-        className="w-full px-2.5 py-1.5 rounded-lg border border-border text-xs"
-      />
-
       {itemIds.length < MAX_PRACTICE_ITEMS ? (
-        <ItemSearchPicker subjectId={subjectId} topicPath={topicPath} excludeIds={itemIds} onAdd={addItem} />
+        <ItemBrowser subjectId={subjectId} addedIds={itemIds} onAdd={addItem} />
       ) : (
         <p className="text-[11px] text-amber-600">Chegara ({MAX_PRACTICE_ITEMS} ta) to&apos;ldi — avval bittasini olib tashlang</p>
       )}
@@ -97,28 +83,12 @@ export default function PracticeBlockEditor({ itemIds, onChange, subjectId, topi
           Tanlangan savollar ({itemIds.length}/{MAX_PRACTICE_ITEMS})
           {hydrating && <Loader2 size={10} className="animate-spin" />}
         </p>
-        {itemIds.length === 0 ? (
-          <p className="text-[11px] text-text-secondary">Hali savol tanlanmagan</p>
-        ) : (
-          <div className="space-y-1">
-            {itemIds.map((id, idx) => (
-              <div key={id} className="flex items-center gap-1.5 p-1.5 rounded-lg border border-border bg-gray-50/50">
-                <div className="flex flex-col flex-shrink-0">
-                  <button type="button" onClick={() => moveItem(idx, -1)} disabled={idx === 0} className="p-0.5 text-text-secondary hover:text-primary-600 disabled:opacity-20">
-                    <ChevronUp size={10} />
-                  </button>
-                  <button type="button" onClick={() => moveItem(idx, 1)} disabled={idx === itemIds.length - 1} className="p-0.5 text-text-secondary hover:text-primary-600 disabled:opacity-20">
-                    <ChevronDown size={10} />
-                  </button>
-                </div>
-                <p className="flex-1 min-w-0 text-xs text-text-primary line-clamp-1">{textCache[id] || id}</p>
-                <button type="button" onClick={() => removeItem(id)} className="p-1 rounded text-red-400 hover:text-red-600 hover:bg-red-50 flex-shrink-0">
-                  <X size={12} />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
+        <SelectedItemsPanel
+          items={selectedRows}
+          onRemove={removeItem}
+          onReorder={reorder}
+          emptyLabel="Hali savol tanlanmagan"
+        />
       </div>
     </div>
   );
