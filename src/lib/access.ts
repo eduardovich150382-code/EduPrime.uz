@@ -72,6 +72,25 @@ export async function checkCourseAccess(
   return false;
 }
 
+/**
+ * S25 — kurs sotuv sahifasida ishonch hosil qilish uchun: har bir kursning
+ * BIRINCHI darsi (bo'limlar tartibi bo'yicha global birinchi) sotib olmasdan
+ * to'liq ochiq bo'lishi kerak — o'qituvchi uni alohida isPreviewable qilib
+ * belgilamagan bo'lsa ham. Ikkinchi va undan keyingi darslar faqat
+ * isPreviewable=true bo'lsagina ochiladi. `checkCourseAccess`dan FARQLI —
+ * bu yerda "kursga umuman kirish huquqi bormi" emas, balki "sotib olmasdan
+ * qaysi bitta dars ko'rinadi" hal qilinadi (GET /api/courses/[id] ochiq
+ * preview endpointida ishlatiladi). course-lock.ts dagi sequentialUnlock
+ * (yozilgandan KEYINGI qulflash) bilan aralashtirilmasin — bu butunlay
+ * boshqa, oldindan ko'rish bosqichi.
+ */
+export function isLessonFreelyPreviewable(
+  lesson: { id: string; isPreviewable: boolean },
+  firstLessonId: string | undefined
+): boolean {
+  return lesson.isPreviewable || (firstLessonId !== undefined && lesson.id === firstLessonId);
+}
+
 export async function hasActiveSubscription(
   userId: string
 ): Promise<{ premium: boolean; teacher: boolean }> {

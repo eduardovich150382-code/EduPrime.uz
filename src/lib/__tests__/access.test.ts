@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { checkCourseAccess, checkTestAccess, hasActiveSubscription } from "../access";
+import { checkCourseAccess, checkTestAccess, hasActiveSubscription, isLessonFreelyPreviewable } from "../access";
 
 /**
  * `db` (Prisma) ni mock qilamiz — baza kerak emas. Fake implementatsiyalar
@@ -222,6 +222,24 @@ describe("checkCourseAccess", () => {
     setPayments([]);
     const result = await checkCourseAccess("user-1", { id: "c1", accessType: "paid" }, "STUDENT");
     expect(result).toBe(false);
+  });
+});
+
+describe("isLessonFreelyPreviewable (S25 — birinchi dars har doim bepul)", () => {
+  it("birinchi dars — isPreviewable=false bo'lsa ham true qaytaradi", () => {
+    expect(isLessonFreelyPreviewable({ id: "lesson1", isPreviewable: false }, "lesson1")).toBe(true);
+  });
+
+  it("ikkinchi dars — isPreviewable=false bo'lsa false qaytaradi", () => {
+    expect(isLessonFreelyPreviewable({ id: "lesson2", isPreviewable: false }, "lesson1")).toBe(false);
+  });
+
+  it("ikkinchi dars — o'qituvchi isPreviewable=true qilib belgilagan bo'lsa true qaytaradi", () => {
+    expect(isLessonFreelyPreviewable({ id: "lesson2", isPreviewable: true }, "lesson1")).toBe(true);
+  });
+
+  it("firstLessonId aniqlanmagan bo'lsa (bo'sh kurs) hech qanday darsni majburan ochmaydi", () => {
+    expect(isLessonFreelyPreviewable({ id: "lesson1", isPreviewable: false }, undefined)).toBe(false);
   });
 });
 
