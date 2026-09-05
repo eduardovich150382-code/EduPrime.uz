@@ -11,12 +11,16 @@ const {
   aggregateReviewMock,
   findUniqueEnrollmentMock,
   findManyTestResultMock,
+  findFirstPaymentMock,
+  findUniqueUserMock,
   authMock,
 } = vi.hoisted(() => ({
   findUniqueCourseMock: vi.fn(),
   aggregateReviewMock: vi.fn(),
   findUniqueEnrollmentMock: vi.fn(),
   findManyTestResultMock: vi.fn(),
+  findFirstPaymentMock: vi.fn(),
+  findUniqueUserMock: vi.fn(),
   authMock: vi.fn(),
 }));
 
@@ -26,6 +30,10 @@ vi.mock("@/lib/db", () => ({
     courseReview: { aggregate: (...args: unknown[]) => aggregateReviewMock(...args) },
     courseEnrollment: { findUnique: (...args: unknown[]) => findUniqueEnrollmentMock(...args) },
     testResult: { findMany: (...args: unknown[]) => findManyTestResultMock(...args) },
+    // S25 — pendingPayment (kutilayotgan chek) va checkCourseAccess'ning
+    // ichki `db.payment`/`db.user` chaqiruvlari uchun.
+    payment: { findFirst: (...args: unknown[]) => findFirstPaymentMock(...args) },
+    user: { findUnique: (...args: unknown[]) => findUniqueUserMock(...args) },
   },
 }));
 
@@ -144,5 +152,74 @@ describe("GET /api/courses/[id] — revealAfterQuiz gating (preview endpoint)", 
     const block = findVideoBlock(course);
 
     expect(block.videoUrl).toBe("https://youtube.com/watch?v=solution");
+  });
+});
+
+// S25 — birinchi dars har doim bepul ochiq, qarang lib/access.ts#isLessonFreelyPreviewable.
+// Ikkala dars ham isPreviewable: false qilib belgilangan — shu holatda ham
+// birinchisi ochilishi, IKKINCHISI esa qulf ostida qolishi kerak.
+function buildCourseTwoLessonsNotPreviewable() {
+  const base = buildCourse();
+  return {
+    ...base,
+    sections: [
+      {
+        id: "sec1",
+        titleUz: "Bo'lim 1",
+        lessons: [
+          {
+            id: "lesson1",
+            titleUz: "Dars 1",
+            type: "VIDEO",
+            durationMinutes: 10,
+            isPreviewable: false,
+            videoUrl: "https://youtube.com/watch?v=lesson1",
+            content: null,
+            testId: null,
+            fileUrl: null,
+            test: null,
+            blocks: [] as any[],
+          },
+          {
+            id: "lesson2",
+            titleUz: "Dars 2",
+            type: "VIDEO",
+            durationMinutes: 10,
+            isPreviewable: false,
+            videoUrl: "https://youtube.com/watch?v=lesson2",
+            content: null,
+            testId: null,
+            fileUrl: null,
+            test: null,
+            blocks: [] as any[],
+          },
+        ],
+      },
+    ],
+  };
+}
+
+describe("GET /api/courses/[id] — birinchi dars har doim bepul (S25)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    findUniqueCourseMock.mockResolvedValue(buildCourseTwoLessonsNotPreviewable());
+    aggregateReviewMock.mockResolvedValue({ _avg: { rating: null }, _count: 0 });
+    authMock.mockResolvedValue(null);
+  });
+
+  it("o'qituvchi isPreviewable=false qoldirgan bo'lsa ham birinchi darsni to'liq ochadi", async () => {
+    const { course } = await callGet();
+    const lesson1 = course.sections[0].lessons[0];
+
+    expect(lesson1.isPreviewable).toBe(true);
+    expect(lesson1.videoUrl).toBe("https://youtube.com/watch?v=lesson1");
+  });
+
+  it("ikkinchi darsni isPreviewable=false bo'lsa qulflangan holda qaytaradi", async () => {
+    const { course } = await callGet();
+    const lesson2 = course.sections[0].lessons[1];
+
+    expect(lesson2.isPreviewable).toBe(false);
+    expect(lesson2.videoUrl).toBeUndefined();
   });
 });

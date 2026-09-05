@@ -8,9 +8,12 @@ import { Link } from '@/i18n/routing';
 import BackButton from '@/components/ui/BackButton';
 import LatexRenderer from '@/components/ui/LatexRenderer';
 import SecureYouTubePlayer from '@/components/ui/SecureYouTubePlayer';
+import CoursePurchasePanel, { CoursePurchaseStickyBar } from '@/components/course/CoursePurchasePanel';
+import CourseStats from '@/components/course/CourseStats';
+import CourseFaq from '@/components/course/CourseFaq';
 import {
   GraduationCap, Clock, Layers, Loader2, User, Lock, Play, FileText,
-  ListChecks, Sparkles, AlertCircle, ArrowRight, Star, Trash2, Send,
+  ListChecks, Sparkles, AlertCircle, Star, Trash2, Send,
   ChevronDown, ChevronRight, CheckCircle2, BookOpen,
 } from 'lucide-react';
 
@@ -61,6 +64,7 @@ interface CourseDetail {
   sections: SectionItem[];
   isEnrolled: boolean;
   hasAccess: boolean;
+  pendingPayment: boolean;
   avgRating: number | null;
   reviewCount: number;
 }
@@ -96,14 +100,6 @@ interface ReviewItem {
 }
 
 const LESSON_ICONS = { VIDEO: Play, TEXT: FileText, QUIZ: ListChecks, PDF: FileText };
-
-const ACCESS_LABELS: Record<string, string> = {
-  free: 'Bepul',
-  premium: 'Premium tarifi',
-  teacher: 'Ustoz tarifi',
-  premium_teacher: 'Premium yoki Ustoz tarifi',
-  paid: 'Narxli',
-};
 
 export default function CourseDetailPage() {
   const params = useParams();
@@ -348,61 +344,30 @@ export default function CourseDetailPage() {
         </div>
       </motion.div>
 
-      {/* Enrollment CTA */}
+      {/* Enrollment CTA — S25: xarid oqimining o'zi CoursePurchasePanel'da,
+          bu yerda faqat joylashtiriladi. Hozircha kvitansiya/admin
+          tasdiqlashi (Payment) — kelajakda avtomatik shlyuz qo'shilsa FAQAT
+          shu komponent almashadi, bu sahifa o'zgarmaydi. */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="card p-5">
-        {course.isEnrolled ? (
-          <Link href={`/courses/${course.id}/learn`} className="btn-primary w-full flex items-center justify-center gap-2">
-            <Play size={18} /> O&apos;rganishni boshlash
-          </Link>
-        ) : course.hasAccess ? (
-          <button onClick={handleEnroll} disabled={enrolling} className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50">
-            {enrolling ? <Loader2 size={18} className="animate-spin" /> : <ArrowRight size={18} />}
-            {course.isFree ? 'Bepul yozilish' : 'Yozilish'}
-          </button>
-        ) : course.accessType === 'paid' ? (
-          <a
-            href={`https://t.me/EduPrimeuzbot?start=buy_course_${course.id}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-primary w-full flex items-center justify-center gap-2"
-          >
-            Sotib olish — {course.price.toLocaleString()} so&apos;m
-          </a>
-        ) : (
-          <div className="text-center">
-            <Lock size={22} className="text-primary-400 mx-auto mb-2" />
-            <p className="text-sm text-text-secondary mb-3">
-              Bu kursga kirish uchun <strong>{ACCESS_LABELS[course.accessType]}</strong> kerak.
-            </p>
-            <Link href="/pricing" className="btn-primary inline-flex items-center gap-2">
-              Tariflar sahifasi
-            </Link>
-          </div>
-        )}
+        <CoursePurchasePanel course={course} enrolling={enrolling} onEnroll={handleEnroll} variant="full" />
       </motion.div>
 
-      {/* Nimani o'rganasiz + oldindan talab qilinadigan bilim */}
-      {(course.whatYoullLearn.length > 0 || course.prerequisites) && (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }} className="card p-6 space-y-5">
-          {course.whatYoullLearn.length > 0 && (
-            <div>
-              <h2 className="font-semibold text-text-primary mb-3">Nimani o&apos;rganasiz</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {course.whatYoullLearn.map((item, i) => (
-                  <div key={i} className="flex items-start gap-2 text-sm text-text-primary">
-                    <CheckCircle2 size={16} className="text-green-500 flex-shrink-0 mt-0.5" />
-                    <span>{item}</span>
-                  </div>
-                ))}
+      {/* Mobilda pastga yopishtirilgan doimiy xarid paneli — S25 4-band. */}
+      <CoursePurchaseStickyBar course={course} enrolling={enrolling} onEnroll={handleEnroll} />
+
+      {/* Nimani o'rganasiz — S25: Dastur (curriculum)dan OLDIN, "Kimlar
+          uchun" esa Dastur'dan KEYIN chiqadi (sahifa tuzilishi shu tartibda). */}
+      {course.whatYoullLearn.length > 0 && (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }} className="card p-6">
+          <h2 className="font-semibold text-text-primary mb-3">Nimani o&apos;rganasiz</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {course.whatYoullLearn.map((item, i) => (
+              <div key={i} className="flex items-start gap-2 text-sm text-text-primary">
+                <CheckCircle2 size={16} className="text-green-500 flex-shrink-0 mt-0.5" />
+                <span>{item}</span>
               </div>
-            </div>
-          )}
-          {course.prerequisites && (
-            <div className={course.whatYoullLearn.length > 0 ? 'pt-4 border-t border-border' : ''}>
-              <h3 className="text-sm font-semibold text-text-primary mb-1.5">Kimlar uchun</h3>
-              <p className="text-sm text-text-secondary">{course.prerequisites}</p>
-            </div>
-          )}
+            ))}
+          </div>
         </motion.div>
       )}
 
@@ -521,6 +486,27 @@ export default function CourseDetailPage() {
             </div>
           ))}
         </div>
+      </motion.div>
+
+      {/* Kimlar uchun — S25: Dastur'dan KEYIN chiqadi. */}
+      {course.prerequisites && (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }} className="card p-6">
+          <h3 className="font-semibold text-text-primary mb-1.5">Kimlar uchun</h3>
+          <p className="text-sm text-text-secondary">{course.prerequisites}</p>
+        </motion.div>
+      )}
+
+      {/* Kurs tarkibi raqamlarda — S25 */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.13 }}>
+        <CourseStats
+          lessons={course.sections.flatMap((s) => s.lessons)}
+          estimatedHours={course.estimatedHours}
+        />
+      </motion.div>
+
+      {/* Savol-javob — S25 */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.14 }} className="card p-6">
+        <CourseFaq />
       </motion.div>
 
       {/* Reviews */}

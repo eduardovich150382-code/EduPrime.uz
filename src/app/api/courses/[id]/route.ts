@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
-import { checkCourseAccess } from '@/lib/access';
+import { checkCourseAccess, isLessonFreelyPreviewable } from '@/lib/access';
 import { collectLessonQuizTestIds, flattenGatingTestIds, resolveSolutionBlockVideoUrl } from '@/lib/solution-lock';
 
 // GET /api/courses/[id] — kurs dasturi (curriculum) + yozilish/ruxsat holati.
@@ -53,6 +53,7 @@ export async function GET(
 
     let isEnrolled = false;
     let hasAccess = course.isFree;
+    let pendingPayment = false;
 
     if (userId) {
       const enrollment = await db.courseEnrollment.findUnique({
@@ -65,6 +66,19 @@ export async function GET(
       } else {
         const user = await db.user.findUnique({ where: { id: userId }, select: { role: true } });
         hasAccess = await checkCourseAccess(userId, course, user?.role);
+
+        // S25 — "chek yuborildi, admin tekshirmoqda" holatini ko'rsatish
+        // uchun: Telegram bot orqali qabul qilingan chek `saveReceiptToDB`da
+        // (telegram/webhook route.ts) shu kurs id'si bilan PENDING Payment
+        // yaratadi. Faqat 'paid' kurslarda tekshiramiz — premium/teacher
+        // tarifida "kutish" tushunchasi yo'q (obuna darhol yoki umuman yo'q).
+        if (!hasAccess && course.accessType === 'paid') {
+          const pending = await db.payment.findFirst({
+            where: { userId, status: 'PENDING', selectedSubjects: { has: course.id } },
+            select: { id: true },
+          });
+          pendingPayment = !!pending;
+        }
       }
     }
 
@@ -73,6 +87,9 @@ export async function GET(
     // autentifikatsiyasiz ham chaqirilishi mumkin — userId bo'lmasa
     // submittedTestIds bo'sh qoladi va gating bloklari doim `null` bo'ladi.
     const allLessons = course.sections.flatMap((s) => s.lessons);
+    // S25 — birinchi dars (global tartibda) har doim bepul ko'rinsin, qarang
+    // lib/access.ts#isLessonFreelyPreviewable.
+    const firstLessonId = allLessons[0]?.id;
     const lessonQuizTestIds = collectLessonQuizTestIds(allLessons);
     const allGatingTestIds = flattenGatingTestIds(lessonQuizTestIds);
     const submittedTestIds = new Set<string>();
@@ -93,14 +110,19 @@ export async function GET(
       id: s.id,
       titleUz: s.titleUz,
       lessons: s.lessons.map((l) => {
+        const freePreview = isLessonFreelyPreviewable(l, firstLessonId);
         const base = {
           id: l.id,
           titleUz: l.titleUz,
           type: l.type,
           durationMinutes: l.durationMinutes,
-          isPreviewable: l.isPreviewable,
+          // Frontend'ga effektiv (o'qituvchi bayrog'i YOKI birinchi dars)
+          // qiymat beriladi — shu bitta maydonga qarab "Namuna" belgisi va
+          // ochish/yopish ishlaydi, alohida "birinchi dars" holatini bilishi
+          // shart emas.
+          isPreviewable: freePreview,
         };
-        if (!l.isPreviewable) return base;
+        if (!freePreview) return base;
         return {
           ...base,
           videoUrl: l.type === 'VIDEO' ? l.videoUrl : null,
@@ -148,6 +170,7 @@ export async function GET(
         sections,
         isEnrolled,
         hasAccess,
+        pendingPayment,
         avgRating: ratingAggregate._avg.rating ? Math.round(ratingAggregate._avg.rating * 10) / 10 : null,
         reviewCount: ratingAggregate._count,
       },
