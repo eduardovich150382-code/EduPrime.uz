@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAuth } from '@/lib/api-auth';
 import { buildItemWhere, parseItemSpec } from '@/lib/item-picker';
-import { buildTopicTree, countItemsPerTopic } from '@/lib/topic-tree';
+import { buildTopicTree, countItemsPerTopic, dedupeTopicsByPath } from '@/lib/topic-tree';
 import { locales, defaultLocale } from '@/i18n/config';
 
 // POST /api/topics — konstruktor ekranidagi ("/build") mavzular daraxti:
@@ -13,6 +13,14 @@ import { locales, defaultLocale } from '@/i18n/config';
 // API yo'llarini next-intl'dan chetlab o'tadi), shuning uchun locale server
 // tarafda avtomatik aniqlanmaydi — mijoz o'zining joriy tilini `locale`
 // maydonida yuboradi.
+//
+// `dedupeByPath` — FAQAT `ItemBrowser` ishlatadi (`lib/subject-groups.ts`):
+// bir xil nomdagi fan turli kategoriyada alohida Subject qatoriga ega
+// bo'lgani uchun, shu nomdagi HAMMA subjectId birga so'ralganda tekis
+// ro'yxatda har bir path bir necha marta qaytadi. `true` bo'lsa natija
+// `dedupeTopicsByPath` bilan bitta vakillikka yig'iladi. Standart holatda
+// (`/build`) o'zgarishsiz — u yerda bir nechta subjectId chindan ham
+// bir-biridan farqli fanlar (masalan Matematika + Fizika).
 export async function POST(request: NextRequest) {
   try {
     const { error } = await requireAuth();
@@ -25,6 +33,7 @@ export async function POST(request: NextRequest) {
 
     const rawLocale = (body as Record<string, unknown> | null)?.locale;
     const locale = locales.includes(rawLocale as (typeof locales)[number]) ? (rawLocale as string) : defaultLocale;
+    const dedupeByPath = (body as Record<string, unknown> | null)?.dedupeByPath === true;
 
     // Fan tanlanmagan bo'lsa daraxt ma'nosiz (qaysi fan mavzulari?) —
     // bo'sh javob qaytariladi, DB'ga bormaymiz.
@@ -42,6 +51,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ tree: [] });
     }
 
+    const effectiveTopics = dedupeByPath ? dedupeTopicsByPath(topics) : topics;
+
     const specWithoutTopics = { ...spec };
     delete specWithoutTopics.topicPaths;
     const candidates = await db.item.findMany({
@@ -51,10 +62,10 @@ export async function POST(request: NextRequest) {
 
     const counts = countItemsPerTopic(
       candidates.map((c) => ({ id: c.id, topicPaths: c.topics.map((t) => t.topic.path) })),
-      topics
+      effectiveTopics
     );
 
-    return NextResponse.json({ tree: buildTopicTree(topics, counts, locale) });
+    return NextResponse.json({ tree: buildTopicTree(effectiveTopics, counts, locale) });
   } catch (err) {
     console.error('POST /api/topics error:', err);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });

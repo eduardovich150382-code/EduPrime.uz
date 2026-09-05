@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildTopicTree, countItemsPerTopic, resolveTopicName, type FlatTopicNode } from "../topic-tree";
+import { buildTopicTree, countItemsPerTopic, dedupeTopicsByPath, resolveTopicName, type FlatTopicNode } from "../topic-tree";
 
 describe("resolveTopicName", () => {
   const node = { nameUz: "Mexanika", nameRu: "Механика", nameEn: null };
@@ -72,6 +72,50 @@ describe("buildTopicTree", () => {
 
   it("bo'sh ro'yxat bilan ishlaydi", () => {
     expect(buildTopicTree([], {}, "uz")).toEqual([]);
+  });
+});
+
+describe("dedupeTopicsByPath", () => {
+  // Bir xil "Matematika" fani ikkita kategoriyada (DTM va SCHOOL) ikkita
+  // alohida Subject qatoriga ega — daraxt ikkalasiga ham bir xil path bilan
+  // ekilgan, shuning uchun tekis ro'yxatda har tugun ikki marta keladi.
+  const dtmNodes: FlatTopicNode[] = [
+    { id: "dtm-mex", parentId: null, path: "mexanika", level: 0, nameUz: "Mexanika", nameRu: null, nameEn: null, order: 0 },
+    { id: "dtm-kin", parentId: "dtm-mex", path: "mexanika/kinematika", level: 1, nameUz: "Kinematika", nameRu: null, nameEn: null, order: 0 },
+  ];
+  const schoolNodes: FlatTopicNode[] = [
+    { id: "school-mex", parentId: null, path: "mexanika", level: 0, nameUz: "Mexanika", nameRu: null, nameEn: null, order: 0 },
+    { id: "school-kin", parentId: "school-mex", path: "mexanika/kinematika", level: 1, nameUz: "Kinematika", nameRu: null, nameEn: null, order: 0 },
+  ];
+
+  it("bir xil path'dagi tugunlarni bittaga tushiradi, birinchi uchraganini vakil qiladi", () => {
+    const deduped = dedupeTopicsByPath([...dtmNodes, ...schoolNodes]);
+    expect(deduped.map((n) => n.id)).toEqual(["dtm-mex", "dtm-kin"]);
+  });
+
+  it("vakil tugunning parentId'sini vakillar orasidagi path'ga qarab qayta hisoblaydi", () => {
+    const deduped = dedupeTopicsByPath([...dtmNodes, ...schoolNodes]);
+    const kinematika = deduped.find((n) => n.path === "mexanika/kinematika")!;
+    expect(kinematika.parentId).toBe("dtm-mex"); // school-mex EMAS — vakil sifatida birinchi (dtm-mex) tanlangan
+  });
+
+  it("ota path ro'yxatda topilmasa parentId null bo'ladi", () => {
+    const orphan: FlatTopicNode[] = [
+      { id: "x", parentId: "boshqa-fan-tuguni", path: "mexanika/kinematika", level: 1, nameUz: "Kinematika", nameRu: null, nameEn: null, order: 0 },
+    ];
+    expect(dedupeTopicsByPath(orphan)[0].parentId).toBeNull();
+  });
+
+  it("dublikat bo'lmasa ro'yxat o'zgarishsiz qaytadi (parentId qayta hisoblanadi, lekin qiymati bir xil)", () => {
+    expect(dedupeTopicsByPath(dtmNodes)).toEqual(dtmNodes);
+  });
+
+  it("natijani buildTopicTree'ga uzatilganda takrorlanmagan, to'g'ri joylashgan daraxt hosil bo'ladi", () => {
+    const deduped = dedupeTopicsByPath([...dtmNodes, ...schoolNodes]);
+    const tree = buildTopicTree(deduped, {}, "uz");
+    expect(tree).toHaveLength(1);
+    expect(tree[0].id).toBe("dtm-mex");
+    expect(tree[0].children.map((c) => c.id)).toEqual(["dtm-kin"]);
   });
 });
 

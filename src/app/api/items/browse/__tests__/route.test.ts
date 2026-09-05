@@ -160,6 +160,26 @@ describe("POST /api/items/browse", () => {
     expect(status).toBe(400);
   });
 
+  // ItemBrowser bir xil nomdagi fanning HAMMA (turli kategoriyadagi)
+  // subjectId'larini birga yuboradi (qarang lib/subject-groups.ts) — shu
+  // hammasidan savol qaytishini kafolatlaydi.
+  it("bir nechta subjectId berilsa where'ga IN sifatida tushadi va hammasidan mos itemlar qaytadi", async () => {
+    findManyItemMock.mockResolvedValue([
+      mcqItem({ id: "item-dtm" }),
+      mcqItem({ id: "item-school" }),
+    ]);
+    countItemMock.mockResolvedValue(2);
+
+    const { data } = await callBrowse({ subjectIds: ["math-dtm", "math-school"] });
+
+    expect(findManyItemMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ subjectId: { in: ["math-dtm", "math-school"] } }),
+      })
+    );
+    expect(data.items.map((it: { id: string }) => it.id)).toEqual(["item-dtm", "item-school"]);
+  });
+
   it("bo'sh natijada ham 200 va bo'sh items qaytaradi (frontend aniq xabar ko'rsatadi)", async () => {
     countItemMock.mockResolvedValue(0);
     findManyItemMock.mockResolvedValue([]);
