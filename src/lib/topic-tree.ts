@@ -78,6 +78,36 @@ export function buildTopicTree(nodes: FlatTopicNode[], counts: Record<string, nu
   return roots;
 }
 
+/**
+ * Bir xil nomdagi fan turli `TestCategory`larda ALOHIDA `Subject` qatoriga
+ * ega (masalan "Matematika" DTM va SCHOOL kategoriyalarida ikki xil
+ * `subjectId`) — mavzu daraxti har ikkalasiga ham bir xil `path`lar bilan
+ * ekilgan bo'lishi mumkin. O'qituvchi ItemBrowser'da shu nomdagi HAMMA
+ * `subjectId`ni birga ko'rib tanlaganda (qarang `resolveSubjectGroup`,
+ * `lib/subject-groups.ts`), `/api/topics`dan kelgan tekis ro'yxatda har bir
+ * `path` bir necha marta (har subject uchun bittadan) qaytadi — shu funksiya
+ * ularni BITTA vakillikka yig'adi, `parentId`ni ham vakil tugunlar orasidagi
+ * `path`ga qarab qayta hisoblaydi (asl `parentId` faqat o'z subjectI'chidagi
+ * shoxga ishora qiladi, guruhlangan holatda ma'nosiz). Bir xil `path`ga ega
+ * tugunlardan BIRINCHISI (kirish tartibida) vakil sifatida saqlanadi —
+ * ular nom/daraja/tartib jihatidan bir xil bo'lishi kutiladi, chunki daraxt
+ * bir xil manbadan ko'chirilgan.
+ */
+export function dedupeTopicsByPath(nodes: FlatTopicNode[]): FlatTopicNode[] {
+  const byPath = new Map<string, FlatTopicNode>();
+  for (const n of nodes) {
+    if (!byPath.has(n.path)) byPath.set(n.path, n);
+  }
+
+  return Array.from(byPath.values()).map((n) => {
+    const slashIdx = n.path.lastIndexOf('/');
+    if (slashIdx === -1) return { ...n, parentId: null };
+    const parentPath = n.path.slice(0, slashIdx);
+    const parent = byPath.get(parentPath);
+    return { ...n, parentId: parent ? parent.id : null };
+  });
+}
+
 export interface TopicCandidate {
   id: string;
   topicPaths: string[];

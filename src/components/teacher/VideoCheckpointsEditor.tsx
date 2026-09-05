@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import ItemBrowser, { type BrowseItem } from './ItemBrowser';
 import SelectedItemsPanel from './SelectedItemsPanel';
+import { useSubjectGroup } from './useSubjectGroup';
 import { MAX_CHECKPOINTS, type Checkpoint } from '@/lib/video-checkpoints';
 
 // Video uzunligini tahrirlagichda bilmaymiz (YouTube API'ni bu yerda
@@ -92,6 +93,12 @@ export default function VideoCheckpointsEditor({ checkpoints, onChange, subjectI
   const [textCache, setTextCache] = useState<Record<string, string>>({});
   const [hydrating, setHydrating] = useState(false);
   const hydratedRef = useRef<Set<string>>(new Set());
+  // `ItemBrowser` shu nomdagi HAMMA kategoriya qatori (subjectId) bilan
+  // ko'rib tanlaydi (qarang useSubjectGroup.ts) — shu sababli avval
+  // saqlangan nuqta ham (masalan SCHOOL qatoriga bog'langan item) shu
+  // KENGAYTIRILGAN guruh bilan qidirilishi shart, aks holda faqat tor
+  // `subjectId`ga mos kelmagani uchun matni topilmay qoladi.
+  const subjectGroup = useSubjectGroup(subjectId);
 
   const sorted = [...checkpoints].sort((a, b) => a.atSeconds - b.atSeconds);
 
@@ -110,7 +117,7 @@ export default function VideoCheckpointsEditor({ checkpoints, onChange, subjectI
         const res = await fetch('/api/items/browse', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ subjectIds: [subjectId], onlyItemIds: missing, pageSize: 50 }),
+          body: JSON.stringify({ subjectIds: subjectGroup.ids, onlyItemIds: missing, pageSize: 50 }),
         });
         const data = await res.json();
         if (res.ok && Array.isArray(data.items)) {
@@ -126,7 +133,7 @@ export default function VideoCheckpointsEditor({ checkpoints, onChange, subjectI
       setHydrating(false);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [checkpoints, subjectId]);
+  }, [checkpoints, subjectId, subjectGroup.ids.join(',')]);
 
   // Yangi nuqta uchun band bo'lmagan vaqt: oxirgi nuqtadan 30 soniya keyin
   // (birinchisi bo'lsa 0'dan) — to'qnashsa birma-bir siljitiladi. O'qituvchi

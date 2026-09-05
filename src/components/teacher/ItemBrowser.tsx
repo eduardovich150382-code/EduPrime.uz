@@ -7,6 +7,7 @@ import TopicTree, { type TopicTreeNode } from '@/app/[locale]/(main)/build/compo
 import ChipGroup from '@/app/[locale]/(main)/build/components/ChipGroup';
 import { useDebouncedPost } from '@/app/[locale]/(main)/build/lib/useDebouncedPost';
 import { QUESTION_TYPES, DIFFICULTY_MIN, DIFFICULTY_MAX } from '@/app/[locale]/(main)/build/lib/buildState';
+import { useSubjectGroup } from './useSubjectGroup';
 
 export interface BrowseOptionPreview {
   label: string;
@@ -33,15 +34,21 @@ interface BrowseResponse {
   page: number;
 }
 
+interface CountResponse {
+  total: number;
+}
+
 const PAGE_SIZE = 10;
 const TYPE_LABELS: Record<string, string> = Object.fromEntries(QUESTION_TYPES.map((t) => [t.value, t.label]));
 
 interface Props {
   /** Kurs bitta fanga tegishli (LessonBlocksEditor'dagi bilan bir xil qoida)
    * — shu sababli bu yerda fan CHIP emas, chaqiruvchi tomonidan qat'iy
-   * belgilanadi (kelajakda fan tanlash kerak bo'lgan chaqiruvchi paydo
-   * bo'lsa, shu komponentga alohida `subjects`/`onSubjectChange` propi
-   * qo'shiladi — hozircha ikkala mavjud chaqiruvchida ham keraksiz). */
+   * belgilanadi. DIQQAT: bu ANIQ Subject qatorining id'si, lekin bir xil
+   * nomdagi fan har `TestCategory`da (DTM, SCHOOL, ...) ALOHIDA qatorga ega
+   * — savollarning aksariyati odatda faqat BITTASIGA bog'langan. Shu sababli
+   * komponent ichida bu id NOM bo'yicha kengaytiriladi (`resolveSubjectGroup`,
+   * `lib/subject-groups.ts`) — chaqiruvchi hech narsa qilishi shart emas. */
   subjectId: string;
   /** Allaqachon tanlangan Item.id'lar — natijalarda YASHIRILMAYDI, faqat
    * "Qo'shildi" deb belgilanadi (S26 PR — avvalgi ItemSearchPicker ularni
@@ -71,6 +78,14 @@ export default function ItemBrowser({ subjectId, addedIds, onAdd }: Props) {
   const [page, setPage] = useState(1);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
+  // Bir xil nomdagi fan har kategoriyada (DTM, SCHOOL, ...) ALOHIDA Subject
+  // qatoriga ega, savollarning aksariyati esa faqat BITTASIGA bog'langan —
+  // shu sababli `subjectId` o'rniga shu nomdagi HAMMA qator id'si bilan
+  // so'raymiz (qarang useSubjectGroup.ts / lib/subject-groups.ts). Ro'yxat
+  // hali yuklanmagan bo'lsa xavfsiz holatda faqat berilgan `subjectId`ning
+  // o'zi ishlatiladi.
+  const subjectGroup = useSubjectGroup(subjectId);
+
   // Filtr (mavzu/qiyinlik/tur/matn) o'zgarganda 1-sahifaga qaytamiz —
   // aks holda "3-sahifa"da turib filtr almashtirilsa, mavjud bo'lmagan
   // sahifa so'ralib bo'sh natija ko'rinishi mumkin edi.
@@ -86,19 +101,35 @@ export default function ItemBrowser({ subjectId, addedIds, onAdd }: Props) {
   // chetlab qo'yardi, garchi o'qituvchi hech qanday qiyinlik cheklovi
   // qo'ymagan bo'lsa ham.
   const itemSpec = {
-    subjectIds: [subjectId],
+    subjectIds: subjectGroup.ids,
     topicPaths,
     ...(difficultyMin !== DIFFICULTY_MIN ? { difficultyMin } : {}),
     ...(difficultyMax !== DIFFICULTY_MAX ? { difficultyMax } : {}),
     ...(types.length ? { types } : {}),
   };
 
+  // `dedupeByPath: true` — FAQAT shu chaqiruvda kerak: bir xil nomdagi
+  // Subject'larning har biri mavzu daraxtini alohida ekkan, shu sababli
+  // bir nechta subjectId birga so'ralganda har tugun bir necha marta qaytadi
+  // (qarang lib/topic-tree.ts#dedupeTopicsByPath). `/build` sahifasi bu
+  // bayroqni yubormaydi — u yerda bir nechta subjectId chindan ham
+  // bir-biridan farqli fanlar, takrorlanish yo'q.
   const { data: topicsData } = useDebouncedPost<TopicsResponse>(
     '/api/topics',
-    { ...itemSpec, locale: 'uz' },
+    { ...itemSpec, locale: 'uz', dedupeByPath: true },
     { skip: !subjectId }
   );
   const topicTree = topicsData?.tree ?? [];
+
+  // Fan nomiga bog'liq HAMMA savollar soni (joriy mavzu/qiyinlik/tur
+  // filtrlaridan MUSTAQIL) — o'qituvchiga fan bo'sh emasligini ko'rsatadi
+  // ("Matematika · 1 752 savol"), kategoriya tuzog'i tufayli chalkash
+  // "hech narsa topilmadi" holatiga tushib qolmasin uchun.
+  const { data: subjectCount } = useDebouncedPost<CountResponse>(
+    '/api/items/count',
+    { subjectIds: subjectGroup.ids },
+    { skip: !subjectId }
+  );
 
   const { data: browseData, loading } = useDebouncedPost<BrowseResponse>(
     '/api/items/browse',
@@ -121,6 +152,12 @@ export default function ItemBrowser({ subjectId, addedIds, onAdd }: Props) {
 
   return (
     <div className="space-y-3">
+      {subjectGroup.name && (
+        <p className="text-[11px] text-text-secondary">
+          {subjectGroup.name} · {subjectCount ? `${subjectCount.total} ta savol` : '...'}
+        </p>
+      )}
+
       {topicTree.length > 0 && (
         <div>
           <p className="text-[11px] font-medium text-text-secondary mb-1">Mavzu</p>

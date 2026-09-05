@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import ItemBrowser, { type BrowseItem } from './ItemBrowser';
 import SelectedItemsPanel from './SelectedItemsPanel';
+import { useSubjectGroup } from './useSubjectGroup';
 
 const MAX_PRACTICE_ITEMS = 30; // curriculum/route.ts va lesson-blocks/[id]/practice/start dagi bilan bir xil chegara
 
@@ -31,6 +32,12 @@ export default function PracticeBlockEditor({ itemIds, onChange, subjectId }: Pr
   const [textCache, setTextCache] = useState<Record<string, string>>({});
   const [hydrating, setHydrating] = useState(false);
   const hydratedRef = useRef<Set<string>>(new Set());
+  // `ItemBrowser` shu nomdagi HAMMA kategoriya qatori (subjectId) bilan
+  // ko'rib tanlaydi (qarang useSubjectGroup.ts) — shu sababli avval
+  // saqlangan item ham (masalan SCHOOL qatoriga bog'langan) shu KENGAYTIRILGAN
+  // guruh bilan qidirilishi shart, aks holda faqat tor `subjectId`ga mos
+  // kelmagani uchun matni topilmay qoladi.
+  const subjectGroup = useSubjectGroup(subjectId);
 
   useEffect(() => {
     const missing = itemIds.filter((id) => !(id in textCache) && !hydratedRef.current.has(id));
@@ -42,7 +49,7 @@ export default function PracticeBlockEditor({ itemIds, onChange, subjectId }: Pr
         const res = await fetch('/api/items/browse', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ subjectIds: [subjectId], onlyItemIds: missing, pageSize: 50 }),
+          body: JSON.stringify({ subjectIds: subjectGroup.ids, onlyItemIds: missing, pageSize: 50 }),
         });
         const data = await res.json();
         if (res.ok && Array.isArray(data.items)) {
@@ -58,7 +65,7 @@ export default function PracticeBlockEditor({ itemIds, onChange, subjectId }: Pr
       setHydrating(false);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [itemIds, subjectId]);
+  }, [itemIds, subjectId, subjectGroup.ids.join(',')]);
 
   const addItem = (item: BrowseItem) => {
     if (itemIds.includes(item.id) || itemIds.length >= MAX_PRACTICE_ITEMS) return;
