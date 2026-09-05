@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { db } from '@/lib/db';
 
 // GET /api/courses — nashr qilingan kurslar katalogi (fan/kategoriya filtri bilan)
@@ -10,8 +11,16 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
 
-    const where: any = { isPublished: true };
-    if (subject) where.subjectId = subject;
+    const where: Prisma.CourseWhereInput = { isPublished: true };
+    // Bir xil nomdagi fan har kategoriyada ALOHIDA Subject qatoriga ega —
+    // kurslar katalogidagi fan filtri shu nomdagi BARCHA id'ni vergul bilan
+    // ajratib yuboradi (qarang lib/subject-groups.ts), shu sababli bitta
+    // id o'rniga `in` bilan qidiramiz. Bitta id yuborilganda ham (eski
+    // havolalar) xuddi shunday ishlaydi.
+    if (subject) {
+      const subjectIds = subject.split(',').map((s) => s.trim()).filter(Boolean);
+      if (subjectIds.length) where.subjectId = { in: subjectIds };
+    }
 
     if (category) {
       const matchingCategories = await db.testCategory.findMany({
