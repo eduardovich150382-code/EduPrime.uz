@@ -24,11 +24,15 @@ interface CourseItem {
   reviewCount: number;
 }
 
-interface SubjectItem {
-  id: string;
-  nameUz: string;
-  icon: string | null;
-  category: { nameUz: string; type: string };
+// Bir xil nomdagi fan har kategoriyada (DTM, SCHOOL, ...) ALOHIDA Subject
+// qatoriga ega — shu sababli guruhlangan `/api/subjects/groups`dan olinadi
+// (yagona manba, qarang lib/subject-groups.ts), fan bir marta ko'rinadi va
+// tanlanganda shu nomdagi BARCHA subjectId birga `subject` parametrida
+// yuboriladi.
+interface SubjectGroupItem {
+  name: string;
+  subjectIds: string[];
+  itemCount: number;
 }
 
 const categoryTypeOptions = [
@@ -51,15 +55,15 @@ const ACCESS_LABELS: Record<string, { label: string; color: string }> = {
 
 export default function CoursesCatalogPage() {
   const [courses, setCourses] = useState<CourseItem[]>([]);
-  const [subjects, setSubjects] = useState<SubjectItem[]>([]);
+  const [subjectGroups, setSubjectGroups] = useState<SubjectGroupItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [categoryType, setCategoryType] = useState('');
-  const [subjectId, setSubjectId] = useState('');
+  const [subjectName, setSubjectName] = useState('');
 
   useEffect(() => {
-    fetch('/api/subjects').then((r) => r.json()).then((data) => {
-      if (data.subjects) setSubjects(data.subjects);
+    fetch('/api/subjects/groups').then((r) => r.json()).then((data) => {
+      if (data.groups) setSubjectGroups(data.groups);
     }).catch(() => {});
   }, []);
 
@@ -67,15 +71,15 @@ export default function CoursesCatalogPage() {
     setLoading(true);
     const params = new URLSearchParams();
     if (categoryType) params.set('category', categoryType);
-    if (subjectId) params.set('subject', subjectId);
+    const group = subjectGroups.find((g) => g.name === subjectName);
+    if (group) params.set('subject', group.subjectIds.join(','));
     fetch(`/api/courses?${params.toString()}`)
       .then((r) => r.json())
       .then((data) => { if (data.courses) setCourses(data.courses); })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [categoryType, subjectId]);
+  }, [categoryType, subjectName, subjectGroups]);
 
-  const filteredSubjects = categoryType ? subjects.filter((s) => s.category.type === categoryType) : subjects;
   const filteredCourses = courses.filter((c) => c.titleUz.toLowerCase().includes(search.toLowerCase()));
 
   return (
@@ -102,7 +106,7 @@ export default function CoursesCatalogPage() {
           {categoryTypeOptions.map((opt) => (
             <button
               key={opt.value}
-              onClick={() => { setCategoryType(opt.value); setSubjectId(''); }}
+              onClick={() => { setCategoryType(opt.value); setSubjectName(''); }}
               className={`px-3.5 py-1.5 rounded-xl text-sm font-medium transition-all ${
                 categoryType === opt.value ? 'bg-primary-600 text-white' : 'bg-background border border-border text-text-secondary hover:border-primary-200'
               }`}
@@ -111,25 +115,25 @@ export default function CoursesCatalogPage() {
             </button>
           ))}
         </div>
-        {filteredSubjects.length > 0 && (
+        {subjectGroups.length > 0 && (
           <div className="flex flex-wrap gap-2">
             <button
-              onClick={() => setSubjectId('')}
+              onClick={() => setSubjectName('')}
               className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
-                subjectId === '' ? 'bg-primary-100 text-primary-700' : 'bg-gray-50 text-text-secondary hover:bg-gray-100'
+                subjectName === '' ? 'bg-primary-100 text-primary-700' : 'bg-gray-50 text-text-secondary hover:bg-gray-100'
               }`}
             >
               Barcha fanlar
             </button>
-            {filteredSubjects.map((s) => (
+            {subjectGroups.map((g) => (
               <button
-                key={s.id}
-                onClick={() => setSubjectId(s.id)}
+                key={g.name}
+                onClick={() => setSubjectName(g.name)}
                 className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
-                  subjectId === s.id ? 'bg-primary-100 text-primary-700' : 'bg-gray-50 text-text-secondary hover:bg-gray-100'
+                  subjectName === g.name ? 'bg-primary-100 text-primary-700' : 'bg-gray-50 text-text-secondary hover:bg-gray-100'
                 }`}
               >
-                {s.icon} {s.nameUz}
+                {g.name} · {g.itemCount}
               </button>
             ))}
           </div>

@@ -28,10 +28,15 @@ import {
   PRESETS,
 } from './lib/buildState';
 
-interface SubjectItem {
-  id: string;
-  nameUz: string;
-  icon: string | null;
+// Bir xil nomdagi fan har kategoriyada (DTM, SCHOOL, ...) ALOHIDA Subject
+// qatoriga ega — shu sababli tekis `/api/subjects` o'rniga guruhlangan
+// `/api/subjects/groups`dan olinadi (yagona manba, qarang lib/subject-groups.ts).
+// Har chip bitta NOMni ifodalaydi, tanlanganda esa shu nomdagi BARCHA
+// subjectId birga `state.subjectIds`ga tushadi.
+interface SubjectGroupItem {
+  name: string;
+  subjectIds: string[];
+  itemCount: number;
 }
 
 interface CountResponse {
@@ -77,7 +82,7 @@ export default function BuildClient() {
   const t = useTranslations('build');
 
   const [state, setState] = useState<BuildState>(() => buildStateFromParams(searchParams));
-  const [subjects, setSubjects] = useState<SubjectItem[]>([]);
+  const [subjectGroups, setSubjectGroups] = useState<SubjectGroupItem[]>([]);
 
   // "Kechagi xatolarim" preseti — spec'ning boshqa qismidan mustaqil, URL'da saqlanmaydi (kunga bog'liq, bugun ulashish ma'nosiz).
   const [onlyItemIds, setOnlyItemIds] = useState<string[] | undefined>(undefined);
@@ -112,9 +117,9 @@ export default function BuildClient() {
   }, [state, pathname]);
 
   useEffect(() => {
-    fetch('/api/subjects')
+    fetch('/api/subjects/groups')
       .then((r) => r.json())
-      .then((d) => setSubjects(d.subjects || []))
+      .then((d) => setSubjectGroups(d.groups || []))
       .catch(() => {});
   }, []);
 
@@ -220,18 +225,24 @@ export default function BuildClient() {
     return t('difficultyMedium');
   }, [state.difficultyMin, state.difficultyMax, t]);
 
+  // Tanlangan har bir guruhning nomi bittadan ko'rinsin — guruh selektor
+  // ostidagi "selectedGroupNames" bilan bir xil qoida (to'liq id to'plami
+  // state.subjectIds ichida bo'lsa shu guruh tanlangan hisoblanadi).
+  const selectedSubjectGroups = useMemo(
+    () => subjectGroups.filter((g) => g.subjectIds.some((id) => state.subjectIds.includes(id))),
+    [subjectGroups, state.subjectIds]
+  );
+
   const configSummary = useMemo(() => {
     const parts: string[] = [];
-    const subjectNames = state.subjectIds
-      .map((id) => subjects.find((s) => s.id === id)?.nameUz)
-      .filter((n): n is string => !!n);
+    const subjectNames = selectedSubjectGroups.map((g) => g.name);
     if (subjectNames.length) parts.push(subjectNames.join(', '));
     const topicNames = findTopicNames(topicTree, state.topicPaths);
     if (topicNames.length) parts.push(topicNames.join(', '));
     parts.push(t('questionCount', { count: state.questionCount }));
     parts.push(difficultyLabel);
     return parts.join(' · ');
-  }, [state.subjectIds, state.topicPaths, state.questionCount, subjects, topicTree, difficultyLabel, t]);
+  }, [selectedSubjectGroups, state.topicPaths, state.questionCount, topicTree, difficultyLabel, t]);
 
   // Tariflar sahifasiga o'tishda joriy /build holatini saqlaydi — holat
   // allaqachon URL'da (yuqoridagi effekt orqali), shuning uchun shu yerda
@@ -312,9 +323,14 @@ export default function BuildClient() {
         <div>
           <p className="text-xs text-text-secondary mb-2">Fan</p>
           <ChipGroup
-            options={subjects.map((s) => ({ value: s.id, label: `${s.icon || ''} ${s.nameUz}`.trim() }))}
-            selected={state.subjectIds}
-            onChange={(v) => updateFilter({ subjectIds: v, topicPaths: [] })}
+            options={subjectGroups.map((g) => ({ value: g.name, label: `${g.name} · ${g.itemCount}` }))}
+            selected={selectedSubjectGroups.map((g) => g.name)}
+            onChange={(names) => {
+              const ids = subjectGroups
+                .filter((g) => names.includes(g.name))
+                .flatMap((g) => g.subjectIds);
+              updateFilter({ subjectIds: ids, topicPaths: [] });
+            }}
           />
         </div>
         <div>
