@@ -13,7 +13,7 @@ const {
   findManyItemMock,
   createResultMock,
   updateSessionMock,
-  transactionMock,
+  createAttemptManyMock,
   requireAuthMock,
   checkOpenEndedEquivalenceMock,
   dailyUsageUpdateManyMock,
@@ -22,7 +22,7 @@ const {
   findManyItemMock: vi.fn(),
   createResultMock: vi.fn(),
   updateSessionMock: vi.fn(),
-  transactionMock: vi.fn(),
+  createAttemptManyMock: vi.fn(),
   requireAuthMock: vi.fn(),
   checkOpenEndedEquivalenceMock: vi.fn(),
   dailyUsageUpdateManyMock: vi.fn(),
@@ -36,9 +36,19 @@ vi.mock("@/lib/db", () => ({
     },
     item: { findMany: (...args: unknown[]) => findManyItemMock(...args) },
     testResult: { create: (...args: unknown[]) => createResultMock(...args) },
+    attempt: { createMany: (...args: unknown[]) => createAttemptManyMock(...args) },
     // refundBuiltTest (lib/quota.ts) — javobsiz tashlangan sessiyada chaqiriladi.
     dailyUsage: { updateMany: (...args: unknown[]) => dailyUsageUpdateManyMock(...args) },
-    $transaction: (ops: unknown[]) => transactionMock(ops),
+    // S27 — interaktiv (callback) tranzaksiya: `testResultId` (Attempt uchun)
+    // faqat TestResult yaratilgach ma'lum bo'ladi, shuning uchun `tx` shu
+    // mock'larning o'ziga ishora qiladi (chaqiruvlar createResultMock/
+    // updateSessionMock/createAttemptManyMock orqali kuzatiladi).
+    $transaction: (cb: (tx: unknown) => unknown) =>
+      cb({
+        testResult: { create: (...args: unknown[]) => createResultMock(...args) },
+        testSession: { update: (...args: unknown[]) => updateSessionMock(...args) },
+        attempt: { createMany: (...args: unknown[]) => createAttemptManyMock(...args) },
+      }),
   },
 }));
 
@@ -107,7 +117,6 @@ describe("POST /api/sessions/[id]/submit", () => {
     vi.clearAllMocks();
     vi.setSystemTime(NOW);
     requireAuthMock.mockReturnValue({ user: { id: "user1", role: "USER" }, error: null });
-    transactionMock.mockImplementation((ops: unknown[]) => Promise.all(ops));
     updateSessionMock.mockResolvedValue({});
     dailyUsageUpdateManyMock.mockResolvedValue({ count: 1 });
   });
@@ -174,6 +183,57 @@ describe("POST /api/sessions/[id]/submit", () => {
     expect(updateSessionMock).toHaveBeenCalledWith(
       expect.objectContaining({ where: { id: "session1" }, data: expect.objectContaining({ submittedAt: expect.any(Date) }) })
     );
+  });
+
+  describe("S27 — Attempt yozuvi", () => {
+    it("Item topilgan javob uchun Attempt yaratadi — itemId, sessionId, testResultId to'g'ri to'ldiriladi", async () => {
+      const testSession = buildSession();
+      findUniqueSessionMock.mockResolvedValue(testSession);
+      findManyItemMock.mockResolvedValue([buildItem()]);
+      createResultMock.mockImplementation(({ data }: { data: Record<string, unknown> }) =>
+        Promise.resolve({ id: "result1", ...data })
+      );
+
+      const optionSeed = testSession.seed + 0 + 1;
+      const shuffled = shuffleArray(buildItem().options as any[], optionSeed);
+      const studentPickedLabel = LABELS[shuffled.findIndex((o: any) => o.text === "4")];
+
+      await callSubmit({
+        answers: [{ questionId: "item1", answer: studentPickedLabel, timeSpent: 12 }],
+        timeSpent: 20,
+      });
+
+      expect(createAttemptManyMock).toHaveBeenCalledWith({
+        data: [
+          {
+            userId: "user1",
+            itemId: "item1",
+            sessionId: "session1",
+            testResultId: "result1",
+            answer: "B",
+            isCorrect: true,
+            timeSpentSec: 12,
+          },
+        ],
+      });
+    });
+
+    it("hech qanday javob mos Item topmasa Attempt umuman yozilmaydi", async () => {
+      const testSession = buildSession();
+      findUniqueSessionMock.mockResolvedValue(testSession);
+      // findManyItemMock ikkalasi ham chaqiriladi: loadSessionItems (savolni
+      // yuklash) VA resolveAttemptCandidates (mavjudlikni tekshirish) —
+      // ikkalasi ham bo'sh qaytsa savol topilmadi (404), Attempt yozilmaydi.
+      findManyItemMock.mockResolvedValue([]);
+
+      const { status } = await callSubmit({
+        answers: [{ questionId: "item1", answer: "A", timeSpent: 12 }],
+        timeSpent: 20,
+      });
+
+      expect(status).toBe(404);
+      expect(createAttemptManyMock).not.toHaveBeenCalled();
+    });
   });
 
   it("36 belgili UUID questionId (Item.id backfill formati) kesilmasdan saqlanadi", async () => {

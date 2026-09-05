@@ -32,9 +32,12 @@ vi.mock("@/lib/db", () => ({
   db: {
     testSession: { findUnique: (...args: unknown[]) => findUniqueSessionMock(...args) },
     item: { findMany: (...args: unknown[]) => findManyItemMock(...args) },
-    // TestResult'ga hech qanday chaqiruv YO'Q — atayin mock qilinmagan, aks
-    // holda kod tasodifan shu yerga murojaat qilsa test "is not a function"
-    // bilan yiqiladi (bu ATAYLAB shunday — TestResult yaratilishi mumkin emas).
+    // TestResult'ga VA Attempt'ga (S27) hech qanday chaqiruv YO'Q — atayin
+    // mock qilinmagan, aks holda kod tasodifan shu yerga murojaat qilsa test
+    // "is not a function" bilan yiqiladi (bu ATAYLAB shunday — mashq
+    // javoblari na TestResult, na Attempt yaratishi mumkin emas, qarang
+    // lib/attempts.ts — savol sifati statistikasi faqat "birinchi marta,
+    // imtihon sharoitida" javoblardan o'lchanadi).
   },
 }));
 

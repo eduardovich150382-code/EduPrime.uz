@@ -476,6 +476,35 @@ model ItemStat {
   item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
 }
 
+// Har bir BAHOLANADIGAN javobning o'zi (S27) — TestResult.answers JSON
+// blobidan farqli, SQL bilan so'rash mumkin: qaysi savol juda oson/qiyin,
+// qaysi biri kuchli va zaif talabani ajratmaydi (pValue/discrimination,
+// qarang ItemStat va `/api/cron/item-stats`). FAQAT test/sessiya submit
+// (`lib/attempts.ts`) yozadi — MASHQ javoblari (practice/check, video
+// nazorat nuqtalari) YOZMAYDI: mashqda qayta-qayta urinish mumkin va javob
+// darhol ko'rsatiladi, bu statistikani buzadi (savol sifati faqat
+// "birinchi marta, imtihon sharoitida" javoblardan o'lchanishi kerak).
+// `sessionId`/`testResultId` ataylab FK EMAS — `TestSession.itemIds` bilan
+// bir xil naqsh (TestSession/TestResult o'chirilsa ham Attempt qatori
+// qolaveradi, statistika tarixiy ma'lumot sifatida saqlanadi). `itemId` HAR
+// DOIM Item.id — eski Question.id yozishdan OLDIN `lib/quota.ts#resolveUnlockKey`
+// bilan bir xil qoida orqali normallashtiriladi; Item topilmasa yozilmaydi.
+model Attempt {
+  id           String   @id @default(cuid())
+  userId       String
+  itemId       String
+  sessionId    String?
+  testResultId String?
+  answer       String
+  isCorrect    Boolean
+  timeSpentSec Int      @default(0)
+  answeredAt   DateTime @default(now())
+
+  @@index([itemId, answeredAt])
+  @@index([userId, itemId])
+  @@index([userId, isCorrect, answeredAt])
+}
+
 // ===================== COURSES (kurs yaratish, MVP-A: sxema + muallif tomoni) =====================
 
 enum LessonType {
