@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Trash2, Loader2 } from 'lucide-react';
-import ItemSearchPicker, { type FoundItem } from './ItemSearchPicker';
+import { Loader2 } from 'lucide-react';
+import ItemBrowser, { type BrowseItem } from './ItemBrowser';
+import SelectedItemsPanel from './SelectedItemsPanel';
 import { MAX_CHECKPOINTS, type Checkpoint } from '@/lib/video-checkpoints';
 
 // Video uzunligini tahrirlagichda bilmaymiz (YouTube API'ni bu yerda
@@ -32,17 +33,62 @@ function formatSeconds(totalSeconds: number): string {
 }
 
 /**
- * Video nazorat nuqtalari tahrirlagichi (S23) — CourseCurriculumEditor
- * (VIDEO turi darsning asosiy videosi) VA LessonBlocksEditor (VIDEO_SOLUTION
- * bloki) IKKALASI HAM shu BITTA komponentni ishlatadi (PR sharh — ikkita
- * alohida muharrir yozilmasin). Vaqt (mm:ss/soniya) kiritiladi, so'ng
- * `ItemSearchPicker` orqali shu vaqtga bog'lanadigan savol tanlanadi. Bir
- * xil vaqtga ikkinchi nuqta qo'yilmaydi, ro'yxat doim vaqt bo'yicha
- * tartiblangan holda ko'rsatiladi.
+ * Bitta nazorat nuqtasining vaqt maydoni — SelectedItemsPanel qatoriga
+ * `renderExtra` orqali kiritiladi (S26). Mahalliy xom matn holati bilan
+ * ishlaydi (har harfda parse qilib onChange chaqirmaslik uchun), faqat
+ * blur/Enter'da commit qiladi: yaroqsiz yoki boshqa nuqta bilan
+ * to'qnashadigan qiymat qabul qilinmaydi (eski qiymatga qaytadi).
+ */
+function TimeCell({ atSeconds, otherSeconds, onUpdate }: { atSeconds: number; otherSeconds: number[]; onUpdate: (next: number) => void }) {
+  const [raw, setRaw] = useState(formatSeconds(atSeconds));
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    setRaw(formatSeconds(atSeconds));
+    setError(false);
+  }, [atSeconds]);
+
+  const commit = () => {
+    const parsed = parseTimeInput(raw);
+    if (parsed === null || parsed > MAX_REASONABLE_SECONDS || otherSeconds.includes(parsed)) {
+      setError(true);
+      setRaw(formatSeconds(atSeconds));
+      return;
+    }
+    setError(false);
+    if (parsed !== atSeconds) onUpdate(parsed);
+  };
+
+  return (
+    <input
+      type="text"
+      value={raw}
+      onChange={(e) => { setRaw(e.target.value); setError(false); }}
+      onBlur={commit}
+      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); (e.target as HTMLInputElement).blur(); } }}
+      title={error ? "Yaroqsiz yoki band vaqt — avvalgi qiymatga qaytarildi" : undefined}
+      className={`w-16 px-1.5 rounded border text-[11px] font-mono text-center flex-shrink-0 min-h-11 ${error ? 'border-red-400 text-red-600' : 'border-border'}`}
+    />
+  );
+}
+
+/**
+ * Video nazorat nuqtalari tahrirlagichi (S23, S26'da yangilandi) —
+ * CourseCurriculumEditor (VIDEO turi darsning asosiy videosi) VA
+ * LessonBlocksEditor (VIDEO_SOLUTION bloki) IKKALASI HAM shu BITTA
+ * komponentni ishlatadi. Oqim: o'qituvchi avval `ItemBrowser` orqali
+ * savolni tanlaydi (vaqtni oldindan kiritish shart emas — avtomatik,
+ * bo'sh vaqtga qo'yiladi), so'ng SHU vaqtni tanlangan ro'yxatdagi maydonda
+ * (`TimeCell`) tahrirlaydi. Bitta savol bir nechta vaqtga qo'yilishi
+ * mumkin (eski xatti-harakat saqlanadi — shu sababli `ItemBrowser`ga
+ * `addedIds` bo'sh beriladi, "Qo'shildi" belgisi bu yerda ko'rinmaydi).
+ *
+ * Ro'yxat doim VAQT bo'yicha tartiblangan holda ko'rsatiladi — shu sababli
+ * `SelectedItemsPanel`da sudrab-tashlash O'CHIRILGAN (`reorderable={false}`):
+ * tartib vaqt qiymatidan kelib chiqadi, qo'lda surish natijani darhol
+ * qayta saralab qo'yardi.
  */
 export default function VideoCheckpointsEditor({ checkpoints, onChange, subjectId }: Props) {
-  const [timeInput, setTimeInput] = useState('');
-  const [timeError, setTimeError] = useState<string | null>(null);
   const [textCache, setTextCache] = useState<Record<string, string>>({});
   const [hydrating, setHydrating] = useState(false);
   const hydratedRef = useRef<Set<string>>(new Set());
@@ -61,16 +107,16 @@ export default function VideoCheckpointsEditor({ checkpoints, onChange, subjectI
     setHydrating(true);
     (async () => {
       try {
-        const res = await fetch('/api/teacher/items/search-preview', {
+        const res = await fetch('/api/items/browse', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ subjectIds: [subjectId], onlyItemIds: missing }),
+          body: JSON.stringify({ subjectIds: [subjectId], onlyItemIds: missing, pageSize: 50 }),
         });
         const data = await res.json();
         if (res.ok && Array.isArray(data.items)) {
           setTextCache((prev) => {
             const next = { ...prev };
-            for (const it of data.items as FoundItem[]) next[it.id] = it.text;
+            for (const it of data.items as BrowseItem[]) next[it.id] = it.text;
             return next;
           });
         }
@@ -82,31 +128,30 @@ export default function VideoCheckpointsEditor({ checkpoints, onChange, subjectI
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [checkpoints, subjectId]);
 
-  const addCheckpoint = (item: FoundItem) => {
-    const atSeconds = parseTimeInput(timeInput);
-    if (atSeconds === null) {
-      setTimeError("Avval vaqtni kiriting (mm:ss yoki soniya)");
-      return;
-    }
-    if (atSeconds > MAX_REASONABLE_SECONDS) {
-      setTimeError('Vaqt juda katta');
-      return;
-    }
-    if (checkpoints.some((c) => c.atSeconds === atSeconds)) {
-      setTimeError("Bu vaqtga allaqachon nuqta qo'yilgan");
-      return;
-    }
-    if (checkpoints.length >= MAX_CHECKPOINTS) {
-      setTimeError(`Ko'pi bilan ${MAX_CHECKPOINTS} ta nuqta bo'lishi mumkin`);
-      return;
-    }
-    setTextCache((prev) => ({ ...prev, [item.id]: item.text }));
-    onChange([...checkpoints, { atSeconds, itemId: item.id }]);
-    setTimeInput('');
-    setTimeError(null);
+  // Yangi nuqta uchun band bo'lmagan vaqt: oxirgi nuqtadan 30 soniya keyin
+  // (birinchisi bo'lsa 0'dan) — to'qnashsa birma-bir siljitiladi. O'qituvchi
+  // buni keyin TimeCell orqali xohlagan qiymatga o'zgartiradi.
+  const nextDefaultSeconds = () => {
+    const used = new Set(checkpoints.map((c) => c.atSeconds));
+    let t = sorted.length ? sorted[sorted.length - 1].atSeconds + 30 : 0;
+    while (used.has(t)) t += 1;
+    return t;
   };
 
-  const removeCheckpoint = (atSeconds: number) => onChange(checkpoints.filter((c) => c.atSeconds !== atSeconds));
+  const addCheckpoint = (item: BrowseItem) => {
+    if (checkpoints.length >= MAX_CHECKPOINTS) return;
+    const atSeconds = nextDefaultSeconds();
+    setTextCache((prev) => ({ ...prev, [item.id]: item.text }));
+    onChange([...checkpoints, { atSeconds, itemId: item.id }]);
+  };
+
+  const removeCheckpoint = (rowId: string) => onChange(checkpoints.filter((c) => String(c.atSeconds) !== rowId));
+
+  const updateCheckpointTime = (atSecondsOld: number, atSecondsNew: number) => {
+    onChange(checkpoints.map((c) => (c.atSeconds === atSecondsOld ? { ...c, atSeconds: atSecondsNew } : c)));
+  };
+
+  const selectedRows = sorted.map((c) => ({ id: String(c.atSeconds), text: textCache[c.itemId] || c.itemId }));
 
   return (
     <div className="space-y-2">
@@ -115,34 +160,20 @@ export default function VideoCheckpointsEditor({ checkpoints, onChange, subjectI
         {hydrating && <Loader2 size={10} className="animate-spin" />}
       </p>
 
-      {sorted.length > 0 && (
-        <div className="space-y-1">
-          {sorted.map((cp) => (
-            <div key={cp.atSeconds} className="flex items-center gap-1.5 p-1.5 rounded-lg border border-border bg-gray-50/50">
-              <span className="text-[11px] font-mono font-semibold text-primary-600 flex-shrink-0 w-12">{formatSeconds(cp.atSeconds)}</span>
-              <p className="flex-1 min-w-0 text-xs text-text-primary line-clamp-1">{textCache[cp.itemId] || cp.itemId}</p>
-              <button type="button" onClick={() => removeCheckpoint(cp.atSeconds)} className="p-1 rounded text-red-400 hover:text-red-600 hover:bg-red-50 flex-shrink-0">
-                <Trash2 size={12} />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+      <SelectedItemsPanel
+        items={selectedRows}
+        onRemove={removeCheckpoint}
+        emptyLabel="Hali nazorat nuqtasi qo'yilmagan"
+        reorderable={false}
+        renderExtra={(row) => {
+          const atSeconds = Number(row.id);
+          const otherSeconds = checkpoints.filter((c) => c.atSeconds !== atSeconds).map((c) => c.atSeconds);
+          return <TimeCell atSeconds={atSeconds} otherSeconds={otherSeconds} onUpdate={(next) => updateCheckpointTime(atSeconds, next)} />;
+        }}
+      />
 
       {checkpoints.length < MAX_CHECKPOINTS ? (
-        <div className="space-y-1.5 p-2 rounded-lg border border-dashed border-border">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <input
-              type="text"
-              value={timeInput}
-              onChange={(e) => { setTimeInput(e.target.value); setTimeError(null); }}
-              placeholder="mm:ss yoki soniya (masalan 2:05)"
-              className="w-44 px-2.5 py-1.5 rounded-lg border border-border text-xs"
-            />
-            {timeError && <p className="text-[11px] text-red-500">{timeError}</p>}
-          </div>
-          <ItemSearchPicker subjectId={subjectId} onAdd={addCheckpoint} addLabel="Nuqta qo'shish" />
-        </div>
+        <ItemBrowser subjectId={subjectId} addedIds={[]} onAdd={addCheckpoint} />
       ) : (
         <p className="text-[11px] text-amber-600">Chegara ({MAX_CHECKPOINTS} ta) to&apos;ldi — avval bittasini olib tashlang</p>
       )}

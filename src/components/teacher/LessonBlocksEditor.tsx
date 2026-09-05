@@ -20,10 +20,8 @@ export interface LessonBlockForm {
   revealAfterQuiz: boolean;
   /** EMBED — tashqi simulyatsiya havolasi; ruxsat etilgan domenlar lib/embed-allowlist.ts da, saqlashda SERVER tomonda ham tekshiriladi. */
   embedUrl: string;
-  /** PRACTICE — tanlangan Item.id lar (PracticeBlockEditor — /api/teacher/items/search-preview orqali havzadan qidirib tanlanadi). */
+  /** PRACTICE — tanlangan Item.id lar (PracticeBlockEditor — ItemBrowser/`/api/items/browse` orqali havzadan ko'rib tanlanadi, S26). */
   itemIds: string[];
-  /** PRACTICE — faqat tahrirlagich uchun (serverga yuborilsa ham e'tiborsiz qoldiriladi): qidiruvni toraytiruvchi so'nggi mavzu yo'li — qayta ochilganda formani bo'sh boshlamaslik uchun. */
-  practiceTopic?: string;
   /** VIDEO_SOLUTION — video nazorat nuqtalari (S23), qarang lib/video-checkpoints.ts. */
   checkpoints: Checkpoint[];
 }
@@ -66,7 +64,7 @@ export default function LessonBlocksEditor({ blocks, onChange, teacherTests, sub
     if (blocks.length >= MAX_BLOCKS) return;
     onChange([...blocks, {
       type, labelUz: '', fileUrl: '', videoUrl: '', testId: '', revealAfterQuiz: false,
-      embedUrl: '', itemIds: [], practiceTopic: '', checkpoints: [],
+      embedUrl: '', itemIds: [], checkpoints: [],
     }]);
   };
   const removeBlock = (idx: number) => onChange(blocks.filter((_, i) => i !== idx));
@@ -217,8 +215,6 @@ export default function LessonBlocksEditor({ blocks, onChange, teacherTests, sub
                       itemIds={block.itemIds}
                       onChange={(itemIds) => updateBlock(idx, { itemIds })}
                       subjectId={subjectId}
-                      topicPath={block.practiceTopic || ''}
-                      onTopicPathChange={(practiceTopic) => updateBlock(idx, { practiceTopic })}
                     />
                   )}
                 </div>
