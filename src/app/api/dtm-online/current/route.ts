@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAuth } from '@/lib/api-auth';
 import { DTM_TITLE_PREFIX } from '@/lib/dtm-online';
+import { logger } from '@/lib/logger';
 
 // GET /api/dtm-online/current — talabaning hali topshirilmagan DTM Online
 // urinishi bor-yo'qligini tekshiradi ("davom ettirish" imkoniyati uchun).
@@ -31,7 +32,7 @@ export async function GET() {
 
     return NextResponse.json({ current: { sessionId: session.id, titleUz: session.title } });
   } catch (error) {
-    console.error('GET /api/dtm-online/current error:', error);
+    logger.error('GET /api/dtm-online/current error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

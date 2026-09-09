@@ -13,6 +13,7 @@ import {
   type PickableItem,
   type RelaxationStep,
 } from '@/lib/item-picker';
+import { logger } from '@/lib/logger';
 
 const MAX_LIMIT = 200;
 
@@ -76,7 +77,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ ids: picked.map((p) => p.id), relaxed });
   } catch (err) {
-    console.error('POST /api/items/search error:', err);
+    logger.error('POST /api/items/search error:', { error: err });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

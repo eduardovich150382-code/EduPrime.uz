@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { logger } from '@/lib/logger';
 
 // GET /api/certificate/[enrollmentId] — ommaviy (auth talab qilinmaydi,
 // /api/share/result/[id] bilan bir xil naqsh): sertifikat ma'lumotlari.
@@ -56,7 +57,7 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error('GET /api/certificate/[enrollmentId] error:', error);
+    logger.error('GET /api/certificate/[enrollmentId] error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

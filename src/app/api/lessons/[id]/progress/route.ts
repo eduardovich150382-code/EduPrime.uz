@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAuth } from '@/lib/api-auth';
 import { computeLockedLessonIds } from '@/lib/course-lock';
+import { logger } from '@/lib/logger';
 
 // POST /api/lessons/[id]/progress — dars progressini yangilash (video
 // pozitsiyasi va/yoki tugatilganlik belgisi). Faqat kursga yozilgan
@@ -110,7 +111,7 @@ export async function POST(
 
     return NextResponse.json({ progress });
   } catch (error) {
-    console.error('POST /api/lessons/[id]/progress error:', error);
+    logger.error('POST /api/lessons/[id]/progress error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

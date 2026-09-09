@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/api-auth';
 import { sanitizeText, sanitizePagination } from '@/lib/sanitize';
+import { logger } from '@/lib/logger';
 
 // GET /api/admin/users — barcha foydalanuvchilar (ADMIN only)
 export async function GET(request: NextRequest) {
@@ -50,7 +51,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ users, total, page, limit });
   } catch (error) {
-    console.error('GET /api/admin/users error:', error);
+    logger.error('GET /api/admin/users error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

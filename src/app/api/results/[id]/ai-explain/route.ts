@@ -8,6 +8,7 @@ import { consumeTutorMessage, isSolutionUnlocked } from '@/lib/quota';
 import { resolveSolutionVisibility } from '@/lib/solution-visibility';
 import { parseFillBlankAnswer } from '@/lib/fill-blank';
 import { parseMatchingAnswer, parseMatchingPairs } from '@/lib/matching';
+import { logger } from '@/lib/logger';
 
 type OptionShape = { label: string; text: string };
 
@@ -320,7 +321,7 @@ export async function POST(
               // zararsiz, chunki bu javob talabaga baribir stream qilib
               // yuborilgan.
               if (!isUniqueConstraintError(err)) {
-                console.error('ItemExplanation cache write error:', err);
+                logger.error('ItemExplanation cache write error:', { error: err });
               }
             }
           }
@@ -331,7 +332,7 @@ export async function POST(
           // ko'rmasin, controller.error() orqali oqim xato bilan yopiladi
           // (frontend buni tutib aniq xabar ko'rsatadi), server jurnaliga
           // esa TO'LIQ xato (stack bilan) yoziladi.
-          console.error('AI explain stream error:', err);
+          logger.error('AI explain stream error:', { error: err });
           controller.error(err);
         }
       },
@@ -346,7 +347,7 @@ export async function POST(
       },
     });
   } catch (error) {
-    console.error('POST /api/results/[id]/ai-explain error:', error);
+    logger.error('POST /api/results/[id]/ai-explain error:', { error });
     return NextResponse.json({ error: 'AI tushuntirish olishda xatolik yuz berdi' }, { status: 500 });
   }
 }

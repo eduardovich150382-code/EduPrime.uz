@@ -4,6 +4,7 @@ import { requireAuth } from '@/lib/api-auth';
 import { hasActiveSubscription } from '@/lib/access';
 import { generateDtmOnlineExam, getDtmSpecialtySubjects } from '@/lib/dtm-online';
 import { daysSince } from '@/lib/date';
+import { logger } from '@/lib/logger';
 
 const FREE_TIER_COOLDOWN_DAYS = 30;
 
@@ -73,7 +74,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ sessionId: result.sessionId, titleUz: result.titleUz });
   } catch (error) {
-    console.error('POST /api/dtm-online/start error:', error);
+    logger.error('POST /api/dtm-online/start error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

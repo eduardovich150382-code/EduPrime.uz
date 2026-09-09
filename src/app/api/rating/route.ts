@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { logger } from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
   try {
@@ -66,7 +67,7 @@ export async function GET(request: NextRequest) {
       total: leaderboard.length,
     });
   } catch (error) {
-    console.error('Rating API error:', error);
+    logger.error('Rating API error:', { error });
     return NextResponse.json(
       { error: 'Reyting yuklashda xatolik' },
       { status: 500 }

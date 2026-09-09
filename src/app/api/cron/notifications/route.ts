@@ -5,6 +5,7 @@ import {
   sendPremiumExpiryWarning,
   notifyViaTelegram,
 } from '@/lib/telegram-notify';
+import { logger } from '@/lib/logger';
 
 // GET /api/cron/notifications — daily cron job for automated notifications
 // Protected by CRON_SECRET header
@@ -129,7 +130,7 @@ export async function GET(request: NextRequest) {
       timestamp: now.toISOString(),
     });
   } catch (error) {
-    console.error('CRON /api/cron/notifications error:', error);
+    logger.error('CRON /api/cron/notifications error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { importTestFromText, importTestFromImage, importTestFromFile } from '@/lib/gemini';
 import { requireTeacher, applyRateLimit } from '@/lib/api-auth';
+import { logger } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
   try {
@@ -58,7 +59,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error('AI Import API error:', error);
+    logger.error('AI Import API error:', { error });
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

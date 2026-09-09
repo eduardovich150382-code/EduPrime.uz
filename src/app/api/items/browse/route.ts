@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireTeacher } from '@/lib/api-auth';
 import { buildItemWhere, parseItemSpec } from '@/lib/item-picker';
+import { logger } from '@/lib/logger';
 
 const MAX_PAGE_SIZE = 50;
 const DEFAULT_PAGE_SIZE = 20;
@@ -120,7 +121,7 @@ export async function POST(request: NextRequest) {
       page,
     });
   } catch (err) {
-    console.error('POST /api/items/browse error:', err);
+    logger.error('POST /api/items/browse error:', { error: err });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

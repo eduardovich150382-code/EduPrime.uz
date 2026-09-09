@@ -7,6 +7,7 @@ import { gradeSubmission } from '@/lib/grading';
 import { extractItemPoints, loadSessionItems, sessionPreserveOrder } from '@/lib/sessions';
 import { refundBuiltTest } from '@/lib/quota';
 import { resolveAttemptCandidates, toAttemptCreateInput } from '@/lib/attempts';
+import { logger } from '@/lib/logger';
 
 // POST /api/sessions/[id]/submit — sessiya javoblarini baholaydi va
 // TestResult yaratadi. Baholash mantig'i /api/tests/[id]/submit bilan
@@ -126,7 +127,7 @@ export async function POST(
       try {
         await refundBuiltTest(testSession.id);
       } catch (err) {
-        console.error('refundBuiltTest error:', err);
+        logger.error('refundBuiltTest error:', { error: err });
       }
     }
 
@@ -141,7 +142,7 @@ export async function POST(
       },
     });
   } catch (err) {
-    console.error('POST /api/sessions/[id]/submit error:', err);
+    logger.error('POST /api/sessions/[id]/submit error:', { error: err });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

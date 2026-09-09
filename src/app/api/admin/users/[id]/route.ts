@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/api-auth';
+import { logger } from '@/lib/logger';
 
 // GET /api/admin/users/[id] — foydalanuvchi batafsil ma'lumotlari + test tarixi
 export async function GET(
@@ -74,7 +75,7 @@ export async function GET(
       })),
     });
   } catch (error) {
-    console.error('GET /api/admin/users/[id] error:', error);
+    logger.error('GET /api/admin/users/[id] error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
@@ -142,7 +143,7 @@ export async function PATCH(
 
     return NextResponse.json({ error: 'No action specified' }, { status: 400 });
   } catch (error) {
-    console.error('PATCH /api/admin/users/[id] error:', error);
+    logger.error('PATCH /api/admin/users/[id] error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

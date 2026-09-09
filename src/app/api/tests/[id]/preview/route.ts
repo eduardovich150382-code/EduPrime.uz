@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { logger } from '@/lib/logger';
 
 const PREVIEW_QUESTION_COUNT = 3;
 
@@ -60,7 +61,7 @@ export async function GET(
       remainingCount: Math.max(0, test.questionCount - previewQuestions.length),
     });
   } catch (error) {
-    console.error('GET /api/tests/[id]/preview error:', error);
+    logger.error('GET /api/tests/[id]/preview error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

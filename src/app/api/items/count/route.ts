@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAuth } from '@/lib/api-auth';
 import { buildItemWhere, getRecentlyCorrectItemIds, parseItemSpec, summarizeCandidates } from '@/lib/item-picker';
+import { logger } from '@/lib/logger';
 
 // POST /api/items/count — konstruktor ekranida har filtr o'zgarishida
 // chaqiriladi (150 ms ichida javob berishi kerak), shuning uchun bitta
@@ -29,7 +30,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(summarizeCandidates(rows));
   } catch (err) {
-    console.error('POST /api/items/count error:', err);
+    logger.error('POST /api/items/count error:', { error: err });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

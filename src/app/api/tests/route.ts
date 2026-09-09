@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { notifyViaTelegram } from '@/lib/telegram-notify';
+import { logger } from '@/lib/logger';
 
 // GET /api/tests — barcha testlarni olish (published + isFree yoki user ruxsati)
 export async function GET(request: NextRequest) {
@@ -47,7 +48,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ tests, total, page, limit });
   } catch (error) {
-    console.error('GET /api/tests error:', error);
+    logger.error('GET /api/tests error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
@@ -141,7 +142,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ test }, { status: 201 });
   } catch (error) {
-    console.error('POST /api/tests error:', error);
+    logger.error('POST /api/tests error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
@@ -176,6 +177,6 @@ async function notifyNewTest(testTitle: string, testId: string) {
       }
     }
   } catch (error) {
-    console.error('notifyNewTest error:', error);
+    logger.error('notifyNewTest error:', { error });
   }
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
+import { logger } from '@/lib/logger';
 
 // GET /api/admin/permissions — list user permissions (ADMIN only)
 export async function GET(request: NextRequest) {
@@ -92,7 +93,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ permissions: recentPermissions, categories });
   } catch (error) {
-    console.error('GET /api/admin/permissions error:', error);
+    logger.error('GET /api/admin/permissions error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
@@ -150,7 +151,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ message: 'Permission granted', permission });
   } catch (error) {
-    console.error('POST /api/admin/permissions error:', error);
+    logger.error('POST /api/admin/permissions error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
@@ -187,7 +188,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ message: 'Permission revoked', permission });
   } catch (error) {
-    console.error('DELETE /api/admin/permissions error:', error);
+    logger.error('DELETE /api/admin/permissions error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

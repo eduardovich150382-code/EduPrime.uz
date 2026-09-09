@@ -6,6 +6,7 @@ import { hasActiveSubscription } from '@/lib/access';
 import { getSolutionQuotaStatus, getUnlockedItemIds, resolveUnlockKeys } from '@/lib/quota';
 import { resolveSolutionVisibility, type RawSolutionData } from '@/lib/solution-visibility';
 import { getDistractorWhy, toLang } from '@/lib/paramgen/regenerate';
+import { logger } from '@/lib/logger';
 
 // GET /api/results/[id] — bitta natijani to'liq olish (savollar bilan).
 // Natija Test orqali (testId) yoki TestSession orqali (sessionId) kelgan
@@ -178,7 +179,7 @@ export async function GET(
       solutionQuota,
     });
   } catch (error) {
-    console.error('GET /api/results/[id] error:', error);
+    logger.error('GET /api/results/[id] error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

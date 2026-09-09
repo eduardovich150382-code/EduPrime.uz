@@ -7,6 +7,7 @@ import { checkTestAccess } from '@/lib/access';
 import { gradeSubmission } from '@/lib/grading';
 import { creditQuizLessonProgress } from '@/lib/course-progress';
 import { resolveAttemptCandidates, toAttemptCreateInput } from '@/lib/attempts';
+import { logger } from '@/lib/logger';
 
 // POST /api/tests/[id]/submit — test javoblarini yuborish va natija olish
 export async function POST(
@@ -132,7 +133,7 @@ export async function POST(
       },
     });
   } catch (error) {
-    console.error('POST /api/tests/[id]/submit error:', error);
+    logger.error('POST /api/tests/[id]/submit error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

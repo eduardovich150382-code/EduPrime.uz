@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { logger } from '@/lib/logger';
 
 // GET /api/admin/seed?secret=<ADMIN_SETUP_SECRET> — boshlang'ich ma'lumotlarni DB ga kiritish
 export async function GET(request: NextRequest) {
@@ -89,7 +90,7 @@ export async function GET(request: NextRequest) {
       subjects: createdSubjects,
     });
   } catch (error) {
-    console.error('Seed error:', error);
+    logger.error('Seed error:', { error });
     return NextResponse.json({ error: 'Seed failed', details: String(error) }, { status: 500 });
   }
 }

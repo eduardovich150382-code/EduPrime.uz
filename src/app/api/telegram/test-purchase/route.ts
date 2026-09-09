@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { logger } from '@/lib/logger';
 
 const BOT_SECRET = process.env.TELEGRAM_BOT_TOKEN || '';
 
@@ -100,7 +101,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
   } catch (error) {
-    console.error('POST /api/telegram/test-purchase error:', error);
+    logger.error('POST /api/telegram/test-purchase error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
@@ -132,7 +133,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ hasPurchased: !!purchase });
   } catch (error) {
-    console.error('GET /api/telegram/test-purchase error:', error);
+    logger.error('GET /api/telegram/test-purchase error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

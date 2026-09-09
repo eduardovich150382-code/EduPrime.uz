@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireTeacher } from '@/lib/api-auth';
+import { logger } from '@/lib/logger';
 
 // DELETE /api/teacher/question-bank/[id] — bazadan savolni o'chirish
 export async function DELETE(
@@ -25,7 +26,7 @@ export async function DELETE(
     await db.bankQuestion.delete({ where: { id } });
     return NextResponse.json({ message: 'Deleted' });
   } catch (error) {
-    console.error('DELETE /api/teacher/question-bank/[id] error:', error);
+    logger.error('DELETE /api/teacher/question-bank/[id] error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

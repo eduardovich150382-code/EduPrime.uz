@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
+import { logger } from '@/lib/logger';
 
 const DEFAULT_SETTINGS = [
   { key: 'payment_card_number', value: '' },
@@ -52,7 +53,7 @@ export async function GET() {
 
     return NextResponse.json({ settings: settingsMap });
   } catch (error) {
-    console.error('GET /api/admin/settings error:', error);
+    logger.error('GET /api/admin/settings error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
@@ -92,7 +93,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({ message: 'Settings updated', count: results.length });
   } catch (error) {
-    console.error('PUT /api/admin/settings error:', error);
+    logger.error('PUT /api/admin/settings error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

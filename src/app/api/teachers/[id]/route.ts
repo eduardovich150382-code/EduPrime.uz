@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { logger } from '@/lib/logger';
 
 // GET /api/teachers/[id] — public o'qituvchi mini-profili: bio, reyting,
 // fani va nashr qilingan kurslari. Kurs landing sahifasidagi (`/courses/[id]`)
@@ -69,7 +70,7 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error('GET /api/teachers/[id] error:', error);
+    logger.error('GET /api/teachers/[id] error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

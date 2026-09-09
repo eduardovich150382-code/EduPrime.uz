@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/api-auth';
+import { logger } from '@/lib/logger';
 
 /**
  * GET /api/admin/dashboard — Admin dashboard statistikasi
@@ -107,7 +108,7 @@ export async function GET() {
       })),
     });
   } catch (error) {
-    console.error('GET /api/admin/dashboard error:', error);
+    logger.error('GET /api/admin/dashboard error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

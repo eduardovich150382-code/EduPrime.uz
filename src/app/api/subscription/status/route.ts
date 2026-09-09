@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
+import { logger } from '@/lib/logger';
 
 /**
  * GET /api/subscription/status
@@ -60,7 +61,7 @@ export async function GET() {
       hasTeacher,
     });
   } catch (error) {
-    console.error('GET /api/subscription/status error:', error);
+    logger.error('GET /api/subscription/status error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

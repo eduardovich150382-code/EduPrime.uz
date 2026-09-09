@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireTeacher } from '@/lib/api-auth';
+import { logger } from '@/lib/logger';
 
 // GET /api/teacher/question-bank — o'qituvchining shaxsiy savollar bazasi
 export async function GET(request: NextRequest) {
@@ -33,7 +34,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ questions });
   } catch (error) {
-    console.error('GET /api/teacher/question-bank error:', error);
+    logger.error('GET /api/teacher/question-bank error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
@@ -81,7 +82,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ question }, { status: 201 });
   } catch (error) {
-    console.error('POST /api/teacher/question-bank error:', error);
+    logger.error('POST /api/teacher/question-bank error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

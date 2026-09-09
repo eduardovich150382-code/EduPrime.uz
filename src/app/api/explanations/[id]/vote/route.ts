@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAuth } from '@/lib/api-auth';
+import { logger } from '@/lib/logger';
 
 // POST /api/explanations/[id]/vote — AI tushuntirishga ovoz berish (S20a).
 // Bir foydalanuvchi bitta tushuntirishga faqat BIR MARTA ovoz beradi
@@ -73,7 +74,7 @@ export async function POST(
 
     return NextResponse.json(result);
   } catch (err) {
-    console.error('POST /api/explanations/[id]/vote error:', err);
+    logger.error('POST /api/explanations/[id]/vote error:', { error: err });
     return NextResponse.json({ error: 'Ovoz berishda xatolik yuz berdi' }, { status: 500 });
   }
 }

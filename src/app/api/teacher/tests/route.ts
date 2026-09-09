@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireTeacher } from '@/lib/api-auth';
+import { logger } from '@/lib/logger';
 
 // GET /api/teacher/tests — ustozning barcha testlarini olish
 export async function GET() {
@@ -70,7 +71,7 @@ export async function GET() {
 
     return NextResponse.json({ tests: testsWithStats });
   } catch (error) {
-    console.error('[Teacher Tests] GET error:', error);
+    logger.error('[Teacher Tests] GET error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

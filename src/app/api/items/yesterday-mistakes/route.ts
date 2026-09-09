@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/api-auth';
 import { getYesterdayIncorrectItemIds } from '@/lib/item-picker';
+import { logger } from '@/lib/logger';
 
 // GET /api/items/yesterday-mistakes — konstruktordagi ("/build") "Kechagi
 // xatolarim" preseti uchun: foydalanuvchi kecha (Asia/Tashkent) noto'g'ri
@@ -15,7 +16,7 @@ export async function GET() {
     const itemIds = await getYesterdayIncorrectItemIds(user.id);
     return NextResponse.json({ itemIds });
   } catch (err) {
-    console.error('GET /api/items/yesterday-mistakes error:', err);
+    logger.error('GET /api/items/yesterday-mistakes error:', { error: err });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

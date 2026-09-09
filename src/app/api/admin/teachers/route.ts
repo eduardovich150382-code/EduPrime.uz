@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/api-auth';
+import { logger } from '@/lib/logger';
 
 // GET /api/admin/teachers — barcha ustozlar ro'yxati
 export async function GET() {
@@ -19,7 +20,7 @@ export async function GET() {
 
     return NextResponse.json({ teachers });
   } catch (error) {
-    console.error('GET /api/admin/teachers error:', error);
+    logger.error('GET /api/admin/teachers error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
@@ -44,7 +45,7 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ message: verified ? 'Teacher verified' : 'Teacher unverified', teacher });
   } catch (error) {
-    console.error('PATCH /api/admin/teachers error:', error);
+    logger.error('PATCH /api/admin/teachers error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

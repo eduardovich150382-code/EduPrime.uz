@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { requireAuth, applyRateLimit } from '@/lib/api-auth';
+import { logger } from '@/lib/logger';
 
 // GET /api/courses/[id]/reviews — ommaviy: sharhlar ro'yxati + o'rtacha
 // baho. Kirgan foydalanuvchi bo'lsa, uning o'z sharhi alohida qaytariladi
@@ -44,7 +45,7 @@ export async function GET(
       myReview,
     });
   } catch (error) {
-    console.error('GET /api/courses/[id]/reviews error:', error);
+    logger.error('GET /api/courses/[id]/reviews error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
@@ -90,7 +91,7 @@ export async function POST(
 
     return NextResponse.json({ review });
   } catch (error) {
-    console.error('POST /api/courses/[id]/reviews error:', error);
+    logger.error('POST /api/courses/[id]/reviews error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

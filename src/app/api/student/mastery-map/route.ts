@@ -5,6 +5,7 @@ import { hasActiveSubscription } from '@/lib/access';
 import { computeTopicStats, classifyTopics, generatePracticeSession, buildGrowthSchedule } from '@/lib/mastery';
 import { generateGrowthPlanTips } from '@/lib/gemini';
 import { daysSince } from '@/lib/date';
+import { logger } from '@/lib/logger';
 
 const FREE_TIER_COOLDOWN_DAYS = 30;
 
@@ -116,7 +117,7 @@ export async function GET() {
       tips,
     });
   } catch (error) {
-    console.error('GET /api/student/mastery-map error:', error);
+    logger.error('GET /api/student/mastery-map error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

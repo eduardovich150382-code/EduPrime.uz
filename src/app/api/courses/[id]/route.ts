@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { checkCourseAccess, isLessonFreelyPreviewable } from '@/lib/access';
 import { collectLessonQuizTestIds, flattenGatingTestIds, resolveSolutionBlockVideoUrl } from '@/lib/solution-lock';
+import { logger } from '@/lib/logger';
 
 // GET /api/courses/[id] — kurs dasturi (curriculum) + yozilish/ruxsat holati.
 // Dars KONTENTI (video/matn/test) faqat isPreviewable=true darslarda
@@ -176,7 +177,7 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error('GET /api/courses/[id] error:', error);
+    logger.error('GET /api/courses/[id] error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

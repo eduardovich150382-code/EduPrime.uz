@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { TestType } from '@prisma/client';
+import { logger } from '@/lib/logger';
 
 const VALID_TEST_TYPES: string[] = [
   'DTM',
@@ -39,7 +40,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ subjects });
   } catch (error) {
-    console.error('GET /api/subjects error:', error);
+    logger.error('GET /api/subjects error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

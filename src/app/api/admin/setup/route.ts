@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { logger } from '@/lib/logger';
 
 // This endpoint sets up the admin user
 // Call ONCE after first deploy: /api/admin/setup?secret=<ADMIN_SETUP_SECRET>
@@ -41,7 +42,7 @@ export async function GET(request: NextRequest) {
       }
     });
   } catch (error) {
-    console.error('Admin setup error:', error);
+    logger.error('Admin setup error:', { error });
     return NextResponse.json({ error: 'Failed to setup admin' }, { status: 500 });
   }
 }

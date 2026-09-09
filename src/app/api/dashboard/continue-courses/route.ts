@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
+import { logger } from '@/lib/logger';
 
 // GET /api/dashboard/continue-courses — talaba yozilgan, hali tugatmagan
 // va kamida bitta darsni boshlagan (LessonProgress bor) kurslar, so'ngi
@@ -84,7 +85,7 @@ export async function GET() {
 
     return NextResponse.json({ courses });
   } catch (error) {
-    console.error('GET /api/dashboard/continue-courses error:', error);
+    logger.error('GET /api/dashboard/continue-courses error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { requireTeacher } from '@/lib/api-auth';
 import { isAllowedEmbedUrl, EMBED_ALLOWED_DOMAINS } from '@/lib/embed-allowlist';
 import { parseCheckpoints, checkpointsToStorage, MAX_CHECKPOINTS, type Checkpoint } from '@/lib/video-checkpoints';
+import { logger } from '@/lib/logger';
 
 const MAX_BLOCKS_PER_LESSON = 8;
 const MAX_PRACTICE_ITEMS = 30; // /api/lesson-blocks/[id]/practice/start dagi bilan bir xil chegara
@@ -284,7 +285,7 @@ export async function PUT(
 
     return NextResponse.json({ message: 'Curriculum updated' });
   } catch (error) {
-    console.error('PUT /api/teacher/courses/[id]/curriculum error:', error);
+    logger.error('PUT /api/teacher/courses/[id]/curriculum error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

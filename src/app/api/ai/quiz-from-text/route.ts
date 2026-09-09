@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireTeacher, applyRateLimit } from '@/lib/api-auth';
 import { importTestFromText } from '@/lib/gemini';
+import { logger } from '@/lib/logger';
 
 // POST /api/ai/quiz-from-text — kurs darsi matnidan (yoki istalgan matndan)
 // AI orqali bitta bosishda tekshiruv (Test) yaratadi. Mavjud
@@ -73,7 +74,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ test, warnings: result.warnings || [] }, { status: 201 });
   } catch (error) {
-    console.error('POST /api/ai/quiz-from-text error:', error);
+    logger.error('POST /api/ai/quiz-from-text error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

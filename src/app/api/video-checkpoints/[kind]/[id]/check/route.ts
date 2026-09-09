@@ -3,6 +3,7 @@ import { requireAuth } from '@/lib/api-auth';
 import { sanitizeText, sanitizeInt } from '@/lib/sanitize';
 import { loadLessonVideoCheckpointAccess, loadVideoSolutionCheckpointAccess } from '@/lib/lesson-access';
 import { checkPracticeAnswer } from '@/lib/practice-answer-check';
+import { logger } from '@/lib/logger';
 
 const KINDS = ['lesson', 'block'] as const;
 type Kind = (typeof KINDS)[number];
@@ -54,7 +55,7 @@ export async function POST(
 
     return NextResponse.json(outcome.result);
   } catch (err) {
-    console.error('POST /api/video-checkpoints/[kind]/[id]/check error:', err);
+    logger.error('POST /api/video-checkpoints/[kind]/[id]/check error:', { error: err });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
