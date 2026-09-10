@@ -17,7 +17,7 @@ export default function Header() {
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   const isLoggedIn = status === 'authenticated' && session?.user;
-  const userRole = (session?.user as any)?.role;
+  const userRole = session?.user?.role;
   const isPremium = false; // Will be enhanced when subscription check is added
 
   // Fetch unread notification count

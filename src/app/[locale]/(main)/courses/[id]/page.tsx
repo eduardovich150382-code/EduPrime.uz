@@ -105,8 +105,8 @@ export default function CourseDetailPage() {
   const params = useParams();
   const courseId = params.id as string;
   const { data: session } = useSession();
-  const userId = (session?.user as any)?.id;
-  const userRole = (session?.user as any)?.role;
+  const userId = session?.user?.id;
+  const userRole = session?.user?.role;
 
   const [course, setCourse] = useState<CourseDetail | null>(null);
   const [loading, setLoading] = useState(true);

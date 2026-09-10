@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import type { Session } from 'next-auth';
 import { auth } from './auth';
 import type { UserRole } from '@/types';
 
@@ -26,7 +27,7 @@ interface AuthUser {
 }
 
 interface AuthResult {
-  session: any;
+  session: Session;
   user: AuthUser;
   error: null;
 }
@@ -59,13 +60,13 @@ export async function requireAuth(): Promise<AuthResponse> {
     }
 
     const user: AuthUser = {
-      id: (session.user as any).id || session.user.id,
+      id: session.user.id,
       name: session.user.name,
       email: session.user.email,
       image: session.user.image,
-      role: ((session.user as any).role || 'USER') as UserRole,
-      lang: (session.user as any).lang || 'uz',
-      telegramId: (session.user as any).telegramId || null,
+      role: session.user.role || 'USER',
+      lang: session.user.lang || 'uz',
+      telegramId: session.user.telegramId,
     };
 
     // Ensure user has an ID

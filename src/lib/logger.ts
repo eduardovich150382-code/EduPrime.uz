@@ -131,11 +131,17 @@ type RedactableEvent = {
   message?: unknown;
   exception?: { values?: Array<{ value?: unknown } | null | undefined> | null } | null;
   extra?: LogContext | null;
+  // `request` va `breadcrumbs` ni SDK o'zi ilib qo'yadi — kodimizdan
+  // o'tmaydi, shuning uchun logger'ning tozalashi ularga tegmaydi.
+  request?: { url?: unknown; query_string?: unknown; data?: unknown } | null;
+  breadcrumbs?: Array<{ message?: unknown; data?: LogContext | null } | null | undefined> | null;
 };
 
 /**
- * Sentry hodisasining erkin matnli maydonlarini joyida tozalaydi va o'sha
- * hodisani qaytaradi. `beforeSend` uchun mo'ljallangan, test uchun eksport.
+ * Sentry hodisasining erkin matnli maydonlarini — `message`, exception
+ * qiymatlari, `extra`, so'rov URL/query/tanasi va breadcrumb'lar — joyida
+ * tozalaydi va o'sha hodisani qaytaradi. `beforeSend` uchun mo'ljallangan,
+ * test uchun eksport.
  */
 export function redactEvent<T extends RedactableEvent>(event: T): T {
   if (typeof event.message === 'string') {
@@ -153,6 +159,41 @@ export function redactEvent<T extends RedactableEvent>(event: T): T {
 
   if (event.extra) {
     event.extra = sanitizeContext(event.extra);
+  }
+
+  // So'rov qatoridagi maxfiy parametrlar aynan shu yerda bo'ladi: SDK
+  // hodisaga to'liq URL va `query_string` ni avtomatik qo'shadi.
+  const request = event.request;
+  if (request) {
+    if (typeof request.url === 'string') {
+      request.url = redactSecrets(request.url);
+    }
+    // `query_string` ajratuvchisiz keladi (`token=abc&lang=uz`), naqsh esa
+    // `?` yoki `&` dan boshlanadi — shuning uchun vaqtincha `?` qo'shamiz.
+    if (typeof request.query_string === 'string') {
+      request.query_string = redactSecrets(`?${request.query_string}`).slice(1);
+    }
+    // Faqat string tanani tozalaymiz; parse qilingan obyekt tana bu yerga
+    // kalit-qiymat ko'rinishida keladi va uni `sanitizeContext` emas, SDK
+    // sozlamalari boshqaradi.
+    if (typeof request.data === 'string') {
+      request.data = redactSecrets(request.data);
+    }
+  }
+
+  // Fetch va console izlari. Klient sahifalaridagi tozalanmagan
+  // `console.error` lar Sentry'ga aynan shu yo'l bilan tushadi.
+  const breadcrumbs = event.breadcrumbs;
+  if (Array.isArray(breadcrumbs)) {
+    for (const crumb of breadcrumbs) {
+      if (!crumb) continue;
+      if (typeof crumb.message === 'string') {
+        crumb.message = redactSecrets(crumb.message);
+      }
+      if (crumb.data) {
+        crumb.data = sanitizeContext(crumb.data);
+      }
+    }
   }
 
   return event;

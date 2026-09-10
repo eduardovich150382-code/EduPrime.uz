@@ -109,8 +109,8 @@ export async function POST(
     }
 
     const userId = session.user.id;
-    const role = (session.user as any).role;
-    const lang = ((session.user as any).lang as string) || 'uz';
+    const role = session.user.role;
+    const lang = session.user.lang || 'uz';
 
     const result = await db.testResult.findUnique({
       where: { id },

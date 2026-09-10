@@ -15,7 +15,7 @@ export default async function AdminLayout({
     redirect('/login');
   }
 
-  const role = (session.user as any)?.role;
+  const role = session.user?.role;
 
   // Only ADMIN can access
   if (role !== 'ADMIN') {

@@ -71,7 +71,7 @@ export async function GET(
 
     // Faqat o'z natijasini yoki admin ko'ra oladi
     const userId = result.userId;
-    const role = (session.user as any)?.role;
+    const role = session.user?.role;
     if (result.userId !== session.user.id && role !== 'ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }

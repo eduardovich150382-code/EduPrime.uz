@@ -15,7 +15,7 @@ export default async function TeacherLayout({
     redirect('/login');
   }
 
-  const role = (session.user as any)?.role;
+  const role = session.user?.role;
 
   // Only TEACHER and ADMIN can access
   if (role !== 'TEACHER' && role !== 'ADMIN') {
