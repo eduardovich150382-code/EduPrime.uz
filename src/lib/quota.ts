@@ -12,6 +12,7 @@ import { tashkentDateKey } from './date';
 export const FREE_DAILY_BUILT_TESTS = 3;
 export const FREE_DAILY_SOLUTIONS = 10;
 export const FREE_DAILY_AI_EXPLAIN = 3;
+export const FREE_DAILY_IMPORTS = 2;
 
 /** `DailyUsage.date` (`@db.Date`) ustuniga yoziladigan qiymat — Postgres
  * faqat sana qismini saqlaydi, vaqt qismi e'tiborga olinmaydi, shuning
@@ -28,7 +29,7 @@ async function isUnlimited(userId: string): Promise<boolean> {
   return premium || teacher;
 }
 
-type QuotaField = 'builtTests' | 'dtmOnline' | 'solutionsUnlocked' | 'tutorMessages';
+type QuotaField = 'builtTests' | 'dtmOnline' | 'solutionsUnlocked' | 'tutorMessages' | 'imports';
 
 /**
  * Bugungi hisoblagichni ATOMIK ravishda 1 taga oshiradi va yangi qiymatni
@@ -138,6 +139,24 @@ export async function consumeTutorMessage(userId: string): Promise<ConsumeQuotaR
     return { allowed: false, usedToday: FREE_DAILY_AI_EXPLAIN, limit: FREE_DAILY_AI_EXPLAIN };
   }
   return { allowed: true, usedToday: used, limit: FREE_DAILY_AI_EXPLAIN };
+}
+
+/**
+ * Bepul foydalanuvchi uchun kuniga {@link FREE_DAILY_IMPORTS} ta hujjatdan
+ * test importi. Kvota import JARAYONI BOSHLANGANDA sarflansin — u uzoq
+ * davom etadi va model chaqiruvlari pul turadi, shuning uchun tugashini
+ * kutib bo'lmaydi. Premium/Teacher/ADMIN uchun cheklovsiz.
+ */
+export async function consumeImport(userId: string): Promise<ConsumeQuotaResult> {
+  if (await isUnlimited(userId)) {
+    return { allowed: true, usedToday: 0, limit: null };
+  }
+  const dateKey = tashkentDateKey();
+  const used = await bumpDailyUsage(userId, dateKey, 'imports');
+  if (used > FREE_DAILY_IMPORTS) {
+    return { allowed: false, usedToday: FREE_DAILY_IMPORTS, limit: FREE_DAILY_IMPORTS };
+  }
+  return { allowed: true, usedToday: used, limit: FREE_DAILY_IMPORTS };
 }
 
 export interface ConsumeSolutionResult {

@@ -23,6 +23,7 @@ const { fakeDb, testSessions, items } = vi.hoisted(() => {
     dtmOnline: number;
     solutionsUnlocked: number;
     tutorMessages: number;
+    imports: number;
   }
   interface FakeSolutionUnlockRow {
     userId: string;
@@ -99,6 +100,7 @@ const { fakeDb, testSessions, items } = vi.hoisted(() => {
             dtmOnline: 0,
             solutionsUnlocked: 0,
             tutorMessages: 0,
+            imports: 0,
           };
           for (const [k, v] of Object.entries(create)) {
             if (k === "userId" || k === "date") continue;
@@ -183,7 +185,9 @@ import {
   refundBuiltTest,
   resolveUnlockKey,
   resolveUnlockKeys,
+  consumeImport,
   FREE_DAILY_BUILT_TESTS,
+  FREE_DAILY_IMPORTS,
   FREE_DAILY_SOLUTIONS,
 } from "../quota";
 
@@ -432,5 +436,80 @@ describe("resolveUnlockKey / resolveUnlockKeys", () => {
     // kerak, ikkinchi marta kvota sarflanmasligi kerak.
     const unlocked = await getUnlockedItemIds("user-16", ["item-1"]);
     expect(unlocked).toEqual(new Set(["item-1"]));
+  });
+});
+
+describe("consumeImport", () => {
+  it(`bepul foydalanuvchi kuniga ${FREE_DAILY_IMPORTS} tagacha import qila oladi`, async () => {
+    vi.setSystemTime(new Date("2026-09-10T10:00:00.000Z"));
+    for (let i = 1; i <= FREE_DAILY_IMPORTS; i++) {
+      const r = await consumeImport("user-imp");
+      expect(r).toEqual({ allowed: true, usedToday: i, limit: FREE_DAILY_IMPORTS });
+    }
+  });
+
+  it("limit oshgach rad etiladi va keyingi urinishlar ham rad etilaveradi", async () => {
+    vi.setSystemTime(new Date("2026-09-10T10:00:00.000Z"));
+    for (let i = 0; i < FREE_DAILY_IMPORTS; i++) await consumeImport("user-imp");
+
+    const over = await consumeImport("user-imp");
+    expect(over).toEqual({
+      allowed: false,
+      usedToday: FREE_DAILY_IMPORTS,
+      limit: FREE_DAILY_IMPORTS,
+    });
+    const again = await consumeImport("user-imp");
+    expect(again.allowed).toBe(false);
+  });
+
+  it("boshqa foydalanuvchining hisoblagichiga tegmaydi", async () => {
+    vi.setSystemTime(new Date("2026-09-10T10:00:00.000Z"));
+    for (let i = 0; i < FREE_DAILY_IMPORTS; i++) await consumeImport("user-a");
+    expect((await consumeImport("user-a")).allowed).toBe(false);
+
+    const other = await consumeImport("user-b");
+    expect(other).toEqual({ allowed: true, usedToday: 1, limit: FREE_DAILY_IMPORTS });
+  });
+
+  it("PREMIUM obunachi uchun cheklovsiz — DailyUsage yozuvi ochilmaydi", async () => {
+    vi.setSystemTime(new Date("2026-09-10T10:00:00.000Z"));
+    fakeDb.__subscriptions.push({
+      userId: "user-prem",
+      isActive: true,
+      endDate: new Date("2030-01-01"),
+      plan: "PREMIUM",
+    });
+    const r = await consumeImport("user-prem");
+    expect(r).toEqual({ allowed: true, usedToday: 0, limit: null });
+    expect(fakeDb.__dailyUsage.size).toBe(0);
+  });
+
+  it("ADMIN uchun cheklovsiz", async () => {
+    vi.setSystemTime(new Date("2026-09-10T10:00:00.000Z"));
+    fakeDb.__users.set("admin-imp", { role: "ADMIN" });
+    expect(await consumeImport("admin-imp")).toEqual({ allowed: true, usedToday: 0, limit: null });
+  });
+
+  it("yangi kun boshlanganda hisoblagich noldan boshlanadi (Tashkent kuni bo'yicha)", async () => {
+    vi.setSystemTime(new Date("2026-09-10T10:00:00.000Z"));
+    for (let i = 0; i < FREE_DAILY_IMPORTS; i++) await consumeImport("user-day");
+    expect((await consumeImport("user-day")).allowed).toBe(false);
+
+    // 2026-09-10T19:00:00Z == 2026-09-11T00:00 Tashkent — allaqachon yangi kun.
+    vi.setSystemTime(new Date("2026-09-10T19:00:00.000Z"));
+    expect(await consumeImport("user-day")).toEqual({
+      allowed: true,
+      usedToday: 1,
+      limit: FREE_DAILY_IMPORTS,
+    });
+  });
+
+  it("import kvotasi boshqa kvotalardan mustaqil — builtTests hisoblagichiga tegmaydi", async () => {
+    vi.setSystemTime(new Date("2026-09-10T10:00:00.000Z"));
+    for (let i = 0; i < FREE_DAILY_IMPORTS; i++) await consumeImport("user-mix");
+    expect((await consumeImport("user-mix")).allowed).toBe(false);
+
+    const built = await consumeBuiltTest("user-mix");
+    expect(built).toEqual({ allowed: true, usedToday: 1, limit: FREE_DAILY_BUILT_TESTS });
   });
 });
