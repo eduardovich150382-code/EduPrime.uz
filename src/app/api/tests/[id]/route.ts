@@ -124,7 +124,7 @@ export async function PUT(
     }
 
     // Check permission
-    const role = (session.user as any)?.role;
+    const role = session.user?.role;
     if (role !== 'ADMIN' && test.teacher?.userId !== session.user.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
@@ -170,7 +170,7 @@ export async function DELETE(
     }
 
     const { id } = await params;
-    const role = (session.user as any)?.role;
+    const role = session.user?.role;
 
     const test = await db.test.findUnique({
       where: { id },

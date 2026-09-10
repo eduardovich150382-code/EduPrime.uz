@@ -46,11 +46,30 @@ const config = withNextIntl(nextConfig);
 // DSN'siz esa bular ortiqcha ish va build logida shovqin. Lokal `next build`
 // va CI DSN'siz ishlaydi — o'sha yerda Next konfiguratsiyasi tegilmagan
 // holicha qolsin.
+
+// Source map yuklash uchun uchala qiymat ham kerak: qaysi tashkilot va
+// loyihaga yuklanishi (`SENTRY_ORG`/`SENTRY_PROJECT`) va yuklash huquqi
+// (`SENTRY_AUTH_TOKEN`). Biri yetishmasa yuklash butunlay o'tkazib
+// yuboriladi — build yiqilmasin, faqat stack trace'lar minifikatsiyalangan
+// holicha qoladi.
+const sentryOrg = process.env.SENTRY_ORG;
+const sentryProject = process.env.SENTRY_PROJECT;
+const canUploadSourcemaps = Boolean(sentryOrg && sentryProject && process.env.SENTRY_AUTH_TOKEN);
+
 export default process.env.SENTRY_DSN
   ? withSentryConfig(config, {
-      // Source map yuklash uchun SENTRY_AUTH_TOKEN kerak; u yo'q bo'lsa
-      // Sentry CLI bu qadamni o'tkazib yuboradi va build yiqilmaydi.
+      org: sentryOrg,
+      project: sentryProject,
       silent: !process.env.CI,
+      // Next.js uchun tavsiya etilgan: klient kadrlari to'liqroq yechiladi.
+      widenClientFileUpload: true,
+      sourcemaps: {
+        disable: !canUploadSourcemaps,
+        // Yuklangandan keyin `.map` fayllari deploy paketidan o'chirilsin.
+        // Aks holda ular ochiq internetdan yuklab olinadi va butun manba
+        // kod ko'rinadi.
+        deleteSourcemapsAfterUpload: true,
+      },
       // Sentry'ning o'z debug logger'i prod bundle'idan chiqarib tashlansin.
       webpack: { treeshake: { removeDebugLogging: true } },
     })

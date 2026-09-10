@@ -182,17 +182,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async session({ session, token }) {
       if (session.user) {
         if (token.id) {
-          session.user.id = token.id as string;
+          session.user.id = token.id;
         }
         if (token.name) {
-          session.user.name = token.name as string;
+          session.user.name = token.name;
         }
         if (token.picture) {
-          session.user.image = token.picture as string;
+          session.user.image = token.picture;
         }
-        (session.user as any).role = token.role || 'USER';
-        (session.user as any).lang = token.lang || 'uz';
-        (session.user as any).telegramId = token.telegramId;
+        session.user.role = token.role || 'USER';
+        session.user.lang = token.lang || 'uz';
+        session.user.telegramId = token.telegramId ?? null;
       }
       return session;
     },

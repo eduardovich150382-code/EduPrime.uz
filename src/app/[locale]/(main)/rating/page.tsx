@@ -75,7 +75,7 @@ export default function RatingPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const currentUserId = (session?.user as any)?.id || null;
+  const currentUserId = session?.user?.id || null;
 
   useEffect(() => {
     async function fetchRating() {

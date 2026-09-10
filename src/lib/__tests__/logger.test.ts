@@ -256,6 +256,45 @@ describe('redactEvent — beforeSend', () => {
     expect(out.extra).toEqual({ logMessage: 'GET /api/x?token=[redacted]', userId: 'u1' });
   });
 
+  it("so'rov URL, query_string va string tanasini tozalaydi", () => {
+    const event = {
+      request: {
+        url: 'https://eduprime.uz/api/x?userId=1&token=abc123',
+        query_string: 'userId=1&api_key=k9&lang=uz',
+        data: 'connect failed: postgresql://u:pw@host/db',
+      },
+    };
+
+    const out = redactEvent(event);
+
+    expect(out.request.url).toBe('https://eduprime.uz/api/x?userId=1&token=[redacted]');
+    // `?` vaqtincha qo'shilib olib tashlanadi — natijada qolmasin.
+    expect(out.request.query_string).toBe('userId=1&api_key=[redacted]&lang=uz');
+    expect(out.request.data).toBe('connect failed: [redacted-dsn]');
+  });
+
+  it("string bo'lmagan so'rov tanasiga tegmaydi", () => {
+    const body = { token: 'abc' };
+    const event = { request: { data: body } };
+
+    expect(redactEvent(event).request.data).toBe(body);
+  });
+
+  it('breadcrumb xabari va kontekstini tozalaydi', () => {
+    const event = {
+      breadcrumbs: [
+        { message: 'GET /api/x?token=abc123' },
+        { message: 'console', data: { url: '/cb?access_token=zzz', authorization: 'Bearer x', ok: 1 } },
+        null,
+      ],
+    };
+
+    const out = redactEvent(event);
+
+    expect(out.breadcrumbs[0]?.message).toBe('GET /api/x?token=[redacted]');
+    expect(out.breadcrumbs[1]?.data).toEqual({ url: '/cb?access_token=[redacted]', ok: 1 });
+  });
+
   it("maydonlari yo'q hodisani o'zgarishsiz qaytaradi", () => {
     const event: { event_id: string; message?: string } = { event_id: 'abc' };
     expect(redactEvent(event)).toEqual({ event_id: 'abc' });

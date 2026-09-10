@@ -19,7 +19,7 @@ export default async function MainLayout({
     redirect('/login');
   }
 
-  const role = (session.user as any)?.role || 'USER';
+  const role = session.user?.role || 'USER';
 
   // Banner only hidden for ADMIN — everyone else sees it until they have active subscription
   // Actual subscription check happens client-side in PremiumBanner component
