@@ -119,6 +119,7 @@ model Teacher {
   tests   Test[]
   bankQuestions BankQuestion[]
   courses Course[]
+  importJobs ImportJob[]
 }
 
 // ===================== SUBJECTS & CATEGORIES =====================
@@ -172,6 +173,7 @@ model Subject {
   courses  Course[]
   topics   TopicNode[]
   items    Item[]
+  importJobs ImportJob[]
 
   @@index([categoryId, order])
 }
@@ -850,6 +852,7 @@ model DailyUsage {
   dtmOnline         Int      @default(0)
   solutionsUnlocked Int      @default(0)
   tutorMessages     Int      @default(0)
+  imports           Int      @default(0)
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, date])
@@ -867,6 +870,104 @@ model SolutionUnlock {
 
   @@id([userId, itemId])
   @@index([userId, unlockedAt])
+}
+
+// ===================== DOCUMENT IMPORT =====================
+
+// Hujjatdan (PDF/DOCX/rasm) test import qilish quvuri. Har bosqich alohida
+// nomlangan — jarayon uzoq davom etadi va uzilib qolsa qaysi bosqichdan
+// davom ettirish kerakligi shu maydondan aniqlanadi.
+enum ImportStatus {
+  UPLOADED
+  PARSING
+  STRUCTURING
+  TRANSLATING
+  REVIEW
+  COMMITTED
+  FAILED
+}
+
+// Ko'rib chiqish (review) bosqichida ustoz har bir qoralamani tasdiqlaydi
+// yoki rad etadi; EDITED — tasdiqlashdan oldin matni qo'lda tuzatilgan.
+enum DraftStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EDITED
+}
+
+model ImportJob {
+  id          String       @id @default(cuid())
+  teacherId   String
+  subjectId   String
+  fileName    String
+  fileUrl     String
+  fileKind    String       // PDF | DOCX | IMAGE
+  sourceLang  String       @default("uz")   // asl fayl tili
+  targetLang  String       @default("uz")   // teng bo'lsa tarjima bosqichi o'tkazib yuboriladi
+  status      ImportStatus @default(UPLOADED)
+  pageCount   Int          @default(0)
+  blockCount  Int          @default(0)
+  autoGreen   Int          @default(0)
+  costTokens  Int          @default(0)
+  model       String?
+  error       String?
+  createdAt   DateTime     @default(now())
+  committedAt DateTime?
+
+  teacher Teacher       @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  subject Subject       @relation(fields: [subjectId], references: [id])
+  assets  ImportAsset[]
+  drafts  ImportDraft[]
+
+  @@index([teacherId, status])
+}
+
+model ImportAsset {
+  id       String  @id @default(cuid())
+  jobId    String
+  page     Int
+  bbox     Json    // {x,y,w,h} — asl sahifa koordinatasi (PDF nuqtalarida)
+  url      String
+  sha256   String
+  widthPx  Int
+  heightPx Int
+  kind     String  @default("FIGURE")  // FIGURE | OPTION | SKIPPED
+
+  job ImportJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([jobId, page])
+  @@index([jobId, sha256])
+}
+
+model ImportDraft {
+  id              String       @id @default(cuid())
+  jobId           String
+  order           Int
+  raw             Json
+  textOriginal    String                 // asl tildagi matn
+  text            String                 // maqsad tildagi (tarjima bo'lmasa = textOriginal)
+  optionsOriginal Json         @default("[]")
+  options         Json
+  correctAnswer   String
+  type            QuestionType @default(MULTIPLE_CHOICE)
+  explanation     String?
+  topicGuess      String?
+  bloomLevel      String?
+  difficulty      Int?
+  confidence      Float        @default(0)
+  qualityScore    Int          @default(0)
+  issues          Json         @default("[]")
+  sourcePage      Int?
+  sourceBbox      Json?
+  status          DraftStatus  @default(PENDING)
+  itemId          String?
+
+  job ImportJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  // Idempotentlik: strukturalash qayta chaqirilsa dublikat yaratilmasin.
+  @@unique([jobId, order])
+  @@index([jobId, status])
 }
 
 // ===================== SYSTEM SETTINGS =====================
