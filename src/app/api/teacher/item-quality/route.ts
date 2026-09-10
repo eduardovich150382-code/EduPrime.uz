@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { db } from '@/lib/db';
 import { requireTeacher } from '@/lib/api-auth';
 import { topDistractor } from '@/lib/item-stats';
+import { logger } from '@/lib/logger';
 
 // Klassik item-analysis chegaralari (Ebel tasnifi) — 0.2'dan past
 // diskriminatsiya "zaif/tashlab yuborilishi kerak" hisoblanadi.
@@ -71,7 +72,7 @@ export async function GET() {
       extremeDifficulty: extremeDifficultyStats.map(toRow),
     });
   } catch (error) {
-    console.error('GET /api/teacher/item-quality error:', error);
+    logger.error('GET /api/teacher/item-quality error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

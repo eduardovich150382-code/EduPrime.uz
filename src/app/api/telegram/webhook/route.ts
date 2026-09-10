@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { recordPurchase } from '@/lib/purchases';
+import { logger } from '@/lib/logger';
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || '';
@@ -77,7 +78,7 @@ async function getFileUrl(fileId: string): Promise<string | null> {
       return `https://api.telegram.org/file/bot${BOT_TOKEN}/${data.result.file_path}`;
     }
   } catch (error) {
-    console.error('getFileUrl error:', error);
+    logger.error('getFileUrl error:', { error });
   }
   return null;
 }
@@ -149,7 +150,7 @@ async function checkChannelSubscription(userId: number): Promise<boolean> {
     console.warn(`[Subscription Check] Failed for userId=${userId}:`, data.description || 'unknown error');
     return false;
   } catch (error) {
-    console.error(`[Subscription Check] Exception for userId=${userId}:`, error);
+    logger.error(`[Subscription Check] Exception for userId=${userId}:`, { error });
     return false;
   }
 }
@@ -387,7 +388,7 @@ async function handleStart(chatId: number, userId: number, username: string, fir
         }
       );
     } catch (error) {
-      console.error('Start login error:', error);
+      logger.error('Start login error:', { error });
       await sendMessage(chatId, '❌ Xatolik yuz berdi. Qayta urinib ko\'ring.');
     }
     return;
@@ -1060,7 +1061,7 @@ async function saveReceiptToDB(userId: number, payment: any, receiptUrl: string 
       });
     }
   } catch (error) {
-    console.error('Failed to save receipt to DB:', error);
+    logger.error('Failed to save receipt to DB:', { error });
   }
 }
 
@@ -1094,7 +1095,7 @@ async function notifyAdminsAboutReceipt(
         }
       );
     } catch (error) {
-      console.error(`Failed to notify admin ${adminId}:`, error);
+      logger.error(`Failed to notify admin ${adminId}:`, { error });
     }
   }
 }
@@ -1204,7 +1205,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error('Webhook error:', error);
+    logger.error('Webhook error:', { error });
     return NextResponse.json({ ok: true });
   }
 }

@@ -4,6 +4,7 @@ import { requireAuth } from '@/lib/api-auth';
 import { buildItemWhere, parseItemSpec } from '@/lib/item-picker';
 import { buildTopicTree, countItemsPerTopic, dedupeTopicsByPath } from '@/lib/topic-tree';
 import { locales, defaultLocale } from '@/i18n/config';
+import { logger } from '@/lib/logger';
 
 // POST /api/topics — konstruktor ekranidagi ("/build") mavzular daraxti:
 // tanlangan fan(lar)ning TopicNode daraxtini, joriy filtrga (topicPaths'dan
@@ -67,7 +68,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ tree: buildTopicTree(effectiveTopics, counts, locale) });
   } catch (err) {
-    console.error('POST /api/topics error:', err);
+    logger.error('POST /api/topics error:', { error: err });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

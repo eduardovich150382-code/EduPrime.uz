@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { logger } from '@/lib/logger';
 
 // Public keys that are safe to expose
 const PUBLIC_KEYS = [
@@ -54,7 +55,7 @@ export async function GET() {
 
     return NextResponse.json({ settings: result });
   } catch (error) {
-    console.error('GET /api/settings error:', error);
+    logger.error('GET /api/settings error:', { error });
     return NextResponse.json({ settings: DEFAULTS });
   }
 }

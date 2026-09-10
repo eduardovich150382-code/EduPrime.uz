@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAuth } from '@/lib/api-auth';
+import { logger } from '@/lib/logger';
 
 // DELETE /api/courses/[id]/reviews/[reviewId] — o'z sharhini o'chirish,
 // yoki ADMIN har qanday sharhni moderatsiya sifatida o'chirishi mumkin.
@@ -25,7 +26,7 @@ export async function DELETE(
     await db.courseReview.delete({ where: { id: reviewId } });
     return NextResponse.json({ message: 'Review deleted' });
   } catch (error) {
-    console.error('DELETE /api/courses/[id]/reviews/[reviewId] error:', error);
+    logger.error('DELETE /api/courses/[id]/reviews/[reviewId] error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

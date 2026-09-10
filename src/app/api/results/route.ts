@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
+import { logger } from '@/lib/logger';
 
 // GET /api/results — foydalanuvchining barcha natijalari
 export async function GET(request: NextRequest) {
@@ -29,7 +30,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ results, stats: { totalTests, avgScore } });
   } catch (error) {
-    console.error('GET /api/results error:', error);
+    logger.error('GET /api/results error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

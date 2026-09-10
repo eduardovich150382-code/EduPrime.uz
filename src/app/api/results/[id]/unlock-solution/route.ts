@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { consumeSolution, resolveUnlockKey } from '@/lib/quota';
 import { resolveSolutionVisibility } from '@/lib/solution-visibility';
+import { logger } from '@/lib/logger';
 
 // POST /api/results/[id]/unlock-solution — bitta savol yechimini ochadi
 // (S17). Kvotani sarflaydi va `SolutionUnlock` yozadi (lib/quota.ts —
@@ -139,7 +140,7 @@ export async function POST(
       explanationImages: visibility.explanationImages,
     });
   } catch (error) {
-    console.error('POST /api/results/[id]/unlock-solution error:', error);
+    logger.error('POST /api/results/[id]/unlock-solution error:', { error });
     return NextResponse.json({ error: "Yechimni ochishda xatolik yuz berdi" }, { status: 500 });
   }
 }

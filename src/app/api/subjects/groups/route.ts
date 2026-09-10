@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAuth } from '@/lib/api-auth';
 import { groupSubjectsByName } from '@/lib/subject-groups';
+import { logger } from '@/lib/logger';
 
 export interface SubjectGroupResponse {
   name: string;
@@ -61,7 +62,7 @@ export async function GET() {
     cache = { data: result, expiresAt: now + CACHE_TTL_MS };
     return NextResponse.json({ groups: result });
   } catch (err) {
-    console.error('GET /api/subjects/groups error:', err);
+    logger.error('GET /api/subjects/groups error:', { error: err });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireTeacher } from '@/lib/api-auth';
+import { logger } from '@/lib/logger';
 
 // GET /api/teacher/courses — ustozning barcha kurslarini olish
 export async function GET() {
@@ -38,7 +39,7 @@ export async function GET() {
 
     return NextResponse.json({ courses: result });
   } catch (error) {
-    console.error('GET /api/teacher/courses error:', error);
+    logger.error('GET /api/teacher/courses error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
@@ -105,7 +106,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ course }, { status: 201 });
   } catch (error) {
-    console.error('POST /api/teacher/courses error:', error);
+    logger.error('POST /api/teacher/courses error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

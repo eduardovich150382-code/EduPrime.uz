@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/api-auth';
 import { computeTopicStats, classifyTopics } from '@/lib/mastery';
 import { resolveTopicNodes } from '@/lib/topic-bridge';
+import { logger } from '@/lib/logger';
 
 // GET /api/items/weak-topics — konstruktordagi ("/build") "Zaif mavzularim"
 // chipi uchun: foydalanuvchining bilim xaritasidagi (computeTopicStats +
@@ -50,7 +51,7 @@ export async function GET() {
 
     return NextResponse.json({ topicPaths: Array.from(topicPaths), subjectIds: Array.from(subjectIds) });
   } catch (err) {
-    console.error('GET /api/items/weak-topics error:', err);
+    logger.error('GET /api/items/weak-topics error:', { error: err });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

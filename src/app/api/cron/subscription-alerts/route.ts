@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { logger } from '@/lib/logger';
 
 /**
  * GET /api/cron/subscription-alerts
@@ -109,7 +110,7 @@ export async function GET(request: NextRequest) {
       timestamp: now.toISOString(),
     });
   } catch (error) {
-    console.error('Cron subscription-alerts error:', error);
+    logger.error('Cron subscription-alerts error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
@@ -132,6 +133,6 @@ async function sendTelegramAlert(telegramId: string, message: string) {
       }),
     });
   } catch (error) {
-    console.error(`Failed to send Telegram alert to ${telegramId}:`, error);
+    logger.error(`Failed to send Telegram alert to ${telegramId}:`, { error });
   }
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAuth } from '@/lib/api-auth';
 import { checkCourseAccess } from '@/lib/access';
+import { logger } from '@/lib/logger';
 
 // POST /api/courses/[id]/enroll — kursga yozilish. Bepul/Premium/Ustoz
 // tarifidagi kurslarga darhol yoziladi; pullik kurslar uchun tasdiqlangan
@@ -42,7 +43,7 @@ export async function POST(
 
     return NextResponse.json({ enrollment }, { status: 201 });
   } catch (error) {
-    console.error('POST /api/courses/[id]/enroll error:', error);
+    logger.error('POST /api/courses/[id]/enroll error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
+import { logger } from '@/lib/logger';
 
 // GET /api/notifications — get user notifications
 export async function GET(request: NextRequest) {
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ notifications, total, page, limit });
   } catch (error) {
-    console.error('GET /api/notifications error:', error);
+    logger.error('GET /api/notifications error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
@@ -59,7 +60,7 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('PATCH /api/notifications error:', error);
+    logger.error('PATCH /api/notifications error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

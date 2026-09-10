@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
+import { logger } from '@/lib/logger';
 
 // Helper to get a setting value from DB with fallback
 async function getSetting(key: string, fallback: string): Promise<string> {
@@ -78,7 +79,7 @@ export async function POST(request: NextRequest) {
       message: `Tabriklaymiz! ${rewardDays} kunlik Premium tarif bepul berildi!`,
     });
   } catch (error) {
-    console.error('POST /api/referral/check-reward error:', error);
+    logger.error('POST /api/referral/check-reward error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

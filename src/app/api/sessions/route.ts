@@ -3,6 +3,7 @@ import { requireAuth } from '@/lib/api-auth';
 import { sanitizeText } from '@/lib/sanitize';
 import { parseItemSpec } from '@/lib/item-picker';
 import { createSessionFromSpec } from '@/lib/sessions';
+import { logger } from '@/lib/logger';
 
 const MAX_LIMIT = 200;
 const MAX_DURATION_MIN = 600; // 10 soat — yetarlicha keng yuqori chegara
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ session: outcome.session, relaxed: outcome.relaxed });
   } catch (err) {
-    console.error('POST /api/sessions error:', err);
+    logger.error('POST /api/sessions error:', { error: err });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

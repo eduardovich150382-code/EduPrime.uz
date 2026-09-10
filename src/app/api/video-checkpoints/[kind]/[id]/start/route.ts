@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/api-auth';
 import { loadLessonVideoCheckpointAccess, loadVideoSolutionCheckpointAccess } from '@/lib/lesson-access';
 import { createSessionFromSpec } from '@/lib/sessions';
+import { logger } from '@/lib/logger';
 
 // `kind` — nazorat nuqtalarining manbasi: darsning asosiy videosi (VIDEO
 // turi CourseLesson) yoki VIDEO_SOLUTION bloki. Ikkalasi ham BIR XIL
@@ -69,7 +70,7 @@ export async function POST(
       questions: outcome.session.questions,
     });
   } catch (err) {
-    console.error('POST /api/video-checkpoints/[kind]/[id]/start error:', err);
+    logger.error('POST /api/video-checkpoints/[kind]/[id]/start error:', { error: err });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

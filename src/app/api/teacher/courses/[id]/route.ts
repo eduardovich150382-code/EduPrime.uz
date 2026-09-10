@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireTeacher } from '@/lib/api-auth';
+import { logger } from '@/lib/logger';
 
 // GET /api/teacher/courses/[id] — bitta kursni to'liq dastur bilan olish (tahrirlash uchun)
 export async function GET(
@@ -41,7 +42,7 @@ export async function GET(
 
     return NextResponse.json({ course });
   } catch (error) {
-    console.error('GET /api/teacher/courses/[id] error:', error);
+    logger.error('GET /api/teacher/courses/[id] error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
@@ -97,7 +98,7 @@ export async function PUT(
 
     return NextResponse.json({ course: updated });
   } catch (error) {
-    console.error('PUT /api/teacher/courses/[id] error:', error);
+    logger.error('PUT /api/teacher/courses/[id] error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
@@ -121,7 +122,7 @@ export async function DELETE(
     await db.course.delete({ where: { id } });
     return NextResponse.json({ message: 'Course deleted' });
   } catch (error) {
-    console.error('DELETE /api/teacher/courses/[id] error:', error);
+    logger.error('DELETE /api/teacher/courses/[id] error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

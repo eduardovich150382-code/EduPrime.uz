@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import * as jose from 'jose';
+import { logger } from '@/lib/logger';
 
 // Derive encryption key the same way NextAuth v5 / Auth.js does internally
 async function getDerivedEncryptionKey(secret: string, salt: string) {
@@ -43,7 +44,7 @@ export async function GET(request: NextRequest) {
   const SECRET = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
 
   if (!SECRET) {
-    console.error('[Telegram Callback] AUTH_SECRET/NEXTAUTH_SECRET is not set');
+    logger.error('[Telegram Callback] AUTH_SECRET/NEXTAUTH_SECRET is not set');
     return NextResponse.redirect(`${APP_URL}/login?error=server_error`);
   }
 
@@ -58,7 +59,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!storedToken) {
-      console.error('[Telegram Callback] Token not found for telegramId:', telegramId);
+      logger.error('[Telegram Callback] Token not found for telegramId', { telegramId });
       return NextResponse.redirect(`${APP_URL}/login?error=invalid_token`);
     }
 
@@ -67,7 +68,7 @@ export async function GET(request: NextRequest) {
     const isNotExpired = Date.now() - tokenData.createdAt < 5 * 60 * 1000;
 
     if (!isValid || !isNotExpired) {
-      console.error('[Telegram Callback] Token invalid or expired');
+      logger.error('[Telegram Callback] Token invalid or expired');
       return NextResponse.redirect(`${APP_URL}/login?error=expired_token`);
     }
 
@@ -145,7 +146,7 @@ export async function GET(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('[Telegram Callback] Error:', error);
+    logger.error('[Telegram Callback] Error:', { error });
     return NextResponse.redirect(`${APP_URL}/login?error=server_error`);
   }
 }

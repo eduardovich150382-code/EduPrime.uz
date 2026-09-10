@@ -3,6 +3,7 @@ import { requireAuth } from '@/lib/api-auth';
 import { sanitizeText, sanitizeInt } from '@/lib/sanitize';
 import { loadPracticeBlockAccess } from '@/lib/lesson-access';
 import { checkPracticeAnswer } from '@/lib/practice-answer-check';
+import { logger } from '@/lib/logger';
 
 // POST /api/lesson-blocks/[id]/practice/check — PRACTICE blokidagi BITTA
 // savolni darhol baholaydi. Baholashning o'zi (gradeSubmission chaqiruvi,
@@ -48,7 +49,7 @@ export async function POST(
 
     return NextResponse.json(outcome.result);
   } catch (err) {
-    console.error('POST /api/lesson-blocks/[id]/practice/check error:', err);
+    logger.error('POST /api/lesson-blocks/[id]/practice/check error:', { error: err });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

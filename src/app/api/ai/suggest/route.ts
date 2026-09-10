@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireTeacher, applyRateLimit } from '@/lib/api-auth';
 import { suggestQuestionMetadata } from '@/lib/gemini';
+import { logger } from '@/lib/logger';
 
 // POST /api/ai/suggest — savol matni/to'g'ri javobga asoslanib AI orqali
 // distraktor va mavzu/Bloom darajasi taklifi (Gemini)
@@ -30,7 +31,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error('POST /api/ai/suggest error:', error);
+    logger.error('POST /api/ai/suggest error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { shuffleTest } from '@/lib/shuffle';
 import { checkTestAccess } from '@/lib/access';
+import { logger } from '@/lib/logger';
 
 // GET /api/tests/[id] — bitta testni olish
 export async function GET(
@@ -94,7 +95,7 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error('GET /api/tests/[id] error:', error);
+    logger.error('GET /api/tests/[id] error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
@@ -152,7 +153,7 @@ export async function PUT(
 
     return NextResponse.json({ test: updated });
   } catch (error) {
-    console.error('PUT /api/tests/[id] error:', error);
+    logger.error('PUT /api/tests/[id] error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
@@ -187,7 +188,7 @@ export async function DELETE(
     await db.test.delete({ where: { id } });
     return NextResponse.json({ message: 'Test deleted' });
   } catch (error) {
-    console.error('DELETE /api/tests/[id] error:', error);
+    logger.error('DELETE /api/tests/[id] error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

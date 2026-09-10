@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
+import { logger } from '@/lib/logger';
 
 // PUT /api/teacher/tests/[id]/questions — savollarni yangilash
 export async function PUT(
@@ -89,7 +90,7 @@ export async function PUT(
 
     return NextResponse.json({ message: 'Questions updated', count: questions.length });
   } catch (error) {
-    console.error('PUT /api/teacher/tests/[id]/questions error:', error);
+    logger.error('PUT /api/teacher/tests/[id]/questions error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

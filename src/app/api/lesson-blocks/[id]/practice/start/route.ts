@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/api-auth';
 import { loadPracticeBlockAccess } from '@/lib/lesson-access';
 import { createSessionFromSpec } from '@/lib/sessions';
+import { logger } from '@/lib/logger';
 
 // PRACTICE bloki tahrirlagichida saqlanadigan maksimal savol soni bilan bir
 // xil (LessonBlocksEditor.tsx) — bu yerda faqat himoya sifatida qayta
@@ -56,7 +57,7 @@ export async function POST(
       questions: outcome.session.questions,
     });
   } catch (err) {
-    console.error('POST /api/lesson-blocks/[id]/practice/start error:', err);
+    logger.error('POST /api/lesson-blocks/[id]/practice/start error:', { error: err });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

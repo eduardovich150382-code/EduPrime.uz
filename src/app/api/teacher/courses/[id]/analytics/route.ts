@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireTeacher } from '@/lib/api-auth';
+import { logger } from '@/lib/logger';
 
 // GET /api/teacher/courses/[id]/analytics — dars darajasidagi tahlil:
 // har bir darsni necha foiz yozilgan talaba tugatgani va talabalar
@@ -97,7 +98,7 @@ export async function GET(
       lessons: lessonStats,
     });
   } catch (error) {
-    console.error('GET /api/teacher/courses/[id]/analytics error:', error);
+    logger.error('GET /api/teacher/courses/[id]/analytics error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

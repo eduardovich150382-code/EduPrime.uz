@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { logger } from '@/lib/logger';
 
 // GET /api/share/result/[id] - public result data (no auth required)
 export async function GET(
@@ -49,7 +50,7 @@ export async function GET(
 
     return NextResponse.json({ result });
   } catch (error) {
-    console.error('GET /api/share/result/[id] error:', error);
+    logger.error('GET /api/share/result/[id] error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

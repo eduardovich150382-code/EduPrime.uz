@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireTeacher } from '@/lib/api-auth';
+import { logger } from '@/lib/logger';
 
 // Bitta elementning bazaga yozish uchun yaroqli ekanini tekshiradi. MATCHING
 // uchun to'g'ri javob correctAnswer'da emas, options.left/right juftliklarida
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ count, skipped }, { status: 201 });
   } catch (error) {
-    console.error('POST /api/teacher/question-bank/bulk error:', error);
+    logger.error('POST /api/teacher/question-bank/bulk error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

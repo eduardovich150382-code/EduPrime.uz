@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireTeacher } from '@/lib/api-auth';
+import { logger } from '@/lib/logger';
 
 // POST /api/teacher/tests/[id]/duplicate — testni nusxalash
 export async function POST(
@@ -92,7 +93,7 @@ export async function POST(
       },
     });
   } catch (error) {
-    console.error('POST /api/teacher/tests/[id]/duplicate error:', error);
+    logger.error('POST /api/teacher/tests/[id]/duplicate error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireTeacher } from '@/lib/api-auth';
+import { logger } from '@/lib/logger';
 
 interface AnswerRecord {
   questionId: string;
@@ -87,7 +88,7 @@ export async function GET(
       questions: questionStats,
     });
   } catch (error) {
-    console.error('GET /api/teacher/tests/[id]/analytics error:', error);
+    logger.error('GET /api/teacher/tests/[id]/analytics error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

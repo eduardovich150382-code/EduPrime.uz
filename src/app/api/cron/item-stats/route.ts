@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { db } from '@/lib/db';
 import { computeItemStats, MIN_ATTEMPTS_FOR_STATS } from '@/lib/item-stats';
+import { logger } from '@/lib/logger';
 
 // Vercel Hobby cron funksiyalari ~10-60s ichida tugashi kerak — 25s
 // zaxira bilan chegara, oshib ketsa keyingi ishga tushirishga qoldiriladi.
@@ -80,7 +81,7 @@ export async function GET(request: NextRequest) {
       tookMs: Date.now() - startedAt,
     });
   } catch (error) {
-    console.error('GET /api/cron/item-stats error:', error);
+    logger.error('GET /api/cron/item-stats error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { logger } from '@/lib/logger';
 
 const BOT_SECRET = process.env.TELEGRAM_BOT_TOKEN || '';
 
@@ -95,7 +96,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ payment, created: true });
   } catch (error) {
-    console.error('POST /api/telegram/payments error:', error);
+    logger.error('POST /api/telegram/payments error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
@@ -211,7 +212,7 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
   } catch (error) {
-    console.error('PATCH /api/telegram/payments error:', error);
+    logger.error('PATCH /api/telegram/payments error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
@@ -246,7 +247,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ payment });
   } catch (error) {
-    console.error('GET /api/telegram/payments error:', error);
+    logger.error('GET /api/telegram/payments error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

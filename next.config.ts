@@ -1,4 +1,5 @@
 import createNextIntlPlugin from 'next-intl/plugin';
+import { withSentryConfig } from '@sentry/nextjs/config';
 import type { NextConfig } from 'next';
 
 // Force rebuild with all PRs 49-57 features included
@@ -38,4 +39,19 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withNextIntl(nextConfig);
+const config = withNextIntl(nextConfig);
+
+// Sentry o'ramasi faqat DSN berilganda qo'llanadi. Sababi: `withSentryConfig`
+// build vaqtida source map yuklash va instrumentatsiya qadamlarini qo'shadi,
+// DSN'siz esa bular ortiqcha ish va build logida shovqin. Lokal `next build`
+// va CI DSN'siz ishlaydi — o'sha yerda Next konfiguratsiyasi tegilmagan
+// holicha qolsin.
+export default process.env.SENTRY_DSN
+  ? withSentryConfig(config, {
+      // Source map yuklash uchun SENTRY_AUTH_TOKEN kerak; u yo'q bo'lsa
+      // Sentry CLI bu qadamni o'tkazib yuboradi va build yiqilmaydi.
+      silent: !process.env.CI,
+      // Sentry'ning o'z debug logger'i prod bundle'idan chiqarib tashlansin.
+      webpack: { treeshake: { removeDebugLogging: true } },
+    })
+  : config;

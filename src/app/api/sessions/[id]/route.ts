@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAuth } from '@/lib/api-auth';
 import { extractItemPoints, extractNavSections, loadSessionItems, sessionPreserveOrder, toPresentedQuestions } from '@/lib/sessions';
+import { logger } from '@/lib/logger';
 
 // GET /api/sessions/[id] — sessiya savollarini qaytaradi (aralashtirilgan,
 // `seed` bo'yicha; to'g'ri javoblarsiz). Sahifa yangilansa yoki testni
@@ -49,7 +50,7 @@ export async function GET(
       },
     });
   } catch (err) {
-    console.error('GET /api/sessions/[id] error:', err);
+    logger.error('GET /api/sessions/[id] error:', { error: err });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

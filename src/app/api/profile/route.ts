@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAuth, applyRateLimit } from '@/lib/api-auth';
 import { sanitizeName } from '@/lib/sanitize';
+import { logger } from '@/lib/logger';
 
 const ALLOWED_IMAGE_PREFIXES = [
   'https://utfs.io/',
@@ -52,7 +53,7 @@ export async function GET() {
 
     return NextResponse.json({ user: dbUser });
   } catch (error) {
-    console.error('GET /api/profile error:', error);
+    logger.error('GET /api/profile error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
@@ -111,7 +112,7 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ user: updatedUser });
   } catch (error) {
-    console.error('PATCH /api/profile error:', error);
+    logger.error('PATCH /api/profile error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
@@ -128,7 +129,7 @@ export async function DELETE() {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('DELETE /api/profile error:', error);
+    logger.error('DELETE /api/profile error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

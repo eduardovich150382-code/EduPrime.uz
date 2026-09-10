@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import crypto from 'crypto';
+import { logger } from '@/lib/logger';
 
 // This endpoint is called by our Telegram bot to generate auth tokens
 export async function POST(request: NextRequest) {
@@ -47,7 +48,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ authUrl, token });
   } catch (error) {
-    console.error('Telegram auth error:', error);
+    logger.error('Telegram auth error:', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

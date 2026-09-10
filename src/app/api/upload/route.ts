@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { UTApi } from 'uploadthing/server';
+import { logger } from '@/lib/logger';
 
 const utapi = new UTApi();
 
@@ -60,7 +61,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ url: response.data.url });
   } catch (error) {
-    console.error('POST /api/upload error:', error);
+    logger.error('POST /api/upload error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

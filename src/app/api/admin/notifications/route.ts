@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/api-auth';
 import { notifyViaTelegram } from '@/lib/telegram-notify';
+import { logger } from '@/lib/logger';
 
 // POST /api/admin/notifications — send notification to target audience
 export async function POST(request: NextRequest) {
@@ -75,7 +76,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, notifiedCount: users.length });
   } catch (error) {
-    console.error('POST /api/admin/notifications error:', error);
+    logger.error('POST /api/admin/notifications error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

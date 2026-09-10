@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { db } from '@/lib/db';
+import { logger } from '@/lib/logger';
 
 // GET /api/courses — nashr qilingan kurslar katalogi (fan/kategoriya filtri bilan)
 export async function GET(request: NextRequest) {
@@ -82,7 +83,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ courses: result, total, page, limit });
   } catch (error) {
-    console.error('GET /api/courses error:', error);
+    logger.error('GET /api/courses error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

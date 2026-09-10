@@ -4,6 +4,7 @@ import { requireAuth } from '@/lib/api-auth';
 import { computeLockedLessonIds } from '@/lib/course-lock';
 import { collectLessonQuizTestIds, flattenGatingTestIds, resolveSolutionBlockVideoUrl, isSolutionBlockUnlocked } from '@/lib/solution-lock';
 import { parseCheckpoints } from '@/lib/video-checkpoints';
+import { logger } from '@/lib/logger';
 
 // GET /api/courses/[id]/learn — kursni to'liq iste'mol qilish uchun kerak
 // bo'lgan hamma narsa: barcha dars kontenti (video/matn/test) + shu
@@ -178,7 +179,7 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error('GET /api/courses/[id]/learn error:', error);
+    logger.error('GET /api/courses/[id]/learn error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
