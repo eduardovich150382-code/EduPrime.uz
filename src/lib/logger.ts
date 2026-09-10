@@ -27,6 +27,34 @@ const SENSITIVE_KEY_PARTS = [
   'databaseurl',
 ] as const;
 
+// Maxfiy qiymat har doim ham alohida kalitda kelmaydi: Prisma ulanish xatosi
+// `message` ichida to'liq DSN'ni (`postgresql://user:parol@host:5432/db`)
+// olib keladi, tashqi API xatolari esa `Authorization` sarlavhasini yoki
+// so'rov qatorini xato matniga qo'shib yuboradi. Kalit nomiga qarab tozalash
+// bularni ushlamaydi, shuning uchun matnning o'zi ham naqshlar bo'yicha
+// tekshiriladi.
+const REDACTION_PATTERNS: ReadonlyArray<[RegExp, string]> = [
+  // Ulanish satrlari — DSN ichida foydalanuvchi nomi va parol bo'ladi.
+  [/\b(postgres(ql)?|mysql|mongodb(\+srv)?|redis|amqp):\/\/[^\s"'`]+/gi, '[redacted-dsn]'],
+  // `Authorization: Bearer <token>` — sarlavha matn sifatida tushib qolishi mumkin.
+  [/\bBearer\s+[A-Za-z0-9._~+\/=-]{8,}/gi, 'Bearer [redacted]'],
+  // So'rov qatoridagi maxfiy parametrlar; kalit nomi saqlanadi, qiymati emas —
+  // xatoni o'qiyotgan odam qaysi parametr borligini bilsin.
+  [/([?&](?:token|key|api_?key|secret|password|access_token)=)[^&\s]+/gi, '$1[redacted]'],
+];
+
+/**
+ * Erkin matndan (xato xabari, stack trace, log satri) maxfiy qiymatlarni
+ * naqsh bo'yicha o'chiradi. Test uchun alohida eksport qilingan.
+ */
+export function redactSecrets(text: string): string {
+  let result = text;
+  for (const [pattern, replacement] of REDACTION_PATTERNS) {
+    result = result.replace(pattern, replacement);
+  }
+  return result;
+}
+
 // Kalit emas, uning bir qismi tekshiriladi: `accessToken`, `refreshToken`,
 // `NEXTAUTH_SECRET` kabi nomlar ham tozalansin. Ortiqcha tozalash xavfsiz,
 // yetarlicha tozalamaslik — yo'q.
@@ -50,6 +78,9 @@ const MAX_DEPTH = 6;
 
 function sanitizeValue(value: unknown, seen: WeakSet<object>, depth: number): unknown {
   if (value === null || typeof value !== 'object') {
+    // Har qanday string — `message` va `stack` ham shu yerdan o'tadi, chunki
+    // ular oddiy string maydonlar.
+    if (typeof value === 'string') return redactSecrets(value);
     // Funksiya va symbol log uchun ma'nosiz, lekin JSON'da yo'qoladi —
     // nima tushib qolganini ko'rsatib qo'yamiz.
     if (typeof value === 'function') return '[Function]';
@@ -92,6 +123,41 @@ export function sanitizeContext(context: LogContext): LogContext {
   return sanitizeValue(context, new WeakSet(), 0) as LogContext;
 }
 
+// Logger'dan o'tmaydigan xatolar ham bor: `onRequestError` Server Component
+// va route handler'lardagi tutilmagan xatolarni to'g'ridan-to'g'ri Sentry'ga
+// yuboradi. Shuning uchun tozalash SDK'ning `beforeSend` bosqichida ham
+// takrorlanadi — bu oxirgi to'siq, undan keyin ma'lumot tashqariga chiqadi.
+type RedactableEvent = {
+  message?: unknown;
+  exception?: { values?: Array<{ value?: unknown } | null | undefined> | null } | null;
+  extra?: LogContext | null;
+};
+
+/**
+ * Sentry hodisasining erkin matnli maydonlarini joyida tozalaydi va o'sha
+ * hodisani qaytaradi. `beforeSend` uchun mo'ljallangan, test uchun eksport.
+ */
+export function redactEvent<T extends RedactableEvent>(event: T): T {
+  if (typeof event.message === 'string') {
+    event.message = redactSecrets(event.message);
+  }
+
+  const values = event.exception?.values;
+  if (Array.isArray(values)) {
+    for (const value of values) {
+      if (value && typeof value.value === 'string') {
+        value.value = redactSecrets(value.value);
+      }
+    }
+  }
+
+  if (event.extra) {
+    event.extra = sanitizeContext(event.extra);
+  }
+
+  return event;
+}
+
 // DSN berilmagan bo'lsa Sentry umuman ishga tushirilmaydi (client
 // yaratilmaydi) — lokal ishlab chiqish va CI aynan shu holatda ishlaydi.
 // `Sentry.getClient()` shuni tekshirishning eng ishonchli usuli: env
@@ -109,7 +175,10 @@ function report(message: string, context?: LogContext): void {
   const extra = context ? sanitizeContext(context) : undefined;
 
   if (cause instanceof Error) {
-    Sentry.captureException(cause, { level: 'error', extra: { message, ...extra } });
+    // `logMessage` deb nomlangan: kontekstda `message` kaliti bo'lsa
+    // (masalan serializatsiya qilingan xatoning o'z xabari) log satri
+    // bosilib ketmasin.
+    Sentry.captureException(cause, { level: 'error', extra: { ...extra, logMessage: message } });
   } else {
     Sentry.captureMessage(message, { level: 'error', extra });
   }

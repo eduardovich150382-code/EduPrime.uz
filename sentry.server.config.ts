@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/nextjs';
+import { redactEvent } from '@/lib/logger';
 
 // DSN yo'q bo'lsa `Sentry.init` umuman chaqirilmaydi: SDK client yaratmaydi,
 // `captureException` jimgina no-op bo'ladi va hech qanday tarmoq so'rovi
@@ -15,5 +16,9 @@ if (dsn) {
     // Foydalanuvchi IP va sarlavhalari yuborilmasin — logger'dagi tozalash
     // bilan bir xil mantiq: Sentry'ga faqat kerakli minimum boradi.
     sendDefaultPii: false,
+    // Logger'ni chetlab o'tgan xatolar (masalan `onRequestError` orqali
+    // kelganlari) ham tozalansin — xato matni ichidagi DSN yoki token
+    // Sentry'ga chiqmasin.
+    beforeSend: (event) => redactEvent(event),
   });
 }

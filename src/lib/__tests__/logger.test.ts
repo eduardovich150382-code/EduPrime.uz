@@ -12,7 +12,7 @@ vi.mock('@sentry/nextjs', () => ({
   getClient: () => getClient(),
 }));
 
-const { logger, sanitizeContext } = await import('../logger');
+const { logger, sanitizeContext, redactSecrets, redactEvent } = await import('../logger');
 
 describe('sanitizeContext — maxfiy kalitlar', () => {
   it('to\'g\'ridan-to\'g\'ri sanab o\'tilgan kalitlarni olib tashlaydi', () => {
@@ -144,7 +144,7 @@ describe('logger', () => {
     ];
     expect(captured).toBe(err);
     expect(options.level).toBe('error');
-    expect(options.extra.message).toBe('POST /api/x error');
+    expect(options.extra.logMessage).toBe('POST /api/x error');
     expect(options.extra.userId).toBe('u1');
     expect(options.extra).not.toHaveProperty('password');
   });
@@ -162,5 +162,102 @@ describe('logger', () => {
     expect(message).toBe('nimadir noto\'g\'ri');
     expect(options.level).toBe('error');
     expect(options.extra).toEqual({ testId: 't1' });
+  });
+});
+
+
+describe('redactSecrets — matn ichidagi maxfiy qiymatlar', () => {
+  it('ulanish satrini olib tashlaydi', () => {
+    expect(
+      redactSecrets("Can't reach database server at postgresql://admin:s3cret@ep-x.neon.tech:5432/db?sslmode=require"),
+    ).toBe("Can't reach database server at [redacted-dsn]");
+  });
+
+  it('boshqa sxemalardagi ulanish satrlarini ham qamraydi', () => {
+    expect(redactSecrets('mysql://u:p@h/db')).toBe('[redacted-dsn]');
+    expect(redactSecrets('mongodb+srv://u:p@cluster.mongodb.net')).toBe('[redacted-dsn]');
+    expect(redactSecrets('redis://:pw@127.0.0.1:6379')).toBe('[redacted-dsn]');
+    expect(redactSecrets('amqp://guest:guest@rabbit:5672')).toBe('[redacted-dsn]');
+  });
+
+  it('Bearer tokenni olib tashlaydi, sxemani qoldiradi', () => {
+    expect(redactSecrets('401 {"Authorization":"Bearer eyJhbGciOiJIUzI1NiJ9.abc-_=+/"}')).toBe(
+      '401 {"Authorization":"Bearer [redacted]"}',
+    );
+  });
+
+  it("so'rov qatoridagi maxfiy parametrlarni tozalaydi, kalit nomini qoldiradi", () => {
+    expect(redactSecrets('GET /api/x?userId=1&token=abc123&api_key=k9&lang=uz')).toBe(
+      'GET /api/x?userId=1&token=[redacted]&api_key=[redacted]&lang=uz',
+    );
+    expect(redactSecrets('/cb?access_token=zzz')).toBe('/cb?access_token=[redacted]');
+  });
+
+  it('oddiy matnga va zararsiz URL manzillariga tegmaydi', () => {
+    const plain = 'https://eduprime.uz/tests';
+    expect(redactSecrets(plain)).toBe(plain);
+
+    const query = 'https://eduprime.uz/tests?subject=math&page=2';
+    expect(redactSecrets(query)).toBe(query);
+
+    const words = "Test topilmadi: bearer token yo'q, parol so'ralmadi";
+    expect(redactSecrets(words)).toBe(words);
+  });
+});
+
+describe('sanitizeContext — string qiymatlar tozalanadi', () => {
+  it("xatoning `message` va `stack` idagi DSN'ni olib tashlaydi", () => {
+    const err = new Error('connect failed: postgresql://u:pw@host:5432/db');
+    err.stack = 'Error: connect failed: postgresql://u:pw@host:5432/db\n    at q (lib.ts:1:1)';
+
+    const out = sanitizeContext({ error: err }) as {
+      error: { message: string; stack: string };
+    };
+
+    expect(out.error.message).toBe('connect failed: [redacted-dsn]');
+    expect(out.error.stack).toContain('[redacted-dsn]');
+    expect(out.error.stack).not.toContain('pw@host');
+  });
+
+  it('ichma-ich va massivdagi stringlarni ham tozalaydi', () => {
+    const out = sanitizeContext({
+      urls: ['redis://:pw@localhost:6379'],
+      nested: { note: 'GET /x?secret=abc' },
+    }) as { urls: string[]; nested: { note: string } };
+
+    expect(out.urls[0]).toBe('[redacted-dsn]');
+    expect(out.nested.note).toBe('GET /x?secret=[redacted]');
+  });
+});
+
+describe('redactEvent — beforeSend', () => {
+  it('hodisaning message, exception va extra maydonlarini tozalaydi', () => {
+    const event = {
+      message: 'db down: postgresql://u:pw@host/db',
+      exception: {
+        values: [
+          { value: 'PrismaClientInitializationError: postgresql://u:pw@host/db' },
+          { value: 'fetch failed: https://api.example.com/v1?api_key=k9' },
+          null,
+        ],
+      },
+      extra: {
+        logMessage: 'GET /api/x?token=abc',
+        password: 'p',
+        userId: 'u1',
+      },
+    };
+
+    const out = redactEvent(event);
+
+    expect(out.message).toBe('db down: [redacted-dsn]');
+    expect(out.exception.values[0]?.value).toBe('PrismaClientInitializationError: [redacted-dsn]');
+    expect(out.exception.values[1]?.value).toBe('fetch failed: https://api.example.com/v1?api_key=[redacted]');
+    expect(out.extra).toEqual({ logMessage: 'GET /api/x?token=[redacted]', userId: 'u1' });
+  });
+
+  it("maydonlari yo'q hodisani o'zgarishsiz qaytaradi", () => {
+    const event: { event_id: string; message?: string } = { event_id: 'abc' };
+    expect(redactEvent(event)).toEqual({ event_id: 'abc' });
   });
 });
