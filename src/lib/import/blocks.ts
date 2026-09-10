@@ -12,11 +12,132 @@ import type { BBox, Block, Column, TextItem, TextRow } from "./types";
  * Faqat kirish ma'lumoti ustida ishlaydi, shuning uchun haqiqiy PDF'siz
  * to'liq test qilinadi va server tomonda ham, brauzerda ham qayta ishlatiladi.
  *
+ * QUVUR TARTIBI: items → detectColumns → (har ustunda) groupIntoRows →
+ * splitIntoBlocks. Ustun — sahifa geometriyasining xususiyati, qator esa ustun
+ * ICHIDAGI tushuncha, shuning uchun ustun avval aniqlanadi. Teskari tartibda
+ * (avval qator) ikki ustunning bir xil balandlikdagi matni bitta qatorga
+ * qo'shilib ketadi va ustunlar boshqa hech qachon ajratilmaydi.
+ *
  * Koordinata konvensiyasi uchun ./types faylining boshidagi izohga qarang.
  */
 
 // ---------------------------------------------------------------------------
-// 1. Qatorlar
+// 1. Ustunlar
+// ---------------------------------------------------------------------------
+
+/**
+ * Koridor markazi sahifaning O'RTA qismida bo'lishi shart; bu konstanta har
+ * tomondan chetga qoldiriladigan ulushni beradi (0.3 → o'rta 40%).
+ *
+ * Shartsiz qolsa, oddiy bir ustunli sahifaning keng o'ng hoshiyasi ham "koridor"
+ * bo'lib ko'rinadi. Hoshiya — ustun chegarasi emas, u sahifa cheti.
+ */
+const CORRIDOR_CENTER_MARGIN_RATIO = 0.3;
+
+/** Sahifa eni bo'ylab hech bir bo'lak qoplamagan tik tasma. */
+interface Band {
+  min: number;
+  max: number;
+}
+
+/**
+ * Sahifa bo'laklarini ustunlarga ajratadi va har ustunni qatorlarga yig'adi.
+ *
+ * Ustun KORIDOR bo'yicha aniqlanadi — bo'lak markazlarini klasterlash bo'yicha
+ * emas. Klasterlash abzatsli bir ustunli matnda yolg'on ijobiy beradi:
+ * chekinishli satrlar markazlari o'z-o'zidan ikkita to'plamga ajralib ko'rinadi.
+ * Koridor esa fizik dalil: hech bir bo'lak tegmagan tik tasma faqat ustunlar
+ * orasida bo'ladi.
+ *
+ * CHEKLOV: taqsimot BO'LAK darajasida ketadi, shuning uchun bir necha bo'lakka
+ * bo'lingan va bo'laklari koridorning ikki tomoniga tushgan sarlavha
+ * ("MATEMATIKA" va "TESTI" alohida bo'lak bo'lsa) ikki ustunga ajralib ketadi.
+ * Bitta keng bo'lak sifatida kelgan sarlavha to'g'ri ishlaydi — u koridorni
+ * kesib o'tadi va butunicha chap ustunga tushadi.
+ */
+export function detectColumns(items: TextItem[], pageWidth: number): Column[] {
+  if (items.length === 0) return [];
+
+  const corridor = findCorridor(items, pageWidth);
+  if (!corridor) return [buildColumn(items)];
+
+  const boundary = (corridor.min + corridor.max) / 2;
+  const left: TextItem[] = [];
+  const right: TextItem[] = [];
+
+  for (const item of items) {
+    // Koridorni kesib o'tuvchi bo'lak (sarlavha, keng jadval) hech qaysi ustunga
+    // to'liq tegishli emas — uni chap ustunga, o'z y pozitsiyasida qoldiramiz:
+    // shunda u o'qish tartibida o'zidan keyingi savollardan oldin turadi.
+    const crossesCorridor =
+      item.x < corridor.max && item.x + item.w > corridor.min;
+    if (crossesCorridor || item.x + item.w / 2 < boundary) left.push(item);
+    else right.push(item);
+  }
+
+  // Bir tomon bo'sh qolsa bu ustun chegarasi emas, shunchaki bo'sh joy edi.
+  if (left.length === 0 || right.length === 0) return [buildColumn(items)];
+
+  return [buildColumn(left), buildColumn(right)];
+}
+
+/**
+ * Ustun koridori bo'la oladigan eng keng bo'sh tasmani topadi, topilmasa null.
+ *
+ * Qamrov xaritasiga faqat TOR bo'laklar qo'shiladi: to'liq enli sarlavha yoki
+ * jadval ikkala ustunni qoplaydi va koridorni yopib qo'yadi — u hisobga olinsa,
+ * sahifa noto'g'ri bir ustunli deb topilar edi.
+ */
+function findCorridor(items: TextItem[], pageWidth: number): Band | null {
+  const spans = items
+    .filter((i) => i.w < FULL_WIDTH_ROW_RATIO * pageWidth)
+    .map((i) => ({ min: i.x, max: i.x + i.w }))
+    .sort((a, b) => a.min - b.min);
+  if (spans.length === 0) return null;
+
+  const covered: Band[] = [{ ...spans[0] }];
+  for (let i = 1; i < spans.length; i++) {
+    const last = covered[covered.length - 1];
+    if (spans[i].min <= last.max) last.max = Math.max(last.max, spans[i].max);
+    else covered.push({ ...spans[i] });
+  }
+
+  // Hoshiyalar ham nomzod bo'ladi: ular markaz sharti bilan rad etiladi, ya'ni
+  // "sahifa cheti" va "ustunlar orasi" bitta o'lchov bilan ajratiladi.
+  const bands: Band[] = [{ min: 0, max: covered[0].min }];
+  for (let i = 1; i < covered.length; i++) {
+    bands.push({ min: covered[i - 1].max, max: covered[i].min });
+  }
+  bands.push({ min: covered[covered.length - 1].max, max: pageWidth });
+
+  const middleMin = CORRIDOR_CENTER_MARGIN_RATIO * pageWidth;
+  const middleMax = pageWidth - middleMin;
+  const minWidth = COLUMN_GAP_RATIO * pageWidth;
+
+  // Markaz sharti eng kengini tanlashdan OLDIN qo'llanadi: haqiqiy ikki ustunli
+  // sahifada o'ng hoshiya ko'pincha koridordan keng bo'ladi, avval eng kengini
+  // olsak, u markaz shartida yiqilib, sahifa bir ustunli deb topilar edi.
+  let best: Band | null = null;
+  for (const band of bands) {
+    const width = band.max - band.min;
+    const center = (band.min + band.max) / 2;
+    if (width < minWidth) continue;
+    if (center < middleMin || center > middleMax) continue;
+    if (!best || width > best.max - best.min) best = band;
+  }
+  return best;
+}
+
+function buildColumn(items: TextItem[]): Column {
+  return {
+    xMin: Math.min(...items.map((i) => i.x)),
+    xMax: Math.max(...items.map((i) => i.x + i.w)),
+    rows: groupIntoRows(items),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// 2. Qatorlar
 // ---------------------------------------------------------------------------
 
 /**
@@ -26,12 +147,9 @@ import type { BBox, Block, Column, TextItem, TextRow } from "./types";
  * kegl o'zgargan har joyda yangi bo'lak boshlanadi ("1. ", "Toshkent", " — ",
  * "poytaxt"). Shuning uchun qatorni y yaqinligi bo'yicha qayta yig'amiz.
  *
- * CHEKLOV: bu funksiya faqat y ni ko'radi, ustunlarni bilmaydi. Ikki ustunli
- * sahifada chap va o'ng ustun qatorlari AYNAN bir xil y da tursa, ular bitta
- * TextRow ga qo'shilib ketadi va detectColumns ularni ajratolmaydi. Amalda
- * ustun bazaviy chiziqlari kamdan-kam to'liq mos keladi, lekin bu chinakam
- * cheklov — haqiqiy PDF'larda uchrasa, ajratish detectColumns ga emas,
- * groupIntoRows dan oldingi bosqichga ko'chirilishi kerak.
+ * Kirish — BITTA USTUN bo'laklari, butun sahifa emas (detectColumns ga qarang).
+ * Shu sababli bu yerda ustunlarni bilish shart emas: bir xil y dagi ikki ustun
+ * matni bu bosqichga allaqachon alohida kelib tushadi.
  */
 export function groupIntoRows(items: TextItem[]): TextRow[] {
   if (items.length === 0) return [];
@@ -105,95 +223,6 @@ function averageCharWidth(items: TextItem[]): number {
     .map((i) => i.w / i.str.length);
   if (widths.length === 0) return 0;
   return widths.reduce((sum, w) => sum + w, 0) / widths.length;
-}
-
-// ---------------------------------------------------------------------------
-// 2. Ustunlar
-// ---------------------------------------------------------------------------
-
-interface RowMetrics {
-  row: TextRow;
-  xMin: number;
-  xMax: number;
-  center: number;
-  width: number;
-}
-
-/**
- * Sahifa ikki ustunli ekanini aniqlaydi.
- *
- * Ikki shart birga bajarilishi kerak: qator markazlari ikkita klasterga
- * ajralsin VA klasterlar orasida haqiqiy tik koridor bo'lsin. Faqat markaz
- * bo'yicha ajratish yetarli emas — bir ustunli matnda ham chekinishli
- * (abzatsli) qatorlar markazlari ikkiga bo'linib ko'rinadi.
- */
-export function detectColumns(rows: TextRow[], pageWidth: number): Column[] {
-  if (rows.length === 0) return [];
-
-  const metrics: RowMetrics[] = rows
-    .filter((r) => r.items.length > 0)
-    .map(rowMetrics);
-  if (metrics.length === 0) return [];
-
-  // To'liq enli qatorlar (sarlavha, ko'rsatma) klasterlashga qo'shilmaydi —
-  // ular ikkala ustunni kesib o'tadi va koridorni yopib qo'yadi.
-  const candidates = metrics.filter(
-    (m) => m.width < FULL_WIDTH_ROW_RATIO * pageWidth,
-  );
-  if (candidates.length < 2) return [toColumn(metrics)];
-
-  const byCenter = [...candidates].sort((a, b) => a.center - b.center);
-  const splitAt = largestCenterGapIndex(byCenter);
-  const left = byCenter.slice(0, splitAt + 1);
-  const right = byCenter.slice(splitAt + 1);
-
-  const leftEdge = Math.max(...left.map((m) => m.xMax));
-  const rightEdge = Math.min(...right.map((m) => m.xMin));
-  if (rightEdge - leftEdge <= COLUMN_GAP_RATIO * pageWidth) {
-    return [toColumn(metrics)];
-  }
-
-  const boundary = (leftEdge + rightEdge) / 2;
-  const leftRows: RowMetrics[] = [];
-  const rightRows: RowMetrics[] = [];
-  for (const m of metrics) {
-    // Koridorni kesib o'tuvchi qator (sarlavha) chap ustunga tushadi —
-    // shunda u o'qish tartibida o'zidan keyingi savollardan oldin qoladi.
-    const crossesCorridor = m.xMin < boundary && m.xMax > boundary;
-    if (crossesCorridor || m.center < boundary) leftRows.push(m);
-    else rightRows.push(m);
-  }
-
-  return [toColumn(leftRows), toColumn(rightRows)];
-}
-
-function rowMetrics(row: TextRow): RowMetrics {
-  const xMin = Math.min(...row.items.map((i) => i.x));
-  const xMax = Math.max(...row.items.map((i) => i.x + i.w));
-  return { row, xMin, xMax, center: (xMin + xMax) / 2, width: xMax - xMin };
-}
-
-/** Markazlar ketma-ketligidagi eng katta bo'shliqdan oldingi indeks. */
-function largestCenterGapIndex(byCenter: RowMetrics[]): number {
-  let best = 0;
-  let bestGap = -Infinity;
-  for (let i = 0; i < byCenter.length - 1; i++) {
-    const gap = byCenter[i + 1].center - byCenter[i].center;
-    if (gap > bestGap) {
-      bestGap = gap;
-      best = i;
-    }
-  }
-  return best;
-}
-
-function toColumn(metrics: RowMetrics[]): Column {
-  const rows = [...metrics].sort((a, b) => a.row.y - b.row.y).map((m) => m.row);
-  return {
-    xMin: Math.min(...metrics.map((m) => m.xMin)),
-    xMax: Math.max(...metrics.map((m) => m.xMax)),
-    rows,
-  };
 }
 
 // ---------------------------------------------------------------------------
