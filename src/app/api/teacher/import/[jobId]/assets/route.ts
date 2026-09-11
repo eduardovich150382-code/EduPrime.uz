@@ -2,15 +2,26 @@ import { createHash } from 'node:crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { UTApi } from 'uploadthing/server';
 import { db } from '@/lib/db';
+import { MAX_IMPORT_ASSET_BYTES } from '@/lib/import/constants';
 import { requireOwnedJob } from '@/lib/import-jobs';
 import { logger } from '@/lib/logger';
 
 const utapi = new UTApi();
 
-/** `importAsset` endpointi bilan bir xil chegara. */
-const MAX_ASSET_BYTES = 2 * 1024 * 1024;
+/**
+ * `ImportAsset.kind` qiymatlari.
+ *
+ * `PAGE` — chizma EMAS, butun sahifaning aksi (manifestdagi `pageImage`).
+ * S4 da AI formulani shu aksdan ko'radi (matn qatlami "x²" ni "x2" qilib
+ * yuboradi), S7 da ustoz draftni asl sahifa bilan yonma-yon ko'radi.
+ */
+const ASSET_KINDS = ['FIGURE', 'OPTION', 'SKIPPED', 'PAGE'];
 
-const ASSET_KINDS = ['FIGURE', 'OPTION', 'SKIPPED'];
+/**
+ * PNG — skript shunday yozadi. JPEG — 2 MB dan oshgan rasmni klient qayta
+ * kodlaydi (lib/import/manifest-client.ts#fitAsset).
+ */
+const ASSET_TYPES = ['image/png', 'image/jpeg'];
 
 /** Prisma unique-constraint xatosi (quota.ts dagi bilan bir xil naqsh). */
 function isUniqueConstraintError(err: unknown): boolean {
@@ -52,10 +63,10 @@ export async function POST(
     if (!(file instanceof File)) {
       return NextResponse.json({ error: 'file majburiy' }, { status: 400 });
     }
-    if (file.type !== 'image/png') {
-      return NextResponse.json({ error: 'Faqat PNG qabul qilinadi' }, { status: 400 });
+    if (!ASSET_TYPES.includes(file.type)) {
+      return NextResponse.json({ error: 'Faqat PNG yoki JPEG qabul qilinadi' }, { status: 400 });
     }
-    if (file.size > MAX_ASSET_BYTES) {
+    if (file.size > MAX_IMPORT_ASSET_BYTES) {
       return NextResponse.json({ error: 'Rasm 2 MB dan oshmasligi kerak' }, { status: 400 });
     }
 

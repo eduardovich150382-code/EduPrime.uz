@@ -46,8 +46,9 @@ function post(body: unknown): NextRequest {
 const VALID = {
   subjectId: "subject-1",
   fileName: "dtm-2026.pdf",
-  fileUrl: "https://utfs.io/f/abc.pdf",
+  fileUrl: "https://utfs.io/f/manifest.json",
   sourceLang: "uz",
+  targetLang: "uz",
   pageCount: 12,
 };
 
@@ -138,6 +139,36 @@ describe("POST /api/teacher/import", () => {
 
     expect(response.status).toBe(400);
     expect(createJobMock).not.toHaveBeenCalled();
+  });
+
+  it("turkcha manbani qabul qiladi va maqsad tilni ustoz tanlaganidek saqlaydi", async () => {
+    const response = await POST(post({ ...VALID, sourceLang: "tr", targetLang: "uz" }));
+
+    expect(response.status).toBe(200);
+    expect(createJobMock.mock.calls[0][0].data).toMatchObject({ sourceLang: "tr", targetLang: "uz" });
+  });
+
+  it("maqsad tilni asl tilga tenglab qo'ymaydi — inglizcha test inglizcha qoladi", async () => {
+    await POST(post({ ...VALID, sourceLang: "en", targetLang: "en" }));
+    expect(createJobMock.mock.calls[0][0].data.targetLang).toBe("en");
+
+    createJobMock.mockClear();
+    await POST(post({ ...VALID, sourceLang: "en", targetLang: "uz" }));
+    expect(createJobMock.mock.calls[0][0].data.targetLang).toBe("uz");
+  });
+
+  it("maqsad til yo'q yoki noma'lum bo'lsa rad etadi", async () => {
+    for (const targetLang of [undefined, "tr", "de"]) {
+      const response = await POST(post({ ...VALID, targetLang }));
+      expect(response.status).toBe(400);
+    }
+    expect(createJobMock).not.toHaveBeenCalled();
+  });
+
+  it("manba turini ZIP deb belgilaydi", async () => {
+    await POST(post(VALID));
+
+    expect(createJobMock.mock.calls[0][0].data.fileKind).toBe("ZIP");
   });
 
   it("so'rovlar limiti oshganda javobni o'zgartirmasdan qaytaradi", async () => {

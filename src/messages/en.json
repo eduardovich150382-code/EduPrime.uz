@@ -328,12 +328,12 @@
   },
   "teacherImport": {
     "title": "Import from document",
-    "subtitle": "Extract questions from a PDF. The file is read in your browser — only the result is sent to the server.",
+    "subtitle": "Extract questions from a ZIP produced by the PyMuPDF script. The ZIP is opened in your browser — only the manifest, images and question text are sent to the server.",
     "subject": "Subject",
     "subjectPlaceholder": "Choose a subject",
     "sourceLang": "File language",
-    "dropTitle": "Drop a PDF file here",
-    "dropHint": "or click to choose",
+    "dropTitle": "Drop a ZIP file here",
+    "dropHint": "The ZIP from Rasm_ajratgich.py or scan_kesuvchi.py — or click to choose",
     "chooseFile": "Choose file",
     "selectedFile": "Selected file",
     "removeFile": "Remove file",
@@ -371,6 +371,24 @@
     "jobPending": "Question structuring happens in the next stage.",
     "jobBlocks": "Blocks found: {count}",
     "jobPages": "Pages processed: {done}/{total}",
-    "backToImport": "New import"
+    "backToImport": "New import",
+    "errorNotZip": "Only ZIP files are accepted.",
+    "targetLang": "Target language",
+    "manifestSummary": "{pages} pages, {questions} questions, {images} images",
+    "manifestScanned": "Scanned file: question text will be read from the page images in the next stage.",
+    "doneZip": "Done: {questions} questions and {images} images uploaded.",
+    "skippedImages": "{count} images were skipped because they did not fit into 2 MB.",
+    "manifestError": {
+      "NO_MANIFEST": "manifest.json was not found in the ZIP. Upload the ZIP produced by the script unchanged.",
+      "BAD_JSON": "manifest.json is corrupted — it could not be read as JSON.",
+      "BAD_VERSION": "Unsupported manifest version ({detail}). Get the latest version of the script.",
+      "BAD_KIND": "Unknown manifest kind: “{detail}”.",
+      "BAD_FIELD": "Invalid field in the manifest: {detail}.",
+      "UNKNOWN_LANG": "Unknown language code in the manifest: “{detail}”. Fix ASL_TIL in the script.",
+      "TOO_MANY_PAGES": "The manifest has {detail} pages. The limit is {max}.",
+      "UNSAFE_PATH": "Unsafe file path in the manifest: “{detail}”.",
+      "MISSING_FILE": "A file listed in the manifest is missing from the ZIP: “{detail}”.",
+      "NOT_PNG": "Only PNG images are accepted: “{detail}”."
+    }
   }
 }

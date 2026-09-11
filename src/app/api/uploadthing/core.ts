@@ -40,6 +40,8 @@ export const ourFileRouter = {
   // PNG bo'lib saqlashdan arzon.
   importSource: f({
     pdf: { maxFileSize: '32MB', maxFileCount: 1 },
+    // PyMuPDF ZIP'idagi manifest.json — hozirgi import yo'lining manbasi.
+    'application/json': { maxFileSize: '4MB', maxFileCount: 1 },
   }).onUploadComplete(async ({ file }) => {
     return { url: file.url, name: file.name };
   }),

@@ -328,12 +328,12 @@
   },
   "teacherImport": {
     "title": "Hujjatdan import",
-    "subtitle": "PDF'dan savollarni ajratib olish. Fayl brauzeringizda o'qiladi — serverga faqat natija yuboriladi.",
+    "subtitle": "PyMuPDF skripti yaratgan ZIP'dan savollarni ajratib olish. ZIP brauzeringizda ochiladi — serverga faqat manifest, rasmlar va savol matni yuboriladi.",
     "subject": "Fan",
     "subjectPlaceholder": "Fanni tanlang",
     "sourceLang": "Faylning tili",
-    "dropTitle": "PDF faylni shu yerga tashlang",
-    "dropHint": "yoki bosib tanlang",
+    "dropTitle": "ZIP faylni shu yerga tashlang",
+    "dropHint": "Rasm_ajratgich.py yoki scan_kesuvchi.py yaratgan ZIP — yoki bosib tanlang",
     "chooseFile": "Fayl tanlash",
     "selectedFile": "Tanlangan fayl",
     "removeFile": "Faylni olib tashlash",
@@ -371,6 +371,24 @@
     "jobPending": "Savollarni tuzish keyingi bosqichda amalga oshiriladi.",
     "jobBlocks": "Topilgan bloklar: {count}",
     "jobPages": "Ishlangan sahifalar: {done}/{total}",
-    "backToImport": "Yangi import"
+    "backToImport": "Yangi import",
+    "errorNotZip": "Faqat ZIP fayl qabul qilinadi.",
+    "targetLang": "Qaysi tilga",
+    "manifestSummary": "{pages} sahifa, {questions} savol, {images} rasm",
+    "manifestScanned": "Skan qilingan fayl: savol matni keyingi bosqichda sahifa aksidan o'qiladi.",
+    "doneZip": "Tayyor: {questions} ta savol, {images} ta rasm yuklandi.",
+    "skippedImages": "{count} ta rasm 2 MB ga sig'magani uchun o'tkazib yuborildi.",
+    "manifestError": {
+      "NO_MANIFEST": "ZIP ichida manifest.json topilmadi. Skript yaratgan ZIP'ni o'zgartirmasdan tashlang.",
+      "BAD_JSON": "manifest.json buzilgan — uni JSON sifatida o'qib bo'lmadi.",
+      "BAD_VERSION": "Manifest versiyasi qo'llab-quvvatlanmaydi ({detail}). Skriptning yangi nusxasini oling.",
+      "BAD_KIND": "Manifest turi noma'lum: ‘{detail}’.",
+      "BAD_FIELD": "Manifestdagi maydon noto'g'ri: {detail}.",
+      "UNKNOWN_LANG": "Manifestdagi til kodi noma'lum: ‘{detail}’. Skriptdagi ASL_TIL ni to'g'rilang.",
+      "TOO_MANY_PAGES": "Manifestda {detail} sahifa. Ruxsat etilgani — {max} sahifa.",
+      "UNSAFE_PATH": "Manifestdagi fayl yo'li xavfli: ‘{detail}’.",
+      "MISSING_FILE": "Manifestda ko'rsatilgan fayl ZIP ichida yo'q: ‘{detail}’.",
+      "NOT_PNG": "Faqat PNG rasm qabul qilinadi: ‘{detail}’."
+    }
   }
 }

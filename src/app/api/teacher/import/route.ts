@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { applyRateLimit, requireTeacher } from '@/lib/api-auth';
 import { db } from '@/lib/db';
-import { MAX_IMPORT_PAGES } from '@/lib/import/constants';
+import {
+  IMPORT_SOURCE_LANGS,
+  IMPORT_TARGET_LANGS,
+  MAX_IMPORT_PAGES,
+} from '@/lib/import/constants';
 import { logger } from '@/lib/logger';
 import { checkImportQuota } from '@/lib/quota';
-
-/** Qo'llab-quvvatlanadigan asl tillar — `ImportJob.sourceLang`. */
-const SOURCE_LANGS = ['uz', 'ru', 'en'];
 
 // POST /api/teacher/import — yangi import job yaratadi.
 //
@@ -34,7 +35,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { subjectId, fileName, fileUrl, sourceLang, pageCount } = body ?? {};
+    const { subjectId, fileName, fileUrl, sourceLang, targetLang, pageCount } = body ?? {};
 
     if (typeof subjectId !== 'string' || !subjectId) {
       return NextResponse.json({ error: 'subjectId majburiy' }, { status: 400 });
@@ -42,8 +43,14 @@ export async function POST(request: NextRequest) {
     if (typeof fileName !== 'string' || !fileName) {
       return NextResponse.json({ error: 'fileName majburiy' }, { status: 400 });
     }
-    if (!SOURCE_LANGS.includes(sourceLang)) {
+    if (!(IMPORT_SOURCE_LANGS as readonly string[]).includes(sourceLang)) {
       return NextResponse.json({ error: 'sourceLang notogri' }, { status: 400 });
+    }
+    // Maqsad tilni ustoz tanlaydi, `sourceLang` dan chiqarilmaydi: turkcha
+    // to'plam o'zbekchaga o'giriladi, SAT/GRE esa inglizcha qolishi kerak.
+    // Teng bo'lsa tarjima bosqichi o'tkazib yuboriladi.
+    if (!(IMPORT_TARGET_LANGS as readonly string[]).includes(targetLang)) {
+      return NextResponse.json({ error: 'targetLang notogri' }, { status: 400 });
     }
 
     // Sahifa soni klientda ham tekshiriladi, lekin u yerdagi tekshiruvni
@@ -99,9 +106,11 @@ export async function POST(request: NextRequest) {
         subjectId,
         fileName,
         fileUrl,
-        fileKind: 'PDF',
+        // Manba — PyMuPDF ZIP'i; `fileUrl` da uning `manifest.json` i
+        // saqlanadi, `fileName` — asl PDF nomi (manifestdagi `sourceFile`).
+        fileKind: 'ZIP',
         sourceLang,
-        targetLang: sourceLang,
+        targetLang,
         pageCount,
         status: 'UPLOADED',
       },
