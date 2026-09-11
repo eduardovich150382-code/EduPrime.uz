@@ -9,19 +9,10 @@ import {
   IMPORT_TARGET_LANGS,
   MAX_IMPORT_PAGES,
 } from '@/lib/import/constants';
+import { planManifest, type Manifest, type ManifestError } from '@/lib/import/manifest';
 import {
-  planManifest,
-  toUploadGroup,
-  type Manifest,
-  type ManifestError,
-} from '@/lib/import/manifest';
-import {
-  extractFiles,
-  fitAsset,
   openManifestZip,
-  pageBox,
-  sendGroups,
-  uploadAsset,
+  uploadManifestPage,
   type ZipSource,
 } from '@/lib/import/manifest-client';
 
@@ -214,47 +205,13 @@ export default function TeacherImportPage() {
         // olinadi, shuning uchun qolgan sahifalar avvalgi qiymatini saqlaydi.
         if (done.has(page.page)) continue;
 
-        const paths = [...new Set([...page.images.map((img) => img.file), ...(page.pageImage ? [page.pageImage] : [])])];
-        const files = extractFiles(loaded.zip, paths);
-
-        // Bir xil rasm sahifada ikki joyda turishi mumkin (PyMuPDF bitta
-        // xref'ni ikki marta joylaydi) — u bir marta yuklanadi.
-        const assetIds = new Map<string, string>();
-        for (const image of page.images) {
-          if (assetIds.has(image.file)) continue;
-          const bytes = files.get(image.file);
-          const fitted = bytes ? await fitAsset(bytes) : null;
-          const assetId = fitted
-            ? await uploadAsset(job.jobId, { page: page.page, bbox: image.bbox, image: fitted, kind: 'FIGURE' })
-            : null;
-          if (assetId) {
-            assetIds.set(image.file, assetId);
-            result.images++;
-          } else {
-            result.skipped++;
-          }
-        }
-
-        let pageImageAssetId: string | null = null;
-        const pageBytes = page.pageImage ? files.get(page.pageImage) : undefined;
-        if (pageBytes) {
-          const fitted = await fitAsset(pageBytes);
-          if (fitted) {
-            pageImageAssetId = await uploadAsset(job.jobId, {
-              page: page.page,
-              bbox: pageBox(page.width, page.height),
-              image: fitted,
-              kind: 'PAGE',
-            });
-          }
-          if (!pageImageAssetId) result.skipped++;
-        }
-
-        await sendGroups(job.jobId, {
-          page: page.page,
-          pageImageAssetId,
-          groups: groups.map((g) => toUploadGroup(g, assetIds)),
+        // Tarmoq/server xatosi ustozga texnik kod ("assets 500") bo'lib
+        // ko'rinmasin; sahifa `pagesDone` ga tushmagani uchun qayta urinish xavfsiz.
+        const sent = await uploadManifestPage(job.jobId, loaded.zip, page, groups).catch(() => {
+          throw new Error(t('errorUpload'));
         });
+        result.images += sent.images;
+        result.skipped += sent.skipped;
         result.questions += groups.length;
       }
 

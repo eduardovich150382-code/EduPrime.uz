@@ -5,8 +5,11 @@ import {
   MANIFEST_FILE,
   locateManifest,
   parseManifest,
+  toUploadGroup,
   type Manifest,
   type ManifestError,
+  type ManifestPage,
+  type QuestionGroup,
   type UploadGroup,
 } from './manifest';
 import type { BBox } from './types';
@@ -200,7 +203,59 @@ export async function sendGroups(
   if (!res.ok) throw new Error(`blocks ${res.status}`);
 }
 
-/** Butun sahifa aksining bbox'i — `ImportAsset.bbox` majburiy. */
-export function pageBox(width: number, height: number): BBox {
-  return { x: 0, y: 0, w: width, h: height };
+/**
+ * Bitta sahifani to'liq yuboradi: rasmlar (`FIGURE`), sahifa aksi (`PAGE`),
+ * keyin savol guruhlari. Guruhlar OXIRIDA ketadi — `/blocks` sahifani
+ * `pagesDone` ga qo'shadi, rasmlar esa undan oldin serverda bo'lishi kerak.
+ */
+export async function uploadManifestPage(
+  jobId: string,
+  zip: ZipSource,
+  page: ManifestPage,
+  groups: QuestionGroup[],
+): Promise<{ images: number; skipped: number }> {
+  const paths = [...page.images.map((img) => img.file), ...(page.pageImage ? [page.pageImage] : [])];
+  const files = extractFiles(zip, [...new Set(paths)]);
+  let images = 0;
+  let skipped = 0;
+
+  // Bir xil rasm sahifada ikki joyda turishi mumkin (PyMuPDF bitta xref'ni
+  // ikki marta joylaydi) — u bir marta yuklanadi.
+  const assetIds = new Map<string, string>();
+  for (const image of page.images) {
+    if (assetIds.has(image.file)) continue;
+    const bytes = files.get(image.file);
+    const fitted = bytes ? await fitAsset(bytes) : null;
+    const assetId = fitted
+      ? await uploadAsset(jobId, { page: page.page, bbox: image.bbox, image: fitted, kind: 'FIGURE' })
+      : null;
+    if (assetId) {
+      assetIds.set(image.file, assetId);
+      images++;
+    } else {
+      skipped++;
+    }
+  }
+
+  let pageImageAssetId: string | null = null;
+  const pageBytes = page.pageImage ? files.get(page.pageImage) : undefined;
+  if (pageBytes) {
+    const fitted = await fitAsset(pageBytes);
+    if (fitted) {
+      pageImageAssetId = await uploadAsset(jobId, {
+        page: page.page,
+        bbox: { x: 0, y: 0, w: page.width, h: page.height },
+        image: fitted,
+        kind: 'PAGE',
+      });
+    }
+    if (!pageImageAssetId) skipped++;
+  }
+
+  await sendGroups(jobId, {
+    page: page.page,
+    pageImageAssetId,
+    groups: groups.map((g) => toUploadGroup(g, assetIds)),
+  });
+  return { images, skipped };
 }
