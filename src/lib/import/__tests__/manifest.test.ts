@@ -2,14 +2,10 @@ import { describe, expect, it } from "vitest";
 import { MAX_IMPORT_PAGES } from "../constants";
 import {
   detectColumnsFromBlocks,
-  groupIntoQuestions,
   locateManifest,
   parseManifest,
-  planManifest,
-  toUploadGroup,
   type Manifest,
   type ManifestPage,
-  type QuestionGroup,
 } from "../manifest";
 import fixture from "./fixtures/manifest-innova-p23.json";
 
@@ -42,12 +38,6 @@ function page23(): ManifestPage {
   const page = parsed().pages.find((p) => p.page === 23);
   if (!page) throw new Error("23-sahifa yo'q");
   return page;
-}
-
-function byNumber(groups: QuestionGroup[], n: number): QuestionGroup {
-  const group = groups.find((g) => g.number === n);
-  if (!group) throw new Error(`${n}-savol topilmadi`);
-  return group;
 }
 
 describe("parseManifest", () => {
@@ -200,136 +190,5 @@ describe("detectColumnsFromBlocks", () => {
     const single: ManifestPage = { ...page, blocks: page.blocks.filter((b) => b.bbox.x < 100) };
 
     expect(detectColumnsFromBlocks(single)).toHaveLength(1);
-  });
-});
-
-describe("groupIntoQuestions", () => {
-  it("9–14 va 15*–18 alohida savol bo'ladi, ustun tartibida", () => {
-    const groups = groupIntoQuestions(page23());
-
-    expect(groups.map((g) => g.number)).toEqual([9, 10, 11, 12, 13, 14, 15, 16, 17, 18]);
-    expect(groups.map((g) => g.order)).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-  });
-
-  it("`15*.` yulduzchali raqamni taniydi", () => {
-    const q15 = byNumber(groupIntoQuestions(page23()), 15);
-
-    expect(q15.text.startsWith("15*. Jism tezligining")).toBe(true);
-  });
-
-  it("variantlar bloki o'z savoliga qo'shiladi, alohida savol bo'lmaydi", () => {
-    const groups = groupIntoQuestions(page23());
-    const q9 = byNumber(groups, 9);
-
-    expect(q9.text.split("\n")).toEqual([
-      "9. Grafikdan foydalanib, jismning tezlanishi topilsin (m/s2).",
-      "A) 1,5. B) 1. C) 2. D) 0,75. E) 0,5.",
-    ]);
-    expect(groups.some((g) => g.text.startsWith("A)"))).toBe(false);
-  });
-
-  it("matn normallashtiriladi — blok ichida qator ko'chishi va ketma-ket probel yo'q", () => {
-    for (const group of groupIntoQuestions(page23())) {
-      for (const line of group.text.split("\n")) {
-        expect(line).not.toMatch(/\s{2}/);
-        expect(line).toBe(line.trim());
-      }
-    }
-  });
-
-  it("y=153.8 dagi chap rasm 9-savolga, y=164.4 dagi o'ng rasm 15-savolga tushadi", () => {
-    const groups = groupIntoQuestions(page23());
-
-    expect(byNumber(groups, 9).images.map((i) => i.bbox.y)).toEqual([153.81]);
-    expect(byNumber(groups, 15).images.map((i) => i.bbox.y)).toEqual([164.44]);
-  });
-
-  it("guruh qamrovi rasmni ham o'z ichiga oladi", () => {
-    const q9 = byNumber(groupIntoQuestions(page23()), 9);
-    const image = q9.images[0].bbox;
-
-    expect(q9.bbox.y).toBeLessThanOrEqual(image.y);
-    expect(q9.bbox.y + q9.bbox.h).toBeGreaterThanOrEqual(image.y + image.h);
-  });
-
-  it("kolontitul bloki hech qaysi savolga tushmaydi", () => {
-    const groups = groupIntoQuestions(page23());
-
-    expect(groups.some((g) => g.text.includes("Innova"))).toBe(false);
-    expect(groups.some((g) => g.text.includes("~ 23 ~"))).toBe(false);
-  });
-
-  it("ustun boshidagi oldingi sahifa davomi hech bir savolga qo'shilmaydi", () => {
-    // 23-bet tepasidagi variantlar va rasmlar (y < 135) — 22-betdagi
-    // savollarning davomi. Ularni 14- yoki 9-savolga ulash xato bo'lardi.
-    const groups = groupIntoQuestions(page23());
-
-    expect(groups.some((g) => g.text.includes("A) 0. B) 1."))).toBe(false);
-    expect(groups.some((g) => g.text.includes("1-sekundida"))).toBe(false);
-    expect(groups.flatMap((g) => g.images).some((i) => i.bbox.y < 100)).toBe(false);
-  });
-
-  it("raqam bilan boshlanuvchi savol matnini ham taniydi (24. 1-rasmda...)", () => {
-    // Haqiqiy 24-bet: nuqtadan keyin harf emas, raqam. Faqat harf talab
-    // qilinganda 24-savol, uning rasmi va variantlari yo'qolardi.
-    const page24 = parsed().pages.find((p) => p.page === 24)!;
-    const q24 = byNumber(groupIntoQuestions(page24), 24);
-
-    expect(q24.text.startsWith("24. 1-rasmda")).toBe(true);
-    expect(q24.images.map((i) => i.file)).toEqual(["rasmlar/rasm_1379.png"]);
-    expect(q24.text).toContain("A) 6. B) 5.");
-  });
-
-  it("o'nli son yoki variant bilan boshlangan blok savol boshi emas", () => {
-    const page = page23();
-    const extra = (text: string, y: number) => ({ order: 99, bbox: { x: 28.32, y, w: 200, h: 12 }, text });
-    const noisy: ManifestPage = {
-      ...page,
-      blocks: [...page.blocks, extra("2.5 kg yuk", 160), extra("3,5 m/s", 165), extra("A) 1. B) 2.", 170)],
-    };
-
-    expect(groupIntoQuestions(noisy).map((g) => g.number)).toEqual([9, 10, 11, 12, 13, 14, 15, 16, 17, 18]);
-  });
-
-  it("har rasm ko'pi bilan bitta savolga biriktiriladi", () => {
-    const files = groupIntoQuestions(page23()).flatMap((g) => g.images.map((i) => i.file));
-
-    expect(new Set(files).size).toBe(files.length);
-  });
-
-  it("skan sahifada (blok yo'q) savol ham yo'q", () => {
-    const scanned: ManifestPage = { ...page23(), blocks: [] };
-
-    expect(groupIntoQuestions(scanned)).toEqual([]);
-  });
-});
-
-describe("planManifest", () => {
-  it("order sahifalar bo'ylab uzluksiz", () => {
-    const plan = planManifest(parsed());
-    const orders = plan.flatMap((p) => p.groups.map((g) => g.order));
-
-    expect(plan.map((p) => p.page.page)).toEqual([23, 24]);
-    expect(orders).toEqual(orders.map((_, i) => i));
-    expect(plan[1].groups.map((g) => g.number)).toEqual([19, 20, 21, 22, 23, 24, 25, 26, 27, 28]);
-  });
-
-  it("qayta chaqiruvda va sahifalar tartibi aralashganda ham bir xil order beradi", () => {
-    const manifest = parsed();
-    const reversed: Manifest = { ...manifest, pages: [...manifest.pages].reverse() };
-
-    expect(planManifest(reversed)).toEqual(planManifest(manifest));
-  });
-});
-
-describe("toUploadGroup", () => {
-  it("rasm faylini assetId ga almashtiradi, yuklanmaganini tushirib qoldiradi", () => {
-    const q9 = byNumber(groupIntoQuestions(page23()), 9);
-    const withAsset = toUploadGroup(q9, new Map([[q9.images[0].file, "asset-1"]]));
-    const without = toUploadGroup(q9, new Map());
-
-    expect(withAsset.images).toEqual([{ assetId: "asset-1", bbox: q9.images[0].bbox }]);
-    expect(without.images).toEqual([]);
-    expect(without.text).toBe(q9.text);
   });
 });

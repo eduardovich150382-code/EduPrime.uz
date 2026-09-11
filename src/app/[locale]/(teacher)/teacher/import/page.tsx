@@ -9,10 +9,13 @@ import {
   IMPORT_TARGET_LANGS,
   MAX_IMPORT_PAGES,
 } from '@/lib/import/constants';
-import { planManifest, type Manifest, type ManifestError } from '@/lib/import/manifest';
+import { groupIntoQuestions, toUploadGroup } from '@/lib/import/grouping';
+import type { Manifest, ManifestError } from '@/lib/import/manifest';
 import {
+  markPageDone,
   openManifestZip,
-  uploadManifestPage,
+  sendGroups,
+  uploadPageAssets,
   type ZipSource,
 } from '@/lib/import/manifest-client';
 
@@ -21,9 +24,10 @@ import {
  *
  * PDF'ni ustoz kompyuterida skript o'qiydi (`Rasm_ajratgich.py` yoki
  * `scan_kesuvchi.py`), bu sahifa esa uning ZIP'ini BRAUZERDA ochadi:
- * manifestni tekshiradi, bloklarni savollarga guruhlaydi (sof mantiq —
- * lib/import/manifest.ts) va sahifama-sahifa yuboradi. Serverga manifest,
- * rasmlar va savol matni ketadi — Vercel funksiyasi og'ir ishni bajarmaydi.
+ * manifestni tekshiradi, bloklarni butun hujjat bo'yicha savollarga guruhlaydi
+ * (sof mantiq — lib/import/grouping.ts), rasmlarni sahifama-sahifa, savollarni
+ * esa oxirida bir marta yuboradi. Serverga manifest, rasmlar va savol matni
+ * ketadi — Vercel funksiyasi og'ir ishni bajarmaydi.
  */
 
 /**
@@ -88,13 +92,17 @@ export default function TeacherImportPage() {
 
   // Reja manifestdan bir marta hisoblanadi — ko'rinadigan son va serverga
   // ketadigan `order` aynan bir xil manbadan chiqsin.
-  const plan = useMemo(() => (loaded ? planManifest(loaded.manifest) : []), [loaded]);
+  const plan = useMemo(() => (loaded ? groupIntoQuestions(loaded.manifest) : null), [loaded]);
+  const pages = useMemo(
+    () => (loaded ? [...loaded.manifest.pages].sort((a, b) => a.page - b.page) : []),
+    [loaded],
+  );
   const counts = useMemo(
     () => ({
-      questions: plan.reduce((sum, p) => sum + p.groups.length, 0),
-      images: plan.reduce((sum, p) => sum + p.page.images.length, 0),
+      questions: plan?.questions.length ?? 0,
+      images: pages.reduce((sum, p) => sum + p.images.length, 0),
     }),
-    [plan],
+    [plan, pages],
   );
 
   function manifestErrorText(error: ManifestError): string {
@@ -177,7 +185,7 @@ export default function TeacherImportPage() {
   // -------------------------------------------------------------------------
 
   async function run(): Promise<void> {
-    if (!loaded) return;
+    if (!loaded || !plan) return;
     if (!subjectId) {
       setErrorText(t('errorNoSubject'));
       return;
@@ -197,23 +205,33 @@ export default function TeacherImportPage() {
 
       const done = new Set(job.pagesDone);
       const result: Summary = { questions: 0, images: 0, skipped: 0 };
+      const assetIds = new Map<string, string>();
+      const pageImages: { page: number; assetId: string }[] = [];
+      // Tarmoq/server xatosi ustozga texnik kod ("assets 500") bo'lib
+      // ko'rinmasin; sahifa `pagesDone` ga tushmagani uchun qayta urinish xavfsiz.
+      const uploadError = () => {
+        throw new Error(t('errorUpload'));
+      };
 
-      for (let i = 0; i < plan.length; i++) {
-        const { page, groups } = plan[i];
-        setProgress({ done: i + 1, total: plan.length });
-        // Tugagan sahifa butunlay o'tkaziladi; `order` baribir `plan` dan
-        // olinadi, shuning uchun qolgan sahifalar avvalgi qiymatini saqlaydi.
+      for (let i = 0; i < pages.length; i++) {
+        const page = pages[i];
+        setProgress({ done: i + 1, total: pages.length });
         if (done.has(page.page)) continue;
 
-        // Tarmoq/server xatosi ustozga texnik kod ("assets 500") bo'lib
-        // ko'rinmasin; sahifa `pagesDone` ga tushmagani uchun qayta urinish xavfsiz.
-        const sent = await uploadManifestPage(job.jobId, loaded.zip, page, groups).catch(() => {
-          throw new Error(t('errorUpload'));
-        });
+        const sent = await uploadPageAssets(job.jobId, loaded.zip, page).catch(uploadError);
+        sent.assetIds.forEach((id, file) => assetIds.set(file, id));
+        if (sent.pageImageAssetId) pageImages.push({ page: page.page, assetId: sent.pageImageAssetId });
         result.images += sent.images;
         result.skipped += sent.skipped;
-        result.questions += groups.length;
+        await markPageDone(job.jobId, page.page).catch(uploadError);
       }
+
+      // Savollar OXIRIDA, bir marta: savol sahifa chegarasidan o'tadi, uning
+      // rasmlari esa keyingi sahifada bo'lishi mumkin. `order` — `plan` dagi
+      // indeks, u manifestdan deterministik chiqadi.
+      const groups = plan.questions.map((q, order) => toUploadGroup(q, order, assetIds));
+      await sendGroups(job.jobId, { groups, pageImages }).catch(uploadError);
+      result.questions = groups.length;
 
       setSummary(result);
       setProgress(null);
