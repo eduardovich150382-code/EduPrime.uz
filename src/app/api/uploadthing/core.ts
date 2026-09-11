@@ -33,6 +33,26 @@ export const ourFileRouter = {
     return { url: file.url, name: file.name };
   }),
 
+  // Hujjat importining manba fayli. 8 MB (aiImportFile) yetmaydi: 40
+  // sahifalik DTM to'plami, ayniqsa skan qilingani, undan oson oshib ketadi
+  // va import boshlanmasdan yiqilardi. Manba PDF saqlanadi, chunki ko'rib
+  // chiqish ekrani uni brauzerda qayta render qiladi — bu barcha sahifalarni
+  // PNG bo'lib saqlashdan arzon.
+  importSource: f({
+    pdf: { maxFileSize: '32MB', maxFileCount: 1 },
+  }).onUploadComplete(async ({ file }) => {
+    return { url: file.url, name: file.name };
+  }),
+
+  // Importda sahifadan kesib olingan chizma. Yuklash serverdagi UTApi orqali
+  // ketadi (assets marshruti), shuning uchun bu ta'rif limit manbai bo'lib
+  // qoladi — haqiqiy tekshiruv o'sha marshrutda.
+  importAsset: f({
+    image: { maxFileSize: '2MB', maxFileCount: 1 },
+  }).onUploadComplete(async ({ file }) => {
+    return { url: file.url };
+  }),
+
   // To'lov cheki (foydalanuvchi)
   paymentReceipt: f({
     image: { maxFileSize: '4MB', maxFileCount: 1 },

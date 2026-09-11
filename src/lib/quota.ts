@@ -1,7 +1,7 @@
-import type { Prisma } from '@prisma/client';
+import type { ImportStatus, Prisma } from '@prisma/client';
 import { db } from './db';
 import { hasActiveSubscription } from './access';
-import { tashkentDateKey } from './date';
+import { tashkentDateKey, tashkentDayRangeUtc } from './date';
 
 /**
  * Bepul foydalanuvchi uchun kunlik cheklovlar (S17). Kun — Tashkent
@@ -146,6 +146,13 @@ export async function consumeTutorMessage(userId: string): Promise<ConsumeQuotaR
  * test importi. Kvota import JARAYONI BOSHLANGANDA sarflansin — u uzoq
  * davom etadi va model chaqiruvlari pul turadi, shuning uchun tugashini
  * kutib bo'lmaydi. Premium/Teacher/ADMIN uchun cheklovsiz.
+ *
+ * O'RNINI {@link checkImportQuota} EGALLADI va production chaqiruvi yo'q.
+ * Sabab: bu yerdagi hisoblagich yarim yo'lda uzilgan importni ham sarflangan
+ * deb qoldiradi — brauzer quvuri 7-sahifada yiqilsa, foydalanuvchi kunlik
+ * limitini hech narsa olmasdan yo'qotardi. Yangi funksiya hisobni
+ * `ImportJob` jadvalidan chiqaradi va uzilgan joblarni o'zi chiqarib
+ * tashlaydi. Bu esa `DailyUsage.imports` bilan birga zaxirada qoldirilgan.
  */
 export async function consumeImport(userId: string): Promise<ConsumeQuotaResult> {
   if (await isUnlimited(userId)) {
@@ -154,6 +161,78 @@ export async function consumeImport(userId: string): Promise<ConsumeQuotaResult>
   const dateKey = tashkentDateKey();
   const used = await bumpDailyUsage(userId, dateKey, 'imports');
   if (used > FREE_DAILY_IMPORTS) {
+    return { allowed: false, usedToday: FREE_DAILY_IMPORTS, limit: FREE_DAILY_IMPORTS };
+  }
+  return { allowed: true, usedToday: used, limit: FREE_DAILY_IMPORTS };
+}
+
+/**
+ * Shu vaqtdan ortiq UPLOADED/PARSING da turgan va sahifalari tugamagan
+ * import — uzilib qolgan deb hisoblanadi.
+ *
+ * Brauzer quvuri eng katta faylda ham bir necha daqiqada tugaydi; bir sutka
+ * turib qolgani foydalanuvchi oynani yopgani yoki xatoga uchragani bildiradi.
+ * Bunday import kunlik limitni yeb qo'ymasligi kerak.
+ */
+export const IMPORT_STALE_MS = 24 * 60 * 60 * 1000;
+
+/** {@link importJobCountsAgainstQuota} uchun kerakli maydonlar. */
+export interface ImportQuotaJob {
+  status: ImportStatus;
+  createdAt: Date;
+  pageCount: number;
+  /** `ImportJob.pagesDone` — parsing tugagan sahifalar ro'yxati. */
+  pagesDone: Prisma.JsonValue;
+}
+
+/**
+ * Shu import kunlik kvotadan joy egallaydimi?
+ *
+ * Sof funksiya — alohida test qilinadi va qoida bitta joyda turadi.
+ *
+ * `consumeImport` dagi hisoblagich naqshi bu qoidani ifodalay olmaydi:
+ * hisoblagich import BOSHLANGANDA oshadi va yarim yo'lda yiqilgan import
+ * limitni qaytarib bo'lmaydigan qilib yeb qo'yadi. Shuning uchun kvota
+ * `ImportJob` jadvalining o'zidan hisoblanadi.
+ */
+export function importJobCountsAgainstQuota(job: ImportQuotaJob, now: Date = new Date()): boolean {
+  // Yiqilgan import foydalanuvchining aybi emas.
+  if (job.status === 'FAILED') return false;
+
+  // Parsingdan o'tib ketgan har qanday holat — import haqiqatda ishlagan.
+  if (job.status !== 'UPLOADED' && job.status !== 'PARSING') return true;
+
+  // Parsing muvaffaqiyatli tugagan bo'lsa, job'ning keyingi bosqichga
+  // o'tmagani ahamiyatsiz — ish bajarilgan, demak hisoblanadi.
+  const pagesDone = Array.isArray(job.pagesDone) ? job.pagesDone.length : 0;
+  if (job.pageCount > 0 && pagesDone >= job.pageCount) return true;
+
+  // Chala, lekin hali yangi — hozir ishlayapti, joyni band qiladi (aks holda
+  // foydalanuvchi parallel o'nlab import boshlab yuborardi).
+  return now.getTime() - job.createdAt.getTime() < IMPORT_STALE_MS;
+}
+
+/**
+ * Kunlik import kvotasining bugungi holati. Kvotani SARFLAMAYDI — hisob
+ * `ImportJob` qatorlaridan chiqariladi, shuning uchun sarflash degan alohida
+ * amal umuman yo'q: job yaratilishining o'zi hisobga kirishi mumkin.
+ *
+ * `teacherId` alohida beriladi — `ImportJob.teacherId` bu `Teacher.id`,
+ * `User.id` emas, kvota chegarasi esa foydalanuvchiga bog'langan.
+ */
+export async function checkImportQuota(userId: string, teacherId: string): Promise<ConsumeQuotaResult> {
+  if (await isUnlimited(userId)) {
+    return { allowed: true, usedToday: 0, limit: null };
+  }
+
+  const { start, end } = tashkentDayRangeUtc(0);
+  const jobs = await db.importJob.findMany({
+    where: { teacherId, createdAt: { gte: start, lt: end } },
+    select: { status: true, createdAt: true, pageCount: true, pagesDone: true },
+  });
+
+  const used = jobs.filter((job) => importJobCountsAgainstQuota(job)).length;
+  if (used >= FREE_DAILY_IMPORTS) {
     return { allowed: false, usedToday: FREE_DAILY_IMPORTS, limit: FREE_DAILY_IMPORTS };
   }
   return { allowed: true, usedToday: used, limit: FREE_DAILY_IMPORTS };

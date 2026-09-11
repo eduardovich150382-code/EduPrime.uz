@@ -26,7 +26,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'File required' }, { status: 400 });
     }
 
-    if (endpoint === 'aiImportFile') {
+    if (endpoint === 'importSource') {
+      // Hujjat importining manba fayli — faqat PDF, 32 MB gacha.
+      if (file.type !== 'application/pdf') {
+        return NextResponse.json({ error: 'Faqat PDF fayl qabul qilinadi' }, { status: 400 });
+      }
+      if (file.size > 32 * 1024 * 1024) {
+        return NextResponse.json({ error: 'Fayl hajmi 32 MB dan oshmasligi kerak' }, { status: 400 });
+      }
+    } else if (endpoint === 'aiImportFile') {
       // AI Import (savollarni fayldan ajratish) — PDF, matn va Word fayllar
       const ALLOWED_TYPES = [
         'application/pdf',

@@ -101,3 +101,45 @@ export const DEDUPE_PAGE_THRESHOLD = 3;
  */
 export const OPTION_SPLIT_MIN = 3;
 export const OPTION_SPLIT_MAX = 5;
+
+// ---------------------------------------------------------------------------
+// Render va piksel tahlili (pixels.ts)
+// ---------------------------------------------------------------------------
+
+/**
+ * Sahifa shu zichlikda render qilinadi va chizmalar shu aksdan kesiladi.
+ *
+ * 300 — bosma sifat chegarasi: undan pastda ingichka o'q va shtrixlar
+ * yo'qoladi (siyoh qidiruvi ularni topolmay qoladi), undan yuqorida esa
+ * bitta A4 sahifaning aksi telefon xotirasida haddan tashqari joy egallaydi.
+ */
+export const RENDER_DPI = 300;
+
+/**
+ * Yorug'ligi shundan PAST piksel "siyoh" hisoblanadi (0 — qora, 255 — oq).
+ *
+ * 255 emas, 250: PDF render qirralarni silliqlaydi (anti-aliasing), shuning
+ * uchun chinakam oq fon ham 252–254 atrofida chiqadi. 250 shu shovqinni
+ * kesadi, lekin eng och kulrang shtrixni ham siyoh deb tanigan holda qoladi.
+ */
+export const INK_LUMINANCE_THRESHOLD = 250;
+
+/**
+ * Bir-biridan shundan YAQIN turgan siyoh sohalari bitta chizma deb
+ * birlashtiriladi.
+ *
+ * Chizma deyarli hech qachon uzluksiz emas: o'q uchi, punktir chiziq, alohida
+ * turgan belgi va yozuvlar bog'langan sohalar sifatida alohida chiqadi.
+ * 3 nuqta ≈ 1 mm — bitta chizma ichidagi uzilishlar odatda shundan kichik,
+ * yonma-yon turgan ikki AYRIM chizma orasidagi masofa esa ancha katta.
+ */
+export const INK_MERGE_GAP_PT = 3;
+
+/**
+ * Shundan ko'p sahifali fayl qabul qilinmaydi.
+ *
+ * Ikki sabab: butun quvur brauzerda ishlaydi va har sahifa 300 DPI da render
+ * qilinadi (telefon xotirasi), hamda bitta kvota birligi cheksiz katta
+ * hujjatni qamrab olmasligi kerak.
+ */
+export const MAX_IMPORT_PAGES = 40;

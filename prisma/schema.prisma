@@ -910,6 +910,11 @@ model ImportJob {
   blockCount  Int          @default(0)
   autoGreen   Int          @default(0)
   costTokens  Int          @default(0)
+  // Parsing tugagan sahifalar — brauzer uzilib qayta ulanganda qaysi
+  // sahifalarni qayta ishlamaslik kerakligini ANIQ ko'rsatadi. Draft'lardan
+  // chiqarib bo'lmaydi: savoli yo'q sahifa hech qanday qator qoldirmaydi va
+  // har safar qaytadan ishlanardi.
+  pagesDone   Json         @default("[]")
   model       String?
   error       String?
   createdAt   DateTime     @default(now())
@@ -936,6 +941,11 @@ model ImportAsset {
 
   job ImportJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
 
+  // Idempotentlik kaliti: brauzer uzilib qayta yuborsa yoki ikki so'rov
+  // parallel kelsa ham bitta kesilgan rasm bitta qator bo'lib qoladi.
+  // "Avval qidir, keyin yoz" yetarli emas — ikkala so'rov tekshiruvdan
+  // birga o'tib ketishi mumkin.
+  @@unique([jobId, page, sha256])
   @@index([jobId, page])
   @@index([jobId, sha256])
 }

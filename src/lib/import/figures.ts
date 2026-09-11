@@ -215,26 +215,48 @@ export function splitOptionRow(region: FigureRegion, ops: DrawOp[]): FigureRegio
 // 3. Filtrlar
 // ---------------------------------------------------------------------------
 
+/** Soha nima uchun tashlangani — diagnostika hisobotida ko'rsatiladi. */
+export type FigureSkipReason = "SMALL" | "DIVIDER" | "HEADER_FOOTER";
+
 /**
- * Soha chizma emas — tashlab yuborilsinmi?
+ * Soha chizma emas — tashlab yuborilsinmi, va nima uchun?
  *
  * Uchta yolg'on ijobiy holatni kesadi: mayda shtrix, savollar orasidagi
  * gorizontal ajratuvchi chiziq va kolontitul bezagi.
+ *
+ * Sabab ATAYLAB qaytariladi: chegaralar shu yerda turadi, diagnostika
+ * rejimi esa har tashlangan soha yoniga sababini yozadi — sabab u yerda
+ * qayta hisoblansa, chegaralar ikki joyda takrorlanib, jimgina ajralib
+ * ketardi.
  */
-export function shouldSkipFigure(region: FigureRegion, pageBox: BBox): boolean {
+export function figureSkipReason(
+  region: FigureRegion,
+  pageBox: BBox,
+): FigureSkipReason | null {
   const { y, w, h } = region.bbox;
 
-  if (w < FIGURE_MIN_SIZE_PT || h < FIGURE_MIN_SIZE_PT) return true;
-
-  if (w > DIVIDER_WIDTH_RATIO * pageBox.w && h < DIVIDER_MAX_HEIGHT_PT) return true;
+  // TARTIB MUHIM: aniq imzoli sabablar oldin, umumiy "mayda" eng oxirida.
+  // Teskarisida `DIVIDER` ga hech qachon yetib bo'lmaydi — ajratuvchi chiziq
+  // ta'rifan `DIVIDER_MAX_HEIGHT_PT` (10) dan past, ya'ni har doim
+  // `FIGURE_MIN_SIZE_PT` (40) dan ham past bo'ladi va `SMALL` uni yutib
+  // yuborardi. Tashlash QARORI tartibga bog'liq emas (uchala holatda ham
+  // soha tashlanadi) — faqat diagnostikada ko'rsatiladigan sabab aniqlashadi.
+  if (w > DIVIDER_WIDTH_RATIO * pageBox.w && h < DIVIDER_MAX_HEIGHT_PT) return "DIVIDER";
 
   // Kolontitul — soha BUTUNLAY tasma ichida bo'lsa. Tasmaga qisman kirib
   // turgan chizma savolniki bo'lishi mumkin, u tashlanmaydi.
   const band = HEADER_FOOTER_BAND_RATIO * pageBox.h;
-  if (y + h <= pageBox.y + band) return true;
-  if (y >= pageBox.y + pageBox.h - band) return true;
+  if (y + h <= pageBox.y + band) return "HEADER_FOOTER";
+  if (y >= pageBox.y + pageBox.h - band) return "HEADER_FOOTER";
 
-  return false;
+  if (w < FIGURE_MIN_SIZE_PT || h < FIGURE_MIN_SIZE_PT) return "SMALL";
+
+  return null;
+}
+
+/** {@link figureSkipReason} ning ha/yo'q shakli. */
+export function shouldSkipFigure(region: FigureRegion, pageBox: BBox): boolean {
+  return figureSkipReason(region, pageBox) !== null;
 }
 
 /**

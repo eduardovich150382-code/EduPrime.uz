@@ -14,7 +14,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  * ichida yaratiladi, aks holda hali ishga tushmagan `const`ga murojaat
  * qilingan bo'lardi.
  */
-const { fakeDb, testSessions, items } = vi.hoisted(() => {
+const { fakeDb, testSessions, items, importJobs } = vi.hoisted(() => {
   interface FakeDailyUsageRow {
     id: string;
     userId: string;
@@ -41,6 +41,13 @@ const { fakeDb, testSessions, items } = vi.hoisted(() => {
   const solutionUnlock = new Map<string, FakeSolutionUnlockRow>();
   const testSessions = new Map<string, { userId: string; startedAt: Date }>();
   const items = new Map<string, FakeItemRow>();
+  const importJobs: {
+    teacherId: string;
+    status: string;
+    createdAt: Date;
+    pageCount: number;
+    pagesDone: number[];
+  }[] = [];
   let nextId = 1;
 
   const dailyUsageKey = (userId: string, date: Date) => `${userId}|${date.toISOString()}`;
@@ -61,6 +68,27 @@ const { fakeDb, testSessions, items } = vi.hoisted(() => {
     __subscriptions: subscriptions,
     __dailyUsage: dailyUsage,
     __solutionUnlock: solutionUnlock,
+    __importJobs: importJobs,
+    importJob: {
+      findMany: async ({
+        where,
+      }: {
+        where: { teacherId: string; createdAt: { gte: Date; lt: Date } };
+      }) =>
+        importJobs
+          .filter((j) => j.teacherId === where.teacherId)
+          .filter(
+            (j) =>
+              j.createdAt.getTime() >= where.createdAt.gte.getTime() &&
+              j.createdAt.getTime() < where.createdAt.lt.getTime(),
+          )
+          .map((j) => ({
+            status: j.status,
+            createdAt: j.createdAt,
+            pageCount: j.pageCount,
+            pagesDone: j.pagesDone,
+          })),
+    },
     user: {
       findUnique: async ({ where }: { where: { id: string } }) => {
         const u = users.get(where.id);
@@ -172,7 +200,7 @@ const { fakeDb, testSessions, items } = vi.hoisted(() => {
     },
   };
 
-  return { fakeDb, testSessions, items };
+  return { fakeDb, testSessions, items, importJobs };
 });
 
 vi.mock("../db", () => ({ db: fakeDb }));
@@ -189,6 +217,9 @@ import {
   FREE_DAILY_BUILT_TESTS,
   FREE_DAILY_IMPORTS,
   FREE_DAILY_SOLUTIONS,
+  IMPORT_STALE_MS,
+  checkImportQuota,
+  importJobCountsAgainstQuota,
 } from "../quota";
 
 beforeEach(() => {
@@ -198,6 +229,7 @@ beforeEach(() => {
   fakeDb.__solutionUnlock.clear();
   testSessions.clear();
   items.clear();
+  importJobs.length = 0;
   vi.useRealTimers();
 });
 
@@ -511,5 +543,129 @@ describe("consumeImport", () => {
 
     const built = await consumeBuiltTest("user-mix");
     expect(built).toEqual({ allowed: true, usedToday: 1, limit: FREE_DAILY_BUILT_TESTS });
+  });
+});
+
+/**
+ * `checkImportQuota` hisoblagichga emas, `ImportJob` jadvaliga tayanadi —
+ * shuning uchun testlar job qatorlarini qo'yadi, kvotani "sarflamaydi".
+ */
+describe("importJobCountsAgainstQuota", () => {
+  const NOW = new Date("2026-09-10T10:00:00.000Z");
+  const fresh = new Date(NOW.getTime() - 60 * 60 * 1000);
+  const stale = new Date(NOW.getTime() - IMPORT_STALE_MS - 60 * 1000);
+
+  const job = (over: Partial<Parameters<typeof importJobCountsAgainstQuota>[0]> = {}) => ({
+    status: "PARSING" as const,
+    createdAt: fresh,
+    pageCount: 10,
+    pagesDone: [] as number[],
+    ...over,
+  });
+
+  it("REVIEW va COMMITTED holatlari hisoblanadi", () => {
+    expect(importJobCountsAgainstQuota(job({ status: "REVIEW" }), NOW)).toBe(true);
+    expect(importJobCountsAgainstQuota(job({ status: "COMMITTED" }), NOW)).toBe(true);
+    expect(importJobCountsAgainstQuota(job({ status: "STRUCTURING" }), NOW)).toBe(true);
+  });
+
+  it("FAILED hisoblanmaydi — yiqilgan import foydalanuvchining aybi emas", () => {
+    expect(importJobCountsAgainstQuota(job({ status: "FAILED" }), NOW)).toBe(false);
+  });
+
+  it("chala, lekin yangi PARSING hisoblanadi — hozir ishlayapti", () => {
+    expect(importJobCountsAgainstQuota(job({ createdAt: fresh, pagesDone: [1, 2] }), NOW)).toBe(true);
+  });
+
+  it("chala va 24 soatdan eski PARSING hisoblanmaydi", () => {
+    expect(importJobCountsAgainstQuota(job({ createdAt: stale, pagesDone: [1, 2] }), NOW)).toBe(false);
+  });
+
+  it("sahifalari TO'LIQ tugagan PARSING eski bo'lsa ham hisoblanadi", () => {
+    // Parsing muvaffaqiyatli tugagan — job keyingi bosqichga o'tmagani
+    // (S4 hali yozilmagan) kvotaga ta'sir qilmasligi kerak.
+    const done = job({ createdAt: stale, pageCount: 3, pagesDone: [1, 2, 3] });
+    expect(importJobCountsAgainstQuota(done, NOW)).toBe(true);
+  });
+
+  it("pageCount hali ma'lum bo'lmaganda yosh bo'yicha hal qilinadi", () => {
+    expect(importJobCountsAgainstQuota(job({ pageCount: 0, createdAt: fresh }), NOW)).toBe(true);
+    expect(importJobCountsAgainstQuota(job({ pageCount: 0, createdAt: stale }), NOW)).toBe(false);
+  });
+});
+
+describe("checkImportQuota", () => {
+  const TODAY = new Date("2026-09-10T10:00:00.000Z");
+
+  const addJob = (over: Partial<(typeof importJobs)[number]> = {}) => {
+    importJobs.push({
+      teacherId: "teacher-1",
+      status: "REVIEW",
+      createdAt: TODAY,
+      pageCount: 5,
+      pagesDone: [1, 2, 3, 4, 5],
+      ...over,
+    });
+  };
+
+  it("job umuman bo'lmaganda ruxsat beradi", async () => {
+    vi.setSystemTime(TODAY);
+    expect(await checkImportQuota("user-q", "teacher-1")).toEqual({
+      allowed: true,
+      usedToday: 0,
+      limit: FREE_DAILY_IMPORTS,
+    });
+  });
+
+  it(`bugungi ${FREE_DAILY_IMPORTS} ta tugagan importdan keyin rad etadi`, async () => {
+    vi.setSystemTime(TODAY);
+    for (let i = 0; i < FREE_DAILY_IMPORTS; i++) addJob();
+
+    expect(await checkImportQuota("user-q", "teacher-1")).toEqual({
+      allowed: false,
+      usedToday: FREE_DAILY_IMPORTS,
+      limit: FREE_DAILY_IMPORTS,
+    });
+  });
+
+  it("uzilib qolgan importlar limitni yemaydi", async () => {
+    vi.setSystemTime(TODAY);
+    const stale = new Date(TODAY.getTime() - IMPORT_STALE_MS - 1000);
+    for (let i = 0; i < 5; i++) {
+      addJob({ status: "PARSING", createdAt: stale, pagesDone: [1] });
+    }
+
+    const result = await checkImportQuota("user-q", "teacher-1");
+    expect(result.allowed).toBe(true);
+    expect(result.usedToday).toBe(0);
+  });
+
+  it("boshqa ustozning importlarini hisobga olmaydi", async () => {
+    vi.setSystemTime(TODAY);
+    for (let i = 0; i < FREE_DAILY_IMPORTS; i++) addJob({ teacherId: "teacher-2" });
+
+    expect((await checkImportQuota("user-q", "teacher-1")).allowed).toBe(true);
+  });
+
+  it("kechagi importlar bugungi limitga kirmaydi", async () => {
+    vi.setSystemTime(TODAY);
+    // 2026-09-09T10:00Z — Tashkent bo'yicha kechagi kun.
+    for (let i = 0; i < FREE_DAILY_IMPORTS; i++) {
+      addJob({ createdAt: new Date("2026-09-09T10:00:00.000Z") });
+    }
+
+    expect((await checkImportQuota("user-q", "teacher-1")).allowed).toBe(true);
+  });
+
+  it("ADMIN uchun cheklovsiz — job qatorlari umuman o'qilmaydi", async () => {
+    vi.setSystemTime(TODAY);
+    fakeDb.__users.set("admin-q", { role: "ADMIN" });
+    for (let i = 0; i < 10; i++) addJob();
+
+    expect(await checkImportQuota("admin-q", "teacher-1")).toEqual({
+      allowed: true,
+      usedToday: 0,
+      limit: null,
+    });
   });
 });
