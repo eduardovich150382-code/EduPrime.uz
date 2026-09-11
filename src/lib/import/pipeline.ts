@@ -1,4 +1,4 @@
-import { FIGURE_GAP_RATIO } from "./constants";
+import { FIGURE_GAP_RATIO, MIN_TEXT_LAYER_ITEMS } from "./constants";
 import {
   figureSkipReason,
   findFigureRegions,
@@ -127,6 +127,16 @@ export function analyzeBlockFigures(
 
     return analysis;
   });
+}
+
+/**
+ * Sahifa skan qilinganmi — ya'ni matn qatlami deyarli bo'shmi.
+ *
+ * Bunday sahifada blok topilmaydi va bu "quvur ishlamadi" emas, balki "matn
+ * yo'q" degani — diagnostika buni alohida ko'rsatishi uchun kerak.
+ */
+export function isScannedPage(itemCount: number): boolean {
+  return itemCount < MIN_TEXT_LAYER_ITEMS;
 }
 
 // ---------------------------------------------------------------------------

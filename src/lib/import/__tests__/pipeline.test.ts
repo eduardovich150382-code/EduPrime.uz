@@ -5,9 +5,10 @@ import {
   FIGURE_GAP_RATIO,
   FIGURE_MIN_SIZE_PT,
   HEADER_FOOTER_BAND_RATIO,
+  MIN_TEXT_LAYER_ITEMS,
 } from "../constants";
 import type { DrawOp } from "../figures";
-import { analyzeBlockFigures, candidateBands } from "../pipeline";
+import { analyzeBlockFigures, candidateBands, isScannedPage } from "../pipeline";
 import type { BBox, Block, TextRow } from "../types";
 
 // Fiksturalar figures.test.ts bilan bir xil uslubda: chegaraviy qiymatlar
@@ -70,6 +71,18 @@ describe("candidateBands", () => {
     const third = second + ROW_H + BIG_GAP;
 
     expect(candidateBands(block([row(first), row(second), row(third)]))).toHaveLength(2);
+  });
+});
+
+describe("isScannedPage", () => {
+  it("chegaradan kam bo'lak — skan sahifa", () => {
+    expect(isScannedPage(0)).toBe(true);
+    expect(isScannedPage(MIN_TEXT_LAYER_ITEMS - 1)).toBe(true);
+  });
+
+  it("chegaraga teng yoki ko'p bo'lak — matn qatlami bor", () => {
+    expect(isScannedPage(MIN_TEXT_LAYER_ITEMS)).toBe(false);
+    expect(isScannedPage(MIN_TEXT_LAYER_ITEMS * 10)).toBe(false);
   });
 });
 

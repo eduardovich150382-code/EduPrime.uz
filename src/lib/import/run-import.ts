@@ -1,5 +1,6 @@
 import type { PDFDocumentProxy } from 'pdfjs-dist';
-import { detectColumns, splitIntoBlocks } from './blocks';
+import { splitIntoBlocks } from './blocks';
+import { analyzeCorridor, detectColumns, type CorridorReport } from './columns';
 import { MAX_IMPORT_PAGES } from './constants';
 import { dedupeByHash, type DrawOp, type FigureRegion } from './figures';
 import {
@@ -11,6 +12,7 @@ import {
 import {
   analyzeBlockFigures,
   candidateBands,
+  isScannedPage,
   type BlockAnalysis,
   type SkipReason,
 } from './pipeline';
@@ -55,6 +57,10 @@ export interface PageResult {
   pageWidth: number;
   pageHeight: number;
   columns: BBox[];
+  /** Ustun qarori va uning har bir sharti — diagnostika hisoboti uchun. */
+  corridor: CorridorReport;
+  /** Matn qatlami yo'q (skan qilingan) sahifa. */
+  scanned: boolean;
   blocks: Block[];
   reports: BlockReport[];
   crops: CropResult[];
@@ -182,22 +188,32 @@ export async function processPage(
   const { onStage, onCanvas } = options;
   onStage?.('text');
   const { items, pageWidth, pageHeight } = await extractText(pdf, page);
-  const columns = detectColumns(items, pageWidth);
+  // Hisobot bir marta hisoblanib, taqsimlashga UZATILADI — diagnostikada
+  // ko'rinadigan qaror aynan ustunlarni ajratgan qarorning o'zi bo'lsin.
+  const corridor = analyzeCorridor(items, pageWidth, pageHeight);
+  const columns = detectColumns(items, pageWidth, pageHeight, corridor);
   const blocks = splitIntoBlocks(columns, page);
   const pageBox: BBox = { x: 0, y: 0, w: pageWidth, h: pageHeight };
+  const scanned = isScannedPage(items.length);
 
   const result: PageResult = {
     page,
     pageWidth,
     pageHeight,
     columns: columnBoxes(columns, pageHeight),
+    corridor,
+    scanned,
     blocks,
     reports: [],
     crops: [],
   };
 
   // Matn bloklari yo'q sahifada (muqova, mundarija) render ham keraksiz.
-  if (blocks.length === 0) return result;
+  // Istisno — diagnostikadagi skan sahifa: u ko'rsatilmasa foydalanuvchi
+  // "ishlamadi" deb o'ylaydi. Oddiy importda esa skan sahifa aksini hech kim
+  // ishlatmaydi, 300 DPI render esa telefonda ~35 MB — shuning uchun faqat
+  // canvas so'ralganda.
+  if (blocks.length === 0 && !(scanned && onCanvas)) return result;
 
   onStage?.('render');
   const canvas = await renderPageToCanvas(pdf, page);

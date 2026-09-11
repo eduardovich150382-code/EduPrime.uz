@@ -1,7 +1,8 @@
 'use client';
 
-import { Download, FileJson } from 'lucide-react';
+import { AlertCircle, Download, FileJson } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import type { CorridorReport } from '@/lib/import/columns';
 import type { PageResult } from '@/lib/import/run-import';
 import type { SkipReason } from '@/lib/import/pipeline';
 import type { BBox } from '@/lib/import/types';
@@ -119,9 +120,34 @@ export interface PageSummary {
   pageWidth: number;
   pageHeight: number;
   columns: number;
+  /** Ustun qarori to'liq — "nima uchun bitta ustun" savoliga javob shu yerda. */
+  corridor: CorridorReport;
+  scanned: boolean;
   blocks: number;
   crops: number;
   blockSummaries: BlockSummary[];
+}
+
+function percent(value: number): string {
+  return `${(value * 100).toFixed(1)}%`;
+}
+
+/** Koridor hisobotining kartadagi bir qatorli ko'rinishi uchun qiymatlar. */
+function corridorLine(c: CorridorReport) {
+  return {
+    decision: c.decision,
+    width: c.bestBand ? c.bestBand.width.toFixed(1) : '—',
+    // Tasma topilmasa — o'rta zonadagi eng past qoplama: chegaraga qanchalik
+    // yaqin kelgani baribir ko'rinsin.
+    coverage: c.bestBand
+      ? percent(c.bestBand.coverage)
+      : c.minCenterCoverage === null
+        ? '—'
+        : percent(c.minCenterCoverage),
+    max: percent(c.effectiveMaxCoverage),
+    left: c.leftRows,
+    right: c.rightRows,
+  };
 }
 
 /** Sahifa natijasidan matn/JSON hisobot uchun qisqartma. */
@@ -151,6 +177,8 @@ export function summarizePage(result: PageResult): PageSummary {
     pageWidth: result.pageWidth,
     pageHeight: result.pageHeight,
     columns: result.columns.length,
+    corridor: result.corridor,
+    scanned: result.scanned,
     blocks: result.blocks.length,
     crops: result.crops.length,
     blockSummaries,
@@ -218,8 +246,18 @@ export default function ImportDebugPanel({ pages }: { pages: DebugPage[] }) {
               </button>
             </div>
 
+            {summary.scanned && (
+              <div className="flex items-start gap-2 rounded-lg border border-border p-3 text-sm text-text-primary">
+                <AlertCircle size={18} className="text-amber-600 shrink-0 mt-0.5" />
+                <span>{t('debugScanned')}</span>
+              </div>
+            )}
+
             <div className="text-sm text-text-secondary space-y-1">
               <p>{t('debugColumns', { count: summary.columns })}</p>
+              <p className="font-mono text-xs wrap-break-word">
+                {t('debugCorridor', corridorLine(summary.corridor))}
+              </p>
               <p>{t('debugBlocks', { count: summary.blocks })}</p>
               {summary.blockSummaries.map((b) => (
                 <p key={b.blockIndex} className="font-mono text-xs">

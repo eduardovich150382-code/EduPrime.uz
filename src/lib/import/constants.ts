@@ -18,13 +18,78 @@
 export const ROW_Y_TOLERANCE_RATIO = 0.5;
 
 /**
- * Ikki ustun deb tan olinishi uchun ular orasidagi tik koridor sahifa
- * enining shu ulushidan keng bo'lishi shart.
+ * Sahifa eni shu kenglikdagi tik ustunchalarga bo'linadi va koridor shu
+ * ustunchalar bo'yicha qidiriladi.
  *
- * 5% — A4 uchun ~30 nuqta. Undan tor bo'shliq odatda ustun emas, balki
- * kengroq so'z oralig'i yoki jadval katakchalari chegarasi bo'ladi.
+ * 2 nuqta — eng tor qabul qilinadigan koridordan (COLUMN_GAP_MIN_PT) bir necha
+ * barobar mayda: kvantlash oraliqni ko'pi bilan 2 ustuncha (4 nuqta) ga
+ * kamaytiradi, shuning uchun 10 nuqtalik oraliq doim ≥ 8 nuqta o'lchanadi.
  */
-export const COLUMN_GAP_RATIO = 0.05;
+export const CORRIDOR_BIN_PT = 2;
+
+/**
+ * Ustunchani kesib o'tuvchi matn qatorlari ulushi shundan past bo'lsa, u
+ * koridor bo'la oladi (zich sahifa uchun asosiy qiymat).
+ *
+ * Nol emas: ikki ustunni kesuvchi sarlavha yoki javoblar jadvali yakka
+ * "shovqin" — u butun aniqlashni buzmasligi kerak. Haqiqiy bir ustunli matn
+ * esa deyarli har qatorda o'rtani kesadi va bu chegaradan ancha yuqori chiqadi.
+ */
+export const CORRIDOR_MAX_COVERAGE = 0.03;
+
+/**
+ * Qator soni qancha bo'lishidan qat'i nazar, shuncha kesuvchi qator kechiriladi.
+ *
+ * Siyrak sahifada (20–40 qator) 3% bitta qatorga ham yetmaydi — sarlavha va
+ * jadval birga bo'lsa koridor rad etilardi. 3 — sahifada odatda uchraydigan
+ * kesuvchi elementlar soni (sarlavha, bo'lim nomi, javoblar jadvali).
+ */
+export const CORRIDOR_TOLERATED_ROWS = 3;
+
+/**
+ * Moslashuvchan tolerantlikning shifti.
+ *
+ * Juda siyrak sahifada `CORRIDOR_TOLERATED_ROWS / qatorlar` katta ulushga
+ * aylanadi; shiftsiz o'rtasi bir necha qatorda bo'sh qolgan bir ustunli matn
+ * ikkiga bo'linib ketardi.
+ */
+export const CORRIDOR_MAX_COVERAGE_CAP = 0.1;
+
+/**
+ * Koridorning minimal eni — MUTLAQ, sahifa eniga nisbatan emas.
+ *
+ * Ustunlar oralig'i tipografik qiymat (odatda 10–20 nuqta) va sahifa o'lchami
+ * bilan o'zgarmaydi. Oldingi nisbiy chegara (5% → A4 da 30 nuqta) haqiqiy
+ * ikki ustunli sahifalarni rad etardi. 8 dan tor bo'shliq — so'z oralig'i
+ * yoki jadval katakchalari chegarasi.
+ */
+export const COLUMN_GAP_MIN_PT = 8;
+
+/**
+ * Koridorning har ikki tomonida kamida shuncha matn qatori bo'lishi shart.
+ *
+ * Aks holda bir ustunli sahifaning chetidagi yakka yozuv (masalan o'ngdagi
+ * ball yoki izoh) ikkinchi "ustun" bo'lib chiqardi.
+ */
+export const MIN_COLUMN_ROWS = 5;
+
+/**
+ * Koridor markazi sahifaning o'rtadagi shu ulushida bo'lishi shart (0.4 →
+ * o'rta 40%, har chetdan 30%).
+ *
+ * Shartsiz oddiy bir ustunli sahifaning keng o'ng hoshiyasi ham "koridor"
+ * bo'lib ko'rinadi. Hoshiya — ustun chegarasi emas, u sahifa cheti.
+ */
+export const CORRIDOR_CENTER_BAND = 0.4;
+
+/**
+ * Sahifada shundan KAM matn bo'lagi bo'lsa — matn qatlami yo'q, sahifa skan
+ * qilingan deb hisoblanadi.
+ *
+ * Skan PDF'ning ham matn qatlamida bir-ikki bo'lak bo'lishi mumkin (sahifa
+ * raqami, skaner qo'shgan yozuv), oddiy savol sahifasida esa yuzlab bo'lak bor.
+ */
+export const MIN_TEXT_LAYER_ITEMS = 10;
 
 /**
  * Sahifa enining shu ulushidan kengroq qator "to'liq enli" hisoblanadi va
@@ -79,6 +144,9 @@ export const DIVIDER_MAX_HEIGHT_PT = 10;
 /**
  * Sahifaning yuqori va quyi shu ulushi — kolontitul tasmasi. Butunlay shu
  * tasmaga tushgan grafika logotip yoki sahifa bezagi, savolga tegishli emas.
+ *
+ * Ustun aniqlashda (columns.ts) ham ishlatiladi: tasmadagi sahifa raqami
+ * ("~ 9 ~") odatda aynan koridor ustida turadi.
  */
 export const HEADER_FOOTER_BAND_RATIO = 0.05;
 
