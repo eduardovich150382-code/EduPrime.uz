@@ -362,6 +362,8 @@
     "debugSaveJson": "Сохранить отчёт в JSON",
     "debugPage": "Страница {page}",
     "debugColumns": "Колонок: {count}",
+    "debugCorridor": "Коридор: {decision}, ширина {width} pt, покрытие {coverage} / {max}, строки {left} | {right}",
+    "debugScanned": "На этой странице нет текстового слоя (отсканирована). Распознавание текста будет добавлено на следующем этапе.",
     "debugBlocks": "Блоков: {count}",
     "debugBlockLine": "Блок {index} (вопрос {number}): найдено {found}, подтверждено {confirmed}, отброшено {skipped}",
     "debugLegend": "Синий — колонка, зелёный — блок, жёлтый — полоса-кандидат, красный — рисунок, серый — отброшено",

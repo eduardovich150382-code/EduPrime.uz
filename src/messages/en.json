@@ -362,6 +362,8 @@
     "debugSaveJson": "Save report as JSON",
     "debugPage": "Page {page}",
     "debugColumns": "Columns: {count}",
+    "debugCorridor": "Corridor: {decision}, width {width} pt, coverage {coverage} / {max}, rows {left} | {right}",
+    "debugScanned": "This page has no text layer (scanned). Text recognition will be added in a later stage.",
     "debugBlocks": "Blocks: {count}",
     "debugBlockLine": "Block {index} (question {number}): found {found}, confirmed {confirmed}, skipped {skipped}",
     "debugLegend": "Blue — column, green — block, yellow — candidate band, red — figure, grey — skipped",

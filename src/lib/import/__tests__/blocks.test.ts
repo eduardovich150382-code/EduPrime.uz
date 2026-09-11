@@ -1,10 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { blockBBox, detectColumns, groupIntoRows, splitIntoBlocks } from "../blocks";
-import {
-  COLUMN_GAP_RATIO,
-  FULL_WIDTH_ROW_RATIO,
-  ROW_Y_TOLERANCE_RATIO,
-} from "../constants";
+import { blockBBox, groupIntoRows, splitIntoBlocks } from "../blocks";
+import { detectColumns as detectColumnsOnPage } from "../columns";
+import { COLUMN_GAP_MIN_PT, MIN_COLUMN_ROWS, ROW_Y_TOLERANCE_RATIO } from "../constants";
 import type { Block, TextItem } from "../types";
 
 // Fiksturalar qo'lda yoziladi — haqiqiy PDF emas. Chegaraviy qiymatlar
@@ -17,17 +14,21 @@ function item(str: string, x: number, y: number, w = str.length * CHAR_W, h = H)
 }
 
 const PAGE_WIDTH = 600;
-const COLUMN_GAP = COLUMN_GAP_RATIO * PAGE_WIDTH; // ustunlar orasidagi minimal koridor
-const WIDE_ROW = FULL_WIDTH_ROW_RATIO * PAGE_WIDTH; // to'liq enli qator chegarasi
+const PAGE_HEIGHT = 842;
 
 const LEFT_X = 40;
 const COL_W = 200;
-const RIGHT_X = LEFT_X + COL_W + COLUMN_GAP + 10; // koridor chegaradan keng
-const NARROW_RIGHT_X = LEFT_X + COL_W + COLUMN_GAP - 10; // koridor chegaradan tor
+const RIGHT_X = LEFT_X + COL_W + COLUMN_GAP_MIN_PT + 10; // koridor chegaradan keng
 
 /** Ustun bo'lagi — eni doim COL_W, shunda koridor aniq hisoblanadi. */
 function colItem(str: string, x: number, y: number): TextItem {
   return item(str, x, y, COL_W);
+}
+
+// Ustun aniqlashning o'z testlari columns.test.ts da; bu yerda u faqat
+// splitIntoBlocks ga haqiqiy kirish tayyorlash uchun chaqiriladi.
+function detectColumns(items: TextItem[]) {
+  return detectColumnsOnPage(items, PAGE_WIDTH, PAGE_HEIGHT);
 }
 
 describe("groupIntoRows", () => {
@@ -70,149 +71,10 @@ describe("groupIntoRows", () => {
   });
 });
 
-describe("detectColumns", () => {
-  it("koridorsiz sahifa — bitta ustun", () => {
-    const columns = detectColumns(
-      [
-        colItem("Birinchi qator", LEFT_X, 100),
-        colItem("Ikkinchi qator", LEFT_X, 140),
-        colItem("Uchinchi qator", LEFT_X, 180),
-      ],
-      PAGE_WIDTH,
-    );
-    expect(columns).toHaveLength(1);
-    expect(columns[0].rows).toHaveLength(3);
-  });
-
-  it("koridor chegaradan keng bo'lsa ikki ustun, chapdan o'ngga", () => {
-    const columns = detectColumns(
-      [
-        colItem("Chap bir", LEFT_X, 100),
-        colItem("O'ng bir", RIGHT_X, 110),
-        colItem("Chap ikki", LEFT_X, 140),
-        colItem("O'ng ikki", RIGHT_X, 150),
-      ],
-      PAGE_WIDTH,
-    );
-    expect(columns).toHaveLength(2);
-    expect(columns[0].xMin).toBe(LEFT_X);
-    expect(columns[1].xMin).toBe(RIGHT_X);
-    expect(columns[0].rows.map((r) => r.text)).toEqual(["Chap bir", "Chap ikki"]);
-    expect(columns[1].rows.map((r) => r.text)).toEqual(["O'ng bir", "O'ng ikki"]);
-  });
-
-  it("koridor chegaradan tor bo'lsa bitta ustun", () => {
-    const columns = detectColumns(
-      [
-        colItem("Chap bir", LEFT_X, 100),
-        colItem("O'ng bir", NARROW_RIGHT_X, 110),
-        colItem("Chap ikki", LEFT_X, 140),
-        colItem("O'ng ikki", NARROW_RIGHT_X, 150),
-      ],
-      PAGE_WIDTH,
-    );
-    expect(columns).toHaveLength(1);
-  });
-
-  // Eski quvurning (avval qator, keyin ustun) yiqiladigan holati: bir xil y da
-  // turgan chap va o'ng matn bitta qatorga qo'shilib ketardi va sahifa hech
-  // qachon ajratilmasdi. Ustun endi qatordan oldin aniqlanadi.
-  it("chap va o'ng matn aynan bir xil y da bo'lsa ham ajratiladi", () => {
-    const columns = detectColumns(
-      [
-        colItem("Chap bir", LEFT_X, 100),
-        colItem("O'ng bir", RIGHT_X, 100),
-        colItem("Chap ikki", LEFT_X, 140),
-        colItem("O'ng ikki", RIGHT_X, 140),
-      ],
-      PAGE_WIDTH,
-    );
-    expect(columns).toHaveLength(2);
-    expect(columns[0].rows.map((r) => r.text)).toEqual(["Chap bir", "Chap ikki"]);
-    expect(columns[1].rows.map((r) => r.text)).toEqual(["O'ng bir", "O'ng ikki"]);
-  });
-
-  // Markazlarni klasterlash shu yerda yiqilardi: chekinishli satrlar markazlari
-  // ikkita to'plamga ajralib ko'rinadi. Koridor esa yo'q — matn uzluksiz.
-  it("bir ustunli abzatsli matn ikki ustun deb topilmaydi", () => {
-    const columns = detectColumns(
-      [
-        item("Birinchi abzats boshi chekinish bilan", LEFT_X + 30, 100, 270),
-        item("davomi to'liq enda", LEFT_X, 120, 300),
-        item("yana bir satr", LEFT_X, 140, 280),
-        item("abzats oxiri kalta", LEFT_X, 160, 150),
-        item("Ikkinchi abzats boshi", LEFT_X + 30, 190, 270),
-        item("uning davomi", LEFT_X, 210, 295),
-      ],
-      PAGE_WIDTH,
-    );
-    expect(columns).toHaveLength(1);
-    expect(columns[0].rows).toHaveLength(6);
-  });
-
-  // Chekkadagi keng bo'sh joy koridor emas — u sahifa hoshiyasi.
-  it("o'ng hoshiyadagi keng bo'sh joy ikki ustun deb qabul qilinmaydi", () => {
-    const rightMargin = PAGE_WIDTH - (LEFT_X + 300);
-    expect(rightMargin).toBeGreaterThan(COLUMN_GAP); // hoshiya koridordan keng
-    const columns = detectColumns(
-      [
-        item("Birinchi qator", LEFT_X, 100, 300),
-        item("Ikkinchi qator", LEFT_X, 140, 300),
-        item("Uchinchi qator", LEFT_X, 180, 300),
-      ],
-      PAGE_WIDTH,
-    );
-    expect(columns).toHaveLength(1);
-  });
-
-  // Sarlavha ikkala ustunni kesib o'tadi — agar u koridor hisobiga qo'shilsa,
-  // koridor yopilib, sahifa noto'g'ri bir ustunli deb topiladi.
-  it("to'liq enli sarlavha ustun aniqlashni buzmaydi", () => {
-    const columns = detectColumns(
-      [
-        item("MATEMATIKA TESTI", LEFT_X, 60, WIDE_ROW + 20),
-        colItem("Chap bir", LEFT_X, 100),
-        colItem("O'ng bir", RIGHT_X, 110),
-        colItem("Chap ikki", LEFT_X, 140),
-        colItem("O'ng ikki", RIGHT_X, 150),
-      ],
-      PAGE_WIDTH,
-    );
-    expect(columns).toHaveLength(2);
-    // Sarlavha chap ustunga, eng tepaga tushadi — o'qish tartibi buzilmasin.
-    expect(columns[0].rows[0].text).toBe("MATEMATIKA TESTI");
-  });
-
-  it("koridorni kesib o'tuvchi sarlavha chap ustunda, o'z y joyida qoladi", () => {
-    const columns = detectColumns(
-      [
-        colItem("Chap bir", LEFT_X, 100),
-        colItem("O'ng bir", RIGHT_X, 100),
-        item("IKKINCHI BO'LIM", LEFT_X, 140, WIDE_ROW + 20),
-        colItem("Chap ikki", LEFT_X, 180),
-        colItem("O'ng ikki", RIGHT_X, 180),
-      ],
-      PAGE_WIDTH,
-    );
-    expect(columns).toHaveLength(2);
-    expect(columns[0].rows.map((r) => r.text)).toEqual([
-      "Chap bir",
-      "IKKINCHI BO'LIM",
-      "Chap ikki",
-    ]);
-    expect(columns[1].rows.map((r) => r.text)).toEqual(["O'ng bir", "O'ng ikki"]);
-  });
-
-  it("bo'laksiz sahifa bo'sh natija beradi", () => {
-    expect(detectColumns([], PAGE_WIDTH)).toEqual([]);
-  });
-});
-
 describe("splitIntoBlocks", () => {
   it("bitta ustun, 5 ta oddiy savol", () => {
     const columns = detectColumns(
       [1, 2, 3, 4, 5].map((n) => colItem(`${n}. Savol matni`, LEFT_X, 100 + n * 40)),
-      PAGE_WIDTH,
     );
     const blocks = splitIntoBlocks(columns, 1);
     expect(blocks.map((b) => b.number)).toEqual([1, 2, 3, 4, 5]);
@@ -221,18 +83,14 @@ describe("splitIntoBlocks", () => {
   });
 
   it("ikki ustun — avval chap ustun to'liq, keyin o'ng", () => {
-    const columns = detectColumns(
-      [
-        colItem("1. Chap bir", LEFT_X, 100),
-        colItem("4. O'ng bir", RIGHT_X, 110),
-        colItem("2. Chap ikki", LEFT_X, 140),
-        colItem("5. O'ng ikki", RIGHT_X, 150),
-        colItem("3. Chap uch", LEFT_X, 180),
-        colItem("6. O'ng uch", RIGHT_X, 190),
-      ],
-      PAGE_WIDTH,
-    );
-    expect(splitIntoBlocks(columns, 1).map((b) => b.number)).toEqual([1, 2, 3, 4, 5, 6]);
+    // Har tomonda MIN_COLUMN_ROWS savol — undan kami ikki ustun deb tan olinmaydi.
+    const n = MIN_COLUMN_ROWS;
+    const items = Array.from({ length: n }, (_, i) => [
+      colItem(`${i + 1}. Chap`, LEFT_X, 100 + i * 40),
+      colItem(`${n + i + 1}. O'ng`, RIGHT_X, 110 + i * 40),
+    ]).flat();
+    const expected = Array.from({ length: 2 * n }, (_, i) => i + 1);
+    expect(splitIntoBlocks(detectColumns(items), 1).map((b) => b.number)).toEqual(expected);
   });
 
   it("№ 12 va 12-savol ko'rinishlarini taniydi", () => {
@@ -242,7 +100,6 @@ describe("splitIntoBlocks", () => {
         colItem("12-savol Nima uchun?", LEFT_X, 140),
         colItem("13-masala Yechimni toping", LEFT_X, 180),
       ],
-      PAGE_WIDTH,
     );
     expect(splitIntoBlocks(columns, 1).map((b) => b.number)).toEqual([12, 12, 13]);
   });
@@ -255,7 +112,6 @@ describe("splitIntoBlocks", () => {
         colItem("1990-yilda mustaqillik e'lon qilindi", LEFT_X, 140),
         colItem("2.5 kg gaz sarflandi", LEFT_X, 180),
       ],
-      PAGE_WIDTH,
     );
     const blocks = splitIntoBlocks(columns, 1);
     expect(blocks).toHaveLength(1);
@@ -269,7 +125,6 @@ describe("splitIntoBlocks", () => {
         colItem("Toshkent Respublikaning poytaxti", LEFT_X, 100),
         colItem("Aholi soni uch millionga yaqin", LEFT_X, 140),
       ],
-      PAGE_WIDTH,
     );
     expect(splitIntoBlocks(columns, 1)).toEqual([]);
   });
@@ -281,7 +136,6 @@ describe("splitIntoBlocks", () => {
         colItem("2026-yil variant", LEFT_X, 80),
         colItem("1. Birinchi savol", LEFT_X, 120),
       ],
-      PAGE_WIDTH,
     );
     const blocks = splitIntoBlocks(columns, 1);
     expect(blocks).toHaveLength(1);
@@ -289,7 +143,7 @@ describe("splitIntoBlocks", () => {
   });
 
   it("page parametri har blokka o'tadi", () => {
-    const columns = detectColumns([colItem("1. Savol", LEFT_X, 100)], PAGE_WIDTH);
+    const columns = detectColumns([colItem("1. Savol", LEFT_X, 100)]);
     expect(splitIntoBlocks(columns, 7)[0].page).toBe(7);
   });
 

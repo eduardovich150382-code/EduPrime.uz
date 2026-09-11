@@ -362,6 +362,8 @@
     "debugSaveJson": "Hisobotni JSON qilib saqlash",
     "debugPage": "Sahifa {page}",
     "debugColumns": "Ustunlar: {count}",
+    "debugCorridor": "Koridor: {decision}, eni {width} pt, qoplama {coverage} / {max}, qatorlar {left} | {right}",
+    "debugScanned": "Bu sahifada matn qatlami yo'q (skan qilingan). Matn tanish keyingi bosqichda qo'shiladi.",
     "debugBlocks": "Bloklar: {count}",
     "debugBlockLine": "Blok {index} (savol {number}): topildi {found}, tasdiqlandi {confirmed}, tashlandi {skipped}",
     "debugLegend": "Ko'k — ustun, yashil — blok, sariq — nomzod band, qizil — chizma, kulrang — tashlangan",
