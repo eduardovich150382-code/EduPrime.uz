@@ -169,13 +169,34 @@ describe("POST /api/teacher/import/[jobId]/assets", () => {
     await expect(response.json()).resolves.toMatchObject({ assetId: "asset-race", deduped: true });
   });
 
-  it("PNG bo'lmagan faylni rad etadi", async () => {
+  it("PNG yoki JPEG bo'lmagan faylni rad etadi", async () => {
+    const gif = new File([PNG_BYTES], "x.gif", { type: "image/gif" });
+
+    const response = await POST(post(gif), { params });
+
+    expect(response.status).toBe(400);
+    expect(uploadFilesMock).not.toHaveBeenCalled();
+  });
+
+  it("JPEG ni qabul qiladi — klient 2 MB dan oshgan rasmni JPEG qilib yuboradi", async () => {
     const jpeg = new File([PNG_BYTES], "x.jpg", { type: "image/jpeg" });
 
     const response = await POST(post(jpeg), { params });
 
-    expect(response.status).toBe(400);
-    expect(uploadFilesMock).not.toHaveBeenCalled();
+    expect(response.status).toBe(200);
+    expect(uploadFilesMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("sahifa aksini PAGE turi bilan saqlaydi", async () => {
+    await POST(post(pngFile(), { kind: "PAGE" }), { params });
+
+    expect(createAssetMock.mock.calls[0][0].data.kind).toBe("PAGE");
+  });
+
+  it("noma'lum turni FIGURE ga tushiradi", async () => {
+    await POST(post(pngFile(), { kind: "LOGO" }), { params });
+
+    expect(createAssetMock.mock.calls[0][0].data.kind).toBe("FIGURE");
   });
 
   it("2 MB dan katta rasmni rad etadi", async () => {

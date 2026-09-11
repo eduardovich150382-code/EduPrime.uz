@@ -211,3 +211,57 @@ export const INK_MERGE_GAP_PT = 3;
  * hujjatni qamrab olmasligi kerak.
  */
 export const MAX_IMPORT_PAGES = 40;
+
+// ---------------------------------------------------------------------------
+// PyMuPDF manifest yo'li (manifest.ts, manifest-client.ts)
+// ---------------------------------------------------------------------------
+
+/**
+ * Ikki blok klasteri orasidagi eng katta oraliq sahifa enining shu ulushidan
+ * katta bo'lsa — sahifa ikki ustunli.
+ *
+ * PyMuPDF bloklari ustun ichida chap chetdan boshlanadi, markazlari esa blok
+ * eniga qarab 50–100 nuqta atrofida tebranadi. 15% (A4 da ≈ 90 nuqta) shu
+ * tebranishdan katta, haqiqiy ikki ustun markazlari orasidagi masofadan
+ * (A4 da ≈ 280 nuqta) esa ancha kichik.
+ */
+export const COLUMN_SPLIT_MIN_RATIO = 0.15;
+
+/**
+ * Manifestdagi `page` — ASL PDF sahifa raqami (skript 7..12 kabi oraliqni
+ * kesib oladi), shuning uchun u `pageCount` dan katta bo'lishi odatiy.
+ * Chegara faqat bema'ni qiymatni to'sish uchun: 200 sahifalik to'plamdan
+ * 40 sahifa kesib olinishi mumkin.
+ */
+export const MAX_SOURCE_PAGE = MAX_IMPORT_PAGES * 10;
+
+/** Manba fayl tillari — `ImportJob.sourceLang`. `tr` — turkcha to'plamlar. */
+export const IMPORT_SOURCE_LANGS = ['uz', 'ru', 'en', 'tr'] as const;
+
+/**
+ * Maqsad tillar — `ImportJob.targetLang`. Platforma tillari bilan bir xil.
+ * Sukut 'uz', lekin SAT/GRE kabi testlar inglizcha qolishi kerak —
+ * `sourceLang === targetLang` bo'lsa tarjima bosqichi o'tkazib yuboriladi.
+ */
+export const IMPORT_TARGET_LANGS = ['uz', 'ru', 'en'] as const;
+
+/** Import rasmining hajm chegarasi — `/assets` marshruti va `importAsset` endpointi. */
+export const MAX_IMPORT_ASSET_BYTES = 2 * 1024 * 1024;
+
+/**
+ * 2 MB dan oshgan rasm avval shu sifatda JPEG ga o'giriladi. Bunday fayllar
+ * amalda rangli/skan sahifa akslari — JPEG ularni o'lchamni o'zgartirmasdan
+ * 5–10 barobar siqadi, 0.85 da esa formula shtrixlari hali aniq qoladi.
+ */
+export const ASSET_JPEG_QUALITY = 0.85;
+
+/** JPEG ham sig'masa, o'lcham har qadamda shu koeffitsientga kichraytiriladi. */
+export const ASSET_SHRINK_STEP = 0.8;
+
+/**
+ * Kichraytirishda eng uzun tomon shundan pastga tushmaydi: AI (S4) sahifa
+ * aksidan formulani o'qiy olishi kerak, 1200 pikseldan kichik A4 aksida
+ * daraja va indekslar o'qilmay qoladi. Shunda ham sig'masa rasm o'tkazib
+ * yuboriladi — o'qib bo'lmaydigan rasmdan yo'q rasm yaxshi.
+ */
+export const ASSET_MIN_LONG_SIDE_PX = 1200;

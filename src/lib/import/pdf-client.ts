@@ -1,3 +1,8 @@
+/**
+ * @deprecated PyMuPDF manifest yo'li bilan almashtirildi, qarang
+ * lib/import/manifest.ts. Asosiy import yo'li bu faylni chaqirmaydi; kod va
+ * testlari ataylab qoldirilgan — o'chirish alohida PR'da.
+ */
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import { RENDER_DPI } from './constants';
 import type { TextItem } from './types';

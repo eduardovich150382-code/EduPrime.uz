@@ -1,5 +1,11 @@
 'use client';
 
+/**
+ * @deprecated PyMuPDF manifest yo'li bilan almashtirildi, qarang
+ * lib/import/manifest.ts. Import sahifasi bu panelni (`?debug=1`) endi
+ * ko'rsatmaydi; kod ataylab qoldirilgan — o'chirish alohida PR'da.
+ */
+
 import { AlertCircle, Download, FileJson } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import type { CorridorReport } from '@/lib/import/columns';

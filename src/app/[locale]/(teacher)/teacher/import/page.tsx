@@ -1,51 +1,59 @@
 'use client';
 
-import { AlertCircle, FileText, Loader2, Upload, X } from 'lucide-react';
+import { AlertCircle, FileArchive, Loader2, Upload, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useSearchParams } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
-import ImportDebugPanel, {
-  drawDiagnostics,
-  type DebugPage,
-} from '@/components/teacher/ImportDebugPanel';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useRouter } from '@/i18n/routing';
-import { MAX_IMPORT_PAGES } from '@/lib/import/constants';
-import { loadPdf } from '@/lib/import/pdf-client';
 import {
-  TooManyPagesError,
-  assertPageCount,
-  markDuplicates,
-  processPage,
-  type CropResult,
-  type ImportProgress,
-  type PageResult,
-} from '@/lib/import/run-import';
+  IMPORT_SOURCE_LANGS,
+  IMPORT_TARGET_LANGS,
+  MAX_IMPORT_PAGES,
+} from '@/lib/import/constants';
+import { planManifest, type Manifest, type ManifestError } from '@/lib/import/manifest';
+import {
+  openManifestZip,
+  uploadManifestPage,
+  type ZipSource,
+} from '@/lib/import/manifest-client';
 
 /**
- * Hujjatdan import — yuklash va quvurni haydash sahifasi.
+ * Hujjatdan import — PyMuPDF ZIP'ini yuklash sahifasi.
  *
- * BUTUN OG'IR ISH BRAUZERDA: PDF o'qish, sahifani render qilish va
- * chizmalarni kesish shu yerda bajariladi. Serverga faqat natija (blok matni
- * va kesilgan PNG) ketadi — shuning uchun Vercel funksiyasining vaqt
- * chegarasi tegmaydi va server xarajati nolga tushadi.
- *
- * `?debug=1` — diagnostika rejimi: job yaratilmaydi, serverga hech narsa
- * yuborilmaydi va kvota sarflanmaydi (`components/teacher/ImportDebugPanel`).
+ * PDF'ni ustoz kompyuterida skript o'qiydi (`Rasm_ajratgich.py` yoki
+ * `scan_kesuvchi.py`), bu sahifa esa uning ZIP'ini BRAUZERDA ochadi:
+ * manifestni tekshiradi, bloklarni savollarga guruhlaydi (sof mantiq —
+ * lib/import/manifest.ts) va sahifama-sahifa yuboradi. Serverga manifest,
+ * rasmlar va savol matni ketadi — Vercel funksiyasi og'ir ishni bajarmaydi.
  */
 
-/** Manba PDF chegarasi — `importSource` endpointi bilan bir xil. */
-const MAX_SOURCE_BYTES = 32 * 1024 * 1024;
+/**
+ * ZIP chegarasi. Server ZIP'ni ko'rmaydi (faqat manifest va rasmlar ketadi),
+ * shuning uchun chegara — telefon xotirasi: 40 sahifa × 150 DPI PNG ≈ 40 MB.
+ */
+const MAX_ZIP_BYTES = 64 * 1024 * 1024;
 
-const SOURCE_LANGS = ['uz', 'ru', 'en'] as const;
+const ZIP_TYPES = ['application/zip', 'application/x-zip-compressed'];
 
 interface Subject {
   id: string;
   nameUz: string;
 }
 
-interface JobState {
-  jobId: string;
-  pagesDone: number[];
+interface Loaded {
+  zip: ZipSource;
+  manifest: Manifest;
+  manifestBytes: Uint8Array;
+}
+
+interface Progress {
+  done: number;
+  total: number;
+}
+
+interface Summary {
+  questions: number;
+  images: number;
+  skipped: number;
 }
 
 type Phase = 'idle' | 'running' | 'done' | 'error';
@@ -53,21 +61,21 @@ type Phase = 'idle' | 'running' | 'done' | 'error';
 export default function TeacherImportPage() {
   const t = useTranslations('teacherImport');
   const router = useRouter();
-  const debug = useSearchParams().get('debug') === '1';
 
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [subjectId, setSubjectId] = useState('');
   const [sourceLang, setSourceLang] = useState<string>('uz');
-  const [file, setFile] = useState<File | null>(null);
+  const [targetLang, setTargetLang] = useState<string>('uz');
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [dragging, setDragging] = useState(false);
 
   const [phase, setPhase] = useState<Phase>('idle');
-  const [progress, setProgress] = useState<ImportProgress | null>(null);
+  const [progress, setProgress] = useState<Progress | null>(null);
   const [resumedCount, setResumedCount] = useState(0);
-  const [summary, setSummary] = useState<{ blocks: number; figures: number } | null>(null);
+  const [summary, setSummary] = useState<Summary | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
   const [errorText, setErrorText] = useState<string | null>(null);
-  const [debugPages, setDebugPages] = useState<DebugPage[]>([]);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -78,47 +86,82 @@ export default function TeacherImportPage() {
       .catch(() => setSubjects([]));
   }, []);
 
-  function pickFile(candidate: File | null | undefined): void {
-    if (!candidate) return;
-    setErrorText(null);
-    if (candidate.type !== 'application/pdf') {
-      setErrorText(t('errorNotPdf'));
-      return;
-    }
-    // Hajm OLDINDAN tekshiriladi — 30 soniyalik yuklashdan keyin rad javobini
-    // olish foydalanuvchi uchun eng yomon holat.
-    if (candidate.size > MAX_SOURCE_BYTES) {
-      setErrorText(t('errorTooLarge', { max: 32 }));
-      return;
-    }
-    setFile(candidate);
+  // Reja manifestdan bir marta hisoblanadi — ko'rinadigan son va serverga
+  // ketadigan `order` aynan bir xil manbadan chiqsin.
+  const plan = useMemo(() => (loaded ? planManifest(loaded.manifest) : []), [loaded]);
+  const counts = useMemo(
+    () => ({
+      questions: plan.reduce((sum, p) => sum + p.groups.length, 0),
+      images: plan.reduce((sum, p) => sum + p.page.images.length, 0),
+    }),
+    [plan],
+  );
+
+  function manifestErrorText(error: ManifestError): string {
+    return t(`manifestError.${error.code}`, { detail: error.detail ?? '', max: MAX_IMPORT_PAGES });
+  }
+
+  function clearFile(): void {
+    setFileName(null);
+    setLoaded(null);
     setPhase('idle');
     setSummary(null);
-    setDebugPages([]);
+  }
+
+  async function pickFile(candidate: File | null | undefined): Promise<void> {
+    if (!candidate) return;
+    clearFile();
+    setErrorText(null);
+    // Windows brauzerlari ZIP'ni `application/x-zip-compressed` deb beradi,
+    // ba'zi Android fayl menejerlari esa turini umuman bermaydi.
+    const isZip = ZIP_TYPES.includes(candidate.type) || candidate.name.toLowerCase().endsWith('.zip');
+    if (!isZip) {
+      setErrorText(t('errorNotZip'));
+      return;
+    }
+    if (candidate.size > MAX_ZIP_BYTES) {
+      setErrorText(t('errorTooLarge', { max: MAX_ZIP_BYTES / 1024 / 1024 }));
+      return;
+    }
+
+    const opened = openManifestZip(new Uint8Array(await candidate.arrayBuffer()));
+    if ('error' in opened) {
+      setErrorText(manifestErrorText(opened.error));
+      return;
+    }
+    setFileName(candidate.name);
+    setLoaded(opened);
+    // Til manifestdan olinadi, lekin ustoz o'zgartira oladi — skriptda
+    // `ASL_TIL` noto'g'ri qoldirilishi mumkin (scan skriptida shunday bo'lgan).
+    setSourceLang(opened.manifest.sourceLang);
   }
 
   // -------------------------------------------------------------------------
   // Serverga yuborish
   // -------------------------------------------------------------------------
 
-  async function uploadSource(pdf: File): Promise<string> {
+  async function uploadManifest(bytes: Uint8Array): Promise<string> {
     const form = new FormData();
-    form.set('file', pdf);
+    form.set(
+      'file',
+      new File([bytes as Uint8Array<ArrayBuffer>], 'manifest.json', { type: 'application/json' }),
+    );
     const res = await fetch('/api/upload?endpoint=importSource', { method: 'POST', body: form });
     if (!res.ok) throw new Error('upload');
     return (await res.json()).url as string;
   }
 
-  async function createJob(fileUrl: string, pageCount: number): Promise<JobState> {
+  async function createJob(manifest: Manifest, fileUrl: string): Promise<{ jobId: string; pagesDone: number[] }> {
     const res = await fetch('/api/teacher/import', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
         subjectId,
-        fileName: file?.name ?? 'import.pdf',
+        fileName: manifest.sourceFile,
         fileUrl,
         sourceLang,
-        pageCount,
+        targetLang,
+        pageCount: manifest.pageCount,
       }),
     });
     const data = await res.json();
@@ -129,116 +172,60 @@ export default function TeacherImportPage() {
     return { jobId: data.jobId, pagesDone: data.pagesDone ?? [] };
   }
 
-  async function sendCrop(id: string, crop: CropResult): Promise<void> {
-    const form = new FormData();
-    form.set('file', new File([crop.blob], `p${crop.page}.png`, { type: 'image/png' }));
-    form.set('page', String(crop.page));
-    form.set('bbox', JSON.stringify(crop.bbox));
-    form.set('widthPx', String(crop.widthPx));
-    form.set('heightPx', String(crop.heightPx));
-    form.set('kind', crop.kind);
-    // sha256 YUBORILMAYDI — serverning o'zi hisoblaydi.
-    await fetch(`/api/teacher/import/${id}/assets`, { method: 'POST', body: form });
-  }
-
-  async function sendBlocks(id: string, result: PageResult): Promise<void> {
-    await fetch(`/api/teacher/import/${id}/blocks`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ page: result.page, blocks: result.blocks }),
-    });
-  }
-
   // -------------------------------------------------------------------------
   // Quvur
   // -------------------------------------------------------------------------
 
   async function run(): Promise<void> {
-    if (!file) return;
-    if (!debug && !subjectId) {
+    if (!loaded) return;
+    if (!subjectId) {
       setErrorText(t('errorNoSubject'));
       return;
     }
 
     setPhase('running');
     setErrorText(null);
-    setDebugPages([]);
     setSummary(null);
 
     try {
-      const pdf = await loadPdf(await file.arrayBuffer());
-      const totalPages = assertPageCount(pdf);
+      const fileUrl = await uploadManifest(loaded.manifestBytes).catch(() => {
+        throw new Error(t('errorUpload'));
+      });
+      const job = await createJob(loaded.manifest, fileUrl);
+      setJobId(job.jobId);
+      setResumedCount(job.pagesDone.length);
 
-      let job: JobState | null = null;
-      if (!debug) {
-        const fileUrl = await uploadSource(file).catch(() => {
+      const done = new Set(job.pagesDone);
+      const result: Summary = { questions: 0, images: 0, skipped: 0 };
+
+      for (let i = 0; i < plan.length; i++) {
+        const { page, groups } = plan[i];
+        setProgress({ done: i + 1, total: plan.length });
+        // Tugagan sahifa butunlay o'tkaziladi; `order` baribir `plan` dan
+        // olinadi, shuning uchun qolgan sahifalar avvalgi qiymatini saqlaydi.
+        if (done.has(page.page)) continue;
+
+        // Tarmoq/server xatosi ustozga texnik kod ("assets 500") bo'lib
+        // ko'rinmasin; sahifa `pagesDone` ga tushmagani uchun qayta urinish xavfsiz.
+        const sent = await uploadManifestPage(job.jobId, loaded.zip, page, groups).catch(() => {
           throw new Error(t('errorUpload'));
         });
-        job = await createJob(fileUrl, totalPages);
-        setJobId(job.jobId);
-        setResumedCount(job.pagesDone.length);
+        result.images += sent.images;
+        result.skipped += sent.skipped;
+        result.questions += groups.length;
       }
 
-      const done = new Set(job?.pagesDone ?? []);
-      const allCrops: CropResult[] = [];
-      const collectedDebug: DebugPage[] = [];
-      let blockCount = 0;
-
-      for (let page = 1; page <= totalPages; page++) {
-        // Qayta ulanishda tugagan sahifa butunlay o'tkazib yuboriladi —
-        // eng qimmat qismi (render) ham qaytadan bajarilmasin.
-        if (done.has(page)) continue;
-
-        setProgress({ page, totalPages, stage: 'text' });
-        const result = await processPage(pdf, page, {
-          onStage: (stage) => setProgress({ page, totalPages, stage }),
-          onCanvas: debug
-            ? (canvas, pageResult) => {
-                collectedDebug.push({
-                  result: pageResult,
-                  imageUrl: drawDiagnostics(canvas, pageResult).toDataURL('image/png'),
-                });
-              }
-            : undefined,
-        });
-
-        blockCount += result.blocks.length;
-        allCrops.push(...result.crops);
-
-        if (job) {
-          setProgress({ page, totalPages, stage: 'upload' });
-          for (const crop of result.crops) await sendCrop(job.jobId, crop);
-          await sendBlocks(job.jobId, result);
-        }
-      }
-
-      // Takroriy grafikalar (logotip, kolontitul) faqat barcha sahifalar
-      // ishlangach aniqlanadi — shuning uchun bu yerda.
-      const { kept } = markDuplicates(allCrops, totalPages);
-
-      setDebugPages(collectedDebug);
-      setSummary({ blocks: blockCount, figures: kept.length });
+      setSummary(result);
       setProgress(null);
       setPhase('done');
     } catch (err) {
       setProgress(null);
       setPhase('error');
-      if (err instanceof TooManyPagesError) {
-        setErrorText(t('errorTooManyPages', { pages: err.pageCount, max: MAX_IMPORT_PAGES }));
-      } else {
-        setErrorText(err instanceof Error ? err.message : t('errorGeneric'));
-      }
+      setErrorText(err instanceof Error && err.message ? err.message : t('errorGeneric'));
     }
   }
 
-  const stageLabel = progress
-    ? {
-        text: t('stageText'),
-        render: t('stageRender'),
-        figures: t('stageFigures'),
-        upload: t('stageUpload'),
-      }[progress.stage]
-    : null;
+  const selectClass = 'mt-1 w-full min-h-11 rounded-lg border border-border bg-background px-3';
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -248,14 +235,10 @@ export default function TeacherImportPage() {
       </div>
 
       <div className="card p-4 sm:p-6 space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <label className="block">
             <span className="text-sm font-medium text-text-primary">{t('subject')}</span>
-            <select
-              value={subjectId}
-              onChange={(e) => setSubjectId(e.target.value)}
-              className="mt-1 w-full min-h-11 rounded-lg border border-border bg-background px-3"
-            >
+            <select value={subjectId} onChange={(e) => setSubjectId(e.target.value)} className={selectClass}>
               <option value="">{t('subjectPlaceholder')}</option>
               {subjects.map((s) => (
                 <option key={s.id} value={s.id}>
@@ -267,12 +250,19 @@ export default function TeacherImportPage() {
 
           <label className="block">
             <span className="text-sm font-medium text-text-primary">{t('sourceLang')}</span>
-            <select
-              value={sourceLang}
-              onChange={(e) => setSourceLang(e.target.value)}
-              className="mt-1 w-full min-h-11 rounded-lg border border-border bg-background px-3"
-            >
-              {SOURCE_LANGS.map((lang) => (
+            <select value={sourceLang} onChange={(e) => setSourceLang(e.target.value)} className={selectClass}>
+              {IMPORT_SOURCE_LANGS.map((lang) => (
+                <option key={lang} value={lang}>
+                  {lang.toUpperCase()}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="block">
+            <span className="text-sm font-medium text-text-primary">{t('targetLang')}</span>
+            <select value={targetLang} onChange={(e) => setTargetLang(e.target.value)} className={selectClass}>
+              {IMPORT_TARGET_LANGS.map((lang) => (
                 <option key={lang} value={lang}>
                   {lang.toUpperCase()}
                 </option>
@@ -291,7 +281,7 @@ export default function TeacherImportPage() {
           onDrop={(e) => {
             e.preventDefault();
             setDragging(false);
-            pickFile(e.dataTransfer?.files?.[0]);
+            void pickFile(e.dataTransfer?.files?.[0]);
           }}
           onClick={() => inputRef.current?.click()}
           className={`rounded-xl border-2 border-dashed p-6 text-center cursor-pointer transition-colors ${
@@ -300,25 +290,42 @@ export default function TeacherImportPage() {
         >
           <Upload size={24} className="mx-auto text-primary-600" />
           <p className="mt-2 font-medium text-text-primary">{t('dropTitle')}</p>
-          <p className="text-sm text-text-secondary">{t('dropHint')}</p>
+          <p className="text-sm text-text-secondary break-words">{t('dropHint')}</p>
           <input
             ref={inputRef}
             type="file"
-            accept="application/pdf,.pdf"
+            accept=".zip,application/zip,application/x-zip-compressed"
             className="hidden"
-            onChange={(e) => pickFile(e.target.files?.[0])}
+            onChange={(e) => {
+              void pickFile(e.target.files?.[0]);
+              // Ayni faylni qayta tanlash ham `onChange` ni chaqirsin.
+              e.target.value = '';
+            }}
           />
         </div>
 
-        {file && (
+        {loaded && fileName && (
           <div className="flex items-center gap-3 rounded-lg border border-border p-3">
-            <FileText size={18} className="text-primary-600 shrink-0" />
-            <span className="flex-1 text-sm text-text-primary truncate">{file.name}</span>
+            <FileArchive size={18} className="text-primary-600 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm text-text-primary truncate">{loaded.manifest.sourceFile}</p>
+              <p className="text-xs text-text-secondary">
+                {t('manifestSummary', {
+                  pages: loaded.manifest.pageCount,
+                  questions: counts.questions,
+                  images: counts.images,
+                })}
+              </p>
+              {loaded.manifest.kind === 'scanned' && (
+                <p className="text-xs text-text-secondary">{t('manifestScanned')}</p>
+              )}
+            </div>
             <button
               type="button"
               aria-label={t('removeFile')}
-              onClick={() => setFile(null)}
-              className="p-2 rounded-lg hover:bg-primary-50 min-h-11 min-w-11 flex items-center justify-center"
+              disabled={phase === 'running'}
+              onClick={clearFile}
+              className="p-2 rounded-lg hover:bg-primary-50 min-h-11 min-w-11 flex items-center justify-center disabled:opacity-50"
             >
               <X size={18} />
             </button>
@@ -328,7 +335,7 @@ export default function TeacherImportPage() {
         {errorText && (
           <div className="flex items-start gap-2 rounded-lg border border-border p-3 text-sm text-text-primary">
             <AlertCircle size={18} className="text-red-600 shrink-0 mt-0.5" />
-            <span>{errorText}</span>
+            <span className="break-words min-w-0">{errorText}</span>
           </div>
         )}
 
@@ -339,13 +346,13 @@ export default function TeacherImportPage() {
         {progress && (
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm text-text-secondary">
-              <span>{t('progress', { done: progress.page, total: progress.totalPages })}</span>
-              <span>{stageLabel}</span>
+              <span>{t('progress', { done: progress.done, total: progress.total })}</span>
+              <span>{t('stageUpload')}</span>
             </div>
             <div className="h-2 w-full rounded-full bg-primary-50 overflow-hidden">
               <div
                 className="h-full bg-primary-600 transition-all"
-                style={{ width: `${(progress.page / progress.totalPages) * 100}%` }}
+                style={{ width: `${(progress.done / progress.total) * 100}%` }}
               />
             </div>
           </div>
@@ -354,9 +361,12 @@ export default function TeacherImportPage() {
         {phase === 'done' && summary && (
           <div className="space-y-3">
             <p className="text-sm text-text-primary">
-              {t('done', { blocks: summary.blocks, figures: summary.figures })}
+              {t('doneZip', { questions: summary.questions, images: summary.images })}
             </p>
-            {jobId && !debug && (
+            {summary.skipped > 0 && (
+              <p className="text-sm text-text-secondary">{t('skippedImages', { count: summary.skipped })}</p>
+            )}
+            {jobId && (
               <Link href={`/teacher/import/${jobId}`} className="btn-primary inline-flex min-h-11 items-center">
                 {t('openJob')}
               </Link>
@@ -366,19 +376,17 @@ export default function TeacherImportPage() {
 
         <button
           type="button"
-          disabled={!file || phase === 'running'}
+          disabled={!loaded || phase === 'running'}
           onClick={() => {
-            if (phase === 'done' && jobId && !debug) router.push(`/teacher/import/${jobId}`);
+            if (phase === 'done' && jobId) router.push(`/teacher/import/${jobId}`);
             else void run();
           }}
           className="btn-primary w-full sm:w-auto min-h-11 inline-flex items-center justify-center gap-2 disabled:opacity-50"
         >
           {phase === 'running' && <Loader2 size={18} className="animate-spin" />}
-          {phase === 'running' ? t('starting') : debug ? t('debugRun') : t('start')}
+          {phase === 'running' ? t('starting') : t('start')}
         </button>
       </div>
-
-      {debug && <ImportDebugPanel pages={debugPages} />}
     </div>
   );
 }

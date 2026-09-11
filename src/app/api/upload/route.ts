@@ -27,12 +27,20 @@ export async function POST(request: NextRequest) {
     }
 
     if (endpoint === 'importSource') {
-      // Hujjat importining manba fayli — faqat PDF, 32 MB gacha.
-      if (file.type !== 'application/pdf') {
-        return NextResponse.json({ error: 'Faqat PDF fayl qabul qilinadi' }, { status: 400 });
-      }
-      if (file.size > 32 * 1024 * 1024) {
-        return NextResponse.json({ error: 'Fayl hajmi 32 MB dan oshmasligi kerak' }, { status: 400 });
+      // Hujjat importining manba fayli. Hozirgi yo'lda — PyMuPDF ZIP'idagi
+      // `manifest.json` (rasmlar /assets orqali alohida ketadi, butun ZIP
+      // yuklansa sahifa akslari ikki marta saqlanardi). PDF eski yo'l uchun
+      // qoldirilgan.
+      if (file.type === 'application/json') {
+        if (file.size > 4 * 1024 * 1024) {
+          return NextResponse.json({ error: 'Manifest hajmi 4 MB dan oshmasligi kerak' }, { status: 400 });
+        }
+      } else if (file.type === 'application/pdf') {
+        if (file.size > 32 * 1024 * 1024) {
+          return NextResponse.json({ error: 'Fayl hajmi 32 MB dan oshmasligi kerak' }, { status: 400 });
+        }
+      } else {
+        return NextResponse.json({ error: 'Faqat manifest.json yoki PDF qabul qilinadi' }, { status: 400 });
       }
     } else if (endpoint === 'aiImportFile') {
       // AI Import (savollarni fayldan ajratish) — PDF, matn va Word fayllar

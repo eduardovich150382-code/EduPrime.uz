@@ -902,7 +902,7 @@ model ImportJob {
   subjectId   String
   fileName    String
   fileUrl     String
-  fileKind    String       // PDF | DOCX | IMAGE
+  fileKind    String       // PDF | DOCX | IMAGE | ZIP (PyMuPDF manifesti — fileUrl da manifest.json)
   sourceLang  String       @default("uz")   // asl fayl tili
   targetLang  String       @default("uz")   // teng bo'lsa tarjima bosqichi o'tkazib yuboriladi
   status      ImportStatus @default(UPLOADED)
@@ -937,7 +937,9 @@ model ImportAsset {
   sha256   String
   widthPx  Int
   heightPx Int
-  kind     String  @default("FIGURE")  // FIGURE | OPTION | SKIPPED
+  // FIGURE | OPTION | SKIPPED | PAGE. PAGE — chizma emas, butun sahifa aksi:
+  // S4 da AI formulani shundan ko'radi, S7 da draft yonma-yon ko'rsatiladi.
+  kind     String  @default("FIGURE")
 
   job ImportJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
 

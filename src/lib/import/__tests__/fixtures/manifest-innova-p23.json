@@ -1,0 +1,649 @@
+{
+  "version": 1,
+  "kind": "auto",
+  "sourceFile": "Innova_to'plam_2023.pdf",
+  "sourceLang": "uz",
+  "pageCount": 2,
+  "pages": [
+    {
+      "page": 23,
+      "width": 595.32,
+      "height": 841.92,
+      "pageImage": "sahifalar/sahifa_23.png",
+      "blocks": [
+        {
+          "order": 0,
+          "bbox": {
+            "x": 28.32,
+            "y": 7.46,
+            "w": 471.77,
+            "h": 22.37
+          },
+          "text": "~ 23 ~ \nInnova o‘quv markazi \n         \nSardor Berdiyev"
+        },
+        {
+          "order": 1,
+          "bbox": {
+            "x": 311.93,
+            "y": 96.33,
+            "w": 176.57,
+            "h": 22.49
+          },
+          "text": "A) 0.     B) 1.     C) 2.     D) 2,5.     E) 4,5."
+        },
+        {
+          "order": 2,
+          "bbox": {
+            "x": 28.32,
+            "y": 98.73,
+            "w": 212.45,
+            "h": 35.57
+          },
+          "text": "A) 1-sekundida. B) 2-sekundida. C) 3-sekundida.  \nD) 4-sekundida. E) 5-sekundida."
+        },
+        {
+          "order": 3,
+          "bbox": {
+            "x": 28.32,
+            "y": 139.86,
+            "w": 255.89,
+            "h": 11.96
+          },
+          "text": "9. Grafikdan foydalanib, jismning tezlanishi topilsin (m/s2)."
+        },
+        {
+          "order": 4,
+          "bbox": {
+            "x": 311.93,
+            "y": 124.65,
+            "w": 231.79,
+            "h": 38.93
+          },
+          "text": "15*. Jism tezligining vaqtga bog‘lanish grafigi rasmda \nko‘rsatilgan. 1-, 2- va 3- nuqtalarga mos keluvchi \ntezlanishlarni taqqoslang."
+        },
+        {
+          "order": 5,
+          "bbox": {
+            "x": 28.32,
+            "y": 218.25,
+            "w": 192.29,
+            "h": 22.49
+          },
+          "text": "A) 1,5.      B) 1.     C) 2.     D) 0,75.     E) 0,5."
+        },
+        {
+          "order": 6,
+          "bbox": {
+            "x": 311.93,
+            "y": 218.01,
+            "w": 218.57,
+            "h": 37.61
+          },
+          "text": "A) 𝑎1<𝑎2<𝑎3.     B) 𝑎2>𝑎1>𝑎3.      C) 𝑎1=𝑎2=𝑎3.  \nD) 𝑎1>𝑎2>𝑎3.      E) 𝑎2<𝑎1<𝑎3."
+        },
+        {
+          "order": 7,
+          "bbox": {
+            "x": 28.32,
+            "y": 246.57,
+            "w": 250.5,
+            "h": 25.88
+          },
+          "text": "10. Rasmdagi grafikdan foydalanib, to‘g‘ri chiziqli harakat \nqilayotgan jismning tezlanishini toping (m/s2)."
+        },
+        {
+          "order": 8,
+          "bbox": {
+            "x": 311.93,
+            "y": 259.92,
+            "w": 243.78,
+            "h": 25.85
+          },
+          "text": "16. Tezlanish grafigi chizmada keltirilgan jism harakatini \nchizma qismlari bo‘yicha tavsiflang."
+        },
+        {
+          "order": 9,
+          "bbox": {
+            "x": 28.32,
+            "y": 343.56,
+            "w": 172.49,
+            "h": 22.37
+          },
+          "text": "A) 1.     B) 2.     C) 3.     D) 4.     E) 6."
+        },
+        {
+          "order": 10,
+          "bbox": {
+            "x": 28.32,
+            "y": 371.76,
+            "w": 250.5,
+            "h": 38.93
+          },
+          "text": "11. Rasmdagi grafikdan foydalanib, to‘g‘ri chiziqli harakat \nqilayotgan jismning t=4,73 s dagi tezlanishini aniqlang \n(m/s2)."
+        },
+        {
+          "order": 11,
+          "bbox": {
+            "x": 28.32,
+            "y": 483.26,
+            "w": 187.01,
+            "h": 22.49
+          },
+          "text": "A) 15.     B) 10.     C) 7,5.     D) 5.     E) 2,5."
+        },
+        {
+          "order": 12,
+          "bbox": {
+            "x": 311.93,
+            "y": 361.92,
+            "w": 240.05,
+            "h": 152.83
+          },
+          "text": "A) 1, 5 - tinch holat; 3, 4 - tekis harakat; 2 - tekis \ntezlanuvchan harakat. \nB) 3, 4 - tezlanuvchan harakat; 1, 5 - tekis harakat; \n2 - tekis tezlanuvchan harakat. \nC) 2 - tezlanuvchan harakat; 3, 4 - tekis harakat; \n1, 5 - tekis tezlanuvchan harakat. \nD) 2 - tezlanuvchan harakat; 1, 5 - tekis harakat; \n3 - tekis tezlanuvchan harakat; 4 - tekis sekinlanuvchan \nharakat. \nE) 1, 3, 5 - tekis harakat; 2 - tekis tezlanuvchan harakat;  \n4 - tekis sekinlanuvchan harakat."
+        },
+        {
+          "order": 13,
+          "bbox": {
+            "x": 28.32,
+            "y": 511.58,
+            "w": 248.69,
+            "h": 25.85
+          },
+          "text": "12. Tezlik modulining vaqtga bog‘lanish grafigidan \nfoydalanib, t = 1,26 s paytdagi tezlanishni aniqlang (m/s2)."
+        },
+        {
+          "order": 14,
+          "bbox": {
+            "x": 311.93,
+            "y": 520.58,
+            "w": 235.01,
+            "h": 38.93
+          },
+          "text": "17. Moddiy nuqta tezligining vaqtga bog‘lanishi \n1-rasmdagidek bo‘lsa, tezlanishning vaqtga bog‘lanishi \n2-6 rasmlarning qaysi birida to‘g‘ri tasvirlangan?"
+        },
+        {
+          "order": 15,
+          "bbox": {
+            "x": 28.32,
+            "y": 610.58,
+            "w": 179.09,
+            "h": 22.52
+          },
+          "text": "A) 5.     B) 7,5.     C) 10.     D) 30.     E) 2."
+        },
+        {
+          "order": 16,
+          "bbox": {
+            "x": 28.32,
+            "y": 638.93,
+            "w": 241.47,
+            "h": 25.85
+          },
+          "text": "13. Quyidagi grafikdagi 𝛼 burchak tangensi qanday fizik \nma’noga ega?"
+        },
+        {
+          "order": 17,
+          "bbox": {
+            "x": 311.93,
+            "y": 713.09,
+            "w": 257.83,
+            "h": 22.49
+          },
+          "text": "A) 2.     B) 4.     C) 5.     D) 6.       E) 3."
+        },
+        {
+          "order": 18,
+          "bbox": {
+            "x": 311.93,
+            "y": 741.41,
+            "w": 219.89,
+            "h": 26.15
+          },
+          "text": "18. Rasmda keltirilgan tezlik grafigidan foydalanib  \n𝑣 = 𝑣(𝑡) bog‘lanish tenglamasini yozing."
+        },
+        {
+          "order": 19,
+          "bbox": {
+            "x": 28.32,
+            "y": 734.33,
+            "w": 185.57,
+            "h": 35.45
+          },
+          "text": "A) tezlanish o‘zgarishi.    B) tezlanish.    \nC) tezlik o‘zgarishi.    D) tezlik.      E) vaqt."
+        },
+        {
+          "order": 20,
+          "bbox": {
+            "x": 28.32,
+            "y": 775.61,
+            "w": 240.87,
+            "h": 25.85
+          },
+          "text": "14. Quyidagi grafikdan foydalanib, jismning tezlanishini \naniqlang (m/s2)."
+        }
+      ],
+      "images": [
+        {
+          "file": "rasmlar/rasm_1360.png",
+          "bbox": {
+            "x": 107.05,
+            "y": 29.99,
+            "w": 97.75,
+            "h": 78.13
+          },
+          "order": 0
+        },
+        {
+          "file": "rasmlar/rasm_1366.png",
+          "bbox": {
+            "x": 398.93,
+            "y": 29.99,
+            "w": 80.65,
+            "h": 75.74
+          },
+          "order": 1
+        },
+        {
+          "file": "rasmlar/rasm_1361.png",
+          "bbox": {
+            "x": 119.65,
+            "y": 153.81,
+            "w": 72.54,
+            "h": 73.85
+          },
+          "order": 2
+        },
+        {
+          "file": "rasmlar/rasm_1367.png",
+          "bbox": {
+            "x": 403.43,
+            "y": 164.44,
+            "w": 71.5,
+            "h": 62.68
+          },
+          "order": 3
+        },
+        {
+          "file": "rasmlar/rasm_1362.png",
+          "bbox": {
+            "x": 113.68,
+            "y": 273.33,
+            "w": 84.49,
+            "h": 79.5
+          },
+          "order": 4
+        },
+        {
+          "file": "rasmlar/rasm_1368.png",
+          "bbox": {
+            "x": 377.93,
+            "y": 286.65,
+            "w": 123.0,
+            "h": 84.63
+          },
+          "order": 5
+        },
+        {
+          "file": "rasmlar/rasm_1363.png",
+          "bbox": {
+            "x": 110.93,
+            "y": 411.53,
+            "w": 89.83,
+            "h": 81.1
+          },
+          "order": 6
+        },
+        {
+          "file": "rasmlar/rasm_1364.png",
+          "bbox": {
+            "x": 111.68,
+            "y": 538.31,
+            "w": 88.24,
+            "h": 81.65
+          },
+          "order": 7
+        },
+        {
+          "file": "rasmlar/rasm_1369.png",
+          "bbox": {
+            "x": 311.85,
+            "y": 560.3,
+            "w": 255.15,
+            "h": 162.15
+          },
+          "order": 8
+        },
+        {
+          "file": "rasmlar/rasm_1365.png",
+          "bbox": {
+            "x": 111.6,
+            "y": 665.63,
+            "w": 88.63,
+            "h": 77.7
+          },
+          "order": 9
+        }
+      ]
+    },
+    {
+      "page": 24,
+      "width": 595.32,
+      "height": 841.92,
+      "pageImage": "sahifalar/sahifa_24.png",
+      "blocks": [
+        {
+          "order": 0,
+          "bbox": {
+            "x": 28.32,
+            "y": 7.46,
+            "w": 471.77,
+            "h": 22.37
+          },
+          "text": "~ 24 ~ \nInnova o‘quv markazi \n         \nSardor Berdiyev"
+        },
+        {
+          "order": 1,
+          "bbox": {
+            "x": 311.93,
+            "y": 93.09,
+            "w": 182.69,
+            "h": 22.49
+          },
+          "text": "A) 11.     B) 13.    C) 19.      D) 10.     E) 5."
+        },
+        {
+          "order": 2,
+          "bbox": {
+            "x": 28.32,
+            "y": 106.17,
+            "w": 246.29,
+            "h": 35.99
+          },
+          "text": "A) 𝑣= 8 – 2𝑡.        B) 𝑣 = 8 + 2𝑡.  \nC) 𝑣= 8 + 4𝑡.  \nD) 𝑣= 8 −2,5𝑡.       E) 𝑣= 8– 4𝑡."
+        },
+        {
+          "order": 3,
+          "bbox": {
+            "x": 311.93,
+            "y": 121.41,
+            "w": 250.39,
+            "h": 51.89
+          },
+          "text": "24. 1-rasmda jism tezlanishi proeksiyasining vaqt bo‘yicha \no‘zgarish grafigi keltirilgan. 2-6 rasmlarning \nqaysi birida jism tezligi proeksiyasining vaqt bo‘yicha \no‘zgarish grafigi to‘g‘ri ko‘rsatilgan?"
+        },
+        {
+          "order": 4,
+          "bbox": {
+            "x": 28.32,
+            "y": 147.93,
+            "w": 254.34,
+            "h": 25.85
+          },
+          "text": "19. Quyidagi grafikning 𝑣= 𝑣(𝑡) tenglamasi qaysi javobda \nto‘g‘ri ifodalangan?"
+        },
+        {
+          "order": 5,
+          "bbox": {
+            "x": 28.32,
+            "y": 256.89,
+            "w": 215.09,
+            "h": 49.34
+          },
+          "text": "A) 𝑣= 6– 15𝑡.   \nB) 𝑣= 15 + 2,5𝑡.  \n \nC) 𝑣= 15– 6𝑡.   \nD) 𝑣= 15– 2,5𝑡.  \n \nE) 𝑣= 15 + 6𝑡."
+        },
+        {
+          "order": 6,
+          "bbox": {
+            "x": 28.32,
+            "y": 312.0,
+            "w": 205.02,
+            "h": 25.85
+          },
+          "text": "20. Rasmdagi grafik uchun 𝑣= 𝑣(𝑡) bog‘lanish \ntenglamasini yozing."
+        },
+        {
+          "order": 7,
+          "bbox": {
+            "x": 311.93,
+            "y": 328.68,
+            "w": 257.83,
+            "h": 22.37
+          },
+          "text": "A) 6.     B) 5.     C) 4.     D) 3.      E) 2."
+        },
+        {
+          "order": 8,
+          "bbox": {
+            "x": 311.93,
+            "y": 356.88,
+            "w": 246.16,
+            "h": 38.93
+          },
+          "text": "25. Rasmda to‘g‘ri chiziqli harakat qilayotgan jismning \ntezlik grafigi keltirilgan. Bu harakatning tezlik tenglamasi \nqanday bo‘ladi?"
+        },
+        {
+          "order": 9,
+          "bbox": {
+            "x": 28.32,
+            "y": 413.28,
+            "w": 190.25,
+            "h": 50.07
+          },
+          "text": "A) 𝑣= 15– 5𝑡.   \nB) 𝑣= 15– 3𝑡.   \nD) 𝑣= 15 + 3𝑡.  \nC) 𝑣= 15 + 5𝑡. \nE) 𝑣= 3 + 15𝑡."
+        },
+        {
+          "order": 10,
+          "bbox": {
+            "x": 28.32,
+            "y": 468.5,
+            "w": 221.69,
+            "h": 11.69
+          },
+          "text": "21. Rasmdagi shtrixlangan yuza nimani ifodalaydi?"
+        },
+        {
+          "order": 11,
+          "bbox": {
+            "x": 311.93,
+            "y": 461.54,
+            "w": 250.49,
+            "h": 36.11
+          },
+          "text": "A) 𝑣= 1 + 2𝑡.     B) 𝑣= 1 + 𝑡.     C) 𝑣= 2 + 2𝑡.  \n \nD) 𝑣= 1– 2𝑡.       E) 𝑣= 2 + 𝑡."
+        },
+        {
+          "order": 12,
+          "bbox": {
+            "x": 311.93,
+            "y": 503.42,
+            "w": 227.82,
+            "h": 25.85
+          },
+          "text": "26. 𝑣= 𝑣(𝑡) grafikdan foydalanib, 𝑎= 𝑎(𝑡) grafikni \nchizing."
+        },
+        {
+          "order": 13,
+          "bbox": {
+            "x": 28.32,
+            "y": 547.82,
+            "w": 232.49,
+            "h": 35.57
+          },
+          "text": "A) tezlanishni.       B) tezlikni.    C) tezlik o‘zgarishini. \nD) yo‘lni. E) koordinata o‘zgarishini."
+        },
+        {
+          "order": 14,
+          "bbox": {
+            "x": 28.32,
+            "y": 589.1,
+            "w": 248.81,
+            "h": 25.97
+          },
+          "text": "22. Berilgan grafikdan foydalanib, 5-sekund oxiridagi \ntezlikni toping (m/s). Boshlang‘ich tezlik 36 km/h ga teng."
+        },
+        {
+          "order": 15,
+          "bbox": {
+            "x": 311.93,
+            "y": 610.7,
+            "w": 208.25,
+            "h": 22.52
+          },
+          "text": "A) 5.    B) 2.    C) 3.     D) 4.     E) 1."
+        },
+        {
+          "order": 16,
+          "bbox": {
+            "x": 311.93,
+            "y": 639.05,
+            "w": 232.61,
+            "h": 38.93
+          },
+          "text": "27. Rasmda jism tezligining vaqtga bog‘lanish grafigi \nberilgan. grafikdan foydalanib, jism tezlanishini (m/s2) \naniqlang."
+        },
+        {
+          "order": 17,
+          "bbox": {
+            "x": 28.32,
+            "y": 677.09,
+            "w": 194.93,
+            "h": 22.49
+          },
+          "text": "A) 10.     B) 15.     C) 20.     D) 30.     E) 50."
+        },
+        {
+          "order": 18,
+          "bbox": {
+            "x": 28.32,
+            "y": 705.41,
+            "w": 245.07,
+            "h": 51.89
+          },
+          "text": "23. Quyidagi jism tezlanishining vaqtga bog‘liqlik grafigi \nkeltirilgan. t=0 s bo‘lgan paytda jismning tezligi 1 m/s \nbo‘lsa, t=4 s paytdagi jism tezligi nimaga teng bo‘ladi \n(m/s)?"
+        },
+        {
+          "order": 19,
+          "bbox": {
+            "x": 311.93,
+            "y": 744.53,
+            "w": 192.53,
+            "h": 22.37
+          },
+          "text": "A) -0,5.      B) 1.     C) -2 .     D) -l,5.     E) 2."
+        },
+        {
+          "order": 20,
+          "bbox": {
+            "x": 311.93,
+            "y": 772.73,
+            "w": 237.55,
+            "h": 25.97
+          },
+          "text": "28. Berilgan grafikdan foydalanib, tezlanishini aniqlang \n(m/s2)."
+        }
+      ],
+      "images": [
+        {
+          "file": "rasmlar/rasm_1373.png",
+          "bbox": {
+            "x": 77.18,
+            "y": 29.99,
+            "w": 157.35,
+            "h": 84.9
+          },
+          "order": 0
+        },
+        {
+          "file": "rasmlar/rasm_1378.png",
+          "bbox": {
+            "x": 386.93,
+            "y": 29.99,
+            "w": 104.96,
+            "h": 72.5
+          },
+          "order": 1
+        },
+        {
+          "file": "rasmlar/rasm_1379.png",
+          "bbox": {
+            "x": 311.85,
+            "y": 174.22,
+            "w": 255.1,
+            "h": 163.75
+          },
+          "order": 2
+        },
+        {
+          "file": "rasmlar/rasm_1374.png",
+          "bbox": {
+            "x": 90.68,
+            "y": 174.7,
+            "w": 130.4,
+            "h": 90.79
+          },
+          "order": 3
+        },
+        {
+          "file": "rasmlar/rasm_1375.png",
+          "bbox": {
+            "x": 95.85,
+            "y": 338.7,
+            "w": 120.14,
+            "h": 83.65
+          },
+          "order": 4
+        },
+        {
+          "file": "rasmlar/rasm_1380.png",
+          "bbox": {
+            "x": 406.13,
+            "y": 396.67,
+            "w": 66.59,
+            "h": 74.2
+          },
+          "order": 5
+        },
+        {
+          "file": "rasmlar/rasm_1376.png",
+          "bbox": {
+            "x": 101.18,
+            "y": 482.16,
+            "w": 109.34,
+            "h": 74.65
+          },
+          "order": 6
+        },
+        {
+          "file": "rasmlar/rasm_1381.png",
+          "bbox": {
+            "x": 361.43,
+            "y": 530.08,
+            "w": 155.63,
+            "h": 89.75
+          },
+          "order": 7
+        },
+        {
+          "file": "rasmlar/rasm_1377.png",
+          "bbox": {
+            "x": 91.18,
+            "y": 615.86,
+            "w": 129.48,
+            "h": 70.5
+          },
+          "order": 8
+        },
+        {
+          "file": "rasmlar/rasm_1382.png",
+          "bbox": {
+            "x": 401.63,
+            "y": 678.78,
+            "w": 75.6,
+            "h": 74.79
+          },
+          "order": 9
+        }
+      ]
+    }
+  ]
+}
