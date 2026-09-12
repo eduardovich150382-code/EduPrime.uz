@@ -115,7 +115,22 @@ describe("POST /api/teacher/import", () => {
     // noto'g'ri hisobga olib kelardi.
     await POST(post(VALID));
 
-    expect(checkImportQuotaMock).toHaveBeenCalledWith("user-1", "teacher-1");
+    expect(checkImportQuotaMock).toHaveBeenCalledWith("user-1", "teacher-1", "TEACHER");
+  });
+
+  it("rol SESSIYADAN uzatiladi — so'rov tanasidagi role e'tiborga olinmaydi", async () => {
+    // Aks holda har qanday ustoz `role: 'ADMIN'` yuborib kvotadan qutulardi.
+    await POST(post({ ...VALID, role: "ADMIN" }));
+
+    expect(checkImportQuotaMock).toHaveBeenCalledWith("user-1", "teacher-1", "TEACHER");
+  });
+
+  it("ADMIN sessiyasining roli kvota tekshiruviga o'tadi", async () => {
+    requireTeacherMock.mockReturnValue({ user: { id: "user-1", role: "ADMIN" }, error: null });
+
+    await POST(post(VALID));
+
+    expect(checkImportQuotaMock).toHaveBeenCalledWith("user-1", "teacher-1", "ADMIN");
   });
 
   it("http/https bo'lmagan fileUrl ni rad etadi", async () => {

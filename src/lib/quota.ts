@@ -2,6 +2,15 @@ import type { ImportStatus, Prisma } from '@prisma/client';
 import { db } from './db';
 import { hasActiveSubscription } from './access';
 import { tashkentDateKey, tashkentDayRangeUtc } from './date';
+import { FREE_DAILY_IMPORTS } from './import/constants';
+import type { UserRole } from '@/types';
+
+/**
+ * Import limiti muhit o'zgaruvchisidan o'qiladi va `lib/import/constants.ts`
+ * da parse qilinadi — bu yerda faqat qayta eksport: mavjud chaqiruvchilar va
+ * testlar kvota konstantalarini shu moduldan olishga o'rgangan.
+ */
+export { FREE_DAILY_IMPORTS };
 
 /**
  * Bepul foydalanuvchi uchun kunlik cheklovlar (S17). Kun — Tashkent
@@ -12,7 +21,6 @@ import { tashkentDateKey, tashkentDayRangeUtc } from './date';
 export const FREE_DAILY_BUILT_TESTS = 3;
 export const FREE_DAILY_SOLUTIONS = 10;
 export const FREE_DAILY_AI_EXPLAIN = 3;
-export const FREE_DAILY_IMPORTS = 2;
 
 /** `DailyUsage.date` (`@db.Date`) ustuniga yoziladigan qiymat — Postgres
  * faqat sana qismini saqlaydi, vaqt qismi e'tiborga olinmaydi, shuning
@@ -21,12 +29,17 @@ function dailyUsageDate(dateKey: string): Date {
   return new Date(`${dateKey}T00:00:00.000Z`);
 }
 
+/** Faol PREMIUM/TEACHER_PLAN obunachi — kvota cheklovi yo'q. */
+async function hasUnlimitedSubscription(userId: string): Promise<boolean> {
+  const { premium, teacher } = await hasActiveSubscription(userId);
+  return premium || teacher;
+}
+
 /** ADMIN yoki faol PREMIUM/TEACHER_PLAN obunachi — kvota cheklovi yo'q. */
 async function isUnlimited(userId: string): Promise<boolean> {
   const user = await db.user.findUnique({ where: { id: userId }, select: { role: true } });
   if (user?.role === 'ADMIN') return true;
-  const { premium, teacher } = await hasActiveSubscription(userId);
-  return premium || teacher;
+  return hasUnlimitedSubscription(userId);
 }
 
 type QuotaField = 'builtTests' | 'dtmOnline' | 'solutionsUnlocked' | 'tutorMessages' | 'imports';
@@ -155,11 +168,16 @@ export async function consumeTutorMessage(userId: string): Promise<ConsumeQuotaR
  * tashlaydi. Bu esa `DailyUsage.imports` bilan birga zaxirada qoldirilgan.
  */
 export async function consumeImport(userId: string): Promise<ConsumeQuotaResult> {
-  if (await isUnlimited(userId)) {
-    return { allowed: true, usedToday: 0, limit: null };
-  }
+  const unlimited = await isUnlimited(userId);
+  // Cheklovsiz foydalanuvchi uchun ham hisoblagich oshiriladi — `DailyUsage`
+  // faqat to'sish uchun emas, "bugun nechta import bo'ldi" metrikasi uchun
+  // ham o'qiladi. Ilgari bu yerdan darhol qaytilardi va admin (ya'ni
+  // platforma egasining o'z sinovlari) hisobda ko'rinmay qolardi.
   const dateKey = tashkentDateKey();
   const used = await bumpDailyUsage(userId, dateKey, 'imports');
+  if (unlimited) {
+    return { allowed: true, usedToday: used, limit: null };
+  }
   if (used > FREE_DAILY_IMPORTS) {
     return { allowed: false, usedToday: FREE_DAILY_IMPORTS, limit: FREE_DAILY_IMPORTS };
   }
@@ -219,11 +237,23 @@ export function importJobCountsAgainstQuota(job: ImportQuotaJob, now: Date = new
  *
  * `teacherId` alohida beriladi — `ImportJob.teacherId` bu `Teacher.id`,
  * `User.id` emas, kvota chegarasi esa foydalanuvchiga bog'langan.
+ *
+ * `role` — FAQAT sessiyadan (`requireTeacher().user.role`) berilishi shart,
+ * so'rov tanasidan emas: aks holda har qanday ustoz `role: 'ADMIN'` yuborib
+ * kvotadan o'zini ozod qilib olardi.
+ *
+ * Cheklovsiz foydalanuvchi (ADMIN yoki obunachi) uchun `limit: null`
+ * qaytadi, lekin `usedToday` HAQIQIY son bo'ladi — job qatorlari baribir
+ * sanaladi. Sabab: platforma egasi o'z tizimini sinayotganda to'silmasligi
+ * kerak, lekin "bugun nechta import bo'ldi" ko'rsatuvi yo'qolmasin.
  */
-export async function checkImportQuota(userId: string, teacherId: string): Promise<ConsumeQuotaResult> {
-  if (await isUnlimited(userId)) {
-    return { allowed: true, usedToday: 0, limit: null };
-  }
+export async function checkImportQuota(
+  userId: string,
+  teacherId: string,
+  role: UserRole,
+): Promise<ConsumeQuotaResult> {
+  // ADMIN uchun obuna so'rovi umuman yuborilmaydi — natija baribir bir xil.
+  const unlimited = role === 'ADMIN' || (await hasUnlimitedSubscription(userId));
 
   const { start, end } = tashkentDayRangeUtc(0);
   const jobs = await db.importJob.findMany({
@@ -232,6 +262,9 @@ export async function checkImportQuota(userId: string, teacherId: string): Promi
   });
 
   const used = jobs.filter((job) => importJobCountsAgainstQuota(job)).length;
+  if (unlimited) {
+    return { allowed: true, usedToday: used, limit: null };
+  }
   if (used >= FREE_DAILY_IMPORTS) {
     return { allowed: false, usedToday: FREE_DAILY_IMPORTS, limit: FREE_DAILY_IMPORTS };
   }

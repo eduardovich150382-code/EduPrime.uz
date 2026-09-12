@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Fan topilmadi' }, { status: 400 });
     }
 
-    const quota = await checkImportQuota(user.id, teacher.id);
+    const quota = await checkImportQuota(user.id, teacher.id, user.role);
     if (!quota.allowed) {
       return NextResponse.json(
         {

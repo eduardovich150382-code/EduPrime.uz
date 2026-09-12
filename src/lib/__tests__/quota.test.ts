@@ -503,7 +503,7 @@ describe("consumeImport", () => {
     expect(other).toEqual({ allowed: true, usedToday: 1, limit: FREE_DAILY_IMPORTS });
   });
 
-  it("PREMIUM obunachi uchun cheklovsiz — DailyUsage yozuvi ochilmaydi", async () => {
+  it("PREMIUM obunachi to'silmaydi, lekin hisobga olinadi", async () => {
     vi.setSystemTime(new Date("2026-09-10T10:00:00.000Z"));
     fakeDb.__subscriptions.push({
       userId: "user-prem",
@@ -512,14 +512,29 @@ describe("consumeImport", () => {
       plan: "PREMIUM",
     });
     const r = await consumeImport("user-prem");
-    expect(r).toEqual({ allowed: true, usedToday: 0, limit: null });
-    expect(fakeDb.__dailyUsage.size).toBe(0);
+    expect(r).toEqual({ allowed: true, usedToday: 1, limit: null });
   });
 
-  it("ADMIN uchun cheklovsiz", async () => {
+  it("ADMIN to'silmaydi va limitdan oshsa ham ruxsat oladi", async () => {
     vi.setSystemTime(new Date("2026-09-10T10:00:00.000Z"));
     fakeDb.__users.set("admin-imp", { role: "ADMIN" });
-    expect(await consumeImport("admin-imp")).toEqual({ allowed: true, usedToday: 0, limit: null });
+    expect(await consumeImport("admin-imp")).toEqual({ allowed: true, usedToday: 1, limit: null });
+
+    for (let i = 0; i < FREE_DAILY_IMPORTS + 3; i++) await consumeImport("admin-imp");
+    const over = await consumeImport("admin-imp");
+    expect(over.allowed).toBe(true);
+    expect(over.limit).toBeNull();
+  });
+
+  it("ADMIN uchun ham DailyUsage yozuvi yaratiladi — metrikalar buzilmasin", async () => {
+    vi.setSystemTime(new Date("2026-09-10T10:00:00.000Z"));
+    fakeDb.__users.set("admin-metric", { role: "ADMIN" });
+    await consumeImport("admin-metric");
+    await consumeImport("admin-metric");
+
+    // Yozuv haqiqatda ochilgan va ikki marta oshgan.
+    expect(fakeDb.__dailyUsage.size).toBe(1);
+    expect((await consumeImport("admin-metric")).usedToday).toBe(3);
   });
 
   it("yangi kun boshlanganda hisoblagich noldan boshlanadi (Tashkent kuni bo'yicha)", async () => {
@@ -610,7 +625,7 @@ describe("checkImportQuota", () => {
 
   it("job umuman bo'lmaganda ruxsat beradi", async () => {
     vi.setSystemTime(TODAY);
-    expect(await checkImportQuota("user-q", "teacher-1")).toEqual({
+    expect(await checkImportQuota("user-q", "teacher-1", "USER")).toEqual({
       allowed: true,
       usedToday: 0,
       limit: FREE_DAILY_IMPORTS,
@@ -621,7 +636,7 @@ describe("checkImportQuota", () => {
     vi.setSystemTime(TODAY);
     for (let i = 0; i < FREE_DAILY_IMPORTS; i++) addJob();
 
-    expect(await checkImportQuota("user-q", "teacher-1")).toEqual({
+    expect(await checkImportQuota("user-q", "teacher-1", "USER")).toEqual({
       allowed: false,
       usedToday: FREE_DAILY_IMPORTS,
       limit: FREE_DAILY_IMPORTS,
@@ -635,7 +650,7 @@ describe("checkImportQuota", () => {
       addJob({ status: "PARSING", createdAt: stale, pagesDone: [1] });
     }
 
-    const result = await checkImportQuota("user-q", "teacher-1");
+    const result = await checkImportQuota("user-q", "teacher-1", "USER");
     expect(result.allowed).toBe(true);
     expect(result.usedToday).toBe(0);
   });
@@ -644,7 +659,7 @@ describe("checkImportQuota", () => {
     vi.setSystemTime(TODAY);
     for (let i = 0; i < FREE_DAILY_IMPORTS; i++) addJob({ teacherId: "teacher-2" });
 
-    expect((await checkImportQuota("user-q", "teacher-1")).allowed).toBe(true);
+    expect((await checkImportQuota("user-q", "teacher-1", "USER")).allowed).toBe(true);
   });
 
   it("kechagi importlar bugungi limitga kirmaydi", async () => {
@@ -654,17 +669,45 @@ describe("checkImportQuota", () => {
       addJob({ createdAt: new Date("2026-09-09T10:00:00.000Z") });
     }
 
-    expect((await checkImportQuota("user-q", "teacher-1")).allowed).toBe(true);
+    expect((await checkImportQuota("user-q", "teacher-1", "USER")).allowed).toBe(true);
   });
 
-  it("ADMIN uchun cheklovsiz — job qatorlari umuman o'qilmaydi", async () => {
+  it("ADMIN limitdan oshsa ham to'silmaydi, lekin haqiqiy hisob qaytadi", async () => {
     vi.setSystemTime(TODAY);
-    fakeDb.__users.set("admin-q", { role: "ADMIN" });
     for (let i = 0; i < 10; i++) addJob();
 
-    expect(await checkImportQuota("admin-q", "teacher-1")).toEqual({
+    // Oddiy foydalanuvchi aynan shu holatda to'siladi — solishtirish uchun.
+    expect((await checkImportQuota("admin-q", "teacher-1", "USER")).allowed).toBe(false);
+
+    expect(await checkImportQuota("admin-q", "teacher-1", "ADMIN")).toEqual({
       allowed: true,
-      usedToday: 0,
+      usedToday: 10,
+      limit: null,
+    });
+  });
+
+  it("ADMIN roli SESSIYADAN olinadi — bazadagi rol hisobga olinmaydi", async () => {
+    vi.setSystemTime(TODAY);
+    // Bazada ADMIN, lekin sessiya USER deydi — sessiya hal qiladi.
+    fakeDb.__users.set("user-q", { role: "ADMIN" });
+    for (let i = 0; i < FREE_DAILY_IMPORTS; i++) addJob();
+
+    expect((await checkImportQuota("user-q", "teacher-1", "USER")).allowed).toBe(false);
+  });
+
+  it("PREMIUM obunachi to'silmaydi, hisob esa haqiqiy qoladi", async () => {
+    vi.setSystemTime(TODAY);
+    fakeDb.__subscriptions.push({
+      userId: "user-q",
+      isActive: true,
+      endDate: new Date("2030-01-01"),
+      plan: "PREMIUM",
+    });
+    for (let i = 0; i < FREE_DAILY_IMPORTS + 1; i++) addJob();
+
+    expect(await checkImportQuota("user-q", "teacher-1", "USER")).toEqual({
+      allowed: true,
+      usedToday: FREE_DAILY_IMPORTS + 1,
       limit: null,
     });
   });
