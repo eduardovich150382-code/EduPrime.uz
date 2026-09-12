@@ -1,16 +1,14 @@
 import { unzipSync } from 'fflate';
 import { ASSET_JPEG_QUALITY, MAX_IMPORT_ASSET_BYTES } from './constants';
 import { shrinkPlan, type PixelSize } from './image-budget';
+import type { UploadGroup } from './grouping';
 import {
   MANIFEST_FILE,
   locateManifest,
   parseManifest,
-  toUploadGroup,
   type Manifest,
   type ManifestError,
   type ManifestPage,
-  type QuestionGroup,
-  type UploadGroup,
 } from './manifest';
 import type { BBox } from './types';
 
@@ -190,30 +188,21 @@ export async function uploadAsset(
   return data.assetId;
 }
 
-/** Bitta sahifaning savollarini yozadi va sahifani `pagesDone` ga qo'shadi. */
-export async function sendGroups(
-  jobId: string,
-  body: { page: number; pageImageAssetId: string | null; groups: UploadGroup[] },
-): Promise<void> {
-  const res = await fetch(`/api/teacher/import/${jobId}/blocks`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error(`blocks ${res.status}`);
+/** Bitta sahifa rasmlarini yuklash natijasi. */
+export interface PageAssets {
+  /** Manifestdagi rasm fayli → `ImportAsset.id`. */
+  assetIds: Map<string, string>;
+  pageImageAssetId: string | null;
+  images: number;
+  skipped: number;
 }
 
 /**
- * Bitta sahifani to'liq yuboradi: rasmlar (`FIGURE`), sahifa aksi (`PAGE`),
- * keyin savol guruhlari. Guruhlar OXIRIDA ketadi — `/blocks` sahifani
- * `pagesDone` ga qo'shadi, rasmlar esa undan oldin serverda bo'lishi kerak.
+ * Bitta sahifaning rasmlarini (`FIGURE`) va aksini (`PAGE`) yuklaydi.
+ * Savollar bu yerda YUBORILMAYDI — ular butun hujjat bo'yicha guruhlanadi va
+ * barcha sahifalardan keyin `sendGroups` bilan bir marta ketadi.
  */
-export async function uploadManifestPage(
-  jobId: string,
-  zip: ZipSource,
-  page: ManifestPage,
-  groups: QuestionGroup[],
-): Promise<{ images: number; skipped: number }> {
+export async function uploadPageAssets(jobId: string, zip: ZipSource, page: ManifestPage): Promise<PageAssets> {
   const paths = [...page.images.map((img) => img.file), ...(page.pageImage ? [page.pageImage] : [])];
   const files = extractFiles(zip, [...new Set(paths)]);
   let images = 0;
@@ -252,10 +241,32 @@ export async function uploadManifestPage(
     if (!pageImageAssetId) skipped++;
   }
 
-  await sendGroups(jobId, {
-    page: page.page,
-    pageImageAssetId,
-    groups: groups.map((g) => toUploadGroup(g, assetIds)),
-  });
-  return { images, skipped };
+  return { assetIds, pageImageAssetId, images, skipped };
 }
+
+/**
+ * Sahifani `pagesDone` ga qo'shadi. Rasmlari yuklangandan KEYIN chaqiriladi:
+ * belgilangan sahifa qayta ulanishda o'tkazib yuboriladi.
+ */
+export async function markPageDone(jobId: string, page: number): Promise<void> {
+  const res = await fetch(`/api/teacher/import/${jobId}/pages/${page}/done`, { method: 'POST' });
+  if (!res.ok) throw new Error(`pages/done ${res.status}`);
+}
+
+/**
+ * Butun hujjatning savollarini yozadi — barcha sahifalar `markPageDone`
+ * dan o'tgach, bir marta. Takroriy chaqiruv xavfsiz: server `order` bo'yicha
+ * upsert qiladi.
+ */
+export async function sendGroups(
+  jobId: string,
+  body: { groups: UploadGroup[]; pageImages: { page: number; assetId: string }[] },
+): Promise<void> {
+  const res = await fetch(`/api/teacher/import/${jobId}/blocks`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`blocks ${res.status}`);
+}
+
