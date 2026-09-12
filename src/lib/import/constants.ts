@@ -265,3 +265,50 @@ export const ASSET_SHRINK_STEP = 0.8;
  * yuboriladi — o'qib bo'lmaydigan rasmdan yo'q rasm yaxshi.
  */
 export const ASSET_MIN_LONG_SIDE_PX = 1200;
+
+// ---------------------------------------------------------------------------
+// Kunlik import kvotasi
+// ---------------------------------------------------------------------------
+
+/** `FREE_DAILY_IMPORTS` muhit o'zgaruvchisi berilmaganda ishlatiladigan qiymat. */
+export const DEFAULT_FREE_DAILY_IMPORTS = 2;
+
+/**
+ * Kunlik import limitini muhit o'zgaruvchisi satridan o'qiydi.
+ *
+ * Sof funksiya va alohida eksport qilinadi — parsing bitta joyda tursin va
+ * noto'g'ri qiymatlar (bo'sh satr, "abc", "0", "-1", "2.5") muhitni
+ * o'zgartirmasdan test qilinsin.
+ *
+ * Noto'g'ri qiymatda XATO BERMAYDI, zaxira qiymatga qaytadi: limit —
+ * biznes sozlamasi, muhitdagi bitta xato yozuv butun import marshrutini
+ * ishga tushmaydigan qilib qo'ymasligi kerak. Musbat butun son shart:
+ * 0 yoki manfiy qiymat importni butunlay to'sib qo'yardi (bunday niyat bo'lsa
+ * u alohida, ataylab qo'yilgan "o'chirish" bayrog'i bo'lishi kerak).
+ */
+export function parseDailyImportLimit(raw: string | undefined): number {
+  if (raw === undefined) return DEFAULT_FREE_DAILY_IMPORTS;
+  const trimmed = raw.trim();
+  // Number('') === 0 va Number(' 2 ') === 2 — shuning uchun bo'sh satr
+  // alohida chetlab o'tiladi, aks holda u 0 limit bo'lib qolardi.
+  if (trimmed === '') return DEFAULT_FREE_DAILY_IMPORTS;
+  const parsed = Number(trimmed);
+  if (!Number.isInteger(parsed) || parsed < 1) return DEFAULT_FREE_DAILY_IMPORTS;
+  return parsed;
+}
+
+/**
+ * Bepul foydalanuvchi uchun kunlik import limiti.
+ *
+ * Muhit o'zgaruvchisi bilan boshqariladi, chunki platforma egasi o'z
+ * tizimini sinayotganda limitni deploy qilmasdan ko'tarishi kerak bo'ladi.
+ * ADMIN roli baribir limitdan ozod (lib/quota.ts#checkImportQuota) —
+ * bu o'zgaruvchi qolgan hammaga tegishli.
+ *
+ * DIQQAT: bu faylni klient modullari ham import qiladi (`manifest-client.ts`,
+ * `pdf-client.ts`), `NEXT_PUBLIC_` bo'lmagan o'zgaruvchi esa klient
+ * to'plamida `undefined` bo'lib qoladi — ya'ni brauzerda bu doim zaxira
+ * qiymat. Kvota faqat serverda tekshirilgani uchun bu muhim emas, lekin
+ * limitni klientda ko'rsatish kerak bo'lsa u serverdan uzatilishi shart.
+ */
+export const FREE_DAILY_IMPORTS = parseDailyImportLimit(process.env.FREE_DAILY_IMPORTS);
