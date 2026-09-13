@@ -389,6 +389,11 @@
       "UNSAFE_PATH": "Manifestdagi fayl yo'li xavfli: ‘{detail}’.",
       "MISSING_FILE": "Manifestda ko'rsatilgan fayl ZIP ichida yo'q: ‘{detail}’.",
       "NOT_PNG": "Faqat PNG rasm qabul qilinadi: ‘{detail}’."
-    }
+    },
+    "progressQuestions": "{done}/{total} savol",
+    "stageStructure": "Savollar tuzilmoqda",
+    "errorStructure": "Savollarni tuzish uzildi. Tayyor bo'lganlari saqlandi — qaytadan urinib ko'ring.",
+    "resumeFound": "Tugallanmagan import topildi. Savollarni tuzishni davom ettirish mumkin.",
+    "resumeStructure": "Davom ettirish"
   }
 }

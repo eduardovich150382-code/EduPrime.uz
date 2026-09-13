@@ -28,10 +28,31 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
+const KEY_SOURCE_KINDS = ['inline', 'page-key', 'table'];
+const KEY_ISSUES = ['KEY_AMBIGUOUS', 'NO_KEY_FOUND'];
+
+/**
+ * Naqsh bilan topilgan javob kaliti (lib/import/answer-key.ts). Harf A–H:
+ * ko'p to'plamda A–E, lekin ba'zi turk kitoblarida sakkizta variant bor.
+ */
+function isAnswerKey(value: unknown): boolean {
+  if (value === null || value === undefined) return true;
+  if (!isRecord(value)) return false;
+  if (typeof value.letter !== 'string' || !/^[A-H]$/.test(value.letter)) return false;
+  const source = value.source;
+  return isRecord(source) && isPage(source.page) && KEY_SOURCE_KINDS.includes(source.kind as string);
+}
+
 /** Kelgan JSON haqiqatan UploadGroup shaklidami (lib/import/grouping.ts). */
 function isUploadGroup(value: unknown): value is UploadGroup {
   if (!isRecord(value)) return false;
   const g = value;
+  if (!isAnswerKey(g.answerKey)) return false;
+  if (g.notQuestion !== undefined && typeof g.notQuestion !== 'boolean') return false;
+  if (g.issues !== undefined) {
+    if (!Array.isArray(g.issues)) return false;
+    if (!g.issues.every((i: unknown) => typeof i === 'string' && KEY_ISSUES.includes(i))) return false;
+  }
   if (!Number.isInteger(g.order) || (g.order as number) < 0) return false;
   if (g.number !== null && !Number.isInteger(g.number)) return false;
   if (typeof g.text !== 'string') return false;
@@ -145,6 +166,12 @@ export async function POST(
         regions: group.regions,
         images,
         pageImages: groupPageImages,
+        // Kalit naqsh bilan KLIENTDA topiladi: u ko'pincha `preamble` yoki
+        // kolontitul blokida turadi, ular esa bazaga umuman yozilmaydi.
+        // Manbasi ham saqlanadi — ustoz "bu javob qayerdan olindi" deb
+        // ko'rsin va noto'g'ri betdan olingan kalit shu orqali ushlansin.
+        answerKey: group.answerKey ?? null,
+        notQuestion: group.notQuestion === true,
       } as unknown as Prisma.InputJsonValue;
       const common = {
         raw,
@@ -152,7 +179,11 @@ export async function POST(
         text: group.text,
         options: [],
         optionsOriginal: [],
+        // Kalit topilgan bo'lsa ham bu yerga YOZILMAYDI: harf strukturalash
+        // bosqichida modelning mustaqil yechimi bilan tekshiriladi va javob
+        // o'sha yerda qo'yiladi.
         correctAnswer: '',
+        issues: (group.issues ?? []) as unknown as Prisma.InputJsonValue,
         sourcePage: group.startPage,
         sourceBbox: startRegion.bbox as unknown as Prisma.InputJsonValue,
       };

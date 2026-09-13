@@ -1,3 +1,11 @@
+import {
+  extractInlineAnswer,
+  isKeyBlock,
+  resolveAnswer,
+  type KeyBlock,
+  type KeyIssue,
+  type ResolvedAnswer,
+} from './answer-key';
 import { FULL_WIDTH_ROW_RATIO } from './constants';
 import {
   centerX,
@@ -74,6 +82,16 @@ export interface UploadGroup {
   /** Har sahifadagi bloklar va rasmlar qamrovi — ko'p sahifali savolda bir nechta. */
   regions: { page: number; bbox: BBox }[];
   images: { assetId: string; page: number; bbox: BBox }[];
+  /**
+   * Naqsh bilan topilgan javob kaliti (answer-key.ts). Manbasi ham saqlanadi:
+   * ustoz ko'rib chiqishda "bu javob qayerdan olindi" deb ko'ra olishi kerak,
+   * va kalit noto'g'ri betdan olingan holat shu orqali ushlanadi.
+   * Topilmasa `null` — bo'sh satr yoki taxmin qilingan harf EMAS.
+   */
+  answerKey?: ResolvedAnswer | null;
+  /** Blok savol emas (javob kaliti qatori) — strukturalashga yuborilmaydi. */
+  notQuestion?: boolean;
+  issues?: KeyIssue[];
 }
 
 // ---------------------------------------------------------------------------
@@ -347,24 +365,50 @@ export function questionRegions(q: QuestionDraft): UploadGroup['regions'] {
  * Savolni marshrut shakliga o'giradi: rasm fayli → yuklangan asset.
  * Yuklanmagan (juda katta, rad etilgan) rasm tushirib qoldiriladi — savol
  * rasmsiz qoladi, lekin butun import to'xtab qolmaydi.
+ *
+ * `keys` — `findAnswerKeys(flattenBlocks(manifest))` natijasi. Butun hujjat
+ * bo'ylab qidirilgan bo'lishi shart: kalit savol bloklarida emas, `preamble`
+ * yoki kolontitulda turishi mumkin.
  */
 export function toUploadGroup(
   q: QuestionDraft,
   order: number,
   assetIds: ReadonlyMap<string, string>,
+  keys: readonly KeyBlock[] = [],
 ): UploadGroup {
   const images: UploadGroup['images'] = [];
   for (const image of q.images) {
     const assetId = assetIds.get(image.file);
     if (assetId) images.push({ assetId, page: image.page, bbox: image.bbox });
   }
+
+  // Matn ichidagi "ans: B" eng ustun manba — u savolning O'ZIDA turibdi,
+  // uzoqdagi jadvaldan ishonchliroq. Topilsa matndan olib tashlanadi.
+  let text = questionText(q);
+  const inline = extractInlineAnswer(text);
+  let answerKey: ResolvedAnswer | null = null;
+  let issue: KeyIssue | null = null;
+  if (inline) {
+    text = inline.text;
+    answerKey = { letter: inline.letter, source: { page: q.startPage, kind: 'inline' } };
+  } else {
+    ({ answer: answerKey, issue } = resolveAnswer(q.number, q.startPage, keys));
+  }
+
+  // Kalit bloki savol chegarasi naqshiga tushib qolgan bo'lishi mumkin
+  // ("1. B  2.A ..." raqam bilan boshlanadi) — u savol emas.
+  const notQuestion = q.blocks.length > 0 && q.blocks.every((b) => isKeyBlock(b.text));
+
   return {
     order,
     number: q.number,
-    text: questionText(q),
+    text,
     startPage: q.startPage,
     endPage: q.endPage,
     regions: questionRegions(q),
     images,
+    answerKey,
+    notQuestion,
+    issues: issue ? [issue] : [],
   };
 }

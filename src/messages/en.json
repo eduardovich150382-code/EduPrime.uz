@@ -389,6 +389,11 @@
       "UNSAFE_PATH": "Unsafe file path in the manifest: “{detail}”.",
       "MISSING_FILE": "A file listed in the manifest is missing from the ZIP: “{detail}”.",
       "NOT_PNG": "Only PNG images are accepted: “{detail}”."
-    }
+    },
+    "progressQuestions": "{done}/{total} questions",
+    "stageStructure": "Structuring questions",
+    "errorStructure": "Structuring was interrupted. Finished questions are saved — please try again.",
+    "resumeFound": "An unfinished import was found. You can continue structuring the questions.",
+    "resumeStructure": "Continue"
   }
 }
