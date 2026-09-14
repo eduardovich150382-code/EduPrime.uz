@@ -1,7 +1,7 @@
 import type { ResponseSchema } from '@google/generative-ai';
 import { SchemaType } from '@google/generative-ai';
 import type { KeyIssue, ResolvedAnswer } from './answer-key';
-import { STRUCTURE_CONCURRENCY, withRetry, type RetryOptions } from './structure-error';
+import { STRUCTURE_CONCURRENCY, TimeBudgetError, withRetry, type RetryOptions } from './structure-error';
 import type { BBox } from './types';
 
 /**
@@ -73,9 +73,28 @@ export interface StructureOutcome {
   failed: boolean;
   /** Yiqilish sababi — marshrut uni `raw.lastError` ga yozadi. */
   error?: unknown;
+  /**
+   * Vaqt yetmagani uchun bajarilmadi — bu YIQILISH EMAS.
+   *
+   * Marshrut bunday blokka umuman tegmaydi: u `BLOCK` bosqichida qoladi va
+   * keyingi so'rovda yangidan uriniladi.
+   */
+  deferred?: boolean;
 }
 
-export type ModelCaller = (input: StructureInput) => Promise<{ json: unknown; tokens: number }>;
+/** Paketning natijasi va uning vaqt o'lchovlari. */
+export interface StructureBatchResult {
+  outcomes: StructureOutcome[];
+  /** Nechta to'lqin bajarildi — klient konsoliga chiqadigan o'lchov. */
+  batches: number;
+  /** Muddat tugagani uchun qolgan bloklarga tegilmadimi. */
+  deadlineHit: boolean;
+}
+
+export type ModelCaller = (
+  input: StructureInput,
+  signal?: AbortSignal,
+) => Promise<{ json: unknown; tokens: number }>;
 
 /**
  * Bitta paketdagi parallel chaqiruvlar soni.
@@ -370,13 +389,17 @@ export async function structureBatch(
   call: ModelCaller,
   size: number = STRUCTURE_BATCH_SIZE,
   retry: RetryOptions = {},
-): Promise<StructureOutcome[]> {
+): Promise<StructureBatchResult> {
   const outcomes: StructureOutcome[] = [];
   const resilient = withRetry(call, retry);
+  const remaining = retry.remaining;
+  let batches = 0;
+  let deadlineHit = false;
 
   for (let start = 0; start < inputs.length; start += size) {
     const batch = inputs.slice(start, start + size);
     const settled = await Promise.allSettled(batch.map((input) => resilient(input)));
+    batches++;
 
     settled.forEach((result, index) => {
       const input = batch[index];
@@ -385,7 +408,8 @@ export async function structureBatch(
           order: input.order,
           question: null,
           tokens: 0,
-          failed: true,
+          failed: !(result.reason instanceof TimeBudgetError),
+          deferred: result.reason instanceof TimeBudgetError,
           error: result.reason,
         });
         return;
@@ -397,7 +421,16 @@ export async function structureBatch(
         failed: false,
       });
     });
+
+    // Muddat faqat to'lqinlar ORASIDA tekshiriladi: boshlangan chaqiruvlar
+    // tugaydi va natijasi yoziladi, aks holda Gemini'ga to'langan ish behuda
+    // ketardi. Qolgan bloklarga esa umuman tegilmaydi — marshrut ular uchun
+    // hech narsa yozmaydi va ular keyingi so'rovda olinadi.
+    if (remaining !== undefined && remaining() <= 0 && start + size < inputs.length) {
+      deadlineHit = true;
+      break;
+    }
   }
 
-  return outcomes;
+  return { outcomes, batches, deadlineHit };
 }

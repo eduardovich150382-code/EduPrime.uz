@@ -8,6 +8,7 @@ import {
   type ModelCaller,
   type StructureInput,
 } from "../structure";
+import { RETRY_RESERVE_MS, STRUCTURE_CALL_TIMEOUT_MS } from "../structure-error";
 
 function input(overrides: Partial<StructureInput> = {}): StructureInput {
   return {
@@ -190,7 +191,7 @@ describe("structureBatch", () => {
       return { json: ok(i.order), tokens: 100 };
     });
 
-    const outcomes = await structureBatch(inputs, call, undefined, noWait);
+    const { outcomes } = await structureBatch(inputs, call, undefined, noWait);
 
     expect(outcomes).toHaveLength(6);
     expect(outcomes.filter((o) => o.failed).map((o) => o.order)).toEqual([2]);
@@ -212,7 +213,7 @@ describe("structureBatch", () => {
       return { json: ok(i.order), tokens: 10 };
     };
 
-    const outcomes = await structureBatch([input({ order: 0 }), input({ order: 1 })], call, 6, noWait);
+    const { outcomes } = await structureBatch([input({ order: 0 }), input({ order: 1 })], call, 6, noWait);
 
     expect(attempts.get(0)).toBe(2);
     expect(outcomes.find((o) => o.order === 0)!.failed).toBe(false);
@@ -233,10 +234,89 @@ describe("structureBatch", () => {
       return { json: ok(i.order), tokens: 1 };
     };
 
-    const outcomes = await structureBatch(inputs, call, 6);
+    const { outcomes } = await structureBatch(inputs, call, 6);
 
     expect(outcomes.map((o) => o.order)).toEqual(inputs.map((i) => i.order));
     expect(peak).toBeLessThanOrEqual(6);
+  });
+
+  it("muddat tugaganda keyingi to'lqin BOSHLANMAYDI, boshlangani esa tugaydi", async () => {
+    const inputs = Array.from({ length: 12 }, (_, i) => input({ order: i }));
+    let left = 40000;
+    const call: ModelCaller = vi.fn(async (i: StructureInput) => {
+      // `await` SHART: usiz birinchi chaqiruv byudjetni qolgan beshtasi
+      // tekshiruvdan o'tishidan oldin tugatib qo'yardi.
+      await Promise.resolve();
+      left = -1;
+      return { json: ok(i.order), tokens: 1 };
+    });
+
+    const result = await structureBatch(inputs, call, 6, { ...noWait, remaining: () => left });
+
+    expect(call).toHaveBeenCalledTimes(6);
+    expect(result.batches).toBe(1);
+    expect(result.deadlineHit).toBe(true);
+    // To'lqin O'RTASIDA uzilmaydi: boshlangan oltitaning hammasi natijada bor.
+    expect(result.outcomes.map((o) => o.order)).toEqual([0, 1, 2, 3, 4, 5]);
+    expect(result.outcomes.every((o) => o.question !== null)).toBe(true);
+  });
+
+  it("hammasi ulgursa deadlineHit: false", async () => {
+    const inputs = Array.from({ length: 7 }, (_, i) => input({ order: i }));
+    const call: ModelCaller = async (i: StructureInput) => ({ json: ok(i.order), tokens: 1 });
+
+    const result = await structureBatch(inputs, call, 6, { ...noWait, remaining: () => 30000 });
+
+    expect(result.batches).toBe(2);
+    expect(result.deadlineHit).toBe(false);
+    expect(result.outcomes).toHaveLength(7);
+  });
+
+  it("vaqt yetmagan blok deferred bo'ladi, failed EMAS", async () => {
+    const call: ModelCaller = vi.fn(async () => ({ json: ok(0), tokens: 1 }));
+
+    const { outcomes } = await structureBatch([input({ order: 0 })], call, 6, {
+      ...noWait,
+      remaining: () => 1000,
+    });
+
+    // Byudjet zaxiradan kam — chaqiruv umuman qilinmaydi.
+    expect(call).not.toHaveBeenCalled();
+    expect(outcomes[0]).toMatchObject({ deferred: true, failed: false, question: null });
+  });
+
+  it("osilib qolgan chaqiruv o'z chegarasida uziladi va butun to'lqinni ushlamaydi", async () => {
+    const timers: { fn: () => void; ms: number }[] = [];
+    let left = 40000;
+    // Hech qachon javob qaytarmaydigan chaqiruv — faqat `abort` ga javob beradi.
+    const call: ModelCaller = vi.fn(
+      (_i: StructureInput, signal?: AbortSignal) =>
+        new Promise<{ json: unknown; tokens: number }>((_, reject) => {
+          signal?.addEventListener("abort", () =>
+            reject(Object.assign(new Error("Request aborted when fetching gemini"), { name: "AbortError" })),
+          );
+        }),
+    );
+
+    const promise = structureBatch([input({ order: 0 })], call, 6, {
+      ...noWait,
+      remaining: () => left,
+      setTimer: (fn, ms) => {
+        timers.push({ fn, ms });
+        return 0 as unknown as ReturnType<typeof setTimeout>;
+      },
+      clearTimer: () => {},
+    });
+
+    await Promise.resolve();
+    // Chegara: min(STRUCTURE_CALL_TIMEOUT_MS, byudjet - zaxira).
+    expect(timers[0].ms).toBe(Math.min(STRUCTURE_CALL_TIMEOUT_MS, 40000 - RETRY_RESERVE_MS));
+
+    left = 5000; // uzilgandan keyin qayta urinishga vaqt qolmadi
+    timers[0].fn();
+    const { outcomes } = await promise;
+
+    expect(outcomes[0]).toMatchObject({ deferred: true, failed: false });
   });
 });
 

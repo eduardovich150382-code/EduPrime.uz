@@ -393,6 +393,7 @@
     "progressQuestions": "{done}/{total} savol",
     "stageStructure": "Savollar tuzilmoqda",
     "errorStructure": "Savollarni tuzish uzildi. Tayyor bo'lganlari saqlandi — qaytadan urinib ko'ring.",
+    "errorStructureStalled": "Savollarni tuzish to'xtab qoldi — bitta ham savol tayyorlanmadi. Biroz kutib, qaytadan urinib ko'ring.",
     "resumeFound": "Tugallanmagan import topildi. Savollarni tuzishni davom ettirish mumkin.",
     "resumeStructure": "Davom ettirish"
   }

@@ -2,7 +2,7 @@ import type { Prisma } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import type { KeyIssue, ResolvedAnswer } from '@/lib/import/answer-key';
-import { toLastError, type LastError } from '@/lib/import/structure-error';
+import { STRUCTURE_BATCH, STRUCTURE_DEADLINE_MS, toLastError, type LastError } from '@/lib/import/structure-error';
 import { structureBatch, type StructureInput, type StructuredQuestion } from '@/lib/import/structure';
 import { createGeminiCaller, STRUCTURE_MODEL } from '@/lib/import/structure-model';
 import type { BBox } from '@/lib/import/types';
@@ -10,21 +10,14 @@ import { requireOwnedJob } from '@/lib/import-jobs';
 import { logger } from '@/lib/logger';
 
 /**
- * Bitta so'rovda strukturalanadigan blok soni.
- *
- * Vercel funksiyasining vaqt chegarasi bor, bitta Gemini chaqiruvi esa
- * sekundlar oladi. 20 blok — 6 talik uchta paket; qolgani `hasMore: true`
- * bilan klientga qaytariladi va u marshrutni qayta chaqiradi.
- */
-const BATCH = 20;
-
-/**
  * Funksiyaning vaqt chegarasi (soniya) — tarifdagi eng yuqori qiymat.
  *
- * Standart 10 soniya yetmaydi: 20 blok uchta paketga bo'linadi, har paketda
- * Gemini chaqiruvi sekundlar oladi, ustiga tezlik chegarasida qayta urinish
- * kutishi qo'shiladi. Javobdagi `elapsedMs` haqiqiy vaqtni o'lchaydi — agar u
- * chegaraga yaqinlashsa, `BATCH` ni kamaytirish kerak bo'ladi.
+ * Bu QATTIQ chegara: unga yetilsa Vercel funksiyani o'zi to'xtatadi, 504
+ * qaytadi va kod hech narsa yoza olmaydi — na natija, na `lastError`. Shuning
+ * uchun ish hajmi emas, VAQT boshqaradi: `STRUCTURE_DEADLINE_MS` (standart
+ * 40 s) shu chegaradan xavfsiz masofada turadi va har to'lqindan keyin
+ * tekshiriladi, har chaqiruvning esa o'z `AbortSignal` chegarasi bor.
+ * Blok soni (`STRUCTURE_BATCH`) — faqat qo'shimcha himoya.
  */
 export const maxDuration = 60;
 
@@ -43,6 +36,9 @@ const FAILED_SAMPLE = 3;
 
 /** Strukturalanmagan draftlar — `raw.stage` hali `BLOCK`. */
 const PENDING: Prisma.ImportDraftWhereInput = { raw: { path: ['stage'], equals: 'BLOCK' } };
+
+/** Tayyor bo'lgan draftlar — progressdagi `done` shular bo'yicha sanaladi. */
+const STRUCTURED: Prisma.ImportDraftWhereInput = { raw: { path: ['stage'], equals: 'STRUCTURED' } };
 
 interface RawBlock {
   images?: { assetId: string; url: string }[];
@@ -180,7 +176,7 @@ export async function POST(
     const pending = (await db.importDraft.findMany({
       where: { jobId: job.id, ...PENDING },
       orderBy: { order: 'asc' },
-      take: BATCH,
+      take: STRUCTURE_BATCH,
       select: { id: true, order: true, textOriginal: true, raw: true, issues: true },
     })) as PendingDraft[];
 
@@ -193,9 +189,15 @@ export async function POST(
     const skipped = pending.filter((d) => parseRaw(d.raw).notQuestion === true);
     const work = pending.filter((d) => parseRaw(d.raw).notQuestion !== true);
 
-    const outcomes = await structureBatch(
+    // Byudjetdan qolgan vaqt — `structureBatch` uni to'lqinlar orasida, `withRetry`
+    // esa har chaqiruv va har kutishdan oldin tekshiradi.
+    const remainingMs = () => STRUCTURE_DEADLINE_MS - (Date.now() - startedAt);
+
+    const { outcomes, batches, deadlineHit } = await structureBatch(
       work.map((d) => toInput(d, meta?.sourceLang ?? 'uz', meta?.subject?.nameUz ?? '')),
       createGeminiCaller(),
+      undefined,
+      { remaining: remainingMs },
     );
 
     const byOrder = new Map(work.map((d) => [d.order, d]));
@@ -212,11 +214,19 @@ export async function POST(
 
     let tokens = 0;
     let failed = 0;
+    let deferred = 0;
     const failedSample: { order: number; message: string }[] = [];
     for (const outcome of outcomes) {
       const draft = byOrder.get(outcome.order);
       if (!draft) continue;
       tokens += outcome.tokens;
+      // Vaqt yetmagani XATO EMAS: blokka umuman tegilmaydi — `attempts`
+      // oshmaydi, `STRUCTURE_FAILED` yozilmaydi, keyingi so'rovda yangidan
+      // uriniladi. To'lqinga yetib bormagan bloklar ham shu holatda qoladi.
+      if (outcome.deferred) {
+        deferred++;
+        continue;
+      }
       if (outcome.failed || !outcome.question) {
         failed++;
         const failure = failureData(draft, outcome.error);
@@ -256,25 +266,42 @@ export async function POST(
       await db.importJob.update({ where: { id: job.id }, data: { status: 'REVIEW' } });
     }
 
+    // Progress BUTUN job bo'yicha: `done` — haqiqatan strukturalangan bloklar.
+    // `total - remaining` hisobi yaramaydi, u `STRUCTURE_FAILED` bloklarni ham
+    // "tayyor" deb sanaydi.
+    const done = await db.importDraft.count({ where: { jobId: job.id, ...STRUCTURED } });
+
+    // Bitta ham blok yozilmagan so'rov — klient cheksiz aylanmasligi uchun
+    // to'xtashi va ustozga xabar berishi kerak.
+    const stalled = remaining > 0 && writes.length === 0;
+
     const elapsedMs = Date.now() - startedAt;
-    // Vaqt o'lchovi ataylab log'ga chiqadi: paket hajmi (20) funksiya
-    // chegarasiga sig'adimi — taxmin bilan emas, o'lchov bilan hal qilinadi.
+    // Vaqt o'lchovi ataylab log'ga chiqadi: muddat mexanizmi ishlayaptimi va
+    // bitta so'rovda nechta to'lqin ulgurmoqda — taxmin bilan emas, o'lchov
+    // bilan hal qilinadi.
     logger.info('Struktura paketi', {
       jobId: job.id,
       elapsedMs,
       blocks: pending.length,
-      done: total - remaining,
+      batches,
+      deadlineHit,
+      deferred,
+      stalled,
+      done,
       total,
       failed,
     });
 
     return NextResponse.json({
-      done: total - remaining,
+      done,
       total,
       hasMore: remaining > 0,
       failed,
       failedSample,
       elapsedMs,
+      batches,
+      deadlineHit,
+      stalled,
     });
   } catch (error) {
     logger.error('POST /api/teacher/import/[jobId]/structure error:', { error });

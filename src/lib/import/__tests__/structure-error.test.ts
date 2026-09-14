@@ -2,8 +2,14 @@ import { describe, expect, it, vi } from "vitest";
 import type { ModelCaller, StructureInput } from "../structure";
 import {
   isRetriableError,
+  parseStructureBatch,
+  parseStructureCallTimeoutMs,
   parseStructureConcurrency,
+  parseStructureDeadlineMs,
+  RETRY_RESERVE_MS,
   statusOf,
+  STRUCTURE_CALL_TIMEOUT_MS,
+  TimeBudgetError,
   toLastError,
   withRetry,
 } from "../structure-error";
@@ -24,6 +30,15 @@ describe("isRetriableError", () => {
     // Tarmoq xatosida sabab `code` da keladi, `message` da emas.
     expect(isRetriableError(Object.assign(new Error("reset"), { code: "ECONNRESET" }))).toBe(true);
     expect(isRetriableError(Object.assign(new Error("fetch failed"), { code: "UND_ERR_CONNECT_TIMEOUT" }))).toBe(true);
+  });
+
+  it("uzilgan chaqiruv qayta uriniladi, vaqt tugagani esa yo'q", () => {
+    // Gemini SDK uzilishni o'z sinfiga o'raydi va `name` yo'qoladi —
+    // shuning uchun xabar matni ham hisobga olinadi.
+    expect(isRetriableError(Object.assign(new Error("boom"), { name: "AbortError" }))).toBe(true);
+    expect(isRetriableError(new Error("Request aborted when fetching https://x"))).toBe(true);
+    // Vaqt tugagan — kutib qayta urinishning ma'nosi yo'q.
+    expect(isRetriableError(new TimeBudgetError())).toBe(false);
   });
 
   it("400 va sxema xatosi qayta urinilmaydi", () => {
@@ -84,6 +99,71 @@ describe("withRetry", () => {
 
     expect(call).toHaveBeenCalledTimes(1);
     expect(sleep).not.toHaveBeenCalled();
+  });
+
+  it("byudjet tugagan bo'lsa chaqiruv UMUMAN boshlanmaydi", async () => {
+    const call = vi.fn<ModelCaller>().mockResolvedValue({ json: {}, tokens: 0 });
+
+    await expect(withRetry(call, { remaining: () => RETRY_RESERVE_MS })(input)).rejects.toBeInstanceOf(
+      TimeBudgetError,
+    );
+
+    expect(call).not.toHaveBeenCalled();
+  });
+
+  it("kutishga vaqt yetmasa qayta urinilmaydi va xato TimeBudgetError bo'ladi", async () => {
+    const call = vi.fn<ModelCaller>().mockRejectedValue(httpError(429, "quota"));
+    const sleep = vi.fn().mockResolvedValue(undefined);
+    // Birinchi chaqiruvga yetadi, kutish + zaxiraga esa yo'q.
+    const remaining = () => RETRY_RESERVE_MS + 500;
+
+    const failure = await withRetry(call, { sleep, remaining, random: () => 0.5 })(input).catch((e) => e);
+
+    expect(failure).toBeInstanceOf(TimeBudgetError);
+    // Asl sabab yo'qolmaydi.
+    expect((failure as TimeBudgetError).cause).toMatchObject({ status: 429 });
+    expect(call).toHaveBeenCalledTimes(1);
+    expect(sleep).not.toHaveBeenCalled();
+  });
+
+  it("har chaqiruvga o'z chegarasi bilan signal beriladi va taymer tozalanadi", async () => {
+    const timers: { fn: () => void; ms: number }[] = [];
+    let cleared = 0;
+    const call = vi.fn<ModelCaller>().mockResolvedValue({ json: {}, tokens: 0 });
+
+    await withRetry(call, {
+      remaining: () => 100000,
+      setTimer: (fn, ms) => {
+        timers.push({ fn, ms });
+        return 0 as unknown as ReturnType<typeof setTimeout>;
+      },
+      clearTimer: () => {
+        cleared++;
+      },
+    })(input);
+
+    const signal = call.mock.calls[0][1]!;
+    expect(signal).toBeInstanceOf(AbortSignal);
+    expect(timers[0].ms).toBe(STRUCTURE_CALL_TIMEOUT_MS);
+    // Muvaffaqiyatli chaqiruvdan keyin taymer osilib qolmaydi.
+    expect(cleared).toBe(1);
+    expect(signal.aborted).toBe(false);
+  });
+
+  it("chegara byudjetdan oshmaydi", async () => {
+    const timers: number[] = [];
+    const call = vi.fn<ModelCaller>().mockResolvedValue({ json: {}, tokens: 0 });
+
+    await withRetry(call, {
+      remaining: () => RETRY_RESERVE_MS + 3000,
+      setTimer: (fn, ms) => {
+        timers.push(ms);
+        return 0 as unknown as ReturnType<typeof setTimeout>;
+      },
+      clearTimer: () => {},
+    })(input);
+
+    expect(timers[0]).toBe(3000);
   });
 
   it("jitter kutishni jadval atrofida tarqatadi", async () => {
@@ -156,6 +236,31 @@ describe("parseStructureConcurrency", () => {
     // Sozlama xatosi tufayli import butunlay to'xtab qolmasligi kerak.
     for (const raw of ["0", "11", "abc", "2.5", "-1"]) {
       expect(parseStructureConcurrency(raw)).toBe(6);
+    }
+  });
+});
+
+describe("vaqt sozlamalari", () => {
+  it("standart qiymatlar", () => {
+    expect(parseStructureDeadlineMs(undefined)).toBe(40000);
+    expect(parseStructureCallTimeoutMs(undefined)).toBe(25000);
+    expect(parseStructureBatch(undefined)).toBe(8);
+  });
+
+  it("to'g'ri qiymat o'qiladi", () => {
+    expect(parseStructureDeadlineMs(" 30000 ")).toBe(30000);
+    expect(parseStructureCallTimeoutMs("15000")).toBe(15000);
+    expect(parseStructureBatch("4")).toBe(4);
+  });
+
+  it("noto'g'ri qiymatda standartga qaytadi", () => {
+    // Sozlama xatosi tufayli import butunlay to'xtab qolmasligi kerak.
+    for (const raw of ["", "0", "4999", "60000", "abc", "10.5", "-1"]) {
+      expect(parseStructureDeadlineMs(raw)).toBe(40000);
+      expect(parseStructureCallTimeoutMs(raw)).toBe(25000);
+    }
+    for (const raw of ["", "0", "41", "abc", "2.5"]) {
+      expect(parseStructureBatch(raw)).toBe(8);
     }
   });
 });

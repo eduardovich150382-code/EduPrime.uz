@@ -14,8 +14,8 @@ export const STRUCTURE_MODEL = 'gemini-3.5-flash';
 /** Bitta rasmning eng katta hajmi — asset yuklashdagi chegara bilan bir xil. */
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
 
-async function fetchInline(url: string): Promise<Part | null> {
-  const res = await fetch(url);
+async function fetchInline(url: string, signal?: AbortSignal): Promise<Part | null> {
+  const res = await fetch(url, { signal });
   if (!res.ok) return null;
   const buffer = await res.arrayBuffer();
   if (buffer.byteLength > MAX_IMAGE_BYTES) return null;
@@ -30,14 +30,16 @@ async function fetchInline(url: string): Promise<Part | null> {
  * marta yuklab olinardi. (Gemini'ga baribir har chaqiruvda yuboriladi: bu
  * token xarajati, u `ImportJob.costTokens` da o'lchanadi.)
  */
-function createCache(): (url: string) => Promise<Part | null> {
+function createCache(): (url: string, signal?: AbortSignal) => Promise<Part | null> {
   const cache = new Map<string, Promise<Part | null>>();
-  return (url: string) => {
+  return (url: string, signal?: AbortSignal) => {
     const hit = cache.get(url);
     if (hit) return hit;
     // Xato bo'lsa ham va'da keshda qoladi: qayta urinish o'sha so'rov ichida
-    // foyda bermaydi, savol rasmsiz strukturalanadi.
-    const pending = fetchInline(url).catch(() => null);
+    // foyda bermaydi, savol rasmsiz strukturalanadi. Uzilish ham shunday —
+    // rasmni birinchi so'ragan chaqiruv chegaraga urilsa, keyingi savol o'sha
+    // rasmsiz strukturalanadi, lekin butun to'lqin kutib qolmaydi.
+    const pending = fetchInline(url, signal).catch(() => null);
     cache.set(url, pending);
     return pending;
   };
@@ -62,11 +64,15 @@ export function createGeminiCaller(apiKey = process.env.GEMINI_API_KEY || ''): M
   });
   const load = createCache();
 
-  return async (input: StructureInput) => {
+  // `signal` ni `withRetry` beradi: har chaqiruvning o'z vaqt chegarasi bor,
+  // shuning uchun osilib qolgan bitta chaqiruv butun funksiyani Vercel
+  // chegarasiga (504) olib bormaydi. Signal rasm yuklashga ham uzatiladi.
+  return async (input: StructureInput, signal?: AbortSignal) => {
     const urls = [...input.pageImages.map((p) => p.url), ...input.images.map((i) => i.url)];
-    const parts = (await Promise.all(urls.map(load))).filter((part): part is Part => part !== null);
+    const loaded = await Promise.all(urls.map((url) => load(url, signal)));
+    const parts = loaded.filter((part): part is Part => part !== null);
 
-    const result = await model.generateContent([buildStructurePrompt(input), ...parts]);
+    const result = await model.generateContent([buildStructurePrompt(input), ...parts], { signal });
     return {
       json: JSON.parse(result.response.text()),
       tokens: result.response.usageMetadata?.totalTokenCount ?? 0,
