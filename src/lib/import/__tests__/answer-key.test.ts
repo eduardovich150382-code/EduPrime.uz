@@ -102,12 +102,43 @@ describe("extractInlineAnswer", () => {
     expect(found!.text).not.toMatch(/ans/i);
   });
 
-  it("nuqtasiz va katta harfli shakl ham", () => {
-    expect(extractInlineAnswer("Question text ANS. D")!.letter).toBe("D");
+  it("kalitdan keyin kolontitul qatori tursa ham topiladi", () => {
+    // Haqiqiy sinovdagi holat: betdagi OXIRGI savolning kalitidan keyin
+    // kolontitul keladi va oxirga bog'langan naqsh uni ko'rmasdi.
+    const found = extractInlineAnswer(
+      "A ball is thrown upward.\nA) 1 B) 2\nans: B\nChapter 2: MOTION ALONG A STRAIGHT LINE 25",
+    );
+
+    expect(found!.letter).toBe("B");
+    expect(found!.text).toBe(
+      "A ball is thrown upward.\nA) 1 B) 2\nChapter 2: MOTION ALONG A STRAIGHT LINE 25",
+    );
   });
 
-  it("matn o'rtasidagi 'ans' javob emas", () => {
+  it("ikkita 'ans:' qatoridan oxirgisi olinadi", () => {
+    const found = extractInlineAnswer("Q1\nans: A\nmore text\nans: C\nfooter");
+
+    expect(found!.letter).toBe("C");
+    expect(found!.text).toBe("Q1\nans: A\nmore text\nfooter");
+  });
+
+  it("nuqtasiz va katta harfli shakl ham", () => {
+    expect(extractInlineAnswer("Question text\nANS. D")!.letter).toBe("D");
+  });
+
+  it("kalit o'z qatorida bo'lmasa qabul qilinmaydi", () => {
+    // Matn ichidagi "ans" savolning bir qismi bo'lishi mumkin, shuning uchun
+    // faqat butun qator kalit deb hisoblanadi.
+    expect(extractInlineAnswer("Question text ANS. D")).toBeNull();
+  });
+
+  it("qator ichida boshqa matn bo'lsa javob emas", () => {
+    expect(extractInlineAnswer("ans: B is the answer")).toBeNull();
     expect(extractInlineAnswer("ans: B is wrong, choose another")).toBeNull();
+  });
+
+  it("boshqa so'z bilan tugagan 'means: B' javob emas", () => {
+    expect(extractInlineAnswer("means: B")).toBeNull();
   });
 });
 

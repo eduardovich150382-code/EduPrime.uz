@@ -179,20 +179,46 @@ describe("structureBatch", () => {
     notQuestion: false,
   });
 
+  /** Testda kutish yo'q — qayta urinish jadvali `structure-error.test.ts` da. */
+  const noWait = { sleep: async () => {} };
+
   it("6 talik paketda bitta chaqiruv yiqilsa, qolgan 5 tasi saqlanadi", async () => {
     const inputs = Array.from({ length: 6 }, (_, i) => input({ order: i, text: `${i}. Savol` }));
+    const failure = Object.assign(new Error("schema invalid"), { status: 400 });
     const call: ModelCaller = vi.fn(async (i: StructureInput) => {
-      if (i.order === 2) throw new Error("model 503");
+      if (i.order === 2) throw failure;
       return { json: ok(i.order), tokens: 100 };
     });
 
-    const outcomes = await structureBatch(inputs, call);
+    const outcomes = await structureBatch(inputs, call, undefined, noWait);
 
     expect(outcomes).toHaveLength(6);
     expect(outcomes.filter((o) => o.failed).map((o) => o.order)).toEqual([2]);
     expect(outcomes.filter((o) => !o.failed)).toHaveLength(5);
     expect(outcomes.find((o) => o.order === 4)!.question!.text).toBe("Savol 4");
     expect(outcomes.reduce((sum, o) => sum + o.tokens, 0)).toBe(500);
+    // Sabab YO'QOLMAYDI: marshrut uni `raw.lastError` ga yozadi.
+    expect(outcomes.find((o) => o.order === 2)!.error).toBe(failure);
+  });
+
+  it("vaqtinchalik chegarada qayta uriniladi, doimiy xatoda esa yo'q", async () => {
+    const attempts = new Map<number, number>();
+    const call: ModelCaller = async (i: StructureInput) => {
+      const seen = (attempts.get(i.order) ?? 0) + 1;
+      attempts.set(i.order, seen);
+      // 0-savol birinchi urinishda chegaraga uriladi, ikkinchisida o'tadi.
+      if (i.order === 0 && seen === 1) throw Object.assign(new Error("quota"), { status: 429 });
+      if (i.order === 1) throw Object.assign(new Error("bad request"), { status: 400 });
+      return { json: ok(i.order), tokens: 10 };
+    };
+
+    const outcomes = await structureBatch([input({ order: 0 }), input({ order: 1 })], call, 6, noWait);
+
+    expect(attempts.get(0)).toBe(2);
+    expect(outcomes.find((o) => o.order === 0)!.failed).toBe(false);
+    // 400 qayta urinilmaydi — bekorga pul va vaqt ketmasin.
+    expect(attempts.get(1)).toBe(1);
+    expect(outcomes.find((o) => o.order === 1)!.failed).toBe(true);
   });
 
   it("paket o'lchamidan ko'p blok bosqichma-bosqich ishlanadi", async () => {
