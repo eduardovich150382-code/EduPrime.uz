@@ -2,6 +2,7 @@ import type { Prisma } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import type { KeyIssue, ResolvedAnswer } from '@/lib/import/answer-key';
+import { toLastError, type LastError } from '@/lib/import/structure-error';
 import { structureBatch, type StructureInput, type StructuredQuestion } from '@/lib/import/structure';
 import { createGeminiCaller, STRUCTURE_MODEL } from '@/lib/import/structure-model';
 import type { BBox } from '@/lib/import/types';
@@ -18,6 +19,16 @@ import { logger } from '@/lib/logger';
 const BATCH = 20;
 
 /**
+ * Funksiyaning vaqt chegarasi (soniya) — tarifdagi eng yuqori qiymat.
+ *
+ * Standart 10 soniya yetmaydi: 20 blok uchta paketga bo'linadi, har paketda
+ * Gemini chaqiruvi sekundlar oladi, ustiga tezlik chegarasida qayta urinish
+ * kutishi qo'shiladi. Javobdagi `elapsedMs` haqiqiy vaqtni o'lchaydi — agar u
+ * chegaraga yaqinlashsa, `BATCH` ni kamaytirish kerak bo'ladi.
+ */
+export const maxDuration = 60;
+
+/**
  * Bitta blok uchun qayta urinishlar chegarasi.
  *
  * Yiqilgan blok `BLOCK` bosqichida qoladi va keyingi chaqiruvda qayta
@@ -26,6 +37,9 @@ const BATCH = 20;
  * `false` bo'lmasdi.
  */
 const MAX_ATTEMPTS = 3;
+
+/** Javobda qaytariladigan yiqilish namunalari soni — klient konsoli uchun. */
+const FAILED_SAMPLE = 3;
 
 /** Strukturalanmagan draftlar — `raw.stage` hali `BLOCK`. */
 const PENDING: Prisma.ImportDraftWhereInput = { raw: { path: ['stage'], equals: 'BLOCK' } };
@@ -38,6 +52,7 @@ interface RawBlock {
   answerKey?: ResolvedAnswer | null;
   notQuestion?: boolean;
   attempts?: number;
+  lastError?: LastError;
 }
 
 function parseRaw(value: unknown): RawBlock {
@@ -104,18 +119,34 @@ function draftData(question: StructuredQuestion, raw: RawBlock): Prisma.ImportDr
   };
 }
 
-/** Yiqilgan blok: urinish soni oshadi, chegaradan keyin bosqich terminal bo'ladi. */
-function failureData(draft: PendingDraft): Prisma.ImportDraftUpdateInput {
+/**
+ * Yiqilgan blok: urinish soni oshadi, chegaradan keyin bosqich terminal bo'ladi.
+ *
+ * Sabab `raw.lastError` ga YOZILADI. Aks holda nosozlikni keyin tekshirib
+ * bo'lmaydi: Vercel logi bepul tarifda yarim soatdan keyin o'chadi, `issues`
+ * da esa faqat `STRUCTURE_FAILED` kodi qoladi va u nima uchun yiqilganini
+ * aytmaydi.
+ */
+function failureData(
+  draft: PendingDraft,
+  error: unknown,
+): { data: Prisma.ImportDraftUpdateInput; attempts: number; lastError: LastError } {
   const raw = parseRaw(draft.raw);
   const attempts = (typeof raw.attempts === 'number' ? raw.attempts : 0) + 1;
   const issues = Array.isArray(draft.issues) ? draft.issues.filter((i) => i !== 'STRUCTURE_FAILED') : [];
+  const lastError = toLastError(error);
   return {
-    issues: [...issues, 'STRUCTURE_FAILED'] as unknown as Prisma.InputJsonValue,
-    raw: {
-      ...raw,
-      attempts,
-      stage: attempts >= MAX_ATTEMPTS ? 'STRUCTURE_FAILED' : 'BLOCK',
-    } as unknown as Prisma.InputJsonValue,
+    attempts,
+    lastError,
+    data: {
+      issues: [...issues, 'STRUCTURE_FAILED'] as unknown as Prisma.InputJsonValue,
+      raw: {
+        ...raw,
+        attempts,
+        lastError,
+        stage: attempts >= MAX_ATTEMPTS ? 'STRUCTURE_FAILED' : 'BLOCK',
+      } as unknown as Prisma.InputJsonValue,
+    },
   };
 }
 
@@ -129,6 +160,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ jobId: string }> },
 ) {
+  const startedAt = Date.now();
   try {
     const { jobId } = await params;
     const { job, error } = await requireOwnedJob(jobId);
@@ -180,13 +212,30 @@ export async function POST(
 
     let tokens = 0;
     let failed = 0;
+    const failedSample: { order: number; message: string }[] = [];
     for (const outcome of outcomes) {
       const draft = byOrder.get(outcome.order);
       if (!draft) continue;
       tokens += outcome.tokens;
       if (outcome.failed || !outcome.question) {
         failed++;
-        writes.push(db.importDraft.update({ where: { id: draft.id }, data: failureData(draft) }));
+        const failure = failureData(draft, outcome.error);
+        if (failedSample.length < FAILED_SAMPLE) {
+          failedSample.push({ order: draft.order, message: failure.lastError.message });
+        }
+        // Terminal holat — blok butunlay yo'qoldi, bu `error`. Oraliq urinish
+        // hali tuzalishi mumkin, lekin u ham Sentry'ga tushsin: naqshni
+        // (masalan "bir butun bet birdaniga") faqat shunda ko'rish mumkin.
+        const context = {
+          error: outcome.error,
+          tags: { jobId: job.id, order: draft.order, attempt: failure.attempts },
+        };
+        if (failure.attempts >= MAX_ATTEMPTS) {
+          logger.error('Import blokini strukturalash yiqildi', context);
+        } else {
+          logger.warn('Import blokini strukturalashda xato, qayta uriniladi', { ...context, report: true });
+        }
+        writes.push(db.importDraft.update({ where: { id: draft.id }, data: failure.data }));
         continue;
       }
       writes.push(
@@ -207,7 +256,26 @@ export async function POST(
       await db.importJob.update({ where: { id: job.id }, data: { status: 'REVIEW' } });
     }
 
-    return NextResponse.json({ done: total - remaining, total, hasMore: remaining > 0, failed });
+    const elapsedMs = Date.now() - startedAt;
+    // Vaqt o'lchovi ataylab log'ga chiqadi: paket hajmi (20) funksiya
+    // chegarasiga sig'adimi — taxmin bilan emas, o'lchov bilan hal qilinadi.
+    logger.info('Struktura paketi', {
+      jobId: job.id,
+      elapsedMs,
+      blocks: pending.length,
+      done: total - remaining,
+      total,
+      failed,
+    });
+
+    return NextResponse.json({
+      done: total - remaining,
+      total,
+      hasMore: remaining > 0,
+      failed,
+      failedSample,
+      elapsedMs,
+    });
   } catch (error) {
     logger.error('POST /api/teacher/import/[jobId]/structure error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });

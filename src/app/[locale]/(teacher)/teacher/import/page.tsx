@@ -114,6 +114,29 @@ interface StructureStep {
   done: number;
   total: number;
   hasMore: boolean;
+  /** Shu paketda yiqilgan bloklar soni. */
+  failed?: number;
+  /** Birinchi uchta yiqilishning sababi — faqat konsol uchun. */
+  failedSample?: { order: number; message: string }[];
+  /** Marshrut necha ms ishlagani — paket hajmini sozlash uchun o'lchov. */
+  elapsedMs?: number;
+}
+
+/**
+ * Struktura paketining diagnostikasi konsolga chiqadi, ekranga EMAS.
+ *
+ * Ustozga "17-blok 429 bilan yiqildi" degan xabarning foydasi yo'q — u
+ * baribir hech narsa qilolmaydi. Xato sababi esa ishlab chiquvchiga kerak,
+ * shuning uchun brauzer konsolida qoladi (server tomonida u Sentry'ga ham
+ * tushadi).
+ */
+function logStructureStep(step: StructureStep): void {
+  if (typeof step.elapsedMs === 'number') {
+    console.info('[import] structure elapsedMs', step.elapsedMs, `${step.done}/${step.total}`);
+  }
+  if (step.failed) {
+    console.warn('[import] structure failed', step.failed, step.failedSample ?? []);
+  }
 }
 
 /**
@@ -292,6 +315,7 @@ export default function TeacherImportPage() {
 
     for (;;) {
       const step = await postStructure(id);
+      logStructureStep(step);
       setProgress({ done: step.done, total: step.total });
       if (!step.hasMore) return;
 

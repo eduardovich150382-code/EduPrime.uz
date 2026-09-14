@@ -1,6 +1,7 @@
 import type { ResponseSchema } from '@google/generative-ai';
 import { SchemaType } from '@google/generative-ai';
 import type { KeyIssue, ResolvedAnswer } from './answer-key';
+import { STRUCTURE_CONCURRENCY, withRetry, type RetryOptions } from './structure-error';
 import type { BBox } from './types';
 
 /**
@@ -70,12 +71,19 @@ export interface StructureOutcome {
   question: StructuredQuestion | null;
   tokens: number;
   failed: boolean;
+  /** Yiqilish sababi — marshrut uni `raw.lastError` ga yozadi. */
+  error?: unknown;
 }
 
 export type ModelCaller = (input: StructureInput) => Promise<{ json: unknown; tokens: number }>;
 
-/** Bitta paketdagi parallel chaqiruvlar soni. */
-export const STRUCTURE_BATCH_SIZE = 6;
+/**
+ * Bitta paketdagi parallel chaqiruvlar soni.
+ *
+ * `IMPORT_STRUCTURE_CONCURRENCY` bilan boshqariladi (standart 6): tashqi
+ * tezlik chegarasiga urilganda uni pasaytirish deploy'siz hal qiladi.
+ */
+export const STRUCTURE_BATCH_SIZE = STRUCTURE_CONCURRENCY;
 
 // ---------------------------------------------------------------------------
 // Chiqish sxemasi
@@ -351,22 +359,35 @@ export function normalizeStructured(raw: unknown, input: StructureInput): Struct
  * model xatosi) qolgan beshtasi baribir qaytadi va yoziladi. `Promise.all`
  * bo'lsa butun paket yo'qolardi va qayta chaqiruv o'sha beshtasini QAYTA
  * to'lardi.
+ *
+ * Har chaqiruv `withRetry` bilan o'raladi: vaqtinchalik chegara (429/503)
+ * bitta savolni butun boshli yiqitmasin. Qayta urinish sababi yo'qolmaydi —
+ * `result.reason` natijaning `error` maydoniga o'tadi va marshrut uni
+ * saqlaydi.
  */
 export async function structureBatch(
   inputs: readonly StructureInput[],
   call: ModelCaller,
   size: number = STRUCTURE_BATCH_SIZE,
+  retry: RetryOptions = {},
 ): Promise<StructureOutcome[]> {
   const outcomes: StructureOutcome[] = [];
+  const resilient = withRetry(call, retry);
 
   for (let start = 0; start < inputs.length; start += size) {
     const batch = inputs.slice(start, start + size);
-    const settled = await Promise.allSettled(batch.map((input) => call(input)));
+    const settled = await Promise.allSettled(batch.map((input) => resilient(input)));
 
     settled.forEach((result, index) => {
       const input = batch[index];
       if (result.status === 'rejected') {
-        outcomes.push({ order: input.order, question: null, tokens: 0, failed: true });
+        outcomes.push({
+          order: input.order,
+          question: null,
+          tokens: 0,
+          failed: true,
+          error: result.reason,
+        });
         return;
       }
       outcomes.push({

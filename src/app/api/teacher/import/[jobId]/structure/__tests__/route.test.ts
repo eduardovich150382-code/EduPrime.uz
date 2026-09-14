@@ -11,6 +11,9 @@ const {
   executeRawMock,
   transactionMock,
   callerMock,
+  infoMock,
+  warnMock,
+  errorMock,
 } = vi.hoisted(() => ({
   requireTeacherMock: vi.fn(),
   findTeacherMock: vi.fn(),
@@ -22,6 +25,9 @@ const {
   executeRawMock: vi.fn(),
   transactionMock: vi.fn(),
   callerMock: vi.fn(),
+  infoMock: vi.fn(),
+  warnMock: vi.fn(),
+  errorMock: vi.fn(),
 }));
 
 vi.mock("@/lib/db", () => ({
@@ -41,6 +47,18 @@ vi.mock("@/lib/db", () => ({
   },
 }));
 vi.mock("@/lib/api-auth", () => ({ requireTeacher: () => requireTeacherMock() }));
+vi.mock("@/lib/logger", async (importOriginal) => {
+  // `redactSecrets` haqiqiyligicha qoladi — `toLastError` aynan undan foydalanadi.
+  const actual = await importOriginal<typeof import("@/lib/logger")>();
+  return {
+    ...actual,
+    logger: {
+      info: (...a: unknown[]) => infoMock(...a),
+      warn: (...a: unknown[]) => warnMock(...a),
+      error: (...a: unknown[]) => errorMock(...a),
+    },
+  };
+});
 vi.mock("@/lib/import/structure-model", () => ({
   STRUCTURE_MODEL: "gemini-test",
   createGeminiCaller: () => callerMock,
@@ -127,7 +145,7 @@ describe("POST /api/teacher/import/[jobId]/structure", () => {
 
     expect(res.status).toBe(200);
     expect(callerMock).toHaveBeenCalledTimes(2);
-    expect(body).toEqual({ done: 2, total: 2, hasMore: false, failed: 0 });
+    expect(body).toMatchObject({ done: 2, total: 2, hasMore: false, failed: 0, failedSample: [] });
 
     const written = updateDraftMock.mock.calls.map(([args]) => args as { data: Record<string, unknown> });
     expect(written[0].data.text).toBe("Strukturalangan savol");
@@ -144,7 +162,7 @@ describe("POST /api/teacher/import/[jobId]/structure", () => {
 
     expect(callerMock).not.toHaveBeenCalled();
     expect(executeRawMock).not.toHaveBeenCalled();
-    expect(body).toEqual({ done: 5, total: 5, hasMore: false, failed: 0 });
+    expect(body).toMatchObject({ done: 5, total: 5, hasMore: false, failed: 0 });
     // Faqat `raw.stage === 'BLOCK'` qatorlar tanlanadi — idempotentlik shunda.
     expect(findDraftsMock).toHaveBeenCalledWith(
       expect.objectContaining({ where: { jobId: JOB, raw: { path: ["stage"], equals: "BLOCK" } } }),
@@ -159,7 +177,7 @@ describe("POST /api/teacher/import/[jobId]/structure", () => {
 
     expect(findDraftsMock).toHaveBeenCalledWith(expect.objectContaining({ take: 20 }));
     expect(callerMock).toHaveBeenCalledTimes(20);
-    expect(body).toEqual({ done: 20, total: 25, hasMore: true, failed: 0 });
+    expect(body).toMatchObject({ done: 20, total: 25, hasMore: true, failed: 0 });
     // Ish tugamagan — status REVIEW ga o'tmaydi.
     expect(updateJobMock).not.toHaveBeenCalledWith(expect.objectContaining({ data: { status: "REVIEW" } }));
   });
@@ -181,13 +199,13 @@ describe("POST /api/teacher/import/[jobId]/structure", () => {
   it("paketdagi bitta chaqiruv yiqilsa qolgani yoziladi, yiqilgani qayta urinish uchun qoladi", async () => {
     setup({ total: 3, pending: [draft(0), draft(1), draft(2)], remaining: 1 });
     callerMock.mockImplementation(async (input: { order: number }) => {
-      if (input.order === 1) throw new Error("model 503");
+      if (input.order === 1) throw Object.assign(new Error("model rad etdi"), { status: 400 });
       return { json: modelAnswer, tokens: 50 };
     });
 
     const body = await (await call()).json();
 
-    expect(body).toEqual({ done: 2, total: 3, hasMore: true, failed: 1 });
+    expect(body).toMatchObject({ done: 2, total: 3, hasMore: true, failed: 1 });
     const written = updateDraftMock.mock.calls.map(([args]) => args as { where: { id: string }; data: Record<string, unknown> });
     const failedRow = written.find((w) => w.where.id === "d1")!;
     expect(failedRow.data.issues).toContain("STRUCTURE_FAILED");
@@ -199,13 +217,94 @@ describe("POST /api/teacher/import/[jobId]/structure", () => {
 
   it("uchinchi urinishdan keyin blok terminal bo'ladi — klient sikli cheksiz aylanmaydi", async () => {
     setup({ total: 1, pending: [draft(0, { attempts: 2 })], remaining: 0 });
-    callerMock.mockRejectedValue(new Error("model 503"));
+    callerMock.mockRejectedValue(Object.assign(new Error("model rad etdi"), { status: 400 }));
 
     await call();
 
     const [[args]] = updateDraftMock.mock.calls as [{ data: Record<string, unknown> }][];
     expect((args.data.raw as Record<string, unknown>).stage).toBe("STRUCTURE_FAILED");
     expect((args.data.raw as Record<string, unknown>).attempts).toBe(3);
+  });
+
+  it("yiqilish sababi raw.lastError ga yoziladi", async () => {
+    setup({ total: 1, pending: [draft(0)], remaining: 1 });
+    callerMock.mockRejectedValue(Object.assign(new Error("Invalid JSON payload"), { status: 400 }));
+
+    const body = await (await call()).json();
+
+    const [[args]] = updateDraftMock.mock.calls as [{ data: Record<string, unknown> }][];
+    const raw = args.data.raw as Record<string, unknown>;
+    // Sabab bazada qoladi: Vercel logi bepul tarifda yarim soatdan keyin
+    // o'chadi, `issues` da esa faqat kod bor.
+    expect(raw.lastError).toMatchObject({ message: "Invalid JSON payload", name: "Error", status: 400 });
+    expect(typeof (raw.lastError as { at: string }).at).toBe("string");
+    expect(body.failedSample).toEqual([{ order: 0, message: "Invalid JSON payload" }]);
+  });
+
+  it("lastError dagi maxfiy qiymat redaktsiya qilinadi", async () => {
+    setup({ total: 1, pending: [draft(0)], remaining: 1 });
+    callerMock.mockRejectedValue(
+      new Error("POST https://generativelanguage.googleapis.com/v1?key=AIzaSyMAXFIY failed"),
+    );
+
+    await call();
+
+    const [[args]] = updateDraftMock.mock.calls as [{ data: Record<string, unknown> }][];
+    const message = ((args.data.raw as Record<string, unknown>).lastError as { message: string }).message;
+    expect(message).not.toContain("AIzaSyMAXFIY");
+    expect(message).toContain("key=[redacted]");
+  });
+
+  it("oraliq urinish warn, terminal urinish error darajasida hisobot beradi", async () => {
+    const failure = Object.assign(new Error("rad etildi"), { status: 400 });
+
+    setup({ total: 1, pending: [draft(0)], remaining: 1 });
+    callerMock.mockRejectedValue(failure);
+    await call();
+
+    expect(errorMock).not.toHaveBeenCalled();
+    expect(warnMock).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ report: true, tags: { jobId: JOB, order: 0, attempt: 1 } }),
+    );
+
+    vi.clearAllMocks();
+    updateDraftMock.mockImplementation((args: unknown) => args);
+    updateJobMock.mockResolvedValue({});
+    transactionMock.mockResolvedValue([]);
+    setup({ total: 1, pending: [draft(0, { attempts: 2 })], remaining: 1 });
+    callerMock.mockRejectedValue(failure);
+    await call();
+
+    expect(errorMock).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ tags: { jobId: JOB, order: 0, attempt: 3 } }),
+    );
+  });
+
+  it("javobda va log'da so'rov vaqti o'lchanadi", async () => {
+    setup({ total: 1, pending: [draft(0)], remaining: 0 });
+
+    const body = await (await call()).json();
+
+    // Paket hajmi funksiya chegarasiga sig'adimi — o'lchov bilan hal qilinadi.
+    expect(typeof body.elapsedMs).toBe("number");
+    expect(infoMock).toHaveBeenCalledWith(
+      "Struktura paketi",
+      expect.objectContaining({ jobId: JOB, blocks: 1, failed: 0 }),
+    );
+  });
+
+  it("uchtadan ortiq yiqilishda failedSample faqat birinchi uchtasini beradi", async () => {
+    const pending = Array.from({ length: 5 }, (_, i) => draft(i));
+    setup({ total: 5, pending, remaining: 5 });
+    callerMock.mockRejectedValue(Object.assign(new Error("rad etildi"), { status: 400 }));
+
+    const body = await (await call()).json();
+
+    expect(body.failed).toBe(5);
+    expect(body.failedSample).toHaveLength(3);
+    expect(body.failedSample.map((f: { order: number }) => f.order)).toEqual([0, 1, 2]);
   });
 
   it("berilgan kalit modelga uzatiladi va javob kalitdan olinadi", async () => {

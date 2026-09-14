@@ -203,8 +203,17 @@ export function resolveAnswer(
   };
 }
 
-/** Blok OXIRIDAGI "ans: B" — boshqa joyda uchrasa savol matnining bir qismi. */
-const INLINE_ANSWER = /\bans\s*[:.]?\s*([A-E])\s*$/i;
+/**
+ * O'Z QATORIDA turgan "ans: B" — qator boshida `ans`, ixtiyoriy `:` yoki `.`,
+ * bitta A-E harfi va qatorda boshqa hech narsa yo'q.
+ *
+ * Naqsh matn OXIRIGA bog'lanmagan: kalitdan keyin kolontitul qatori
+ * ("Chapter 2: MOTION ALONG A STRAIGHT LINE 25") kelishi odatiy hol va oxirga
+ * bog'langan naqsh aynan shu sababdan har betdagi OXIRGI savolning kalitini
+ * topolmasdi. Qator butunligi esa saqlanadi: "ans: B is wrong because…" da
+ * `ans` javob emas, savol matnining bir qismi.
+ */
+const INLINE_ANSWER = /^[ \t]*ans[ \t]*[:.]?[ \t]*([A-E])[ \t\r]*$/gim;
 
 /**
  * Savol matnining ichidagi kalit ("ans: B") — eng ustun manba.
@@ -213,10 +222,22 @@ const INLINE_ANSWER = /\bans\s*[:.]?\s*([A-E])\s*$/i;
  * yechayotgan o'quvchi uni ko'rib qoladi.
  */
 export function extractInlineAnswer(text: string): { letter: string; text: string } | null {
-  const match = INLINE_ANSWER.exec(text);
-  if (!match) return null;
+  // `matchAll` har chaqiruvda yangi iterator beradi, shuning uchun global
+  // naqshning `lastIndex` i chaqiruvlar orasida saqlanib qolmaydi.
+  const matches = [...text.matchAll(INLINE_ANSWER)];
+  if (matches.length === 0) return null;
+
+  // Bir nechta mos qator bo'lsa OXIRGISI olinadi: kalit blokning oxirida
+  // turadi, undan keyingisi esa allaqachon boshqa narsa.
+  const last = matches[matches.length - 1];
+  const index = last.index ?? 0;
+  const before = text.slice(0, index);
+  // Qatordan keyingi bitta satr ko'chirish ham yeyiladi, aks holda olib
+  // tashlangan qator o'rnida bo'sh qator qolardi.
+  const after = text.slice(index + last[0].length).replace(/^\r?\n/, '');
+
   return {
-    letter: match[1].toUpperCase(),
-    text: text.slice(0, match.index).trimEnd(),
+    letter: last[1].toUpperCase(),
+    text: `${before}${after}`.replace(/\n{3,}/g, '\n\n').trim(),
   };
 }

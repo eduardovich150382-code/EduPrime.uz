@@ -207,21 +207,55 @@ function isSentryEnabled(): boolean {
   return Sentry.getClient() !== undefined;
 }
 
-function report(message: string, context?: LogContext): void {
+/**
+ * Kontekstdan Sentry teglarini ajratib oladi.
+ *
+ * Teg — Sentry'da filtrlanadigan maydon, `extra` esa faqat o'qish uchun.
+ * `jobId`, `order`, `attempt` kabi qiymatlar aynan filtrlash uchun kerak,
+ * shuning uchun ular alohida `tags` kalitida beriladi va `extra` ga
+ * TAKRORLANMAYDI.
+ */
+function extractTags(context?: LogContext): Record<string, string> | undefined {
+  const raw = context?.tags;
+  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) return undefined;
+
+  const tags: Record<string, string> = {};
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (value === null || value === undefined) continue;
+    // Sentry teg qiymati faqat string bo'ladi; obyekt yuborilsa "[object
+    // Object]" bo'lib qolardi, shuning uchun ular umuman o'tkazilmaydi.
+    if (typeof value === 'object') continue;
+    tags[key] = redactSecrets(String(value));
+  }
+  return Object.keys(tags).length > 0 ? tags : undefined;
+}
+
+/** Berilgan xizmat kalitlarisiz nusxa — asl kontekst o'zgarmaydi. */
+function omit(context: LogContext, keys: readonly string[]): LogContext {
+  const result: LogContext = {};
+  for (const [key, value] of Object.entries(context)) {
+    if (keys.includes(key)) continue;
+    result[key] = value;
+  }
+  return result;
+}
+
+function report(message: string, context: LogContext | undefined, level: 'error' | 'warning'): void {
   if (!isSentryEnabled()) return;
 
   // Kontekstdagi haqiqiy `Error` Sentry'da stack trace va guruhlash beradi,
   // shuning uchun uni xabar sifatida emas, exception sifatida yuboramiz.
   const cause = context?.error;
-  const extra = context ? sanitizeContext(context) : undefined;
+  const tags = extractTags(context);
+  const extra = context ? sanitizeContext(omit(context, ['tags', 'report'])) : undefined;
 
   if (cause instanceof Error) {
     // `logMessage` deb nomlangan: kontekstda `message` kaliti bo'lsa
     // (masalan serializatsiya qilingan xatoning o'z xabari) log satri
     // bosilib ketmasin.
-    Sentry.captureException(cause, { level: 'error', extra: { ...extra, logMessage: message } });
+    Sentry.captureException(cause, { level, tags, extra: { ...extra, logMessage: message } });
   } else {
-    Sentry.captureMessage(message, { level: 'error', extra });
+    Sentry.captureMessage(message, { level, tags, extra });
   }
 }
 
@@ -230,7 +264,10 @@ function emit(
   message: string,
   context?: LogContext,
 ): void {
-  const safeContext = context ? sanitizeContext(context) : undefined;
+  // `report` — Sentry uchun boshqaruv bayrog'i, log satrida ma'nosi yo'q.
+  // `tags` esa QOLDIRILADI: Vercel logi hamon birinchi qarash joyi va
+  // `jobId`/`order` aynan o'sha yerda kerak bo'ladi.
+  const safeContext = context ? sanitizeContext(omit(context, ['report'])) : undefined;
 
   // Konsolga yozish saqlanadi — Vercel logi hamon birinchi qarash joyi,
   // Sentry uni almashtirmaydi, ustiga qo'shiladi.
@@ -243,11 +280,21 @@ export const logger = {
   info(message: string, context?: LogContext): void {
     emit('info', message, context);
   },
+  /**
+   * Ogohlantirish — sukut bo'yicha faqat konsolga.
+   *
+   * Sentry'ga yuborish uchun kontekstda `report: true` bo'lishi SHART.
+   * Sababi kvota: loyihadagi barcha `warn` lar avtomatik oqib ketsa bepul
+   * tarif bir kunda tugaydi va haqiqiy xatolar shovqin ichida ko'rinmay
+   * qoladi. Shuning uchun "bu ogohlantirish keyin tekshiriladi" degan qaror
+   * chaqiruv joyida ataylab bildiriladi.
+   */
   warn(message: string, context?: LogContext): void {
     emit('warn', message, context);
+    if (context?.report === true) report(message, context, 'warning');
   },
   error(message: string, context?: LogContext): void {
     emit('error', message, context);
-    report(message, context);
+    report(message, context, 'error');
   },
 };

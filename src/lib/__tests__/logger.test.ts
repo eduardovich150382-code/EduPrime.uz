@@ -163,6 +163,64 @@ describe('logger', () => {
     expect(options.level).toBe('error');
     expect(options.extra).toEqual({ testId: 't1' });
   });
+
+  it("`tags` Sentry tegiga aylanadi va `extra` da takrorlanmaydi", () => {
+    getClient.mockReturnValue({});
+    const err = new Error('boom');
+
+    logger.error('struktura yiqildi', { error: err, tags: { jobId: 'j1', order: 7, attempt: 3 } });
+
+    const [, options] = captureException.mock.calls[0] as [
+      unknown,
+      { tags: Record<string, string>; extra: Record<string, unknown> },
+    ];
+    expect(options.tags).toEqual({ jobId: 'j1', order: '7', attempt: '3' });
+    expect(options.extra).not.toHaveProperty('tags');
+  });
+
+  it("teg qiymatidagi maxfiy matn ham tozalanadi", () => {
+    getClient.mockReturnValue({});
+
+    logger.error('xato', { tags: { url: 'https://api.example.com/x?api_key=SECRET' } });
+
+    const [, options] = captureMessage.mock.calls[0] as [string, { tags: Record<string, string> }];
+    expect(options.tags.url).not.toContain('SECRET');
+  });
+
+  it("`report: true` bo'lmasa warn Sentry'ga umuman ketmaydi", () => {
+    // Kvota sababli sukut bo'yicha jim: barcha `warn` lar oqib ketsa bepul
+    // tarif bir kunda tugaydi va haqiqiy xatolar shovqin ichida qoladi.
+    getClient.mockReturnValue({});
+
+    logger.warn('sekin javob', { error: new Error('slow'), ms: 900 });
+
+    expect(captureException).not.toHaveBeenCalled();
+    expect(captureMessage).not.toHaveBeenCalled();
+  });
+
+  it("`report: true` bilan warn `warning` darajasida yuboriladi", () => {
+    getClient.mockReturnValue({});
+    const err = new Error('429');
+
+    logger.warn('qayta uriniladi', { error: err, report: true, tags: { order: 2 } });
+
+    expect(captureException).toHaveBeenCalledTimes(1);
+    const [captured, options] = captureException.mock.calls[0] as [
+      unknown,
+      { level: string; tags: Record<string, string>; extra: Record<string, unknown> },
+    ];
+    expect(captured).toBe(err);
+    expect(options.level).toBe('warning');
+    expect(options.tags).toEqual({ order: '2' });
+    // Boshqaruv bayrog'i log ma'lumoti emas.
+    expect(options.extra).not.toHaveProperty('report');
+  });
+
+  it("`report` bayrogi konsol satriga chiqmaydi, `tags` esa chiqadi", () => {
+    logger.warn('qayta uriniladi', { report: true, tags: { order: 2 } });
+
+    expect(console.warn).toHaveBeenCalledWith('qayta uriniladi', { tags: { order: 2 } });
+  });
 });
 
 
