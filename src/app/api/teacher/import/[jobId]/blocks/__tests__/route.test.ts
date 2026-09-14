@@ -291,4 +291,58 @@ describe("POST /api/teacher/import/[jobId]/blocks", () => {
 
     expect(response.status).toBe(400);
   });
+
+  it("javob kaliti manbasi bilan birga raw ga yoziladi", async () => {
+    const answerKey = { letter: "C", source: { page: 3, kind: "table" as const } };
+
+    await POST(post({ groups: [group(0, { answerKey, issues: [] })] }), { params });
+
+    const raw = upsertCalls()[0].create.raw;
+    expect(raw.answerKey).toEqual(answerKey);
+    expect(raw.notQuestion).toBe(false);
+    // Harf `correctAnswer` ga YOZILMAYDI — u strukturalash bosqichida
+    // modelning mustaqil yechimi bilan tekshiriladi.
+    expect(upsertCalls()[0].create.correctAnswer).toBe("");
+  });
+
+  it("kalit topilmagan savolning kodi issues ustuniga tushadi", async () => {
+    await POST(post({ groups: [group(0, { answerKey: null, issues: ["NO_KEY_FOUND"] })] }), { params });
+
+    expect(upsertCalls()[0].create.issues).toEqual(["NO_KEY_FOUND"]);
+    expect(upsertCalls()[0].create.raw.answerKey).toBeNull();
+  });
+
+  it("kalit qatori notQuestion bilan belgilanadi", async () => {
+    await POST(post({ groups: [group(0, { notQuestion: true })] }), { params });
+
+    expect(upsertCalls()[0].create.raw.notQuestion).toBe(true);
+  });
+
+  it("kalit maydonlari yo'q eski klient so'rovini ham qabul qiladi", async () => {
+    const { answerKey, notQuestion, issues, ...legacy } = group(0);
+    void answerKey;
+    void notQuestion;
+    void issues;
+
+    const response = await POST(post({ groups: [legacy] }), { params });
+
+    expect(response.status).toBe(200);
+    expect(upsertCalls()[0].create.raw.answerKey).toBeNull();
+    expect(upsertCalls()[0].create.issues).toEqual([]);
+  });
+
+  it("shakli noto'g'ri kalitni rad etadi", async () => {
+    const bad = [
+      group(0, { answerKey: { letter: "Z", source: { page: 3, kind: "table" } } as UploadGroup["answerKey"] }),
+      group(0, { answerKey: { letter: "A", source: { page: 3, kind: "qaydan" } } as unknown as UploadGroup["answerKey"] }),
+      group(0, { answerKey: { letter: "A", source: { page: 0, kind: "table" } } as UploadGroup["answerKey"] }),
+      group(0, { issues: ["BOSHQA_KOD"] as unknown as UploadGroup["issues"] }),
+      group(0, { notQuestion: "ha" as unknown as boolean }),
+    ];
+    for (const g of bad) {
+      const response = await POST(post({ groups: [g] }), { params });
+      expect(response.status).toBe(400);
+    }
+    expect(upsertDraftMock).not.toHaveBeenCalled();
+  });
 });

@@ -1,0 +1,237 @@
+import { describe, expect, it, vi } from "vitest";
+import type { ResolvedAnswer } from "../answer-key";
+import {
+  buildStructurePrompt,
+  imageToken,
+  normalizeStructured,
+  structureBatch,
+  type ModelCaller,
+  type StructureInput,
+} from "../structure";
+
+function input(overrides: Partial<StructureInput> = {}): StructureInput {
+  return {
+    order: 0,
+    number: 1,
+    text: "1. Tezlik qancha?",
+    images: [],
+    pageImages: [{ page: 3, url: "https://cdn.example/page-3.jpg" }],
+    regions: [{ page: 3, bbox: { x: 28, y: 100, w: 250, h: 120 } }],
+    sourceLang: "uz",
+    subject: "Fizika",
+    givenKey: null,
+    keyIssue: "NO_KEY_FOUND",
+    ...overrides,
+  };
+}
+
+const key = (letter: string): ResolvedAnswer => ({
+  letter,
+  source: { page: 3, kind: "page-key" },
+});
+
+describe("normalizeStructured — rasm tokenlari", () => {
+  it("savol shartidagi token saqlanadi", () => {
+    const token = imageToken("asset-1");
+    const result = normalizeStructured(
+      { text: `Grafikka qara ${token}`, options: [], correctAnswer: "", type: "OPEN_ENDED", notQuestion: false },
+      input({ images: [{ assetId: "asset-1", url: "https://cdn.example/1.png" }] }),
+    );
+
+    expect(result.text).toBe(`Grafikka qara ${token}`);
+    expect(result.issues).not.toContain("IMAGE_TOKEN_RESTORED");
+  });
+
+  it("beshta variant-rasm beshta imageToken ga taqsimlanadi", () => {
+    const ids = ["a", "b", "c", "d", "e"];
+    const result = normalizeStructured(
+      {
+        text: "Qaysi grafik to'g'ri?",
+        options: ids.map((id, i) => ({
+          label: String.fromCharCode(65 + i),
+          text: "",
+          imageToken: imageToken(id),
+        })),
+        correctAnswer: "C",
+        type: "MULTIPLE_CHOICE",
+        notQuestion: false,
+      },
+      input({ images: ids.map((id) => ({ assetId: id, url: `https://cdn.example/${id}.png` })) }),
+    );
+
+    expect(result.options.map((o) => o.imageToken)).toEqual(ids.map(imageToken));
+    expect(result.issues).not.toContain("IMAGE_TOKEN_RESTORED");
+  });
+
+  it("yo'qolgan token text oxiriga qaytariladi", () => {
+    const result = normalizeStructured(
+      { text: "Rasmsiz javob", options: [], correctAnswer: "", type: "OPEN_ENDED", notQuestion: false },
+      input({ images: [{ assetId: "lost", url: "https://cdn.example/lost.png" }] }),
+    );
+
+    expect(result.text).toContain(imageToken("lost"));
+    expect(result.issues).toContain("IMAGE_TOKEN_RESTORED");
+  });
+
+  it("o'ylab topilgan token olib tashlanadi, takrori ham", () => {
+    const real = imageToken("real");
+    const result = normalizeStructured(
+      {
+        text: `${real} va ${imageToken("uydirma")} va yana ${real}`,
+        options: [],
+        correctAnswer: "",
+        type: "OPEN_ENDED",
+        notQuestion: false,
+      },
+      input({ images: [{ assetId: "real", url: "https://cdn.example/real.png" }] }),
+    );
+
+    expect(result.text.match(/\[\[IMG:[^\]]*\]\]/g)).toEqual([real]);
+  });
+});
+
+describe("normalizeStructured — correctAnswer uchala holati", () => {
+  it("kalit bor va model bilan mos → correctAnswer = kalit, mismatch yo'q", () => {
+    const result = normalizeStructured(
+      { text: "S", options: [], correctAnswer: "B", type: "MULTIPLE_CHOICE", notQuestion: false },
+      input({ givenKey: key("B"), keyIssue: null }),
+    );
+
+    expect(result.correctAnswer).toBe("B");
+    expect(result.answerMismatch).toBe(false);
+    expect(result.issues).toEqual([]);
+  });
+
+  it("kalit bor va model boshqa harf berdi → correctAnswer = KALIT, mismatch: true", () => {
+    const result = normalizeStructured(
+      {
+        text: "S",
+        options: [],
+        correctAnswer: "D",
+        explanation: "Men ildizni boshqacha hisobladim",
+        type: "MULTIPLE_CHOICE",
+        notQuestion: false,
+      },
+      input({ givenKey: key("B"), keyIssue: null }),
+    );
+
+    expect(result.correctAnswer).toBe("B");
+    expect(result.answerMismatch).toBe(true);
+    expect(result.explanation).not.toBe("");
+  });
+
+  it("kalit yo'q → correctAnswer = modelning yechimi, mismatch yo'q, kod qoladi", () => {
+    const noKey = normalizeStructured(
+      { text: "S", options: [], correctAnswer: "D", type: "MULTIPLE_CHOICE", notQuestion: false },
+      input({ givenKey: null, keyIssue: "NO_KEY_FOUND" }),
+    );
+
+    expect(noKey.correctAnswer).toBe("D");
+    expect(noKey.answerMismatch).toBe(false);
+    expect(noKey.issues).toContain("NO_KEY_FOUND");
+
+    const ambiguous = normalizeStructured(
+      { text: "S", options: [], correctAnswer: "A", type: "MULTIPLE_CHOICE", notQuestion: false },
+      input({ givenKey: null, keyIssue: "KEY_AMBIGUOUS" }),
+    );
+
+    expect(ambiguous.correctAnswer).toBe("A");
+    expect(ambiguous.answerMismatch).toBe(false);
+    expect(ambiguous.issues).toContain("KEY_AMBIGUOUS");
+  });
+});
+
+describe("normalizeStructured — maydonlarni tozalash", () => {
+  it("noto'g'ri metama'lumot faqat o'zini yo'qotadi, savol qoladi", () => {
+    const result = normalizeStructured(
+      {
+        text: "Savol",
+        options: [{ label: "A", text: "1" }],
+        correctAnswer: "A",
+        type: "NIMADIR",
+        bloomLevel: "O'YLASH",
+        difficulty: 9,
+        confidence: 4,
+        notQuestion: false,
+      },
+      input(),
+    );
+
+    expect(result.text).toBe("Savol");
+    expect(result.type).toBe("MULTIPLE_CHOICE");
+    expect(result.bloomLevel).toBe("");
+    expect(result.difficulty).toBeNull();
+    expect(result.confidence).toBe(1);
+  });
+
+  it("notQuestion o'tkaziladi", () => {
+    const result = normalizeStructured({ text: "", options: [], correctAnswer: "", notQuestion: true }, input());
+    expect(result.notQuestion).toBe(true);
+  });
+});
+
+describe("structureBatch", () => {
+  const ok = (order: number) => ({
+    text: `Savol ${order}`,
+    options: [],
+    correctAnswer: "A",
+    type: "MULTIPLE_CHOICE",
+    notQuestion: false,
+  });
+
+  it("6 talik paketda bitta chaqiruv yiqilsa, qolgan 5 tasi saqlanadi", async () => {
+    const inputs = Array.from({ length: 6 }, (_, i) => input({ order: i, text: `${i}. Savol` }));
+    const call: ModelCaller = vi.fn(async (i: StructureInput) => {
+      if (i.order === 2) throw new Error("model 503");
+      return { json: ok(i.order), tokens: 100 };
+    });
+
+    const outcomes = await structureBatch(inputs, call);
+
+    expect(outcomes).toHaveLength(6);
+    expect(outcomes.filter((o) => o.failed).map((o) => o.order)).toEqual([2]);
+    expect(outcomes.filter((o) => !o.failed)).toHaveLength(5);
+    expect(outcomes.find((o) => o.order === 4)!.question!.text).toBe("Savol 4");
+    expect(outcomes.reduce((sum, o) => sum + o.tokens, 0)).toBe(500);
+  });
+
+  it("paket o'lchamidan ko'p blok bosqichma-bosqich ishlanadi", async () => {
+    const inputs = Array.from({ length: 13 }, (_, i) => input({ order: i }));
+    let inFlight = 0;
+    let peak = 0;
+    const call: ModelCaller = async (i: StructureInput) => {
+      inFlight++;
+      peak = Math.max(peak, inFlight);
+      await Promise.resolve();
+      inFlight--;
+      return { json: ok(i.order), tokens: 1 };
+    };
+
+    const outcomes = await structureBatch(inputs, call, 6);
+
+    expect(outcomes.map((o) => o.order)).toEqual(inputs.map((i) => i.order));
+    expect(peak).toBeLessThanOrEqual(6);
+  });
+});
+
+describe("buildStructurePrompt", () => {
+  it("kalit berilganda tekshirish qoidasi bor, kalit yo'qda esa o'z yechimi", () => {
+    const withKey = buildStructurePrompt(input({ givenKey: key("C"), keyIssue: null }));
+    expect(withKey).toContain("BERILGAN KALIT: C");
+    expect(withKey).toContain("answerMismatch");
+
+    const without = buildStructurePrompt(input());
+    expect(without).toContain("NO_KEY_FOUND");
+    expect(without).toContain("O'Z\n  yechimingni yoz");
+  });
+
+  it("rasm tokenlari ro'yxati va bbox promptga tushadi", () => {
+    const prompt = buildStructurePrompt(
+      input({ images: [{ assetId: "a1", url: "https://cdn.example/a1.png" }] }),
+    );
+
+    expect(prompt).toContain(imageToken("a1"));
+    expect(prompt).toContain("3-bet");
+    expect(prompt).toContain("TARJIMA QILMA");
+  });
+});

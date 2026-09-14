@@ -9,7 +9,8 @@ import {
   IMPORT_TARGET_LANGS,
   MAX_IMPORT_PAGES,
 } from '@/lib/import/constants';
-import { groupIntoQuestions, toUploadGroup } from '@/lib/import/grouping';
+import { findAnswerKeys } from '@/lib/import/answer-key';
+import { flattenBlocks, groupIntoQuestions, toUploadGroup } from '@/lib/import/grouping';
 import type { Manifest, ManifestError } from '@/lib/import/manifest';
 import {
   markPageDone,
@@ -38,6 +39,24 @@ const MAX_ZIP_BYTES = 64 * 1024 * 1024;
 
 const ZIP_TYPES = ['application/zip', 'application/x-zip-compressed'];
 
+/**
+ * Tugallanmagan import — brauzer yopilib qayta ochilsa davom ettirish uchun.
+ * Faqat `jobId` saqlanadi: qolgan hamma narsa serverda.
+ */
+const STORAGE_KEY = 'eduprime.import.job';
+
+/** Struktura so'rovi yiqilsa shuncha kutib qayta uriniladi. */
+const RETRY_DELAYS = [1000, 3000];
+
+/**
+ * Struktura sikli shuncha marta ilgarilamasa to'xtaydi.
+ *
+ * Server yiqilgan blokni uch marta qayta uringach terminal qilib belgilaydi,
+ * ya'ni `done` bir necha aylanma davomida o'zgarmasligi MUMKIN. To'rtinchi
+ * turgan aylanmada esa nimadir buzilgan — cheksiz aylanmaslik kerak.
+ */
+const MAX_STALLED_ROUNDS = 4;
+
 interface Subject {
   id: string;
   nameUz: string;
@@ -62,6 +81,62 @@ interface Summary {
 
 type Phase = 'idle' | 'running' | 'done' | 'error';
 
+/** Progress qaysi bosqichni ko'rsatayotgani — sahifa yuklash yoki savol tuzish. */
+type Stage = 'upload' | 'structure';
+
+function rememberJob(id: string): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, id);
+  } catch {
+    // Maxfiy rejimda yozib bo'lmaydi — davom ettirish imkoni yo'qoladi, xolos.
+  }
+}
+
+function forgetJob(): void {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // yuqoridagi sabab
+  }
+}
+
+function readJob(): string | null {
+  try {
+    return localStorage.getItem(STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+interface StructureStep {
+  done: number;
+  total: number;
+  hasMore: boolean;
+}
+
+/**
+ * Struktura so'rovi — tarmoq uzilishiga chidamli.
+ *
+ * Ikki marta qayta uriniladi (1 s, 3 s): marshrut idempotent, shuning uchun
+ * qayta urinish xavfsiz — yozilgan savol qayta to'lanmaydi.
+ */
+async function postStructure(jobId: string): Promise<StructureStep> {
+  let lastError: unknown = null;
+  for (let attempt = 0; attempt <= RETRY_DELAYS.length; attempt++) {
+    if (attempt > 0) await wait(RETRY_DELAYS[attempt - 1]);
+    try {
+      const res = await fetch(`/api/teacher/import/${jobId}/structure`, { method: 'POST' });
+      if (!res.ok) throw new Error(`structure ${res.status}`);
+      return (await res.json()) as StructureStep;
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error('structure');
+}
+
 export default function TeacherImportPage() {
   const t = useTranslations('teacherImport');
   const router = useRouter();
@@ -75,7 +150,9 @@ export default function TeacherImportPage() {
   const [dragging, setDragging] = useState(false);
 
   const [phase, setPhase] = useState<Phase>('idle');
+  const [stage, setStage] = useState<Stage>('upload');
   const [progress, setProgress] = useState<Progress | null>(null);
+  const [resumeJobId, setResumeJobId] = useState<string | null>(null);
   const [resumedCount, setResumedCount] = useState(0);
   const [summary, setSummary] = useState<Summary | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
@@ -88,6 +165,23 @@ export default function TeacherImportPage() {
       .then((r) => r.json())
       .then((data) => setSubjects(data.subjects ?? []))
       .catch(() => setSubjects([]));
+  }, []);
+
+  // Tugallanmagan import bormi. Bloklar allaqachon yozilgan bo'lsa ZIP endi
+  // kerak emas — struktura bosqichi butunlay serverda, marshrut idempotent.
+  useEffect(() => {
+    const saved = readJob();
+    if (!saved) return;
+    fetch(`/api/teacher/import/${saved}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((job) => {
+        const unfinished = job && job.blockCount > 0 && ['PARSING', 'STRUCTURING'].includes(job.status);
+        if (unfinished) setResumeJobId(saved);
+        else forgetJob();
+      })
+      .catch(() => {
+        // Tarmoq yo'q — yozuvni o'chirmaymiz, keyingi ochilishda yana so'raladi.
+      });
   }, []);
 
   // Reja manifestdan bir marta hisoblanadi — ko'rinadigan son va serverga
@@ -184,6 +278,46 @@ export default function TeacherImportPage() {
   // Quvur
   // -------------------------------------------------------------------------
 
+  /**
+   * Bloklarni strukturalash — `hasMore` tugaguncha marshrutni chaqiradi.
+   *
+   * Bir so'rovda 20 blok ishlanadi (Vercel vaqt chegarasi), shuning uchun
+   * sikl klientda: har aylanma o'zidan oldingisi qoldirgan joydan davom
+   * etadi va `done` foizsiz, "N / M savol" bo'lib ko'rsatiladi.
+   */
+  async function runStructure(id: string): Promise<void> {
+    setStage('structure');
+    let previous = -1;
+    let stalled = 0;
+
+    for (;;) {
+      const step = await postStructure(id);
+      setProgress({ done: step.done, total: step.total });
+      if (!step.hasMore) return;
+
+      stalled = step.done > previous ? 0 : stalled + 1;
+      previous = step.done;
+      if (stalled >= MAX_STALLED_ROUNDS) throw new Error('structure stalled');
+    }
+  }
+
+  /** Tugallanmagan importni davom ettirish — ZIP kerak emas. */
+  async function resumeStructure(id: string): Promise<void> {
+    setResumeJobId(null);
+    setJobId(id);
+    setPhase('running');
+    setErrorText(null);
+    try {
+      await runStructure(id);
+      forgetJob();
+      setProgress(null);
+      setPhase('done');
+    } catch {
+      setPhase('error');
+      setErrorText(t('errorStructure'));
+    }
+  }
+
   async function run(): Promise<void> {
     if (!loaded || !plan) return;
     if (!subjectId) {
@@ -192,6 +326,7 @@ export default function TeacherImportPage() {
     }
 
     setPhase('running');
+    setStage('upload');
     setErrorText(null);
     setSummary(null);
 
@@ -201,6 +336,7 @@ export default function TeacherImportPage() {
       });
       const job = await createJob(loaded.manifest, fileUrl);
       setJobId(job.jobId);
+      rememberJob(job.jobId);
       setResumedCount(job.pagesDone.length);
 
       const done = new Set(job.pagesDone);
@@ -229,15 +365,23 @@ export default function TeacherImportPage() {
       // Savollar OXIRIDA, bir marta: savol sahifa chegarasidan o'tadi, uning
       // rasmlari esa keyingi sahifada bo'lishi mumkin. `order` — `plan` dagi
       // indeks, u manifestdan deterministik chiqadi.
-      const groups = plan.questions.map((q, order) => toUploadGroup(q, order, assetIds));
+      // Javob kaliti BUTUN hujjat bo'ylab qidiriladi: u savol bloklarida emas,
+      // `preamble` da (bet tepasidagi qator) yoki kolontitulda turishi mumkin,
+      // ular esa serverga umuman yuborilmaydi.
+      const keys = findAnswerKeys(flattenBlocks(loaded.manifest));
+      const groups = plan.questions.map((q, order) => toUploadGroup(q, order, assetIds, keys));
       await sendGroups(job.jobId, { groups, pageImages }).catch(uploadError);
       result.questions = groups.length;
-
       setSummary(result);
+
+      await runStructure(job.jobId).catch(() => {
+        throw new Error(t('errorStructure'));
+      });
+
+      forgetJob();
       setProgress(null);
       setPhase('done');
     } catch (err) {
-      setProgress(null);
       setPhase('error');
       setErrorText(err instanceof Error && err.message ? err.message : t('errorGeneric'));
     }
@@ -361,11 +505,28 @@ export default function TeacherImportPage() {
           <p className="text-sm text-text-secondary">{t('resumed', { count: resumedCount })}</p>
         )}
 
+        {resumeJobId && phase === 'idle' && (
+          <div className="flex flex-col gap-3 rounded-lg border border-border p-3 sm:flex-row sm:items-center">
+            <p className="flex-1 text-sm text-text-primary">{t('resumeFound')}</p>
+            <button
+              type="button"
+              onClick={() => void resumeStructure(resumeJobId)}
+              className="btn-primary min-h-11 inline-flex items-center justify-center"
+            >
+              {t('resumeStructure')}
+            </button>
+          </div>
+        )}
+
         {progress && (
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm text-text-secondary">
-              <span>{t('progress', { done: progress.done, total: progress.total })}</span>
-              <span>{t('stageUpload')}</span>
+              <span>
+                {stage === 'structure'
+                  ? t('progressQuestions', { done: progress.done, total: progress.total })
+                  : t('progress', { done: progress.done, total: progress.total })}
+              </span>
+              <span>{stage === 'structure' ? t('stageStructure') : t('stageUpload')}</span>
             </div>
             <div className="h-2 w-full rounded-full bg-primary-50 overflow-hidden">
               <div
@@ -390,6 +551,18 @@ export default function TeacherImportPage() {
               </Link>
             )}
           </div>
+        )}
+
+        {/* Struktura bosqichi uzilgan bo'lsa ZIP ni qaytadan yuklash shart
+            emas — bloklar serverda, marshrut qolgan joydan davom etadi. */}
+        {phase === 'error' && stage === 'structure' && jobId && (
+          <button
+            type="button"
+            onClick={() => void resumeStructure(jobId)}
+            className="btn-primary w-full sm:w-auto min-h-11 inline-flex items-center justify-center"
+          >
+            {t('resumeStructure')}
+          </button>
         )}
 
         <button
