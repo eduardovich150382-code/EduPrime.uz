@@ -1,5 +1,5 @@
 import { isRateLimit, RateLimitedError } from './structure-error';
-import type { ModelCaller } from './structure';
+import type { Caller } from './structure';
 
 /**
  * Model zanjiri — bepul tarifda ishlash uchun.
@@ -54,16 +54,16 @@ export const STRUCTURE_MODELS = parseStructureModels(process.env.IMPORT_GEMINI_M
  * Hamma model tugagan bo'lsa `RateLimitedError` otiladi — u yiqilish emas,
  * marshrut blokni tegmasdan keyingi kunga qoldiradi.
  */
-export function createChainedCaller(
+export function createChainedCaller<TInput>(
   models: readonly string[],
-  make: (model: string) => ModelCaller,
-): ModelCaller {
+  make: (model: string) => Caller<TInput>,
+): Caller<TInput> {
   const exhausted = new Set<string>();
   // Chaqiruvchilar keshlanadi: har blok uchun yangi SDK obyekti yasash ham
   // ortiqcha, ham modelga bog'langan keshni (masalan rasm keshi) yo'qotardi.
-  const callers = new Map<string, ModelCaller>();
+  const callers = new Map<string, Caller<TInput>>();
 
-  const callerFor = (model: string): ModelCaller => {
+  const callerFor = (model: string): Caller<TInput> => {
     const hit = callers.get(model);
     if (hit) return hit;
     const caller = make(model);

@@ -34,6 +34,18 @@ export function imageToken(assetId: string): string {
 
 const IMAGE_TOKEN = /\[\[IMG:[^\]]*\]\]/g;
 
+/**
+ * Matndagi hamma rasm tokenini qaytaradi.
+ *
+ * Regexning O'ZI eksport qilinmaydi: `g` bayrog'i bilan u holatli
+ * (`lastIndex`) va ikki modul uni baham ko'rsa, biri ikkinchisining
+ * qidiruvini jimgina yarmidan boshlab yuborardi. S5 (`translate.ts`) shu
+ * funksiyani ishlatadi.
+ */
+export function imageTokensOf(text: string): string[] {
+  return text.match(IMAGE_TOKEN) ?? [];
+}
+
 export interface StructureInput {
   order: number;
   number: number | null;
@@ -107,10 +119,21 @@ export interface StructureBatchResult {
   deadlineHit: boolean;
 }
 
-export type ModelCaller = (
-  input: StructureInput,
+/**
+ * Modelga bitta ish birligini yuboradigan chaqiruvchi.
+ *
+ * Generik, chunki bir xil infratuzilma (`withRetry`, `createChainedCaller`)
+ * ikkala bosqichga ham xizmat qiladi: S4 da birlik — bitta blok
+ * (`StructureInput`), S5 da — savollar guruhi. Ular orasidagi yagona farq
+ * kirish turi, qolgan hammasi bir xil.
+ */
+export type Caller<TInput> = (
+  input: TInput,
   signal?: AbortSignal,
 ) => Promise<{ json: unknown; tokens: number; model?: string }>;
+
+/** S4 ning chaqiruvchisi — eski nom saqlanadi, mavjud kod tegilmaydi. */
+export type ModelCaller = Caller<StructureInput>;
 
 /**
  * Bitta paketdagi parallel chaqiruvlar soni.
