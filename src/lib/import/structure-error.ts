@@ -1,5 +1,5 @@
 import { redactSecrets } from '@/lib/logger';
-import type { ModelCaller } from './structure';
+import type { Caller } from './structure';
 
 /**
  * Strukturalash chaqiruvining nosozliklari — tasniflash, qayta urinish va
@@ -157,6 +157,14 @@ export interface RetryOptions {
   /** Testda soatni kutmaslik uchun — chaqiruv chegarasining taymeri. */
   setTimer?: (fn: () => void, ms: number) => ReturnType<typeof setTimeout>;
   clearTimer?: (timer: ReturnType<typeof setTimeout>) => void;
+  /**
+   * Bitta chaqiruvning chegarasi (ms) — berilmasa S4 ning qiymati.
+   *
+   * Bosqichlarning chegarasi HAR XIL: tarjima chaqiruvi bir guruh savolni
+   * o'z ichiga oladi va strukturalashdan uzoqroq ketadi. Konstantadan
+   * o'qilsa, S5 S4 ning qiymatiga bog'lanib qolardi.
+   */
+  callTimeoutMs?: number;
 }
 
 /**
@@ -169,13 +177,14 @@ export interface RetryOptions {
  * urinish ichidagi ichki qayta urinish. `attempts` ni faqat marshrut, har
  * so'rov uchun bir martadan oshiradi.
  */
-export function withRetry(call: ModelCaller, options: RetryOptions = {}): ModelCaller {
+export function withRetry<TInput>(call: Caller<TInput>, options: RetryOptions = {}): Caller<TInput> {
   const delays = options.delays ?? RETRY_DELAYS;
   const sleep = options.sleep ?? sleepReal;
   const random = options.random ?? Math.random;
   const remaining = options.remaining;
   const setTimer = options.setTimer ?? setTimeout;
   const clearTimer = options.clearTimer ?? clearTimeout;
+  const callTimeout = options.callTimeoutMs ?? STRUCTURE_CALL_TIMEOUT_MS;
 
   return async (input) => {
     for (let attempt = 0; ; attempt++) {
@@ -189,7 +198,7 @@ export function withRetry(call: ModelCaller, options: RetryOptions = {}): ModelC
       // yetmaydi: osilib qolgan bitta chaqiruv butun to'lqinni, demak butun
       // funksiyani chegaraga (504) olib borardi.
       const controller = new AbortController();
-      const timer = setTimer(() => controller.abort(), Math.min(STRUCTURE_CALL_TIMEOUT_MS, budget));
+      const timer = setTimer(() => controller.abort(), Math.min(callTimeout, budget));
       try {
         return await call(input, controller.signal);
       } catch (error) {
@@ -251,7 +260,7 @@ export const STRUCTURE_CONCURRENCY = parseStructureConcurrency(process.env.IMPOR
  * Sonli sozlamani o'qiydi — `parseStructureConcurrency` bilan bir xil naqsh:
  * satr qabul qiladi, noto'g'ri qiymatda yiqilmasdan standartga qaytadi.
  */
-function parseMs(raw: string | undefined, fallback: number, min: number, max: number): number {
+export function parseMs(raw: string | undefined, fallback: number, min: number, max: number): number {
   if (raw === undefined) return fallback;
   const parsed = Number(raw.trim());
   if (!Number.isInteger(parsed) || parsed < min || parsed > max) return fallback;

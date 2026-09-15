@@ -81,8 +81,15 @@ interface Summary {
 
 type Phase = 'idle' | 'running' | 'done' | 'error';
 
-/** Progress qaysi bosqichni ko'rsatayotgani — sahifa yuklash yoki savol tuzish. */
-type Stage = 'upload' | 'structure';
+/** Progress qaysi bosqichni ko'rsatayotgani — quvurning uch bosqichi. */
+type Stage = 'upload' | 'structure' | 'translate';
+
+/** Bosqich yorlig'ining tarjima kaliti. */
+const STAGE_LABEL: Record<Stage, string> = {
+  upload: 'stageUpload',
+  structure: 'stageStructure',
+  translate: 'stageTranslate',
+};
 
 function rememberJob(id: string): void {
   try {
@@ -194,6 +201,68 @@ async function postStructure(jobId: string, retryFailed = false): Promise<Struct
   throw lastError instanceof Error ? lastError : new Error('structure');
 }
 
+/**
+ * Tarjima paketining javobi.
+ *
+ * `StructureStep` dan meros olinmaydi: maydonlarning ma'nosi bir xil bo'lsa
+ * ham, ikki marshrut mustaqil o'zgaradi va meros ularni bir-biriga bog'lab
+ * qo'yardi.
+ */
+interface TranslateStep {
+  done: number;
+  total: number;
+  hasMore: boolean;
+  /** Tillar teng — bosqich Gemini'siz, bir zumda o'tdi. */
+  skippedSameLang?: boolean;
+  /** Shu paketda tarjima qilingan savollar soni. */
+  translated?: number;
+  failed?: number;
+  failedSample?: { order: number; message: string }[];
+  elapsedMs?: number;
+  batches?: number;
+  deadlineHit?: boolean;
+  stalled?: boolean;
+  rateLimited?: number;
+  stuck?: number;
+}
+
+/** Tarjima diagnostikasi — `logStructureStep` kabi faqat konsolga. */
+function logTranslateStep(step: TranslateStep): void {
+  if (step.skippedSameLang) {
+    console.info('[import] translate skipped — manba va maqsad tili bir xil');
+    return;
+  }
+  if (typeof step.elapsedMs === 'number') {
+    console.info(
+      '[import] translate elapsedMs',
+      step.elapsedMs,
+      `${step.done}/${step.total}`,
+      `batches=${step.batches ?? '?'}`,
+      `deadlineHit=${step.deadlineHit ?? false}`,
+    );
+  }
+  if (step.failed) {
+    console.warn('[import] translate failed', step.failed, step.failedSample ?? []);
+  }
+}
+
+/** Tarjima so'rovi — `postStructure` kabi tarmoq uzilishiga chidamli. */
+async function postTranslate(jobId: string, retryFailed = false): Promise<TranslateStep> {
+  let lastError: unknown = null;
+  const query = retryFailed ? '?retryFailed=1' : '';
+  for (let attempt = 0; attempt <= RETRY_DELAYS.length; attempt++) {
+    if (attempt > 0) await wait(RETRY_DELAYS[attempt - 1]);
+    try {
+      const res = await fetch(`/api/teacher/import/${jobId}/translate${query}`, { method: 'POST' });
+      if (!res.ok) throw new Error(`translate ${res.status}`);
+      return (await res.json()) as TranslateStep;
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error('translate');
+}
+
 export default function TeacherImportPage() {
   const t = useTranslations('teacherImport');
   const router = useRouter();
@@ -215,6 +284,14 @@ export default function TeacherImportPage() {
   const [jobId, setJobId] = useState<string | null>(null);
   /** Terminal yiqilgan bloklar — "Yiqilganlarni qayta urinish" tugmasi shunga qaraydi. */
   const [stuck, setStuck] = useState(0);
+  /**
+   * Terminal yiqilgan TARJIMALAR — alohida hisoblagich.
+   *
+   * Bitta o'zgaruvchi yetmaydi: tarjima marshruti o'z terminal sonini
+   * qaytaradi va u strukturaning sonini ustidan yozib yuborardi — strukturada
+   * yiqilgan bloklar borligi ekranda jimgina yo'qolardi.
+   */
+  const [stuckTranslate, setStuckTranslate] = useState(0);
   const [errorText, setErrorText] = useState<string | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -378,6 +455,41 @@ export default function TeacherImportPage() {
   }
 
   /**
+   * Savollarni tarjima qilish — `runStructure` bilan bir xil `hasMore` sikli.
+   *
+   * Tillar teng bo'lsa marshrut birinchi javobdayoq `skippedSameLang`
+   * qaytaradi va sikl umuman aylanmaydi: o'zbekcha kitob uchun bu bosqich
+   * ustozga sezilmasligi kerak.
+   */
+  async function runTranslate(id: string, retryFailed = false): Promise<void> {
+    setStage('translate');
+    // Struktura bosqichidan qolgan hisob tozalanadi — birinchi javob kelguncha
+    // ekranda eski son turib qolmasin.
+    setProgress(null);
+    let previous = -1;
+    let stalled = 0;
+
+    for (let round = 0; ; round++) {
+      const step = await postTranslate(id, retryFailed && round === 0);
+      logTranslateStep(step);
+      if (step.skippedSameLang) return;
+
+      setProgress({ done: step.done, total: step.total });
+      setStuckTranslate(step.stuck ?? 0);
+      if (!step.hasMore) return;
+
+      if (step.stalled) {
+        if (step.rateLimited) throw new QuotaError(t('errorQuotaExhausted'));
+        throw new StructureStalledError(t('errorTranslateStalled'));
+      }
+
+      stalled = step.done > previous ? 0 : stalled + 1;
+      previous = step.done;
+      if (stalled >= MAX_STALLED_ROUNDS) throw new Error('translate stalled');
+    }
+  }
+
+  /**
    * Tugallanmagan importni davom ettirish — ZIP kerak emas.
    *
    * `retryFailed` — terminal yiqilgan bloklarni ham qaytadan navbatga qo'yish.
@@ -389,6 +501,9 @@ export default function TeacherImportPage() {
     setErrorText(null);
     try {
       await runStructure(id, retryFailed);
+      await runTranslate(id, retryFailed).catch((err: unknown) => {
+        throw err instanceof StructureStalledError ? err : new Error(t('errorTranslate'));
+      });
       forgetJob();
       setProgress(null);
       setPhase('done');
@@ -456,6 +571,12 @@ export default function TeacherImportPage() {
 
       await runStructure(job.jobId).catch((err: unknown) => {
         throw err instanceof StructureStalledError ? err : new Error(t('errorStructure'));
+      });
+
+      // Tarjima strukturadan KEYIN: u `ImportDraft.textOriginal` ga tayanadi,
+      // uni esa struktura bosqichi yozadi.
+      await runTranslate(job.jobId).catch((err: unknown) => {
+        throw err instanceof StructureStalledError ? err : new Error(t('errorTranslate'));
       });
 
       forgetJob();
@@ -602,11 +723,11 @@ export default function TeacherImportPage() {
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm text-text-secondary">
               <span>
-                {stage === 'structure'
-                  ? t('progressQuestions', { done: progress.done, total: progress.total })
-                  : t('progress', { done: progress.done, total: progress.total })}
+                {stage === 'upload'
+                  ? t('progress', { done: progress.done, total: progress.total })
+                  : t('progressQuestions', { done: progress.done, total: progress.total })}
               </span>
-              <span>{stage === 'structure' ? t('stageStructure') : t('stageUpload')}</span>
+              <span>{t(STAGE_LABEL[stage])}</span>
             </div>
             <div className="h-2 w-full rounded-full bg-primary-50 overflow-hidden">
               <div
@@ -635,7 +756,7 @@ export default function TeacherImportPage() {
 
         {/* Struktura bosqichi uzilgan bo'lsa ZIP ni qaytadan yuklash shart
             emas — bloklar serverda, marshrut qolgan joydan davom etadi. */}
-        {phase === 'error' && stage === 'structure' && jobId && (
+        {phase === 'error' && stage !== 'upload' && jobId && (
           <button
             type="button"
             onClick={() => void resumeStructure(jobId)}
@@ -648,13 +769,13 @@ export default function TeacherImportPage() {
         {/* Terminal yiqilgan bloklar ko'pincha kvota tufayli yiqilgan — sabab
             blokda emas, shuning uchun ularni qaytadan urinish mantiqan to'g'ri.
             Tugma faqat shunday bloklar bo'lganda ko'rinadi. */}
-        {stuck > 0 && jobId && (phase === 'done' || phase === 'error') && (
+        {stuck + stuckTranslate > 0 && jobId && (phase === 'done' || phase === 'error') && (
           <button
             type="button"
             onClick={() => void resumeStructure(jobId, true)}
             className="btn-secondary w-full sm:w-auto min-h-11 inline-flex items-center justify-center"
           >
-            {t('retryFailedBlocks', { count: stuck })}
+            {t('retryFailedBlocks', { count: stuck + stuckTranslate })}
           </button>
         )}
 
