@@ -365,6 +365,10 @@ export async function POST(
         // (masalan "bir butun guruh birdaniga") faqat shunda ko'rish mumkin.
         const context = {
           error: outcome.error,
+          // Modelning javobi — xato KODI nima yiqilganini aytadi, lekin nega
+          // yiqilganini aytmaydi. Teg emas, oddiy maydon: filtrlash uchun emas,
+          // o'qish uchun.
+          sample: outcome.sample,
           tags: {
             'import.stage': 'translate',
             'import.jobId': job.id,
