@@ -1,7 +1,13 @@
 import type { ResponseSchema } from '@google/generative-ai';
 import { SchemaType } from '@google/generative-ai';
 import type { KeyIssue, ResolvedAnswer } from './answer-key';
-import { STRUCTURE_CONCURRENCY, TimeBudgetError, withRetry, type RetryOptions } from './structure-error';
+import {
+  RateLimitedError,
+  STRUCTURE_CONCURRENCY,
+  TimeBudgetError,
+  withRetry,
+  type RetryOptions,
+} from './structure-error';
 import type { BBox } from './types';
 
 /**
@@ -71,6 +77,8 @@ export interface StructureOutcome {
   question: StructuredQuestion | null;
   tokens: number;
   failed: boolean;
+  /** Javobni qaysi model bergani — marshrut uni `raw.model` ga yozadi. */
+  model?: string;
   /** Yiqilish sababi — marshrut uni `raw.lastError` ga yozadi. */
   error?: unknown;
   /**
@@ -80,6 +88,14 @@ export interface StructureOutcome {
    * keyingi so'rovda yangidan uriniladi.
    */
   deferred?: boolean;
+  /**
+   * Zanjirdagi hamma modelning kunlik kvotasi tugagani uchun bajarilmadi.
+   *
+   * `deferred` ning bir turi: blok `BLOCK` da qoladi va `attempts` oshmaydi,
+   * lekin marshrut sababni ko'rsatib qo'yadi (`raw.lastError`, `RATE_LIMITED`)
+   * — ustozga "ertaga davom eting" deyish uchun shu farq kerak.
+   */
+  rateLimited?: boolean;
 }
 
 /** Paketning natijasi va uning vaqt o'lchovlari. */
@@ -94,7 +110,7 @@ export interface StructureBatchResult {
 export type ModelCaller = (
   input: StructureInput,
   signal?: AbortSignal,
-) => Promise<{ json: unknown; tokens: number }>;
+) => Promise<{ json: unknown; tokens: number; model?: string }>;
 
 /**
  * Bitta paketdagi parallel chaqiruvlar soni.
@@ -404,12 +420,17 @@ export async function structureBatch(
     settled.forEach((result, index) => {
       const input = batch[index];
       if (result.status === 'rejected') {
+        // Kvota tugagani ham, vaqt tugagani ham YIQILISH EMAS: ikkalasi ham
+        // blokning nuqsoni emas, tashqi chegara — blok tegilmasdan qoladi.
+        const rateLimited = result.reason instanceof RateLimitedError;
+        const deferred = rateLimited || result.reason instanceof TimeBudgetError;
         outcomes.push({
           order: input.order,
           question: null,
           tokens: 0,
-          failed: !(result.reason instanceof TimeBudgetError),
-          deferred: result.reason instanceof TimeBudgetError,
+          failed: !deferred,
+          deferred,
+          rateLimited,
           error: result.reason,
         });
         return;
@@ -419,6 +440,7 @@ export async function structureBatch(
         question: normalizeStructured(result.value.json, input),
         tokens: result.value.tokens,
         failed: false,
+        model: result.value.model,
       });
     });
 

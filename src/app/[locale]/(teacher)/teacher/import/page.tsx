@@ -118,6 +118,15 @@ const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
  */
 class StructureStalledError extends Error {}
 
+/**
+ * Gemini kunlik kvotasi tugadi.
+ *
+ * `StructureStalledError` dan MEROS: sikl uchun bu ham "davom etishning
+ * ma'nosi yo'q" holati va xabari o'z matni bilan ko'rsatiladi — farqi faqat
+ * matnda, chunki ustozning qiladigan ishi boshqa: kutish, qayta urinish emas.
+ */
+class QuotaError extends StructureStalledError {}
+
 interface StructureStep {
   done: number;
   total: number;
@@ -134,6 +143,10 @@ interface StructureStep {
   deadlineHit?: boolean;
   /** Bitta ham blok yozilmadi — sikl davom etsa bekorga aylanadi. */
   stalled?: boolean;
+  /** Kvota tugagani uchun qoldirilgan bloklar soni. */
+  rateLimited?: number;
+  /** Uch urinishdan keyin terminal yiqilgan bloklar soni. */
+  stuck?: number;
 }
 
 /**
@@ -165,12 +178,13 @@ function logStructureStep(step: StructureStep): void {
  * Ikki marta qayta uriniladi (1 s, 3 s): marshrut idempotent, shuning uchun
  * qayta urinish xavfsiz — yozilgan savol qayta to'lanmaydi.
  */
-async function postStructure(jobId: string): Promise<StructureStep> {
+async function postStructure(jobId: string, retryFailed = false): Promise<StructureStep> {
   let lastError: unknown = null;
+  const query = retryFailed ? '?retryFailed=1' : '';
   for (let attempt = 0; attempt <= RETRY_DELAYS.length; attempt++) {
     if (attempt > 0) await wait(RETRY_DELAYS[attempt - 1]);
     try {
-      const res = await fetch(`/api/teacher/import/${jobId}/structure`, { method: 'POST' });
+      const res = await fetch(`/api/teacher/import/${jobId}/structure${query}`, { method: 'POST' });
       if (!res.ok) throw new Error(`structure ${res.status}`);
       return (await res.json()) as StructureStep;
     } catch (err) {
@@ -199,6 +213,8 @@ export default function TeacherImportPage() {
   const [resumedCount, setResumedCount] = useState(0);
   const [summary, setSummary] = useState<Summary | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
+  /** Terminal yiqilgan bloklar — "Yiqilganlarni qayta urinish" tugmasi shunga qaraydi. */
+  const [stuck, setStuck] = useState(0);
   const [errorText, setErrorText] = useState<string | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -329,7 +345,7 @@ export default function TeacherImportPage() {
    * qoldirgan joydan davom etadi va `done` foizsiz, "N / M savol" bo'lib
    * ko'rsatiladi.
    */
-  async function runStructure(id: string): Promise<void> {
+  async function runStructure(id: string, retryFailed = false): Promise<void> {
     setStage('structure');
     // Yuklash bosqichidan qolgan SAHIFA hisobi tozalanadi: aks holda birinchi
     // javob kelguncha ekranda "2/2 savol" (sahifa soni) turib qolardi.
@@ -337,15 +353,23 @@ export default function TeacherImportPage() {
     let previous = -1;
     let stalled = 0;
 
-    for (;;) {
-      const step = await postStructure(id);
+    for (let round = 0; ; round++) {
+      // Yiqilganlarni tiklash faqat BIRINCHI aylanmada: keyingi aylanmalar
+      // o'sha bloklarni cheksiz qaytarib, siklni aylantirardi.
+      const step = await postStructure(id, retryFailed && round === 0);
       logStructureStep(step);
       setProgress({ done: step.done, total: step.total });
+      setStuck(step.stuck ?? 0);
       if (!step.hasMore) return;
 
       // Server bitta ham blok yoza olmadi — davom etish bekor: keyingi
       // so'rov ham xuddi shu joyda to'xtaydi.
-      if (step.stalled) throw new StructureStalledError(t('errorStructureStalled'));
+      if (step.stalled) {
+        // Kvota tugagan bo'lsa sabab boshqa va ustozning qiladigan ishi ham
+        // boshqa: qayta urinish emas, kutish. Bloklar yo'qolmagan.
+        if (step.rateLimited) throw new QuotaError(t('errorQuotaExhausted'));
+        throw new StructureStalledError(t('errorStructureStalled'));
+      }
 
       stalled = step.done > previous ? 0 : stalled + 1;
       previous = step.done;
@@ -353,14 +377,18 @@ export default function TeacherImportPage() {
     }
   }
 
-  /** Tugallanmagan importni davom ettirish — ZIP kerak emas. */
-  async function resumeStructure(id: string): Promise<void> {
+  /**
+   * Tugallanmagan importni davom ettirish — ZIP kerak emas.
+   *
+   * `retryFailed` — terminal yiqilgan bloklarni ham qaytadan navbatga qo'yish.
+   */
+  async function resumeStructure(id: string, retryFailed = false): Promise<void> {
     setResumeJobId(null);
     setJobId(id);
     setPhase('running');
     setErrorText(null);
     try {
-      await runStructure(id);
+      await runStructure(id, retryFailed);
       forgetJob();
       setProgress(null);
       setPhase('done');
@@ -614,6 +642,19 @@ export default function TeacherImportPage() {
             className="btn-primary w-full sm:w-auto min-h-11 inline-flex items-center justify-center"
           >
             {t('resumeStructure')}
+          </button>
+        )}
+
+        {/* Terminal yiqilgan bloklar ko'pincha kvota tufayli yiqilgan — sabab
+            blokda emas, shuning uchun ularni qaytadan urinish mantiqan to'g'ri.
+            Tugma faqat shunday bloklar bo'lganda ko'rinadi. */}
+        {stuck > 0 && jobId && (phase === 'done' || phase === 'error') && (
+          <button
+            type="button"
+            onClick={() => void resumeStructure(jobId, true)}
+            className="btn-secondary w-full sm:w-auto min-h-11 inline-flex items-center justify-center"
+          >
+            {t('retryFailedBlocks', { count: stuck })}
           </button>
         )}
 

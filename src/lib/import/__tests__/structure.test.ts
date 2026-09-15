@@ -8,7 +8,7 @@ import {
   type ModelCaller,
   type StructureInput,
 } from "../structure";
-import { RETRY_RESERVE_MS, STRUCTURE_CALL_TIMEOUT_MS } from "../structure-error";
+import { RateLimitedError, RETRY_RESERVE_MS, STRUCTURE_CALL_TIMEOUT_MS } from "../structure-error";
 
 function input(overrides: Partial<StructureInput> = {}): StructureInput {
   return {
@@ -207,8 +207,8 @@ describe("structureBatch", () => {
     const call: ModelCaller = async (i: StructureInput) => {
       const seen = (attempts.get(i.order) ?? 0) + 1;
       attempts.set(i.order, seen);
-      // 0-savol birinchi urinishda chegaraga uriladi, ikkinchisida o'tadi.
-      if (i.order === 0 && seen === 1) throw Object.assign(new Error("quota"), { status: 429 });
+      // 0-savol birinchi urinishda vaqtinchalik nosozlikka uriladi, ikkinchisida o'tadi.
+      if (i.order === 0 && seen === 1) throw Object.assign(new Error("unavailable"), { status: 503 });
       if (i.order === 1) throw Object.assign(new Error("bad request"), { status: 400 });
       return { json: ok(i.order), tokens: 10 };
     };
@@ -220,6 +220,22 @@ describe("structureBatch", () => {
     // 400 qayta urinilmaydi — bekorga pul va vaqt ketmasin.
     expect(attempts.get(1)).toBe(1);
     expect(outcomes.find((o) => o.order === 1)!.failed).toBe(true);
+  });
+
+  it("kvota tugagani yiqilish emas — deferred va rateLimited belgisi bilan qaytadi", async () => {
+    const error = new RateLimitedError();
+    const call: ModelCaller = vi.fn(async (i: StructureInput) => {
+      if (i.order === 0) throw error;
+      return { json: ok(i.order), tokens: 10, model: "b-flash" };
+    });
+
+    const { outcomes } = await structureBatch([input({ order: 0 }), input({ order: 1 })], call, 6, noWait);
+
+    const limited = outcomes.find((o) => o.order === 0)!;
+    // Blokning nuqsoni emas: marshrut uni terminal qilmaydi.
+    expect(limited).toMatchObject({ failed: false, deferred: true, rateLimited: true, error });
+    // Javob bergan model natijaga o'tadi — `raw.model` shundan yoziladi.
+    expect(outcomes.find((o) => o.order === 1)!.model).toBe("b-flash");
   });
 
   it("paket o'lchamidan ko'p blok bosqichma-bosqich ishlanadi", async () => {

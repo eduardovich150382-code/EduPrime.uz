@@ -1,11 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 import type { ModelCaller, StructureInput } from "../structure";
 import {
+  isRateLimit,
   isRetriableError,
   parseStructureBatch,
   parseStructureCallTimeoutMs,
   parseStructureConcurrency,
   parseStructureDeadlineMs,
+  RateLimitedError,
   RETRY_RESERVE_MS,
   statusOf,
   STRUCTURE_CALL_TIMEOUT_MS,
@@ -21,11 +23,24 @@ function httpError(status: number, message = "failed"): Error {
   return Object.assign(new Error(message), { status });
 }
 
+describe("isRateLimit", () => {
+  it("429 ni status bo'yicha ham, xabar matni bo'yicha ham taniydi", () => {
+    expect(isRateLimit(httpError(429))).toBe(true);
+    expect(isRateLimit(new Error("[429 Too Many Requests] generate_content_free_tier_request"))).toBe(true);
+    expect(isRateLimit(new Error("RESOURCE_EXHAUSTED: quota"))).toBe(true);
+  });
+
+  it("boshqa xatolarni kvota deb bilmaydi", () => {
+    expect(isRateLimit(httpError(503))).toBe(false);
+    expect(isRateLimit(new Error("request timed out"))).toBe(false);
+    // Status ANIQ bo'lsa xabar matni e'tiborga olinmaydi.
+    expect(isRateLimit(httpError(400, "quota RESOURCE_EXHAUSTED"))).toBe(false);
+  });
+});
+
 describe("isRetriableError", () => {
-  it("tezlik chegarasi va vaqtinchalik nosozliklar qayta uriniladi", () => {
-    expect(isRetriableError(httpError(429))).toBe(true);
+  it("vaqtinchalik nosozliklar qayta uriniladi", () => {
     expect(isRetriableError(httpError(503))).toBe(true);
-    expect(isRetriableError(new Error("[429] RESOURCE_EXHAUSTED: quota"))).toBe(true);
     expect(isRetriableError(new Error("request timed out"))).toBe(true);
     // Tarmoq xatosida sabab `code` da keladi, `message` da emas.
     expect(isRetriableError(Object.assign(new Error("reset"), { code: "ECONNRESET" }))).toBe(true);
@@ -39,6 +54,13 @@ describe("isRetriableError", () => {
     expect(isRetriableError(new Error("Request aborted when fetching https://x"))).toBe(true);
     // Vaqt tugagan — kutib qayta urinishning ma'nosi yo'q.
     expect(isRetriableError(new TimeBudgetError())).toBe(false);
+  });
+
+  it("kvota chegarasi qayta URINILMAYDI — u kunlik, soniyalarda tiklanmaydi", () => {
+    // 429 ni zanjir boshqaradi: kutish o'rniga keyingi modelga o'tiladi.
+    expect(isRetriableError(httpError(429))).toBe(false);
+    expect(isRetriableError(new Error("[429] RESOURCE_EXHAUSTED: quota"))).toBe(false);
+    expect(isRetriableError(new RateLimitedError())).toBe(false);
   });
 
   it("400 va sxema xatosi qayta urinilmaydi", () => {
@@ -63,11 +85,11 @@ describe("statusOf", () => {
 });
 
 describe("withRetry", () => {
-  it("429 da kutib qayta uriniladi va natija qaytadi", async () => {
+  it("503 da kutib qayta uriniladi va natija qaytadi", async () => {
     const call = vi
       .fn<ModelCaller>()
-      .mockRejectedValueOnce(httpError(429))
-      .mockRejectedValueOnce(httpError(429))
+      .mockRejectedValueOnce(httpError(503))
+      .mockRejectedValueOnce(httpError(503))
       .mockResolvedValue({ json: { text: "ok" }, tokens: 10 });
     const sleep = vi.fn().mockResolvedValue(undefined);
 
@@ -81,7 +103,7 @@ describe("withRetry", () => {
   });
 
   it("uch urinishdan keyin ham yiqilsa asl xato tashlanadi", async () => {
-    const error = httpError(429, "quota");
+    const error = httpError(503, "unavailable");
     const call = vi.fn<ModelCaller>().mockRejectedValue(error);
     const sleep = vi.fn().mockResolvedValue(undefined);
 
@@ -112,7 +134,7 @@ describe("withRetry", () => {
   });
 
   it("kutishga vaqt yetmasa qayta urinilmaydi va xato TimeBudgetError bo'ladi", async () => {
-    const call = vi.fn<ModelCaller>().mockRejectedValue(httpError(429, "quota"));
+    const call = vi.fn<ModelCaller>().mockRejectedValue(httpError(503, "unavailable"));
     const sleep = vi.fn().mockResolvedValue(undefined);
     // Birinchi chaqiruvga yetadi, kutish + zaxiraga esa yo'q.
     const remaining = () => RETRY_RESERVE_MS + 500;
@@ -121,7 +143,7 @@ describe("withRetry", () => {
 
     expect(failure).toBeInstanceOf(TimeBudgetError);
     // Asl sabab yo'qolmaydi.
-    expect((failure as TimeBudgetError).cause).toMatchObject({ status: 429 });
+    expect((failure as TimeBudgetError).cause).toMatchObject({ status: 503 });
     expect(call).toHaveBeenCalledTimes(1);
     expect(sleep).not.toHaveBeenCalled();
   });

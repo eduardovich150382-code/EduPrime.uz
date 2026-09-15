@@ -59,13 +59,14 @@ vi.mock("@/lib/logger", async (importOriginal) => {
     },
   };
 });
+// Zanjirning o'rniga bitta soxta chaqiruvchi: marshrut uchun zanjir
+// shaffof — u faqat `ModelCaller` ni ko'radi.
 vi.mock("@/lib/import/structure-model", () => ({
-  STRUCTURE_MODEL: "gemini-test",
   createGeminiCaller: () => callerMock,
 }));
 
 import { NextRequest } from "next/server";
-import { STRUCTURE_BATCH, STRUCTURE_CONCURRENCY } from "@/lib/import/structure-error";
+import { RateLimitedError, STRUCTURE_BATCH, STRUCTURE_CONCURRENCY } from "@/lib/import/structure-error";
 import { POST } from "../route";
 
 const JOB = "job-1";
@@ -105,8 +106,10 @@ const modelAnswer = {
   notQuestion: false,
 };
 
-function call(): Promise<Response> {
-  const request = new NextRequest("http://localhost/api/teacher/import/job-1/structure", { method: "POST" });
+function call(query = ""): Promise<Response> {
+  const request = new NextRequest(`http://localhost/api/teacher/import/job-1/structure${query}`, {
+    method: "POST",
+  });
   return POST(request, { params: Promise.resolve({ jobId: JOB }) }) as unknown as Promise<Response>;
 }
 
@@ -120,6 +123,8 @@ function setup(options: {
   pending: DraftRow[];
   remaining: number;
   done?: number;
+  /** Terminal yiqilgan bloklar soni — javobdagi `stuck`. */
+  stuck?: number;
   status?: string;
 }) {
   requireTeacherMock.mockResolvedValue({ user: { id: "u1" }, error: null });
@@ -137,7 +142,8 @@ function setup(options: {
   countDraftMock
     .mockResolvedValueOnce(options.total)
     .mockResolvedValueOnce(options.remaining)
-    .mockResolvedValueOnce(options.done ?? options.total - options.remaining);
+    .mockResolvedValueOnce(options.done ?? options.total - options.remaining)
+    .mockResolvedValueOnce(options.stuck ?? 0);
   findDraftsMock.mockResolvedValue(options.pending);
 }
 
@@ -401,14 +407,14 @@ describe("POST /api/teacher/import/[jobId]/structure", () => {
         if (first) {
           first = false;
           vi.advanceTimersByTime(60000);
-          throw Object.assign(new Error("quota"), { status: 429 });
+          throw Object.assign(new Error("unavailable"), { status: 503 });
         }
         return { json: modelAnswer, tokens: 10 };
       });
 
       const body = await (await call()).json();
 
-      // 429 qayta urinishga arziydi, lekin kutishga vaqt yo'q: blok
+      // 503 qayta urinishga arziydi, lekin kutishga vaqt yo'q: blok
       // TEGILMAY qoladi — `attempts` oshmaydi, `STRUCTURE_FAILED` yozilmaydi.
       const written = updateDraftMock.mock.calls.map(([args]) => (args as { where: { id: string } }).where.id);
       expect(written).toEqual(["d1"]);
@@ -427,7 +433,7 @@ describe("POST /api/teacher/import/[jobId]/structure", () => {
       callerMock.mockImplementation(async () => {
         await Promise.resolve();
         vi.advanceTimersByTime(60000);
-        throw Object.assign(new Error("quota"), { status: 429 });
+        throw Object.assign(new Error("unavailable"), { status: 503 });
       });
 
       const body = await (await call()).json();
@@ -439,6 +445,84 @@ describe("POST /api/teacher/import/[jobId]/structure", () => {
     }
   });
 
+  it("kvota tugagani STRUCTURE_FAILED emas — attempts oshmaydi, RATE_LIMITED qo'yiladi", async () => {
+    setup({ total: 2, pending: [draft(0, { attempts: 1 }), draft(1)], remaining: 2, done: 0 });
+    callerMock.mockRejectedValue(new RateLimitedError());
+
+    const body = await (await call()).json();
+
+    const written = updateDraftMock.mock.calls.map(([args]) => args as { data: Record<string, unknown> });
+    expect(written).toHaveLength(2);
+    for (const update of written) {
+      const raw = update.data.raw as Record<string, unknown>;
+      // Blok `BLOCK` da qoladi va urinish sarflanmaydi: kvota ertaga tiklanadi.
+      expect(raw.stage).toBe("BLOCK");
+      expect(update.data.issues).toEqual(["RATE_LIMITED"]);
+      // Sabab yozilgan — nima uchun to'xtaganini keyin ko'rish uchun.
+      expect(raw.lastError).toMatchObject({ name: "RateLimitedError" });
+    }
+    expect((written[0].data.raw as { attempts?: number }).attempts).toBe(1);
+    // Kvota yozuvi ILGARILASH emas: klient siklni to'xtatishi kerak.
+    expect(body).toMatchObject({ rateLimited: 2, failed: 0, stalled: true, hasMore: true });
+    expect(errorMock).not.toHaveBeenCalled();
+  });
+
+  it("retryFailed=1 terminal bloklarni BLOCK ga qaytaradi", async () => {
+    setup({ total: 2, pending: [draft(0)], remaining: 0, done: 1 });
+    // Birinchi `findMany` — tiklanadigan terminal bloklar, ikkinchisi — navbat.
+    findDraftsMock.mockReset();
+    findDraftsMock
+      .mockResolvedValueOnce([
+        {
+          id: "d9",
+          raw: { stage: "STRUCTURE_FAILED", attempts: 3, lastError: { message: "quota", name: "Error", at: "x" } },
+          issues: ["KEY_AMBIGUOUS", "STRUCTURE_FAILED", "RATE_LIMITED"],
+        },
+      ])
+      .mockResolvedValueOnce([draft(0)]);
+
+    await call("?retryFailed=1");
+
+    expect(findDraftsMock).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { jobId: JOB, raw: { path: ["stage"], equals: "STRUCTURE_FAILED" } } }),
+    );
+    const restore = updateDraftMock.mock.calls
+      .map(([args]) => args as { where: { id: string }; data: Record<string, unknown> })
+      .find((u) => u.where.id === "d9")!;
+    const raw = restore.data.raw as Record<string, unknown>;
+    expect(raw.stage).toBe("BLOCK");
+    // Urinishlar nolga tushadi, aks holda blok bitta urinishdayoq yana terminal bo'lardi.
+    expect(raw.attempts).toBe(0);
+    expect(raw.lastError).toBeUndefined();
+    // Blok bosqichidagi kalit muammosi saqlanadi — u strukturaga aloqador.
+    expect(restore.data.issues).toEqual(["KEY_AMBIGUOUS"]);
+  });
+
+  it("retryFailed berilmasa terminal bloklarga tegilmaydi", async () => {
+    setup({ total: 2, pending: [draft(0)], remaining: 0, done: 1 });
+
+    await call();
+
+    expect(findDraftsMock).not.toHaveBeenCalledWith(
+      expect.objectContaining({ where: { jobId: JOB, raw: { path: ["stage"], equals: "STRUCTURE_FAILED" } } }),
+    );
+  });
+
+  it("javob bergan model draftga ham, jobga ham yoziladi", async () => {
+    setup({ total: 1, pending: [draft(0)], remaining: 0, done: 1, stuck: 2 });
+    callerMock.mockResolvedValue({ json: modelAnswer, tokens: 120, model: "b-flash" });
+
+    const body = await (await call()).json();
+
+    const [[update]] = updateDraftMock.mock.calls as [[{ data: { raw: Record<string, unknown> } }]];
+    // Qaysi savol qaysi model bilan tuzilganini bilmasak, sifatni taqqoslab bo'lmaydi.
+    expect(update.data.raw.model).toBe("b-flash");
+    expect(executeRawMock).toHaveBeenCalledTimes(1);
+    expect(executeRawMock.mock.calls[0].slice(1)).toContain("b-flash");
+    // Terminal yiqilganlar soni javobda — UI tugmani shunga qarab ko'rsatadi.
+    expect(body.stuck).toBe(2);
+  });
+
   it("done faqat STRUCTURED bloklarni sanaydi, total esa butun jobni", async () => {
     // Uch blokdan biri oldingi so'rovlarda butunlay yiqilgan: u `BLOCK` ham
     // emas, `STRUCTURED` ham emas — shuning uchun `done` `total` ga yetmaydi.
@@ -447,7 +531,7 @@ describe("POST /api/teacher/import/[jobId]/structure", () => {
     const body = await (await call()).json();
 
     expect(body).toMatchObject({ done: 2, total: 3, hasMore: false });
-    expect(countDraftMock).toHaveBeenLastCalledWith({
+    expect(countDraftMock).toHaveBeenCalledWith({
       where: { jobId: JOB, raw: { path: ["stage"], equals: "STRUCTURED" } },
     });
   });
