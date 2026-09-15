@@ -3,6 +3,7 @@
 import { AlertCircle, FileArchive, Loader2, Upload, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import ImportChatMode from '@/components/teacher/ImportChatMode';
 import { Link, useRouter } from '@/i18n/routing';
 import {
   IMPORT_SOURCE_LANGS,
@@ -44,6 +45,17 @@ const ZIP_TYPES = ['application/zip', 'application/x-zip-compressed'];
  * Faqat `jobId` saqlanadi: qolgan hamma narsa serverda.
  */
 const STORAGE_KEY = 'eduprime.import.job';
+
+/**
+ * Ustoz tanlagan yo'l — avtomatik yoki chat.
+ *
+ * Faqat KLIENTDA saqlanadi: `ImportJob` da bu uchun ustun yo'q va kerak ham
+ * emas — tanlov ikkala marshrutning ishiga umuman ta'sir qilmaydi, u shunchaki
+ * qaysi panel ko'rinishini hal qiladi.
+ */
+const MODE_KEY = 'eduprime.import.mode';
+
+type Mode = 'auto' | 'chat';
 
 /** Struktura so'rovi yiqilsa shuncha kutib qayta uriniladi. */
 const RETRY_DELAYS = [1000, 3000];
@@ -112,6 +124,22 @@ function readJob(): string | null {
     return localStorage.getItem(STORAGE_KEY);
   } catch {
     return null;
+  }
+}
+
+function readMode(): Mode {
+  try {
+    return localStorage.getItem(MODE_KEY) === 'chat' ? 'chat' : 'auto';
+  } catch {
+    return 'auto';
+  }
+}
+
+function rememberMode(mode: Mode): void {
+  try {
+    localStorage.setItem(MODE_KEY, mode);
+  } catch {
+    // Maxfiy rejimda yozib bo'lmaydi — tanlov keyingi tashrifda esda qolmaydi, xolos.
   }
 }
 
@@ -325,9 +353,24 @@ export default function TeacherImportPage() {
    * yiqilgan bloklar borligi ekranda jimgina yo'qolardi.
    */
   const [stuckTranslate, setStuckTranslate] = useState(0);
+  /**
+   * Vaqt chegarasi tufayli qoldirilgan savollar.
+   *
+   * Chat yo'liga o'tish taklifi shunga ham qaraydi: `deferred` — aynan
+   * serverdagi AI ning vaqt byudjeti yetmagani, ya'ni chat yo'li bu savollarni
+   * muammosiz oladi.
+   */
+  const [deferred, setDeferred] = useState(0);
   const [errorText, setErrorText] = useState<string | null>(null);
+  const [mode, setMode] = useState<Mode>('auto');
 
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Tanlangan yo'l faqat brauzerda bor — birinchi render serverda bo'lgani
+  // uchun u `useEffect` da o'qiladi.
+  useEffect(() => {
+    setMode(readMode());
+  }, []);
 
   useEffect(() => {
     fetch('/api/subjects')
@@ -470,6 +513,7 @@ export default function TeacherImportPage() {
       logStructureStep(step);
       setProgress({ done: step.done, total: step.total });
       setStuck(step.stuck ?? 0);
+      setDeferred(step.deferred ?? 0);
       if (!step.hasMore) return;
 
       // Server bitta ham blok yoza olmadi — davom etish bekor: keyingi
@@ -514,6 +558,7 @@ export default function TeacherImportPage() {
 
       setProgress({ done: step.done, total: step.total });
       setStuckTranslate(step.stuck ?? 0);
+      setDeferred(step.deferred ?? 0);
       if (!step.hasMore) return;
 
       if (step.stalled) {
@@ -807,6 +852,21 @@ export default function TeacherImportPage() {
           </button>
         )}
 
+        {/* Avtomatik yo'l vaqt yoki kvota tufayli to'xtaganda chat yo'li aynan
+            shu savollarni oladi — eksport qolgan draftlarni o'zi topadi. */}
+        {mode !== 'chat' && deferred + stuck + stuckTranslate > 0 && jobId && phase !== 'running' && (
+          <button
+            type="button"
+            onClick={() => {
+              setMode('chat');
+              rememberMode('chat');
+            }}
+            className="btn-secondary w-full sm:w-auto min-h-11 inline-flex items-center justify-center"
+          >
+            {t('chatContinue')}
+          </button>
+        )}
+
         {/* Terminal yiqilgan bloklar ko'pincha kvota tufayli yiqilgan — sabab
             blokda emas, shuning uchun ularni qaytadan urinish mantiqan to'g'ri.
             Tugma faqat shunday bloklar bo'lganda ko'rinadi. */}
@@ -818,6 +878,34 @@ export default function TeacherImportPage() {
           >
             {t('retryFailedBlocks', { count: stuck + stuckTranslate })}
           </button>
+        )}
+
+        {/* Bloklar serverda bo'lgandan keyin ikki yo'l ham ochiq: avtomatik
+            yo'l allaqachon ishlab turgan bo'lishi mumkin, chat yo'li esa
+            qolgan draftlarni (BLOCK va yiqilganlar) o'zi topib oladi. */}
+        {jobId && stage !== 'upload' && (
+          <div className="space-y-3 border-t border-border pt-4">
+            <p className="text-sm font-medium text-text-primary">{t('chatModeTitle')}</p>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              {(['auto', 'chat'] as const).map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => {
+                    setMode(value);
+                    rememberMode(value);
+                  }}
+                  className={`min-h-11 flex-1 rounded-lg border px-3 ${
+                    mode === value ? 'border-primary-600 bg-primary-50 font-medium' : 'border-border'
+                  }`}
+                >
+                  {value === 'auto' ? t('chatModeAuto') : t('chatModeChat')}
+                </button>
+              ))}
+            </div>
+
+            {mode === 'chat' && <ImportChatMode jobId={jobId} />}
+          </div>
         )}
 
         <button

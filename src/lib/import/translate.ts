@@ -403,7 +403,15 @@ function allTokens(text: string, options: StructuredOption[]): string[] {
   return tokens.sort();
 }
 
-function numbersOf(text: string): string[] {
+/**
+ * Matndagi sonlar — solishtirish uchun normallashtirilgan va tartiblangan.
+ *
+ * Eksport qilingan: chat yo'li (`chat-apply.ts`) ham son o'zgarganini shu
+ * bilan tutadi. `verifyTranslation` ni u yerda ishlatib bo'lmaydi — u manba
+ * variantlari sonining tengligini talab qiladi, chatga ketgan xom blokda esa
+ * manba variantlari umuman ajratilmagan.
+ */
+export function numbersOf(text: string): string[] {
   return (text.replace(LATEX_COMMAND, ' ').match(NUMBER) ?? [])
     .map((n) => String(Number(n.replace(',', '.'))))
     .sort();
