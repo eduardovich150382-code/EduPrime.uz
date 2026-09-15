@@ -41,6 +41,34 @@ const TRANSLATED: Prisma.ImportDraftWhereInput = { raw: { path: ['stage'], equal
 /** Uch urinishdan keyin terminal bo'lgan draftlar — faqat qo'lda qayta uriniladi. */
 const TERMINAL: Prisma.ImportDraftWhereInput = { raw: { path: ['stage'], equals: 'TRANSLATE_FAILED' } };
 
+/** Yakuniy bosqich — ko'rib chiqishga tayyor savol. */
+const READY: Prisma.ImportDraftWhereInput = { raw: { path: ['stage'], equals: 'READY' } };
+
+/**
+ * Progressdagi `done` — tarjima qilingan VA yakuniy bosqichdagilar.
+ *
+ * Ikkalasi ham sanaladi, chunki oxirgi aylanmada `promoteReady` hammasini
+ * `READY` ga o'tkazadi: faqat `TRANSLATED` sanalsa ekranda hisob "50/50" dan
+ * "0/50" ga tushib qolardi.
+ */
+const DONE: Prisma.ImportDraftWhereInput = { OR: [TRANSLATED, READY] };
+
+/**
+ * Tarjima qilinganlarni yakuniy bosqichga o'tkazadi.
+ *
+ * Navbat bo'shagandagina chaqiriladi. Chat orqali import ham aynan shu
+ * bosqichda tugaydi (`apply/route.ts`), shuning uchun bo'lajak ko'rib chiqish
+ * oynasi savol qaysi yo'ldan kelganini bilishi shart emas — u faqat `READY`
+ * ni o'qiydi.
+ *
+ * `updateMany` emas: u Json ustunining ICHIDAGI bitta kalitni o'zgartira
+ * olmaydi, `jsonb_set` esa qolgan maydonlarni (rasmlar, sohalar, kalit)
+ * tegmasdan qoldiradi.
+ */
+function promoteReady(jobId: string): Prisma.PrismaPromise<number> {
+  return db.$executeRaw`UPDATE "ImportDraft" SET "raw" = jsonb_set("raw", '{stage}', '"READY"') WHERE "jobId" = ${jobId} AND "raw"->>'stage' = 'TRANSLATED'`;
+}
+
 interface RawDraft {
   stage?: string;
   /** Tarjima urinishlari — strukturalashning `attempts` idan ALOHIDA sanaladi. */
@@ -233,8 +261,10 @@ export async function POST(
     // sohalar, kalit) tegmasdan qoldiradi.
     if (!shouldTranslate(sourceLang, targetLang)) {
       await db.$executeRaw`UPDATE "ImportDraft" SET "raw" = jsonb_set("raw", '{stage}', '"TRANSLATED"') WHERE "jobId" = ${job.id} AND "raw"->>'stage' = 'STRUCTURED'`;
+      // Navbat shu zahoti bo'shadi — demak yakuniy bosqich ham shu yerda.
+      await promoteReady(job.id);
       await db.importJob.update({ where: { id: job.id }, data: { status: 'REVIEW' } });
-      const done = await db.importDraft.count({ where: { jobId: job.id, ...TRANSLATED } });
+      const done = await db.importDraft.count({ where: { jobId: job.id, ...DONE } });
       logger.info('Tarjima o\'tkazib yuborildi (tillar teng)', {
         jobId: job.id,
         sourceLang,
@@ -413,10 +443,13 @@ export async function POST(
 
     const remaining = await db.importDraft.count({ where: { jobId: job.id, ...PENDING } });
     if (remaining === 0) {
+      // `done` SANASHDAN OLDIN: aks holda hisob promotion'gacha bo'lgan holatni
+      // ko'rsatib, klientga eskirgan son qaytardi.
+      await promoteReady(job.id);
       await db.importJob.update({ where: { id: job.id }, data: { status: 'REVIEW' } });
     }
 
-    const done = await db.importDraft.count({ where: { jobId: job.id, ...TRANSLATED } });
+    const done = await db.importDraft.count({ where: { jobId: job.id, ...DONE } });
     const stuck = await db.importDraft.count({ where: { jobId: job.id, ...TERMINAL } });
     const stalled = remaining > 0 && written === 0;
 
