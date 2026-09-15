@@ -72,7 +72,10 @@ export function buildTranslatePrompt(group: TranslateGroup): string {
   const questions = group.items.map((item) => ({
     order: item.order,
     text: item.text,
-    options: item.options.map((o) => ({ label: o.label, text: o.text, imageToken: o.imageToken })),
+    // `imageToken` YUBORILMAYDI: u rasm identifikatorini saqlaydi, tarjimaga
+    // kerak emas, modeldan uni aynan qaytarishni talab qilish esa bajarib
+    // bo'lmaydigan ish edi. Natijaga u manbadan ko'chiriladi.
+    options: item.options.map((o) => ({ label: o.label, text: o.text })),
   }));
 
   return `Sen o'quv qo'llanmasidan olingan test savollarini TARJIMA qiluvchi
@@ -88,9 +91,8 @@ ASOSIY
   tursin — ularni tarjima qilma va joyini almashtirma.
 
 HECH QACHON O'ZGARMAYDIGAN NARSALAR
-- [[IMG:...]] tokenlari: soni, tartibi va joyi AYNAN saqlanadi. Tokenni
-  yaratma, o'chirma, ichini o'zgartirma. Token yo'qolsa butun tarjima rad
-  etiladi.
+- [[IMG1]], [[IMG2]] kabi belgilar — rasm o'rni. Ularni o'zgartirma, tarjima
+  qilma, yangisini yaratma. Soni va tartibi saqlansin.
 - SONLAR. Hech bir sonni o'zgartirma, yaxlitlama, birlikka moslashtirma:
   "4 metre" → "4 metr" (4 o'zgarmaydi), "0,6" → "0,6".
 - Birliklar: N, m, s, kg, °, m/s², J, W.

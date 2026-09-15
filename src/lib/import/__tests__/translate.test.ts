@@ -2,11 +2,13 @@ import { describe, expect, it, vi } from "vitest";
 import type { StructuredOption } from "../structure";
 import { RETRY_RESERVE_MS } from "../structure-error";
 import {
+  maskImageTokens,
   parseTranslateResponse,
   prepareInput,
   repairLatex,
   shouldTranslate,
   translateBatch,
+  unmaskImageTokens,
   verifyTranslation,
   type TranslateCaller,
   type TranslateInput,
@@ -27,6 +29,11 @@ function input(overrides: Partial<TranslateInput> = {}): TranslateInput {
     ...overrides,
   };
 }
+
+/** Haqiqiy tokenlar — aynan shu uzunlikdagi cuid modelni yiqitgandi. */
+const IMG_A = "[[IMG:cmu2gfe670005lc0438g6uky5]]";
+const IMG_B = "[[IMG:cmu2gfe670005lc0438g6uky6]]";
+const IMG_C = "[[IMG:cmu2gfe670005lc0438g6uky7]]";
 
 /** Modelning bir guruh uchun javobi — sxemadagi shakl. */
 function answer(results: unknown[]): { json: unknown; tokens: number } {
@@ -250,6 +257,93 @@ describe("verifyTranslation — NUMBER_MISMATCH bayrog'i", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Rasm tokenlarini maskalash
+// ---------------------------------------------------------------------------
+
+describe("maskImageTokens / unmaskImageTokens", () => {
+  it("aylanish asl matnni AYNAN qaytaradi", () => {
+    const text = `Şekildeki gibi ${IMG_A} va ${IMG_B} verilmiştir`;
+    const options = [option("A", `Grafik ${IMG_C}`), option("B", "2")];
+
+    const masked = maskImageTokens(text, options);
+
+    // Modelga cuid UMUMAN ko'rinmaydi — yiqilishning sababi shunda edi.
+    expect(masked.text).toBe("Şekildeki gibi [[IMG1]] va [[IMG2]] verilmiştir");
+    expect(masked.options[0].text).toBe("Grafik [[IMG3]]");
+    expect(masked.text).not.toContain("cmu2");
+
+    const back = unmaskImageTokens(masked.text, masked.options, masked.map);
+
+    expect(back.text).toBe(text);
+    expect(back.options[0].text).toBe(options[0].text);
+    expect(back.options[1].text).toBe("2");
+    expect(back.issues).toEqual([]);
+  });
+
+  it("model tokenni tashlab yuborsa u O'Z maydoni oxiriga qaytadi", () => {
+    const options = [option("A", `Grafik ${IMG_B}`), option("B", "2")];
+    const masked = maskImageTokens(`Şekilde ${IMG_A} verilmiştir`, options);
+
+    // Model ikkala tokenni ham yozmadi.
+    const back = unmaskImageTokens(
+      "Rasmda berilgan",
+      [option("A", "Grafik"), option("B", "2")],
+      masked.map,
+    );
+
+    expect(back.text).toBe(`Rasmda berilgan ${IMG_A}`);
+    // Variantdan yo'qolgan rasm savol matniga KO'CHMAYDI — bu chalg'ituvchi bo'lardi.
+    expect(back.options[0].text).toBe(`Grafik ${IMG_B}`);
+    expect(back.issues).toEqual(["IMAGE_TOKEN_MOVED"]);
+  });
+
+  it("xaritada yo'q token o'chiriladi", () => {
+    const masked = maskImageTokens(`Şekilde ${IMG_A} verilmiştir`, []);
+
+    const back = unmaskImageTokens("Rasmda [[IMG1]] va [[IMG7]] berilgan", [], masked.map);
+
+    expect(back.text).toBe(`Rasmda ${IMG_A} va  berilgan`);
+    expect(back.issues).toEqual(["IMAGE_TOKEN_INVALID"]);
+  });
+
+  it("takrorlangan token o'chiriladi, yozilmagani qaytariladi", () => {
+    // Model [[IMG1]] ni ikki marta yozdi, [[IMG2]] ni umuman yozmadi.
+    const options = [option("A", IMG_A), option("B", IMG_B)];
+    const source = input({ text: "Grafiklerden hangisi?", options });
+    const masked = maskImageTokens(source.text, options);
+
+    const back = unmaskImageTokens(
+      masked.text,
+      [option("A", "[[IMG1]] [[IMG1]]"), option("B", "")],
+      masked.map,
+    );
+
+    // A da rasm BIR marta, B esa o'z joyida — to'plam manbadagidek qoladi.
+    // O'chgan tokendan qolgan bo'shliq matnni buzmaydi, shuning uchun kesiladi.
+    expect(back.options[0].text.trimEnd()).toBe(IMG_A);
+    expect(back.options[1].text).toBe(IMG_B);
+    expect(back.issues).toContain("IMAGE_TOKEN_INVALID");
+    expect(back.issues).toContain("IMAGE_TOKEN_MOVED");
+    // Eng muhimi: bunday javob ham tekshiruvdan o'tadi.
+    expect(verifyTranslation(source, { text: back.text, options: back.options }).fatal).toBeNull();
+  });
+
+  it("tokensiz savolga tegilmaydi", () => {
+    const options = [option("A", "2"), option("B", "3")];
+    const masked = maskImageTokens("Hız kaçtır?", options);
+
+    expect(masked.text).toBe("Hız kaçtır?");
+    expect(masked.map.size).toBe(0);
+
+    const back = unmaskImageTokens("Tezlik nechaga teng?", options, masked.map);
+
+    expect(back.text).toBe("Tezlik nechaga teng?");
+    expect(back.options).toEqual(options);
+    expect(back.issues).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // 5–6. Guruh tarjimasi — variantlar va rim raqamlari
 // ---------------------------------------------------------------------------
 
@@ -315,12 +409,18 @@ describe("translateBatch — natija yozish", () => {
   });
 
   it("tekshiruvdan o'tmagan savol yiqiladi, guruhdagi qolgani saqlanadi", async () => {
-    const first = input({ order: 0, text: "Şekildeki gibi [[IMG:a1]]", options: [] });
+    const first = input({ order: 0, options: [option("A", "2"), option("B", "3")] });
     const second = input({ order: 1, text: "Hız kaçtır?", options: [] });
     const call = vi.fn<TranslateCaller>().mockResolvedValue(
       answer([
-        // Birinchisida token yo'qolgan.
-        { order: 0, text: "Rasmdagidek", options: [], issues: [], confidence: 0.9 },
+        // Birinchisida variant yo'qolgan.
+        {
+          order: 0,
+          text: "Tezlik nechaga teng?",
+          options: [{ label: "A", text: "2" }],
+          issues: [],
+          confidence: 0.9,
+        },
         { order: 1, text: "Tezlik nechaga teng?", options: [], issues: [], confidence: 0.9 },
       ]),
     );
@@ -330,11 +430,71 @@ describe("translateBatch — natija yozish", () => {
     const failedOne = outcomes.find((o) => o.order === 0);
     expect(failedOne?.failed).toBe(true);
     expect(failedOne?.result).toBeNull();
-    expect((failedOne?.error as Error).message).toBe("IMAGE_TOKEN_LOST");
+    expect((failedOne?.error as Error).message).toBe("OPTION_COUNT_MISMATCH");
+    // Javobning o'zi logga tushsin: kod NIMA yiqilganini aytadi, nega
+    // yiqilganini esa faqat matn ko'rsatadi.
+    expect(failedOne?.sample).toContain("Tezlik nechaga teng?");
 
     const okOne = outcomes.find((o) => o.order === 1);
     expect(okOne?.failed).toBe(false);
     expect(okOne?.result?.text).toBe("Tezlik nechaga teng?");
+  });
+
+  it("modelga cuid yuborilmaydi, tokenni yo'qotsa ham savol saqlanadi", async () => {
+    const source = input({ text: `Şekildeki gibi ${IMG_A}`, options: [] });
+    const call = vi.fn<TranslateCaller>().mockResolvedValue(
+      answer([{ order: 0, text: "Rasmdagidek", options: [], issues: [], confidence: 0.9 }]),
+    );
+
+    const { outcomes } = await translateBatch([source], META, call);
+
+    expect(call.mock.calls[0][0].items[0].text).toBe("Şekildeki gibi [[IMG1]]");
+
+    // Token yo'qolgani endi YIQITMAYDI — u matn oxiriga qaytariladi.
+    expect(outcomes[0].failed).toBe(false);
+    expect(outcomes[0].result?.text).toBe(`Rasmdagidek ${IMG_A}`);
+    expect(outcomes[0].result?.issues).toContain("IMAGE_TOKEN_MOVED");
+  });
+
+  it("variantning imageToken i manbadan saqlanadi", async () => {
+    const source = input({
+      text: "Hangi grafik?",
+      options: [option("A", "", IMG_A), option("B", "", IMG_B)],
+    });
+    const call = vi.fn<TranslateCaller>().mockResolvedValue(
+      answer([
+        {
+          order: 0,
+          text: "Qaysi grafik?",
+          options: [
+            { label: "A", text: "" },
+            { label: "B", text: "" },
+          ],
+          issues: [],
+          confidence: 0.9,
+        },
+      ]),
+    );
+
+    const { outcomes } = await translateBatch([source], META, call);
+
+    // Model bu maydonni umuman ko'rmaydi, shuning uchun uni yo'qota olmaydi.
+    expect(outcomes[0].failed).toBe(false);
+    expect(outcomes[0].result?.options.map((o) => o.imageToken)).toEqual([IMG_A, IMG_B]);
+  });
+
+  it("promptga cuid ham, imageToken maydoni ham tushmaydi", () => {
+    const source = input({ text: `Şekildeki gibi ${IMG_A}`, options: [option("A", "2", IMG_B)] });
+    const masked = maskImageTokens(source.text, source.options);
+
+    const prompt = buildTranslatePrompt({
+      items: [{ order: 0, text: masked.text, options: masked.options }],
+      ...META,
+    });
+
+    expect(prompt).toContain("[[IMG1]]");
+    expect(prompt).not.toContain("[[IMG:");
+    expect(prompt).not.toContain("imageToken");
   });
 
   it("javobda qaytmagan savol RESULT_MISSING bilan yiqiladi", async () => {

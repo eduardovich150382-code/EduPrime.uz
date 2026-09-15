@@ -61,6 +61,14 @@ export interface TranslateOutcome {
   failed: boolean;
   model?: string;
   error?: unknown;
+  /**
+   * Yiqilganda modelning javobidan namuna — matn va birinchi variant.
+   *
+   * Xato KODI nima yiqilganini aytadi, lekin nega yiqilganini aytmaydi:
+   * birinchi haqiqiy importda sababni faqat kodga qarab taxmin qilishga
+   * to'g'ri keldi. Endi javobning o'zi logda ko'rinib turadi.
+   */
+  sample?: string;
   /** Vaqt yoki kvota yetmagani uchun bajarilmadi — bu YIQILISH EMAS. */
   deferred?: boolean;
   /** Zanjirdagi hamma modelning kvotasi tugadi — `deferred` ning bir turi. */
@@ -147,6 +155,9 @@ export const TRANSLATE_SCHEMA: ResponseSchema = {
         properties: {
           order: { type: SchemaType.INTEGER },
           text: { type: SchemaType.STRING },
+          // `imageToken` bu yerda ATAYLAB yo'q: u rasmning identifikatorini
+          // saqlaydi va modeldan uni aynan qaytarishni talab qilish bajarib
+          // bo'lmaydigan ish edi. Maydon natijaga manbadan ko'chiriladi.
           options: {
             type: SchemaType.ARRAY,
             items: {
@@ -154,7 +165,6 @@ export const TRANSLATE_SCHEMA: ResponseSchema = {
               properties: {
                 label: { type: SchemaType.STRING },
                 text: { type: SchemaType.STRING },
-                imageToken: { type: SchemaType.STRING },
               },
               required: ['label', 'text'],
             },
@@ -243,6 +253,120 @@ export function repairLatex(text: string): RepairResult {
   if (wrapped) issues.push('LATEX_WRAPPED');
 
   return { text: out.join('$'), issues };
+}
+
+// ---------------------------------------------------------------------------
+// Rasm tokenlarini maskalash
+// ---------------------------------------------------------------------------
+
+/** Maskalangan token — xaritadagi yozuv. */
+export interface MaskedToken {
+  /** To'liq haqiqiy token: `[[IMG:cmu2gfe670005lc0438g6uky5]]`. */
+  token: string;
+  /** Token qaysi maydondan olingani: savol matni yoki variant indeksi. */
+  from: 'text' | number;
+}
+
+/**
+ * Javobdagi qisqa token. Ataylab `[[IMG:...]]` naqshiga MOS EMAS — shuning
+ * uchun maskalangan matnda `imageTokensOf` bo'sh qaytaradi va haqiqiy token
+ * sizib chiqsa tekshiruv uni baribir ko'radi.
+ */
+const MASKED_TOKEN = /\[\[IMG(\d+)\]\]/g;
+
+/** Yo'qolgan tokenni maydon oxiriga qaytaradi. */
+function appendToken(value: string, token: string): string {
+  const trimmed = value.trimEnd();
+  return trimmed ? `${trimmed} ${token}` : token;
+}
+
+/**
+ * Rasm tokenlarini modelga ko'rsatmaydigan qisqa belgilarga almashtiradi.
+ *
+ * Birinchi haqiqiy importda 11/11 savol `IMAGE_TOKEN_LOST` bilan yiqilgandi:
+ * `[[IMG:cmu2gfe670005lc0438g6uky5]]` ichidagi 24 belgili cuid ni model
+ * belgi-baboshi ko'chira olmaydi — tekshiruv to'g'ri edi, TALAB noto'g'ri.
+ * `[[IMG1]]` ni esa model ishonchli saqlaydi, haqiqiy identifikator esa
+ * modelga umuman ko'rinmaydi.
+ *
+ * Har UCHRASH alohida kalit oladi (bir token ikki marta uchrasa ham): shunda
+ * xaritadagi yozuvlar soni manbadagi tokenlar soniga aynan teng bo'ladi va
+ * tiklashda birortasi ortib yoki kamayib qolmaydi.
+ */
+export function maskImageTokens(
+  text: string,
+  options: StructuredOption[],
+): { text: string; options: StructuredOption[]; map: Map<string, MaskedToken> } {
+  const map = new Map<string, MaskedToken>();
+  let counter = 0;
+
+  const mask = (value: string, from: 'text' | number): string => {
+    let masked = value;
+    for (const token of imageTokensOf(value)) {
+      const key = `IMG${++counter}`;
+      map.set(key, { token, from });
+      // Satr naqsh sifatida — birinchi QOLGAN uchrashni almashtiradi, ya'ni
+      // takroriy token ikkinchi aylanishda o'z navbatini oladi.
+      masked = masked.replace(token, `[[${key}]]`);
+    }
+    return masked;
+  };
+
+  return {
+    text: mask(text, 'text'),
+    options: options.map((option, index) => ({ ...option, text: mask(option.text, index) })),
+    map,
+  };
+}
+
+/**
+ * Qisqa tokenlarni haqiqiysiga qaytaradi.
+ *
+ * Har xarita yozuvi BIR MARTA sarflanadi va sarflanmagani o'z maydoniga
+ * qaytariladi — shuning uchun chiqishning token to'plami manbanikiga HAR DOIM
+ * teng bo'ladi, model nima yozishidan qat'i nazar. Aynan shu sabab
+ * `IMAGE_TOKEN_LOST` endi modelga emas, faqat shu funksiyaning xatosiga
+ * bog'liq.
+ *
+ * Yo'qolgan token savolni YIQITMAYDI: rasm joyi noto'g'ri bo'lgani butun
+ * tarjimani yo'qotishdan yaxshiroq, S7 (ko'rib chiqish) da ustoz tuzatadi.
+ */
+export function unmaskImageTokens(
+  text: string,
+  options: StructuredOption[],
+  map: Map<string, MaskedToken>,
+): { text: string; options: StructuredOption[]; issues: string[] } {
+  const issues = new Set<string>();
+  const used = new Set<string>();
+
+  const unmask = (value: string): string =>
+    value.replace(MASKED_TOKEN, (_match, digits: string) => {
+      const key = `IMG${digits}`;
+      const entry = map.get(key);
+      // Xaritada yo'q kalit ham, ikkinchi marta uchragan kalit ham manbada
+      // bo'lmagan rasmni ko'rsatadi — ikkalasi ham o'chiriladi.
+      if (!entry || used.has(key)) {
+        issues.add('IMAGE_TOKEN_INVALID');
+        return '';
+      }
+      used.add(key);
+      return entry.token;
+    });
+
+  let outText = unmask(text);
+  const outOptions = options.map((option) => ({ ...option, text: unmask(option.text) }));
+
+  for (const [key, entry] of map) {
+    if (used.has(key)) continue;
+    issues.add('IMAGE_TOKEN_MOVED');
+    // Token O'ZI kelgan maydonga qaytadi: variantdagi rasm savol matniga
+    // ko'chib o'tsa, ustoz uchun bu yo'qolganidan ham chalg'ituvchiroq.
+    const option = typeof entry.from === 'number' ? outOptions[entry.from] : undefined;
+    if (option) option.text = appendToken(option.text, entry.token);
+    else outText = appendToken(outText, entry.token);
+  }
+
+  return { text: outText, options: outOptions, issues: [...issues] };
 }
 
 // ---------------------------------------------------------------------------
@@ -377,7 +501,8 @@ export function parseTranslateResponse(raw: unknown): Map<number, ParsedResult> 
       return {
         label: asString(o.label, 4) || String.fromCharCode(65 + index),
         text: asString(o.text),
-        imageToken: typeof o.imageToken === 'string' && o.imageToken ? o.imageToken : null,
+        // Modeldan so'ralmaydi — `translateBatch` uni manbadan qaytaradi.
+        imageToken: null,
       };
     });
 
@@ -421,6 +546,32 @@ export function prepareInput(input: TranslateInput): { input: TranslateInput; is
   };
 }
 
+/** Logga tushadigan namuna uzunligi — sabab ko'rinsin, log shishmasin. */
+const SAMPLE_LENGTH = 300;
+
+/** Model javobining ko'rinadigan boshi: matn va birinchi variant. */
+function sampleOf(text: string, options: StructuredOption[]): string {
+  return [text, options[0]?.text ?? ''].filter(Boolean).join(' | ').slice(0, SAMPLE_LENGTH);
+}
+
+/**
+ * Variantning rasm maydonini manbadan ko'chiradi.
+ *
+ * Bu maydon modelga UMUMAN yuborilmaydi (sxemada ham yo'q): u rasm
+ * identifikatorini saqlaydi, tarjimaga esa kerak emas. Indeks bo'yicha
+ * ko'chirish xavfsiz — natijalar `order` bo'yicha olinadi, yorliqlar esa
+ * indeks bo'yicha allaqachon tekshiriladi.
+ */
+function restoreOptionImages(
+  source: readonly StructuredOption[],
+  candidate: StructuredOption[],
+): StructuredOption[] {
+  return candidate.map((option, index) => ({
+    ...option,
+    imageToken: source[index]?.imageToken ?? null,
+  }));
+}
+
 function chunk<T>(items: readonly T[], size: number): T[][] {
   const out: T[][] = [];
   for (let start = 0; start < items.length; start += size) out.push(items.slice(start, start + size));
@@ -458,7 +609,18 @@ export async function translateBatch(
   const remaining = options.remaining;
   const resilient = withRetry(call, { callTimeoutMs: TRANSLATE_CALL_TIMEOUT_MS, ...options });
 
-  const prepared = inputs.map(prepareInput);
+  // Modelga faqat MASKALANGAN matn boradi: haqiqiy rasm tokeni xaritada
+  // qoladi va javob kelgach qaytariladi.
+  const prepared = inputs.map((raw) => {
+    const { input, issues } = prepareInput(raw);
+    const masked = maskImageTokens(input.text, input.options);
+    return {
+      input,
+      issues,
+      map: masked.map,
+      sent: { order: input.order, text: masked.text, options: masked.options },
+    };
+  });
   const groups = chunk(prepared, group);
 
   const outcomes: TranslateOutcome[] = [];
@@ -468,7 +630,7 @@ export async function translateBatch(
   for (let start = 0; start < groups.length; start += concurrency) {
     const wave = groups.slice(start, start + concurrency);
     const settled = await Promise.allSettled(
-      wave.map((entries) => resilient({ items: entries.map((e) => e.input), ...meta })),
+      wave.map((entries) => resilient({ items: entries.map((e) => e.sent), ...meta })),
     );
     batches++;
 
@@ -513,11 +675,21 @@ export async function translateBatch(
             failed: true,
             model: settledResult.value.model,
             error: new Error('RESULT_MISSING'),
+            // Savolning o'z javobi yo'q — guruh javobining boshi olinadi.
+            sample: JSON.stringify(settledResult.value.json).slice(0, SAMPLE_LENGTH),
           });
           continue;
         }
 
-        const verdict = verifyTranslation(entry.input, candidate);
+        // Tekshiruv MASKA YECHILGANDAN keyin: shundan keyingina nomuvofiqlik
+        // modelning emas, shu faylning xatosini bildiradi.
+        const restored = unmaskImageTokens(candidate.text, candidate.options, entry.map);
+        const translatedOptions = restoreOptionImages(entry.input.options, restored.options);
+
+        const verdict = verifyTranslation(entry.input, {
+          text: restored.text,
+          options: translatedOptions,
+        });
         if (verdict.fatal) {
           outcomes.push({
             order: entry.input.order,
@@ -526,6 +698,7 @@ export async function translateBatch(
             failed: true,
             model: settledResult.value.model,
             error: new Error(verdict.fatal),
+            sample: sampleOf(candidate.text, candidate.options),
           });
           continue;
         }
@@ -533,9 +706,16 @@ export async function translateBatch(
         outcomes.push({
           order: entry.input.order,
           result: {
-            text: candidate.text,
-            options: candidate.options,
-            issues: [...new Set([...entry.issues, ...candidate.issues, ...verdict.flags])],
+            text: restored.text,
+            options: translatedOptions,
+            issues: [
+              ...new Set([
+                ...entry.issues,
+                ...candidate.issues,
+                ...restored.issues,
+                ...verdict.flags,
+              ]),
+            ],
             confidence: candidate.confidence,
           },
           tokens,
