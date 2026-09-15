@@ -4,7 +4,7 @@ import { db } from '@/lib/db';
 import type { KeyIssue, ResolvedAnswer } from '@/lib/import/answer-key';
 import { STRUCTURE_BATCH, STRUCTURE_DEADLINE_MS, toLastError, type LastError } from '@/lib/import/structure-error';
 import { structureBatch, type StructureInput, type StructuredQuestion } from '@/lib/import/structure';
-import { createGeminiCaller, STRUCTURE_MODEL } from '@/lib/import/structure-model';
+import { createGeminiCaller } from '@/lib/import/structure-model';
 import type { BBox } from '@/lib/import/types';
 import { requireOwnedJob } from '@/lib/import-jobs';
 import { logger } from '@/lib/logger';
@@ -40,6 +40,9 @@ const PENDING: Prisma.ImportDraftWhereInput = { raw: { path: ['stage'], equals: 
 /** Tayyor bo'lgan draftlar — progressdagi `done` shular bo'yicha sanaladi. */
 const STRUCTURED: Prisma.ImportDraftWhereInput = { raw: { path: ['stage'], equals: 'STRUCTURED' } };
 
+/** Uch urinishdan keyin terminal bo'lgan draftlar — faqat qo'lda qayta uriniladi. */
+const TERMINAL: Prisma.ImportDraftWhereInput = { raw: { path: ['stage'], equals: 'STRUCTURE_FAILED' } };
+
 interface RawBlock {
   images?: { assetId: string; url: string }[];
   pageImages?: { page: number; url: string }[];
@@ -49,6 +52,8 @@ interface RawBlock {
   notQuestion?: boolean;
   attempts?: number;
   lastError?: LastError;
+  /** Savolni qaysi model strukturalagani — modellar sifatini taqqoslash uchun. */
+  model?: string;
 }
 
 function parseRaw(value: unknown): RawBlock {
@@ -88,7 +93,11 @@ function toInput(draft: PendingDraft, sourceLang: string, subject: string): Stru
 }
 
 /** Strukturalangan savolni `ImportDraft` ustunlariga yoyadi. */
-function draftData(question: StructuredQuestion, raw: RawBlock): Prisma.ImportDraftUpdateInput {
+function draftData(
+  question: StructuredQuestion,
+  raw: RawBlock,
+  model: string | undefined,
+): Prisma.ImportDraftUpdateInput {
   const options = question.options as unknown as Prisma.InputJsonValue;
   return {
     // `text` ham, `textOriginal` ham strukturalangan matn: tarjima (S5)
@@ -109,9 +118,32 @@ function draftData(question: StructuredQuestion, raw: RawBlock): Prisma.ImportDr
     raw: {
       ...raw,
       stage: 'STRUCTURED',
+      // Zanjirdagi qaysi model javob bergani — savol sifatini modellar
+      // kesimida taqqoslash uchun yagona manba.
+      model: model ?? raw.model,
       notQuestion: question.notQuestion,
       answerMismatch: question.answerMismatch,
     } as unknown as Prisma.InputJsonValue,
+  };
+}
+
+/**
+ * Kvota tugagani uchun bajarilmagan blok — YIQILISH EMAS.
+ *
+ * `attempts` oshmaydi va bosqich `BLOCK` bo'lib qoladi: sabab blokda emas,
+ * tashqi kunlik chegarada, u ertaga o'tadi. Terminal qilib qo'yilsa, blok
+ * kvota tiklangandan keyin ham abadiy yo'qolardi.
+ *
+ * Sabab baribir yoziladi (`raw.lastError`, `issues` da `RATE_LIMITED`) —
+ * ustozga nima uchun to'xtaganini ko'rsatish uchun. Muvaffaqiyatli urinishda
+ * `issues` butunlay qayta yoziladi, ya'ni belgi o'z-o'zidan yo'qoladi.
+ */
+function rateLimitData(draft: PendingDraft, error: unknown): Prisma.ImportDraftUpdateInput {
+  const raw = parseRaw(draft.raw);
+  const issues = Array.isArray(draft.issues) ? draft.issues.filter((i) => i !== 'RATE_LIMITED') : [];
+  return {
+    issues: [...issues, 'RATE_LIMITED'] as unknown as Prisma.InputJsonValue,
+    raw: { ...raw, lastError: toLastError(error) } as unknown as Prisma.InputJsonValue,
   };
 }
 
@@ -173,6 +205,32 @@ export async function POST(
       return NextResponse.json({ error: 'Bloklar hali yozilmagan', code: 'NO_BLOCKS' }, { status: 409 });
     }
 
+    // `?retryFailed=1` — terminal yiqilgan bloklarni qaytadan navbatga qo'yadi.
+    // Ular ko'pincha kvota tufayli yiqilgan, ya'ni sabab blokda emas: shuning
+    // uchun `attempts` nolga tushadi, aks holda blok bir urinishdayoq yana
+    // terminal bo'lardi.
+    if (request.nextUrl.searchParams.get('retryFailed') === '1') {
+      const terminal = await db.importDraft.findMany({
+        where: { jobId: job.id, ...TERMINAL },
+        select: { id: true, raw: true, issues: true },
+      });
+      const restores = terminal.map((draft) => {
+        const raw = { ...parseRaw(draft.raw) };
+        delete raw.lastError;
+        const issues = Array.isArray(draft.issues)
+          ? draft.issues.filter((i) => i !== 'STRUCTURE_FAILED' && i !== 'RATE_LIMITED')
+          : [];
+        return db.importDraft.update({
+          where: { id: draft.id },
+          data: {
+            issues: issues as unknown as Prisma.InputJsonValue,
+            raw: { ...raw, attempts: 0, stage: 'BLOCK' } as unknown as Prisma.InputJsonValue,
+          },
+        });
+      });
+      if (restores.length > 0) await db.$transaction(restores);
+    }
+
     const pending = (await db.importDraft.findMany({
       where: { jobId: job.id, ...PENDING },
       orderBy: { order: 'asc' },
@@ -202,8 +260,12 @@ export async function POST(
 
     const byOrder = new Map(work.map((d) => [d.order, d]));
     const writes: Prisma.PrismaPromise<unknown>[] = [];
+    // ILGARILASHNI bildiradigan yozuvlar soni — kvota belgisi bundan tashqarida:
+    // u blokni oldinga surmaydi, shuning uchun `stalled` ni yashirmasligi kerak.
+    let written = 0;
 
     for (const draft of skipped) {
+      written++;
       writes.push(
         db.importDraft.update({
           where: { id: draft.id },
@@ -215,6 +277,8 @@ export async function POST(
     let tokens = 0;
     let failed = 0;
     let deferred = 0;
+    let rateLimited = 0;
+    let lastModel: string | undefined;
     const failedSample: { order: number; message: string }[] = [];
     for (const outcome of outcomes) {
       const draft = byOrder.get(outcome.order);
@@ -223,12 +287,21 @@ export async function POST(
       // Vaqt yetmagani XATO EMAS: blokka umuman tegilmaydi — `attempts`
       // oshmaydi, `STRUCTURE_FAILED` yozilmaydi, keyingi so'rovda yangidan
       // uriniladi. To'lqinga yetib bormagan bloklar ham shu holatda qoladi.
+      // Kvota tugagani ham vaqt yetmagani kabi kechiriladi, lekin izsiz emas:
+      // sabab blokka yozib qo'yiladi va javobda alohida sanaladi — klient
+      // ustozga "ertaga davom eting" deyishi uchun.
+      if (outcome.rateLimited) {
+        rateLimited++;
+        writes.push(db.importDraft.update({ where: { id: draft.id }, data: rateLimitData(draft, outcome.error) }));
+        continue;
+      }
       if (outcome.deferred) {
         deferred++;
         continue;
       }
       if (outcome.failed || !outcome.question) {
         failed++;
+        written++;
         const failure = failureData(draft, outcome.error);
         if (failedSample.length < FAILED_SAMPLE) {
           failedSample.push({ order: draft.order, message: failure.lastError.message });
@@ -248,8 +321,13 @@ export async function POST(
         writes.push(db.importDraft.update({ where: { id: draft.id }, data: failure.data }));
         continue;
       }
+      written++;
+      lastModel = outcome.model ?? lastModel;
       writes.push(
-        db.importDraft.update({ where: { id: draft.id }, data: draftData(outcome.question, parseRaw(draft.raw)) }),
+        db.importDraft.update({
+          where: { id: draft.id },
+          data: draftData(outcome.question, parseRaw(draft.raw), outcome.model),
+        }),
       );
     }
 
@@ -258,7 +336,10 @@ export async function POST(
     // Tokenlar ATOMAR qo'shiladi: klient siklidan ikkita so'rov ustma-ust
     // kelsa, `increment` ham, o'qib-yozish ham birini yo'qotardi.
     if (tokens > 0) {
-      await db.$executeRaw`UPDATE "ImportJob" SET "costTokens" = "costTokens" + ${tokens}, "model" = ${STRUCTURE_MODEL} WHERE "id" = ${job.id}`;
+      // `model` — zanjirdan OXIRGI javob bergan model. `COALESCE`: model
+      // noma'lum bo'lsa (eski chaqiruvchi) oldingi qiymat saqlanadi, `NULL`
+      // bilan ustidan yozilmaydi.
+      await db.$executeRaw`UPDATE "ImportJob" SET "costTokens" = "costTokens" + ${tokens}, "model" = COALESCE(${lastModel ?? null}, "model") WHERE "id" = ${job.id}`;
     }
 
     const remaining = await db.importDraft.count({ where: { jobId: job.id, ...PENDING } });
@@ -273,7 +354,11 @@ export async function POST(
 
     // Bitta ham blok yozilmagan so'rov — klient cheksiz aylanmasligi uchun
     // to'xtashi va ustozga xabar berishi kerak.
-    const stalled = remaining > 0 && writes.length === 0;
+    // Terminal yiqilgan bloklar — UI "Yiqilganlarni qayta urinish" tugmasini
+    // shu songa qarab ko'rsatadi.
+    const stuck = await db.importDraft.count({ where: { jobId: job.id, ...TERMINAL } });
+
+    const stalled = remaining > 0 && written === 0;
 
     const elapsedMs = Date.now() - startedAt;
     // Vaqt o'lchovi ataylab log'ga chiqadi: muddat mexanizmi ishlayaptimi va
@@ -286,10 +371,13 @@ export async function POST(
       batches,
       deadlineHit,
       deferred,
+      rateLimited,
       stalled,
       done,
       total,
       failed,
+      stuck,
+      model: lastModel,
     });
 
     return NextResponse.json({
@@ -302,6 +390,8 @@ export async function POST(
       batches,
       deadlineHit,
       stalled,
+      rateLimited,
+      stuck,
     });
   } catch (error) {
     logger.error('POST /api/teacher/import/[jobId]/structure error:', { error });

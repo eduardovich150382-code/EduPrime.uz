@@ -394,6 +394,8 @@
     "stageStructure": "Structuring questions",
     "errorStructure": "Structuring was interrupted. Finished questions are saved — please try again.",
     "errorStructureStalled": "Question structuring stalled — not a single question was prepared. Wait a moment and try again.",
+    "errorQuotaExhausted": "Gemini’s daily quota is used up — continue later.",
+    "retryFailedBlocks": "Retry failed blocks ({count})",
     "resumeFound": "An unfinished import was found. You can continue structuring the questions.",
     "resumeStructure": "Continue"
   }

@@ -43,6 +43,21 @@ export class TimeBudgetError extends Error {
   }
 }
 
+/**
+ * Gemini kunlik kvotasi tugadi — zanjirdagi HAMMA model 429 berdi.
+ *
+ * Bu ham XATO EMAS, `TimeBudgetError` kabi: blokning nuqsoni emas, tashqi
+ * chegara. Blok `BLOCK` bosqichida qoladi, `attempts` oshmaydi va kvota
+ * tiklangach (ertaga) o'sha blok yangidan uriniladi. Terminal
+ * `STRUCTURE_FAILED` qilib qo'yilsa, blok abadiy yo'qolardi.
+ */
+export class RateLimitedError extends Error {
+  constructor(message = 'Gemini kvotasi tugadi', options?: { cause?: unknown }) {
+    super(message, options);
+    this.name = 'RateLimitedError';
+  }
+}
+
 /** Yiqilish sababining `ImportDraft.raw` ga yoziladigan shakli. */
 export interface LastError {
   message: string;
@@ -55,7 +70,7 @@ export interface LastError {
 const MAX_MESSAGE = 500;
 
 /** Vaqtincha nosozlik belgilari — status yo'q bo'lganda xabar bo'yicha. */
-const RETRIABLE_TEXT = /429|RESOURCE_EXHAUSTED|UNAVAILABLE|\b503\b|timed?\s*out|ETIMEDOUT|ECONNRESET|abort/i;
+const RETRIABLE_TEXT = /UNAVAILABLE|\b503\b|timed?\s*out|ETIMEDOUT|ECONNRESET|abort/i;
 
 function asRecord(value: unknown): Record<string, unknown> {
   return typeof value === 'object' && value !== null ? (value as Record<string, unknown>) : {};
@@ -71,6 +86,19 @@ export function statusOf(error: unknown): number | undefined {
   return undefined;
 }
 
+/**
+ * Tezlik/kvota chegarasi belgisi — 429 yoki `RESOURCE_EXHAUSTED`.
+ *
+ * Zanjir (`structure-chain.ts`) shu bo'yicha keyingi modelga o'tadi. Status
+ * ANIQ bo'lsa faqat shunga qaraladi, aks holda xabar matniga: SDK ba'zan
+ * statusni yo'qotib, sababni faqat matnda qoldiradi.
+ */
+export function isRateLimit(error: unknown): boolean {
+  const status = statusOf(error);
+  if (status !== undefined) return status === 429;
+  return /\b429\b|RESOURCE_EXHAUSTED/i.test(messageOf(error));
+}
+
 function messageOf(error: unknown): string {
   if (error instanceof Error) return error.message;
   if (typeof error === 'string') return error;
@@ -81,13 +109,20 @@ function messageOf(error: unknown): string {
 /**
  * Qayta urinishga ARZIYDIGAN xatolarni ajratadi.
  *
- * Faqat vaqtinchalik nosozliklar: tezlik chegarasi (429 / RESOURCE_EXHAUSTED),
- * xizmatning vaqtincha ishlamasligi (503) va timeout. 400, sxema xatosi yoki
- * buzilgan JSON — qayta urinish bilan tuzalmaydi, faqat pul va vaqt ketadi.
+ * Faqat vaqtinchalik nosozliklar: xizmatning vaqtincha ishlamasligi (503) va
+ * timeout. 400, sxema xatosi yoki buzilgan JSON — qayta urinish bilan
+ * tuzalmaydi, faqat pul va vaqt ketadi. 429 ham BU YERDA EMAS: uni model
+ * zanjiri boshqaradi (`structure-chain.ts`).
  */
 export function isRetriableError(error: unknown): boolean {
   // Vaqt tugagani — qayta urinish bilan tuzalmaydi.
   if (error instanceof TimeBudgetError) return false;
+
+  // Kvota tugagani ham shunday: chegara DAQIQALIK emas, KUNLIK
+  // (`generate_content_free_tier_request`), u 1-4-10 soniyada tiklanmaydi.
+  // Kutib qayta urinish faqat so'rov byudjetini yeydi — zanjirdagi keyingi
+  // modelga o'tish (`structure-chain.ts`) foydaliroq.
+  if (error instanceof RateLimitedError || isRateLimit(error)) return false;
 
   // Chaqiruv o'z chegarasida uzilgan: `AbortController` `DOMException`
   // ('AbortError') beradi, Gemini SDK esa uni o'z sinfiga o'raydi va nomni
@@ -97,7 +132,7 @@ export function isRetriableError(error: unknown): boolean {
   // Status ANIQ bo'lsa, faqat shunga qaraladi: "400 Bad Request ... 503" kabi
   // xabar matni tufayli 400 qayta urinilib ketmasin.
   const status = statusOf(error);
-  if (status !== undefined) return status === 429 || status === 503 || status === 504;
+  if (status !== undefined) return status === 503 || status === 504;
 
   // Buzilgan JSON (`JSON.parse`) — model javobi noto'g'ri, takror foydasiz.
   if (error instanceof SyntaxError) return false;

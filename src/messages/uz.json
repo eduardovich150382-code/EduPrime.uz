@@ -394,6 +394,8 @@
     "stageStructure": "Savollar tuzilmoqda",
     "errorStructure": "Savollarni tuzish uzildi. Tayyor bo'lganlari saqlandi — qaytadan urinib ko'ring.",
     "errorStructureStalled": "Savollarni tuzish to'xtab qoldi — bitta ham savol tayyorlanmadi. Biroz kutib, qaytadan urinib ko'ring.",
+    "errorQuotaExhausted": "Gemini kunlik kvotasi tugadi — keyinroq davom ettiring.",
+    "retryFailedBlocks": "Yiqilganlarni qayta urinish ({count})",
     "resumeFound": "Tugallanmagan import topildi. Savollarni tuzishni davom ettirish mumkin.",
     "resumeStructure": "Davom ettirish"
   }

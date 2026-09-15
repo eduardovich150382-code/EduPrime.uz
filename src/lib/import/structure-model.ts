@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI, type Part } from '@google/generative-ai';
+import { createChainedCaller, STRUCTURE_MODELS } from './structure-chain';
 import { buildStructurePrompt, STRUCTURE_SCHEMA, type ModelCaller, type StructureInput } from './structure';
 
 /**
@@ -8,8 +9,6 @@ import { buildStructurePrompt, STRUCTURE_SCHEMA, type ModelCaller, type Structur
  * mock qilmasdan ishlaydi. Bu yerda esa tarmoq bor — shuning uchun bu faylning
  * o'z testi yo'q, marshrut testlarida mock qilinadi.
  */
-
-export const STRUCTURE_MODEL = 'gemini-3.5-flash';
 
 /** Bitta rasmning eng katta hajmi — asset yuklashdagi chegara bilan bir xil. */
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
@@ -45,14 +44,14 @@ function createCache(): (url: string, signal?: AbortSignal) => Promise<Part | nu
   };
 }
 
-/**
- * Gemini chaqiruvchisini yaratadi. Kesh chaqiruvchining umriga bog'liq —
- * har marshrut so'rovi uchun bittadan yaratilsin.
- */
-export function createGeminiCaller(apiKey = process.env.GEMINI_API_KEY || ''): ModelCaller {
-  const genAI = new GoogleGenerativeAI(apiKey);
+/** Bitta modelga bog'langan chaqiruvchi — zanjirning bir bo'g'ini. */
+function createModelCaller(
+  genAI: GoogleGenerativeAI,
+  modelName: string,
+  load: (url: string, signal?: AbortSignal) => Promise<Part | null>,
+): ModelCaller {
   const model = genAI.getGenerativeModel({
-    model: STRUCTURE_MODEL,
+    model: modelName,
     generationConfig: {
       // Aniqlik kerak, ijod emas: bir xil savol ikki marta bir xil
       // strukturalansin, aks holda qayta urinish boshqa natija berardi.
@@ -62,7 +61,6 @@ export function createGeminiCaller(apiKey = process.env.GEMINI_API_KEY || ''): M
       responseSchema: STRUCTURE_SCHEMA,
     },
   });
-  const load = createCache();
 
   // `signal` ni `withRetry` beradi: har chaqiruvning o'z vaqt chegarasi bor,
   // shuning uchun osilib qolgan bitta chaqiruv butun funksiyani Vercel
@@ -78,4 +76,19 @@ export function createGeminiCaller(apiKey = process.env.GEMINI_API_KEY || ''): M
       tokens: result.response.usageMetadata?.totalTokenCount ?? 0,
     };
   };
+}
+
+/**
+ * Gemini chaqiruvchisini yaratadi — `IMPORT_GEMINI_MODELS` zanjiri bo'ylab.
+ *
+ * Kesh ham, zanjirning "kvotasi tugagan model" belgisi ham chaqiruvchining
+ * umriga bog'liq — har marshrut so'rovi uchun bittadan yaratilsin.
+ *
+ * Rasm keshi zanjirdan TASHQARIDA: model almashganda o'sha bet aksi qaytadan
+ * yuklab olinmasin.
+ */
+export function createGeminiCaller(apiKey = process.env.GEMINI_API_KEY || ''): ModelCaller {
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const load = createCache();
+  return createChainedCaller(STRUCTURE_MODELS, (model) => createModelCaller(genAI, model, load));
 }
