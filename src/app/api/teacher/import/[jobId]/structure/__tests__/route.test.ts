@@ -65,6 +65,7 @@ vi.mock("@/lib/import/structure-model", () => ({
 }));
 
 import { NextRequest } from "next/server";
+import { STRUCTURE_BATCH, STRUCTURE_CONCURRENCY } from "@/lib/import/structure-error";
 import { POST } from "../route";
 
 const JOB = "job-1";
@@ -109,8 +110,18 @@ function call(): Promise<Response> {
   return POST(request, { params: Promise.resolve({ jobId: JOB }) }) as unknown as Promise<Response>;
 }
 
-/** `pending` — birinchi so'rovda tanlanadigan qatorlar, `remaining` — yozgandan keyin qolgani. */
-function setup(options: { total: number; pending: DraftRow[]; remaining: number; status?: string }) {
+/**
+ * `pending` — birinchi so'rovda tanlanadigan qatorlar, `remaining` — yozgandan
+ * keyin `BLOCK` bo'lib qolgani, `done` — `STRUCTURED` bo'lganlari (berilmasa
+ * yiqilgan blok yo'q deb hisoblanadi).
+ */
+function setup(options: {
+  total: number;
+  pending: DraftRow[];
+  remaining: number;
+  done?: number;
+  status?: string;
+}) {
   requireTeacherMock.mockResolvedValue({ user: { id: "u1" }, error: null });
   findTeacherMock.mockResolvedValue({ id: "t1" });
   findJobMock
@@ -123,7 +134,10 @@ function setup(options: { total: number; pending: DraftRow[]; remaining: number;
       pagesDone: [1, 2],
     })
     .mockResolvedValueOnce({ sourceLang: "uz", subject: { nameUz: "Fizika" } });
-  countDraftMock.mockResolvedValueOnce(options.total).mockResolvedValueOnce(options.remaining);
+  countDraftMock
+    .mockResolvedValueOnce(options.total)
+    .mockResolvedValueOnce(options.remaining)
+    .mockResolvedValueOnce(options.done ?? options.total - options.remaining);
   findDraftsMock.mockResolvedValue(options.pending);
 }
 
@@ -169,15 +183,15 @@ describe("POST /api/teacher/import/[jobId]/structure", () => {
     );
   });
 
-  it("25 blok → birinchi so'rovda 20 ta, hasMore: true", async () => {
-    const pending = Array.from({ length: 20 }, (_, i) => draft(i));
-    setup({ total: 25, pending, remaining: 5 });
+  it("25 blok → birinchi so'rovda paket hajmicha, hasMore: true", async () => {
+    const pending = Array.from({ length: STRUCTURE_BATCH }, (_, i) => draft(i));
+    setup({ total: 25, pending, remaining: 25 - STRUCTURE_BATCH });
 
     const body = await (await call()).json();
 
-    expect(findDraftsMock).toHaveBeenCalledWith(expect.objectContaining({ take: 20 }));
-    expect(callerMock).toHaveBeenCalledTimes(20);
-    expect(body).toMatchObject({ done: 20, total: 25, hasMore: true, failed: 0 });
+    expect(findDraftsMock).toHaveBeenCalledWith(expect.objectContaining({ take: STRUCTURE_BATCH }));
+    expect(callerMock).toHaveBeenCalledTimes(STRUCTURE_BATCH);
+    expect(body).toMatchObject({ done: STRUCTURE_BATCH, total: 25, hasMore: true, failed: 0 });
     // Ish tugamagan — status REVIEW ga o'tmaydi.
     expect(updateJobMock).not.toHaveBeenCalledWith(expect.objectContaining({ data: { status: "REVIEW" } }));
   });
@@ -314,7 +328,8 @@ describe("POST /api/teacher/import/[jobId]/structure", () => {
 
     await call();
 
-    expect(callerMock).toHaveBeenCalledWith(expect.objectContaining({ givenKey: key }));
+    // Ikkinchi argument — chaqiruvning `AbortSignal` i (vaqt chegarasi).
+    expect(callerMock).toHaveBeenCalledWith(expect.objectContaining({ givenKey: key }), expect.any(AbortSignal));
     const [[args]] = updateDraftMock.mock.calls as [{ data: Record<string, unknown> }][];
     expect(args.data.correctAnswer).toBe("C");
     expect((args.data.raw as Record<string, unknown>).answerMismatch).toBe(true);
@@ -326,10 +341,115 @@ describe("POST /api/teacher/import/[jobId]/structure", () => {
 
     await call();
 
-    expect(callerMock).toHaveBeenCalledWith(expect.objectContaining({ keyIssue: "NO_KEY_FOUND" }));
+    expect(callerMock).toHaveBeenCalledWith(
+      expect.objectContaining({ keyIssue: "NO_KEY_FOUND" }),
+      expect.any(AbortSignal),
+    );
     const [[args]] = updateDraftMock.mock.calls as [{ data: Record<string, unknown> }][];
     expect(args.data.correctAnswer).toBe("B");
     expect(args.data.issues).toContain("NO_KEY_FOUND");
+  });
+
+  // -------------------------------------------------------------------------
+  // Vaqt byudjeti
+  // -------------------------------------------------------------------------
+
+  /**
+   * Chaqiruvni soat siljitadigan qilib almashtiradi.
+   *
+   * Soxta taymerlar bilan `Date.now()` ham siljiydi — marshrut byudjetni aynan
+   * shu bilan hisoblaydi. `await` SHART: usiz birinchi chaqiruv soatni
+   * qolganlari byudjet tekshiruvidan o'tishidan OLDIN siljitib yuborardi.
+   */
+  function slowCaller(ms: number): void {
+    callerMock.mockImplementation(async () => {
+      await Promise.resolve();
+      vi.advanceTimersByTime(ms);
+      return { json: modelAnswer, tokens: 10 };
+    });
+  }
+
+  it("muddat oshganda qolgan bloklarga TEGILMAYDI va hasMore: true", async () => {
+    vi.useFakeTimers();
+    try {
+      // Bir to'lqin (STRUCTURE_CONCURRENCY) sig'adi, keyingisiga vaqt qolmaydi.
+      const pending = Array.from({ length: STRUCTURE_CONCURRENCY + 2 }, (_, i) => draft(i));
+      setup({ total: 30, pending, remaining: 30 - STRUCTURE_CONCURRENCY });
+      slowCaller(45000);
+
+      const body = await (await call()).json();
+
+      expect(callerMock).toHaveBeenCalledTimes(STRUCTURE_CONCURRENCY);
+      expect(updateDraftMock).toHaveBeenCalledTimes(STRUCTURE_CONCURRENCY);
+      expect(body).toMatchObject({ hasMore: true, deadlineHit: true, batches: 1, stalled: false });
+      // Tegilmagan bloklar — na yiqilgan, na urinish soni oshgan.
+      expect(body.failed).toBe(0);
+      expect(updateJobMock).not.toHaveBeenCalledWith(expect.objectContaining({ data: { status: "REVIEW" } }));
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("vaqt yetmagani STRUCTURE_FAILED emas — blok tegilmay qoladi", async () => {
+    vi.useFakeTimers();
+    try {
+      setup({ total: 2, pending: [draft(0), draft(1)], remaining: 1, done: 1 });
+      // Birinchi chaqiruvning o'zi butun byudjetni yeydi: qolganiga `deferred`.
+      let first = true;
+      callerMock.mockImplementation(async () => {
+        await Promise.resolve();
+        if (first) {
+          first = false;
+          vi.advanceTimersByTime(60000);
+          throw Object.assign(new Error("quota"), { status: 429 });
+        }
+        return { json: modelAnswer, tokens: 10 };
+      });
+
+      const body = await (await call()).json();
+
+      // 429 qayta urinishga arziydi, lekin kutishga vaqt yo'q: blok
+      // TEGILMAY qoladi — `attempts` oshmaydi, `STRUCTURE_FAILED` yozilmaydi.
+      const written = updateDraftMock.mock.calls.map(([args]) => (args as { where: { id: string } }).where.id);
+      expect(written).toEqual(["d1"]);
+      expect(body).toMatchObject({ failed: 0, hasMore: true, stalled: false });
+      expect(errorMock).not.toHaveBeenCalled();
+      expect(warnMock).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("bitta ham blok yozilmasa stalled: true", async () => {
+    vi.useFakeTimers();
+    try {
+      setup({ total: 1, pending: [draft(0)], remaining: 1, done: 0 });
+      callerMock.mockImplementation(async () => {
+        await Promise.resolve();
+        vi.advanceTimersByTime(60000);
+        throw Object.assign(new Error("quota"), { status: 429 });
+      });
+
+      const body = await (await call()).json();
+
+      expect(body.stalled).toBe(true);
+      expect(body.done).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("done faqat STRUCTURED bloklarni sanaydi, total esa butun jobni", async () => {
+    // Uch blokdan biri oldingi so'rovlarda butunlay yiqilgan: u `BLOCK` ham
+    // emas, `STRUCTURED` ham emas — shuning uchun `done` `total` ga yetmaydi.
+    setup({ total: 3, pending: [draft(0)], remaining: 0, done: 2 });
+
+    const body = await (await call()).json();
+
+    expect(body).toMatchObject({ done: 2, total: 3, hasMore: false });
+    expect(countDraftMock).toHaveBeenLastCalledWith({
+      where: { jobId: JOB, raw: { path: ["stage"], equals: "STRUCTURED" } },
+    });
   });
 
   it("bloklar hali yozilmagan bo'lsa 409", async () => {

@@ -110,6 +110,14 @@ function readJob(): string | null {
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+/**
+ * Server bitta ham blok yoza olmadi.
+ *
+ * Alohida sinf: bu xatoning matni ustozga TUSHUNARLI va uni umumiy
+ * "uzildi" xabari bilan almashtirmaslik kerak.
+ */
+class StructureStalledError extends Error {}
+
 interface StructureStep {
   done: number;
   total: number;
@@ -118,8 +126,14 @@ interface StructureStep {
   failed?: number;
   /** Birinchi uchta yiqilishning sababi — faqat konsol uchun. */
   failedSample?: { order: number; message: string }[];
-  /** Marshrut necha ms ishlagani — paket hajmini sozlash uchun o'lchov. */
+  /** Marshrut necha ms ishlagani — vaqt byudjetini sozlash uchun o'lchov. */
   elapsedMs?: number;
+  /** Shu so'rovda nechta to'lqin ulgurgani. */
+  batches?: number;
+  /** Muddat tugagani uchun qolgan bloklarga tegilmadimi. */
+  deadlineHit?: boolean;
+  /** Bitta ham blok yozilmadi — sikl davom etsa bekorga aylanadi. */
+  stalled?: boolean;
 }
 
 /**
@@ -132,7 +146,13 @@ interface StructureStep {
  */
 function logStructureStep(step: StructureStep): void {
   if (typeof step.elapsedMs === 'number') {
-    console.info('[import] structure elapsedMs', step.elapsedMs, `${step.done}/${step.total}`);
+    console.info(
+      '[import] structure elapsedMs',
+      step.elapsedMs,
+      `${step.done}/${step.total}`,
+      `batches=${step.batches ?? '?'}`,
+      `deadlineHit=${step.deadlineHit ?? false}`,
+    );
   }
   if (step.failed) {
     console.warn('[import] structure failed', step.failed, step.failedSample ?? []);
@@ -304,12 +324,16 @@ export default function TeacherImportPage() {
   /**
    * Bloklarni strukturalash — `hasMore` tugaguncha marshrutni chaqiradi.
    *
-   * Bir so'rovda 20 blok ishlanadi (Vercel vaqt chegarasi), shuning uchun
-   * sikl klientda: har aylanma o'zidan oldingisi qoldirgan joydan davom
-   * etadi va `done` foizsiz, "N / M savol" bo'lib ko'rsatiladi.
+   * Server bir so'rovda vaqt byudjetiga sig'gan qadar ishlaydi (Vercel
+   * chegarasi), shuning uchun sikl klientda: har aylanma o'zidan oldingisi
+   * qoldirgan joydan davom etadi va `done` foizsiz, "N / M savol" bo'lib
+   * ko'rsatiladi.
    */
   async function runStructure(id: string): Promise<void> {
     setStage('structure');
+    // Yuklash bosqichidan qolgan SAHIFA hisobi tozalanadi: aks holda birinchi
+    // javob kelguncha ekranda "2/2 savol" (sahifa soni) turib qolardi.
+    setProgress(null);
     let previous = -1;
     let stalled = 0;
 
@@ -318,6 +342,10 @@ export default function TeacherImportPage() {
       logStructureStep(step);
       setProgress({ done: step.done, total: step.total });
       if (!step.hasMore) return;
+
+      // Server bitta ham blok yoza olmadi — davom etish bekor: keyingi
+      // so'rov ham xuddi shu joyda to'xtaydi.
+      if (step.stalled) throw new StructureStalledError(t('errorStructureStalled'));
 
       stalled = step.done > previous ? 0 : stalled + 1;
       previous = step.done;
@@ -336,9 +364,9 @@ export default function TeacherImportPage() {
       forgetJob();
       setProgress(null);
       setPhase('done');
-    } catch {
+    } catch (err) {
       setPhase('error');
-      setErrorText(t('errorStructure'));
+      setErrorText(err instanceof StructureStalledError ? err.message : t('errorStructure'));
     }
   }
 
@@ -398,8 +426,8 @@ export default function TeacherImportPage() {
       result.questions = groups.length;
       setSummary(result);
 
-      await runStructure(job.jobId).catch(() => {
-        throw new Error(t('errorStructure'));
+      await runStructure(job.jobId).catch((err: unknown) => {
+        throw err instanceof StructureStalledError ? err : new Error(t('errorStructure'));
       });
 
       forgetJob();
