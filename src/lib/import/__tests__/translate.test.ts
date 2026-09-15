@@ -637,6 +637,25 @@ describe("translateBatch — vaqt byudjeti", () => {
     expect(outcomes).toHaveLength(1);
     expect(call).toHaveBeenCalledTimes(1);
   });
+
+  it("zaxiradan kam vaqt qolganda yangi to'lqin OCHILMAYDI", async () => {
+    // 0 dan katta, lekin `RETRY_RESERVE_MS` dan kichik — `withRetry` chaqiruvni
+    // qabul qilmaydi, demak sikl ham to'xtashi shart.
+    const call = vi.fn<TranslateCaller>().mockResolvedValue(answer([]));
+
+    const { batches, deadlineHit, outcomes } = await translateBatch(
+      [input({ order: 0 }), input({ order: 1 }), input({ order: 2 })],
+      META,
+      call,
+      { group: 1, concurrency: 1, remaining: () => RETRY_RESERVE_MS - 1000 },
+    );
+
+    expect(call).not.toHaveBeenCalled();
+    expect(batches).toBe(1);
+    expect(deadlineHit).toBe(true);
+    expect(outcomes).toHaveLength(1);
+    expect(outcomes[0]).toMatchObject({ deferred: true, failed: false });
+  });
 });
 
 // ---------------------------------------------------------------------------

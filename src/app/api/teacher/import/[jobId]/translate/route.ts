@@ -350,6 +350,9 @@ export async function POST(
       }
       if (outcome.deferred) {
         deferred++;
+        // Savolga tegilmaydi, demak sabab bazada QOLMAYDI — javob uni
+        // ko'rsatadigan yagona joy.
+        lastError = toLastError(outcome.error);
         continue;
       }
       if (outcome.failed || !outcome.result) {

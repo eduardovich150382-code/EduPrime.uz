@@ -398,6 +398,7 @@
     "errorTranslate": "Tarjima uzildi. Tarjima qilinganlari saqlandi — qaytadan urinib ko'ring.",
     "errorTranslateStalled": "Tarjima to'xtab qoldi — bitta ham savol tarjima qilinmadi. Biroz kutib, qaytadan urinib ko'ring.",
     "errorQuotaExhausted": "Gemini kunlik kvotasi tugadi — keyinroq davom ettiring.",
+    "errorDeferredByDeadline": "Vaqt chegarasi tufayli {count} ta savol keyingi urinishga qoldirildi — «Davom ettirish» ni bosing.",
     "retryFailedBlocks": "Yiqilganlarni qayta urinish ({count})",
     "resumeFound": "Tugallanmagan import topildi. Savollarni tuzishni davom ettirish mumkin.",
     "resumeStructure": "Davom ettirish"

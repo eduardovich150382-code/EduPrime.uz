@@ -233,6 +233,44 @@ describe("toLastError", () => {
     expect(long.message).toHaveLength(500);
   });
 
+  it("o'ralgan xatoning asl sababi ham yoziladi", () => {
+    // `TimeBudgetError` ning o'z xabari nima ulgurmaganini aytmaydi —
+    // birinchi urinish NEGA yiqilgani faqat `cause` da qoladi.
+    const wrapped = toLastError(
+      new TimeBudgetError(undefined, { cause: httpError(503, "UNAVAILABLE") }),
+      at,
+    );
+
+    expect(wrapped).toEqual({
+      message: "Vaqt byudjeti tugadi",
+      name: "TimeBudgetError",
+      causeName: "Error",
+      causeMessage: "UNAVAILABLE",
+      at: "2026-09-14T10:00:00.000Z",
+    });
+  });
+
+  it("sabab yo'q bo'lsa cause maydonlari umuman qo'shilmaydi", () => {
+    const plain = toLastError(new TimeBudgetError(), at);
+
+    expect(plain).not.toHaveProperty("causeName");
+    expect(plain).not.toHaveProperty("causeMessage");
+  });
+
+  it("sabab ham redaktsiya qilinadi va qirqiladi", () => {
+    const secret = toLastError(
+      new TimeBudgetError(undefined, {
+        cause: new Error("GET https://generativelanguage.googleapis.com/v1/models?key=AIzaSyTOPSECRET failed"),
+      }),
+      at,
+    );
+    expect(secret.causeMessage).not.toContain("AIzaSyTOPSECRET");
+    expect(secret.causeMessage).toContain("key=[redacted]");
+
+    const long = toLastError(new TimeBudgetError(undefined, { cause: new Error("x".repeat(2000)) }), at);
+    expect(long.causeMessage).toHaveLength(500);
+  });
+
   it("Error bo'lmagan qiymat ham yiqilmaydi", () => {
     expect(toLastError("plain failure", at)).toEqual({
       message: "plain failure",

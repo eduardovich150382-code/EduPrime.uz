@@ -134,10 +134,27 @@ class StructureStalledError extends Error {}
  */
 class QuotaError extends StructureStalledError {}
 
+/**
+ * Marshrut qaytaradigan yiqilish sababi — faqat konsolga chiqadi.
+ *
+ * `lib/import/structure-error.ts` dagi `LastError` bilan bir xil shakl, lekin
+ * import qilinmaydi: bu klient uchun tarmoqdan kelgan JSON, server turi emas.
+ */
+interface StepError {
+  message: string;
+  name?: string;
+  status?: number;
+  causeName?: string;
+  causeMessage?: string;
+  at?: string;
+}
+
 interface StructureStep {
   done: number;
   total: number;
   hasMore: boolean;
+  /** Vaqt yetmagani uchun keyingi so'rovga qoldirilgan bloklar soni. */
+  deferred?: number;
   /** Shu paketda yiqilgan bloklar soni. */
   failed?: number;
   /** Birinchi uchta yiqilishning sababi — faqat konsol uchun. */
@@ -154,6 +171,8 @@ interface StructureStep {
   rateLimited?: number;
   /** Uch urinishdan keyin terminal yiqilgan bloklar soni. */
   stuck?: number;
+  /** Paketdagi oxirgi yiqilish sababi — `deferred` bloklar uchun ham. */
+  lastError?: StepError;
 }
 
 /**
@@ -166,14 +185,21 @@ interface StructureStep {
  */
 function logStructureStep(step: StructureStep): void {
   if (typeof step.elapsedMs === 'number') {
+    // `deferred`, `rateLimited`, `stuck` va sabab ham shu satrda: usiz "hech
+    // narsa yozilmadi" holatining sababi konsolda umuman ko'rinmas va uni
+    // faqat bazaga so'rov yuborib topish mumkin edi.
     console.info(
       '[import] structure elapsedMs',
       step.elapsedMs,
       `${step.done}/${step.total}`,
       `batches=${step.batches ?? '?'}`,
       `deadlineHit=${step.deadlineHit ?? false}`,
+      `deferred=${step.deferred ?? 0}`,
+      `rateLimited=${step.rateLimited ?? 0}`,
+      `stuck=${step.stuck ?? 0}`,
     );
   }
+  if (step.lastError) console.warn('[import] structure lastError', step.lastError);
   if (step.failed) {
     console.warn('[import] structure failed', step.failed, step.failedSample ?? []);
   }
@@ -216,6 +242,8 @@ interface TranslateStep {
   skippedSameLang?: boolean;
   /** Shu paketda tarjima qilingan savollar soni. */
   translated?: number;
+  /** Vaqt yetmagani uchun keyingi so'rovga qoldirilgan savollar soni. */
+  deferred?: number;
   failed?: number;
   failedSample?: { order: number; message: string }[];
   elapsedMs?: number;
@@ -224,6 +252,7 @@ interface TranslateStep {
   stalled?: boolean;
   rateLimited?: number;
   stuck?: number;
+  lastError?: StepError;
 }
 
 /** Tarjima diagnostikasi — `logStructureStep` kabi faqat konsolga. */
@@ -239,8 +268,12 @@ function logTranslateStep(step: TranslateStep): void {
       `${step.done}/${step.total}`,
       `batches=${step.batches ?? '?'}`,
       `deadlineHit=${step.deadlineHit ?? false}`,
+      `deferred=${step.deferred ?? 0}`,
+      `rateLimited=${step.rateLimited ?? 0}`,
+      `stuck=${step.stuck ?? 0}`,
     );
   }
+  if (step.lastError) console.warn('[import] translate lastError', step.lastError);
   if (step.failed) {
     console.warn('[import] translate failed', step.failed, step.failedSample ?? []);
   }
@@ -445,6 +478,11 @@ export default function TeacherImportPage() {
         // Kvota tugagan bo'lsa sabab boshqa va ustozning qiladigan ishi ham
         // boshqa: qayta urinish emas, kutish. Bloklar yo'qolmagan.
         if (step.rateLimited) throw new QuotaError(t('errorQuotaExhausted'));
+        // Vaqt yetmagani ham "to'xtab qolish" EMAS: ish davom etadi, bloklar
+        // joyida. Ustozga aytiladigan gap boshqa — "davom ettiring".
+        if (step.deferred) {
+          throw new StructureStalledError(t('errorDeferredByDeadline', { count: step.deferred }));
+        }
         throw new StructureStalledError(t('errorStructureStalled'));
       }
 
@@ -480,6 +518,9 @@ export default function TeacherImportPage() {
 
       if (step.stalled) {
         if (step.rateLimited) throw new QuotaError(t('errorQuotaExhausted'));
+        if (step.deferred) {
+          throw new StructureStalledError(t('errorDeferredByDeadline', { count: step.deferred }));
+        }
         throw new StructureStalledError(t('errorTranslateStalled'));
       }
 

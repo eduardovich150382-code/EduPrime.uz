@@ -277,6 +277,26 @@ describe("structureBatch", () => {
     expect(result.outcomes.every((o) => o.question !== null)).toBe(true);
   });
 
+  it("zaxiradan kam vaqt qolganda yangi to'lqin OCHILMAYDI", async () => {
+    // 0 dan katta, lekin `RETRY_RESERVE_MS` dan kichik — `withRetry` bu vaqtda
+    // chaqiruvni qabul qilmaydi. Sikl ham to'xtashi shart: aks holda u
+    // ishlamaydigan to'lqinlarni ochaverar va `deadlineHit` `false` qolardi.
+    const inputs = Array.from({ length: 12 }, (_, i) => input({ order: i }));
+    const call: ModelCaller = vi.fn(async (i: StructureInput) => ({ json: ok(i.order), tokens: 1 }));
+
+    const result = await structureBatch(inputs, call, 6, {
+      ...noWait,
+      remaining: () => RETRY_RESERVE_MS - 1000,
+    });
+
+    expect(call).not.toHaveBeenCalled();
+    expect(result.batches).toBe(1);
+    expect(result.deadlineHit).toBe(true);
+    // Faqat birinchi to'lqin — qolgan oltitasiga umuman tegilmaydi.
+    expect(result.outcomes.map((o) => o.order)).toEqual([0, 1, 2, 3, 4, 5]);
+    expect(result.outcomes.every((o) => o.deferred === true && o.failed === false)).toBe(true);
+  });
+
   it("hammasi ulgursa deadlineHit: false", async () => {
     const inputs = Array.from({ length: 7 }, (_, i) => input({ order: i }));
     const call: ModelCaller = async (i: StructureInput) => ({ json: ok(i.order), tokens: 1 });

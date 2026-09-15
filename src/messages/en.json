@@ -398,6 +398,7 @@
     "errorTranslate": "Translation was interrupted. Translated questions are saved — please try again.",
     "errorTranslateStalled": "Translation stalled — not a single question was translated. Wait a moment and try again.",
     "errorQuotaExhausted": "Gemini’s daily quota is used up — continue later.",
+    "errorDeferredByDeadline": "The time limit left {count} question(s) for the next attempt — press “Continue”.",
     "retryFailedBlocks": "Retry failed blocks ({count})",
     "resumeFound": "An unfinished import was found. You can continue structuring the questions.",
     "resumeStructure": "Continue"

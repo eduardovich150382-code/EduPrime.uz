@@ -3,6 +3,7 @@ import { SchemaType } from '@google/generative-ai';
 import type { KeyIssue, ResolvedAnswer } from './answer-key';
 import {
   RateLimitedError,
+  RETRY_RESERVE_MS,
   STRUCTURE_CONCURRENCY,
   TimeBudgetError,
   withRetry,
@@ -471,7 +472,13 @@ export async function structureBatch(
     // tugaydi va natijasi yoziladi, aks holda Gemini'ga to'langan ish behuda
     // ketardi. Qolgan bloklarga esa umuman tegilmaydi — marshrut ular uchun
     // hech narsa yozmaydi va ular keyingi so'rovda olinadi.
-    if (remaining !== undefined && remaining() <= 0 && start + size < inputs.length) {
+    //
+    // Chegara `withRetry` NIKIDAN kichik bo'lmasligi shart: u chaqiruvni
+    // `remaining() <= RETRY_RESERVE_MS` da rad etadi. `<= 0` bo'lganda oradagi
+    // 12 sekundda sikl ishlamaydigan to'lqinlarni ochaverardi — har chaqiruv
+    // darhol `TimeBudgetError` otar, bloklar jimgina `deferred` bo'lar va
+    // `deadlineHit` `false` bo'lib qolardi.
+    if (remaining !== undefined && remaining() <= RETRY_RESERVE_MS && start + size < inputs.length) {
       deadlineHit = true;
       break;
     }
