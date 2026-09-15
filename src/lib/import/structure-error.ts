@@ -63,6 +63,15 @@ export interface LastError {
   message: string;
   name: string;
   status?: number;
+  /**
+   * Asl sabab — `TimeBudgetError`/`RateLimitedError` ning `cause` i.
+   *
+   * O'ralgan xatoning o'z xabari ("Vaqt byudjeti tugadi") nima uchun
+   * ulgurilmaganini aytmaydi; birinchi urinish 503 bilanmi, timeout bilanmi
+   * yiqilgani faqat shu yerda ko'rinadi.
+   */
+  causeName?: string;
+  causeMessage?: string;
   at: string;
 }
 
@@ -225,13 +234,25 @@ export function withRetry<TInput>(call: Caller<TInput>, options: RetryOptions = 
  * Xabar `redactSecrets` dan o'tkaziladi: Gemini SDK xatosi so'rov URL'ini,
  * ya'ni `?key=...` ni o'z ichiga oladi va u shundoq bazaga tushib qolardi.
  * Uzunlik cheklanadi — `raw` ustuni savolning o'zi uchun, log uchun emas.
+ *
+ * `cause` FAQAT bir qavat olinadi: o'ralgan xatoning asl sababi kerak, to'liq
+ * zanjir emas — `raw` ustuni log o'rnini bosmaydi.
  */
 export function toLastError(error: unknown, now: Date = new Date()): LastError {
   const status = statusOf(error);
+  const cause = error instanceof Error ? error.cause : undefined;
   return {
     message: redactSecrets(messageOf(error)).slice(0, MAX_MESSAGE),
     name: error instanceof Error ? error.name : typeof error,
     ...(status === undefined ? {} : { status }),
+    ...(cause === undefined
+      ? {}
+      : {
+          causeName: cause instanceof Error ? cause.name : typeof cause,
+          // Maxfiy qiymat `cause` ichida ham bo'lishi mumkin — ishlov asosiy
+          // xabar bilan aynan bir xil.
+          causeMessage: redactSecrets(messageOf(cause)).slice(0, MAX_MESSAGE),
+        }),
     at: now.toISOString(),
   };
 }

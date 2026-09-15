@@ -279,6 +279,9 @@ export async function POST(
     let deferred = 0;
     let rateLimited = 0;
     let lastModel: string | undefined;
+    // Namunaviy sabab — oxirgi uchragani. Bitta sabab yetadi: paketdagi
+    // yiqilishlar deyarli doim bir xil manbadan (kvota, muddat, model).
+    let lastError: LastError | undefined;
     const failedSample: { order: number; message: string }[] = [];
     for (const outcome of outcomes) {
       const draft = byOrder.get(outcome.order);
@@ -292,17 +295,24 @@ export async function POST(
       // ustozga "ertaga davom eting" deyishi uchun.
       if (outcome.rateLimited) {
         rateLimited++;
+        lastError = toLastError(outcome.error);
         writes.push(db.importDraft.update({ where: { id: draft.id }, data: rateLimitData(draft, outcome.error) }));
         continue;
       }
       if (outcome.deferred) {
         deferred++;
+        // Blokka tegilmaydi, demak sabab bazada QOLMAYDI — javob uni
+        // ko'rsatadigan yagona joy. Usiz nosozlik "deferred=57" bo'lib
+        // ko'rinadi-yu, nima uchunligi faqat bazaga so'rov yuborib topiladi
+        // (topilmaydi ham: bu bloklarda `lastError` yo'q).
+        lastError = toLastError(outcome.error);
         continue;
       }
       if (outcome.failed || !outcome.question) {
         failed++;
         written++;
         const failure = failureData(draft, outcome.error);
+        lastError = failure.lastError;
         if (failedSample.length < FAILED_SAMPLE) {
           failedSample.push({ order: draft.order, message: failure.lastError.message });
         }
@@ -384,6 +394,7 @@ export async function POST(
       done,
       total,
       hasMore: remaining > 0,
+      deferred,
       failed,
       failedSample,
       elapsedMs,
@@ -392,6 +403,9 @@ export async function POST(
       stalled,
       rateLimited,
       stuck,
+      // Sabab HECH QACHON yutilmaydi: Vercel logi bepul tarifda yarim soatdan
+      // keyin o'chadi, klient konsolida esa qoladi.
+      lastError,
     });
   } catch (error) {
     logger.error('POST /api/teacher/import/[jobId]/structure error:', { error });

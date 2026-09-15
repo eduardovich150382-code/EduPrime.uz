@@ -4,6 +4,7 @@ import { imageTokensOf, type Caller, type StructuredOption } from './structure';
 import {
   parseMs,
   RateLimitedError,
+  RETRY_RESERVE_MS,
   TimeBudgetError,
   withRetry,
   type RetryOptions,
@@ -728,7 +729,11 @@ export async function translateBatch(
     // Muddat to'lqinlar ORASIDA: boshlangan chaqiruvlar tugaydi va natijasi
     // yoziladi (Gemini'ga to'langan ish behuda ketmasin), qolgan guruhlarga esa
     // umuman tegilmaydi — ular keyingi so'rovda olinadi.
-    if (remaining !== undefined && remaining() <= 0 && start + concurrency < groups.length) {
+    //
+    // Chegara `withRetry` NIKI bilan bir xil (`structureBatch` dagi kabi):
+    // `<= 0` bo'lganda sikl `withRetry` qabul qilmaydigan to'lqinlarni
+    // ochaverardi va guruhlar sababsiz `deferred` bo'lib qaytardi.
+    if (remaining !== undefined && remaining() <= RETRY_RESERVE_MS && start + concurrency < groups.length) {
       deadlineHit = true;
       break;
     }
