@@ -422,6 +422,7 @@
     "chatResult": "{applied} ta savol yozildi, {skipped} tasi tashlandi.",
     "chatProblems": "Muammolar:",
     "chatProblemLine": "{order}-savol — {code}",
+    "chatProblemAlreadyProcessed": "{order}-savol — bu savol avtomatik yo'lda allaqachon tayyorlangan, chat javobi qo'llanmadi.",
     "chatContinue": "Chat orqali davom ettirish",
     "chatErrorLoad": "Savollarni olishda xato. Qaytadan urinib ko'ring.",
     "chatErrorCopy": "Nusxalab bo'lmadi — matnni qo'lda belgilang.",

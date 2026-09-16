@@ -235,7 +235,9 @@ export default function ImportChatMode({ jobId }: { jobId: string }) {
               <ul className="space-y-1 text-sm text-text-secondary">
                 {result.problems.map((problem, index) => (
                   <li key={`${problem.order}-${problem.code}-${index}`} className="break-words">
-                    {t('chatProblemLine', { order: problem.order, code: problem.code })}
+                    {problem.code === 'ALREADY_PROCESSED'
+                      ? t('chatProblemAlreadyProcessed', { order: problem.order })
+                      : t('chatProblemLine', { order: problem.order, code: problem.code })}
                   </li>
                 ))}
               </ul>

@@ -168,8 +168,37 @@ describe("POST /api/teacher/import/[jobId]/apply", () => {
     const body = await (await call([item(0)])).json();
 
     expect(body).toMatchObject({ applied: 0, skipped: 1 });
-    expect(body.problems).toContainEqual({ order: 0, code: "UNKNOWN_ORDER" });
+    expect(body.problems).toContainEqual({ order: 0, code: "ALREADY_PROCESSED" });
     expect(updateDraftMock).not.toHaveBeenCalled();
+  });
+
+  it("bosqichi mos kelmagan draft ALREADY_PROCESSED, UNKNOWN_ORDER emas", async () => {
+    // Ustoz avtomatik yo'lni yarim yo'lda to'xtatib chatga o'tgan bo'lsa,
+    // ulgurgan savollar `STRUCTURED` da qoladi — bu xato emas.
+    setup([draft(0, { stage: "STRUCTURED" })], { total: 1, ready: 0 });
+
+    const body = await (await call([item(0)])).json();
+
+    expect(body.problems).toContainEqual({ order: 0, code: "ALREADY_PROCESSED" });
+    expect(body.problems).not.toContainEqual({ order: 0, code: "UNKNOWN_ORDER" });
+  });
+
+  it("raw.mode 'qol' bo'lsa NUMBER_MISMATCH qo'yilmaydi", async () => {
+    setup([draft(0, { mode: "qol" })], { total: 1, ready: 1 });
+
+    const body = await (await call([item(0, { text: "Tezlik 45 m/s" })])).json();
+
+    expect(body.applied).toBe(1);
+    expect(body.problems).toEqual([]);
+  });
+
+  it("rejimi yo'q eski draftda NUMBER_MISMATCH avvalgidek chiqadi", async () => {
+    setup([draft(0)], { total: 1, ready: 1 });
+
+    const body = await (await call([item(0, { text: "Tezlik 45 m/s" })])).json();
+
+    expect(body.applied).toBe(1);
+    expect(body.problems).toContainEqual({ order: 0, code: "NUMBER_MISMATCH" });
   });
 
   it("READY draftga qayta qo'llash IDEMPOTENT — bir xil natija", async () => {

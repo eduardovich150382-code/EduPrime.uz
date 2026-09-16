@@ -91,10 +91,16 @@ export async function POST(
     for (const item of items) {
       const draft = byOrder.get(item.order);
       const raw = draft ? asRecord(draft.raw) : {};
-      // Bosqichi mos kelmagan draft ham NOMA'LUM: chat javobi allaqachon
-      // tarjima qilingan savolni ustidan yozib yuborishi mumkin emas.
-      if (!draft || !APPLICABLE.includes(String(raw.stage))) {
+      if (!draft) {
         skip(item.order, 'UNKNOWN_ORDER');
+        continue;
+      }
+      // Bosqichi mos kelmagan draft — XATO EMAS: avtomatik yo'l uni allaqachon
+      // tayyorlagan va chat javobi uning ustidan yozib yuborishi mumkin emas.
+      // Bu `UNKNOWN_ORDER` dan alohida kod: ustoz "noma'lum savol" ni qidirib
+      // vaqt yo'qotmasin, bu esa shunchaki ikki yo'lning kesishuvi.
+      if (!APPLICABLE.includes(String(raw.stage))) {
+        skip(item.order, 'ALREADY_PROCESSED');
         continue;
       }
       // Bitta `order` ikki marta kelsa ikkinchi yozuv birinchisini jimgina
@@ -111,6 +117,7 @@ export async function POST(
           tokenMap: parseTokenMap(raw),
           answerKey: parseAnswerKey(raw),
           sourceNumber: typeof raw.number === 'number' ? raw.number : null,
+          sourceMode: typeof raw.mode === 'string' ? raw.mode : null,
         },
         item,
       );

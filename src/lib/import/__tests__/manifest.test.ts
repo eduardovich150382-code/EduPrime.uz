@@ -3,6 +3,7 @@ import { MAX_IMPORT_PAGES } from "../constants";
 import {
   detectColumnsFromBlocks,
   locateManifest,
+  pageModes,
   parseManifest,
   type Manifest,
   type ManifestPage,
@@ -152,9 +153,46 @@ describe("parseManifest", () => {
     expect(parseManifest(raw, filesOf(raw))).toEqual({ error: { code: "BAD_FIELD", detail: "pages[1].page" } });
   });
 
+  it("sahifa rejimini saqlaydi", () => {
+    const raw = clone();
+    raw.pages[0].mode = "qol";
+
+    const result = parseManifest(raw, filesOf(raw));
+
+    expect(result).toHaveProperty("manifest.pages.0.mode", "qol");
+  });
+
+  it("noma'lum rejim yiqitmaydi — maydon tushib qoladi", () => {
+    // Skript biz bilmaydigan rejim qo'shsa, butun import to'xtab qolmasin.
+    const raw = clone();
+    raw.pages[0].mode = "xyz";
+
+    const result = parseManifest(raw, filesOf(raw));
+
+    expect(result).not.toHaveProperty("error");
+    expect((result as { manifest: Manifest }).manifest.pages[0].mode).toBeUndefined();
+  });
+
   it("asl PDF sahifa raqami pageCount dan katta bo'lishi odatiy", () => {
     // Skript 23–24-sahifani kesib oladi: pageCount 2, page esa 23 va 24.
     expect(parsed().pages[0].page).toBeGreaterThan(parsed().pageCount);
+  });
+});
+
+describe("pageModes", () => {
+  it("sahifaning o'z rejimi ustun", () => {
+    const raw = clone();
+    raw.pages[0].mode = "qol";
+    const result = parseManifest(raw, filesOf(raw)) as { manifest: Manifest };
+
+    expect(pageModes(result.manifest).get(23)).toBe("qol");
+  });
+
+  it("rejimsiz sahifa hujjat turidan to'ldiriladi", () => {
+    const manifest = parsed();
+
+    expect(pageModes(manifest).get(23)).toBe("avto");
+    expect(pageModes({ ...manifest, kind: "scanned" }).get(23)).toBe("skan");
   });
 });
 

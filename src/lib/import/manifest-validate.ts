@@ -1,5 +1,6 @@
 import { IMPORT_SOURCE_LANGS, MAX_IMPORT_PAGES, MAX_SOURCE_PAGE } from './constants';
-import type { Manifest, ManifestBlock, ManifestImage, ManifestPage } from './manifest';
+import { SOURCE_MODES } from './manifest';
+import type { Manifest, ManifestBlock, ManifestImage, ManifestPage, SourceMode } from './manifest';
 import type { BBox } from './types';
 
 /**
@@ -155,6 +156,12 @@ function parsePage(raw: unknown, where: string, files: ReadonlySet<string>): Man
   });
 
   const result: ManifestPage = { page, width, height, blocks, images };
+  // Noma'lum rejim — XATO EMAS, shunchaki `undefined`. Skript biz bilmaydigan
+  // rejim qo'shsa, butun import to'xtab qolgandan ko'ra bitta bayroq ortiqcha
+  // chiqqani afzal; maydonsiz eski ZIP lar ham shu yo'l bilan ishlayveradi.
+  if ((SOURCE_MODES as readonly string[]).includes(raw.mode as string)) {
+    result.mode = raw.mode as SourceMode;
+  }
   if (raw.pageImage !== undefined && raw.pageImage !== null) {
     result.pageImage = zipPath(raw.pageImage, `${where}.pageImage`, files);
   }

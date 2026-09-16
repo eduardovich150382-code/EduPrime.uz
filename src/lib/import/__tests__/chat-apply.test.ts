@@ -5,7 +5,14 @@ const ID_A = "[[IMG:cmu2gfe670005lc0438g6uky5]]";
 const ID_B = "[[IMG:cmu2gfe670005lc0438g6uky6]]";
 
 function source(overrides: Partial<ApplySource> = {}): ApplySource {
-  return { sourceText: "Savol", tokenMap: {}, answerKey: null, sourceNumber: null, ...overrides };
+  return {
+    sourceText: "Savol",
+    tokenMap: {},
+    answerKey: null,
+    sourceNumber: null,
+    sourceMode: null,
+    ...overrides,
+  };
 }
 
 function item(overrides: Partial<ChatItem> = {}): ChatItem {
@@ -218,5 +225,35 @@ describe("applyChatItem — yiqitmaydigan bayroqlar", () => {
     expect(ok(applyChatItem(src, item({ text: "12. Tezlik 40 m/s" }))).flags).toEqual([]);
     // Haqiqiy farq esa baribir tutiladi.
     expect(ok(applyChatItem(src, item({ text: "Tezlik 45 m/s" }))).flags).toContain("NUMBER_MISMATCH");
+  });
+
+  it("skan va qo'lda terilgan sahifada sonlar UMUMAN solishtirilmaydi", () => {
+    // OCR matni ishonchsiz, chat esa uni sahifa rasmiga qarab tuzatadi —
+    // farq bu yerda kutilgan holat, bayroq esa shovqin.
+    for (const mode of ["skan", "qol"]) {
+      const src = source({ sourceText: "Tezlik 4O m/s", sourceMode: mode });
+
+      expect(ok(applyChatItem(src, item({ text: "Tezlik 40 m/s" }))).flags).toEqual([]);
+    }
+  });
+
+  it("boshqa rejimlarda solishtiruv avvalgidek", () => {
+    const src = source({ sourceText: "Tezlik 40 m/s", sourceMode: "rasm" });
+
+    expect(ok(applyChatItem(src, item({ text: "Tezlik 45 m/s" }))).flags).toContain("NUMBER_MISMATCH");
+  });
+
+  it("rejimi yo'q eski draftda ham solishtiruv bajariladi", () => {
+    const src = source({ sourceText: "Tezlik 40 m/s", sourceMode: null });
+
+    expect(ok(applyChatItem(src, item({ text: "Tezlik 45 m/s" }))).flags).toContain("NUMBER_MISMATCH");
+  });
+
+  it("skan rejimi boshqa bayroqlarni o'chirmaydi", () => {
+    const src = source({ sourceText: "Tezlik 40 m/s", sourceMode: "skan", answerKey: "D" });
+    const result = ok(applyChatItem(src, item({ text: "Tezlik $v = 45", answer: "B" })));
+
+    expect(result.flags).toEqual(expect.arrayContaining(["LATEX_UNBALANCED", "ANSWER_MISMATCH"]));
+    expect(result.flags).not.toContain("NUMBER_MISMATCH");
   });
 });
