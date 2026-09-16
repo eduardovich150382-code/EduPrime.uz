@@ -33,6 +33,88 @@ export interface ExportedBlock {
   tokenMap: Record<string, string>;
 }
 
+/**
+ * Bazadan o'qilgan draft qatori — eksport ham, `apply` ham AYNI shu shakldan
+ * boshlaydi.
+ *
+ * Ikkala marshrut bir xil qatordan bir xil tokenlarni olishi SHART: qisqa
+ * token (`[[IMG1]]`) haqiqiy rasmga faqat shu moslik orqali qaytadi.
+ */
+export interface DraftRow {
+  order: number;
+  /** Manba tilidagi matn; xom blokda variantlar ham shu yerda. */
+  textOriginal: string;
+  /** `textOriginal` bo'sh bo'lsa ishlatiladigan zaxira. */
+  text: string;
+  /** Json ustun — strukturalangan draftda variantlar, xom blokda bo'sh. */
+  optionsOriginal: unknown;
+  /** Json ustun — `images`, `notQuestion` va boshqa blok ma'lumotlari. */
+  raw: unknown;
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return typeof value === 'object' && value !== null ? (value as Record<string, unknown>) : {};
+}
+
+/** `options`/`optionsOriginal` Json ustunini variantlar massiviga aylantiradi. */
+function parseOptions(value: unknown): StructuredOption[] {
+  if (!Array.isArray(value)) return [];
+  return value.map((entry, index) => {
+    const o = asRecord(entry);
+    return {
+      label: typeof o.label === 'string' ? o.label : String.fromCharCode(65 + index),
+      text: typeof o.text === 'string' ? o.text : '',
+      imageToken: typeof o.imageToken === 'string' && o.imageToken ? o.imageToken : null,
+    };
+  });
+}
+
+/** `raw.images[].assetId` — savolga ulangan kesilgan rasmlar, YOZILGAN TARTIBDA. */
+function parseImages(raw: Record<string, unknown>): string[] {
+  if (!Array.isArray(raw.images)) return [];
+  return raw.images
+    .map((entry) => asRecord(entry).assetId)
+    .filter((id): id is string => typeof id === 'string' && id.length > 0);
+}
+
+/** Baza qatoridan eksport kirishi. */
+export function toExportDraft(row: DraftRow): ExportDraft {
+  const raw = asRecord(row.raw);
+  return {
+    order: row.order,
+    text: row.textOriginal || row.text,
+    options: parseOptions(row.optionsOriginal),
+    images: parseImages(raw),
+  };
+}
+
+/**
+ * Kalit qatori sifatida aniqlangan blok chatga YUBORILMAYDI: uning tarjimasi
+ * ham, javobi ham yo'q. Avtomatik yo'l ham aynan shu maydonga qaraydi.
+ */
+export function isRealQuestion(row: DraftRow): boolean {
+  return asRecord(row.raw).notQuestion !== true;
+}
+
+/**
+ * Draft qatori uchun qisqa token xaritasi.
+ *
+ * `apply` xaritani BAZADAN O'QIMAYDI, shu yerda QAYTA HISOBLAYDI. Sabab
+ * qimmatga tushib o'rganildi: xarita eksport paytida `raw.tokenMap` ga
+ * yozilardi, `/blocks` ni qayta chaqirish esa `raw` ni butunlay yangilab uni
+ * o'chirib yuborardi — ZIP qayta yuklanganda esa job umuman yangi bo'lib,
+ * xarita hech qachon yozilmagan bo'lardi. Natijada chat mukammal javob
+ * qaytarsa ham HAR savol `IMAGE_TOKEN_INVALID` olib, rasmlar jimgina
+ * o'chirilardi.
+ *
+ * Raqamlash `draft.images` tartibidan deterministik kelib chiqadi, ya'ni qayta
+ * hisoblash saqlangan xarita bilan bir xil natija beradi va hech qanday
+ * holatga bog'liq emas.
+ */
+export function tokenMapOf(row: DraftRow): Record<string, string> {
+  return buildExportBlock(toExportDraft(row)).tokenMap;
+}
+
 /** Variant yorlig'i — chatga `A)`, `B)` bo'lib chiqadi. */
 function labelOf(option: StructuredOption, index: number): string {
   const label = option.label.trim().toUpperCase();

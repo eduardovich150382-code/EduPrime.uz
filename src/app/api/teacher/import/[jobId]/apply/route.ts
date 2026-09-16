@@ -2,6 +2,7 @@ import type { Prisma } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { applyChatItem, parseChatJson } from '@/lib/import/chat-apply';
+import { tokenMapOf } from '@/lib/import/chat-export';
 import { requireOwnedJob } from '@/lib/import-jobs';
 import { logger } from '@/lib/logger';
 
@@ -22,15 +23,6 @@ const STALE_ISSUES = ['STRUCTURE_FAILED', 'TRANSLATE_FAILED', 'RATE_LIMITED'];
 
 function asRecord(value: unknown): Record<string, unknown> {
   return typeof value === 'object' && value !== null ? (value as Record<string, unknown>) : {};
-}
-
-/** `raw.tokenMap` — eksport yozib qoldirgan qisqa token → haqiqiy token. */
-function parseTokenMap(raw: Record<string, unknown>): Record<string, string> {
-  const map: Record<string, string> = {};
-  for (const [key, value] of Object.entries(asRecord(raw.tokenMap))) {
-    if (typeof value === 'string') map[key] = value;
-  }
-  return map;
 }
 
 /** `raw.answerKey.letter` — kitobdan naqsh bilan topilgan javob. */
@@ -74,7 +66,17 @@ export async function POST(
 
     const drafts = await db.importDraft.findMany({
       where: { jobId: job.id, order: { in: items.map((i) => i.order) } },
-      select: { id: true, order: true, textOriginal: true, optionsOriginal: true, raw: true, issues: true },
+      select: {
+        id: true,
+        order: true,
+        textOriginal: true,
+        // `text` — `tokenMapOf` uchun: eksport ham aynan `textOriginal || text` dan
+        // boshlaydi va ikkalasi bir xil raqamlashni berishi SHART.
+        text: true,
+        optionsOriginal: true,
+        raw: true,
+        issues: true,
+      },
     });
     const byOrder = new Map(drafts.map((d) => [d.order, d]));
 
@@ -114,7 +116,7 @@ export async function POST(
       const result = applyChatItem(
         {
           sourceText: sourceTextOf(draft.textOriginal, draft.optionsOriginal),
-          tokenMap: parseTokenMap(raw),
+          tokenMap: tokenMapOf(draft),
           answerKey: parseAnswerKey(raw),
           sourceNumber: typeof raw.number === 'number' ? raw.number : null,
           sourceMode: typeof raw.mode === 'string' ? raw.mode : null,
@@ -140,8 +142,8 @@ export async function POST(
           where: { id: draft.id },
           data: {
             // `textOriginal`/`optionsOriginal` ga TEGILMAYDI — ular manba
-            // tilidagi yagona nusxa. `raw.tokenMap` ham joyida qoladi: qayta
-            // qo'llash o'sha xaritaga tayanadi.
+            // tilidagi yagona nusxa va token xaritasi HAR SAFAR aynan shulardan
+            // qayta hisoblanadi, ya'ni qayta qo'llash ham bir xil ishlaydi.
             text: result.text,
             options: result.options as unknown as Prisma.InputJsonValue,
             correctAnswer: result.correctAnswer,

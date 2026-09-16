@@ -2,8 +2,7 @@ import type { Prisma } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { buildChatPrompt } from '@/lib/import/chat-prompt';
-import { buildExportChunk, renderMarkdown, type ExportDraft } from '@/lib/import/chat-export';
-import type { StructuredOption } from '@/lib/import/structure';
+import { buildExportChunk, isRealQuestion, renderMarkdown, toExportDraft } from '@/lib/import/chat-export';
 import { requireOwnedJob } from '@/lib/import-jobs';
 import { logger } from '@/lib/logger';
 
@@ -31,31 +30,6 @@ const EXPORTABLE: Prisma.ImportDraftWhereInput = {
     { raw: { path: ['stage'], equals: 'TRANSLATE_FAILED' } },
   ],
 };
-
-function asRecord(value: unknown): Record<string, unknown> {
-  return typeof value === 'object' && value !== null ? (value as Record<string, unknown>) : {};
-}
-
-/** `options`/`optionsOriginal` Json ustunini variantlar massiviga aylantiradi. */
-function parseOptions(value: unknown): StructuredOption[] {
-  if (!Array.isArray(value)) return [];
-  return value.map((entry, index) => {
-    const o = asRecord(entry);
-    return {
-      label: typeof o.label === 'string' ? o.label : String.fromCharCode(65 + index),
-      text: typeof o.text === 'string' ? o.text : '',
-      imageToken: typeof o.imageToken === 'string' && o.imageToken ? o.imageToken : null,
-    };
-  });
-}
-
-/** `raw.images[].assetId` — savolga ulangan kesilgan rasmlar. */
-function parseImages(raw: Record<string, unknown>): string[] {
-  if (!Array.isArray(raw.images)) return [];
-  return raw.images
-    .map((entry) => asRecord(entry).assetId)
-    .filter((id): id is string => typeof id === 'string' && id.length > 0);
-}
 
 /** URL dagi musbat butun son — noto'g'ri qiymat standartga tushadi. */
 function parsePositive(value: string | null, fallback: number, max: number): number {
@@ -123,40 +97,13 @@ export async function GET(
       where: { ...where, ...cursor },
       orderBy: { order: 'asc' },
       take: size,
-      select: { id: true, order: true, textOriginal: true, text: true, optionsOriginal: true, raw: true },
+      select: { order: true, textOriginal: true, text: true, optionsOriginal: true, raw: true },
     });
 
-    // Kalit qatori sifatida allaqachon aniqlangan blok chatga YUBORILMAYDI:
-    // uning tarjimasi ham, javobi ham yo'q. Avtomatik yo'l ham aynan shu
-    // maydonga qarab blokni modelga yubormaydi (structure/route.ts).
-    const drafts: (ExportDraft & { id: string; raw: Record<string, unknown> })[] = rows
-      .map((row) => {
-        const raw = asRecord(row.raw);
-        const options = parseOptions(row.optionsOriginal);
-        return {
-          id: row.id,
-          raw,
-          order: row.order,
-          text: row.textOriginal || row.text,
-          options,
-          images: parseImages(raw),
-        };
-      })
-      .filter((draft) => draft.raw.notQuestion !== true);
-
-    const blocks = buildExportChunk(drafts);
-
-    // Xarita draftga YOZILADI: `apply` qisqa tokenni faqat shu orqali haqiqiy
-    // rasmga qaytara oladi. Qayta eksport tokenlarni qaytadan raqamlaydi va
-    // xaritani ustidan yozadi — `apply` doim OXIRGI eksportga qaraydi.
-    const writes = blocks.map((block, index) => {
-      const draft = drafts[index];
-      return db.importDraft.update({
-        where: { id: draft.id },
-        data: { raw: { ...draft.raw, tokenMap: block.tokenMap } as unknown as Prisma.InputJsonValue },
-      });
-    });
-    if (writes.length > 0) await db.$transaction(writes);
+    // Xarita BAZAGA YOZILMAYDI. `apply` uni `tokenMapOf` bilan AYNI shu
+    // qatordan qayta hisoblaydi, shuning uchun eksport hech qanday holat
+    // qoldirmaydi: qaysi job, necha marta qayta yuklangan — farqi yo'q.
+    const blocks = buildExportChunk(rows.filter(isRealQuestion).map(toExportDraft));
 
     const headers: Record<string, string> = { 'X-Import-Total': String(remaining) };
     // Kursor SO'NGGI O'QILGAN qatordan olinadi, chatga chiqqanidan emas:

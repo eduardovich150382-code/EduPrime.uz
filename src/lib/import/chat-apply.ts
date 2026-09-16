@@ -43,7 +43,11 @@ export interface ApplySource {
    * strukturalangan draftda alohida ustunda turadi.
    */
   sourceText: string;
-  /** `raw.tokenMap` — eksport yozib qoldirgan qisqa token → haqiqiy token. */
+  /**
+   * Qisqa token → haqiqiy token. Marshrut uni `chat-export.ts#tokenMapOf`
+   * bilan draftning O'ZIDAN qayta hisoblaydi — bazada saqlangan nusxadan
+   * emas, chunki saqlangan nusxa job qayta yaratilganda yo'qolardi.
+   */
   tokenMap: Record<string, string>;
   /** `raw.answerKey.letter` — kitobdan naqsh bilan topilgan javob. */
   answerKey: string | null;

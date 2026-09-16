@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { buildExportBlock, buildExportChunk, renderMarkdown, type ExportDraft } from "../chat-export";
+import {
+  buildExportBlock,
+  buildExportChunk,
+  isRealQuestion,
+  renderMarkdown,
+  toExportDraft,
+  tokenMapOf,
+  type DraftRow,
+  type ExportDraft,
+} from "../chat-export";
 import type { StructuredOption } from "../structure";
 
 /** Haqiqiy tokenlar — aynan shu uzunlikdagi cuid modelni yiqitgandi (PR #159). */
@@ -109,5 +118,57 @@ describe("renderMarkdown", () => {
 
   it("bo'sh qism bo'sh matn beradi", () => {
     expect(renderMarkdown([])).toBe("");
+  });
+});
+
+describe("toExportDraft / tokenMapOf", () => {
+  function row(overrides: Partial<DraftRow> = {}): DraftRow {
+    return {
+      order: 8,
+      textOriginal: "7. Kvadrat plastinalar sistemasi.",
+      text: "",
+      optionsOriginal: [],
+      raw: { stage: "BLOCK", images: [{ assetId: ID_A }, { assetId: ID_B }] },
+      ...overrides,
+    };
+  }
+
+  it("`textOriginal` bo'sh bo'lsa `text` ishlatiladi — eksport bilan bir xil qoida", () => {
+    expect(toExportDraft(row({ textOriginal: "", text: "Zaxira matn" })).text).toBe("Zaxira matn");
+  });
+
+  it("xarita EKSPORT bergan xaritaning aynan o'zi", () => {
+    // Bitta manba: `apply` xaritani bazadan o'qimaydi, shu yerda qayta
+    // hisoblaydi. Ikkalasi bir xil bo'lmasa rasm boshqa savolga tushardi.
+    const source = row();
+
+    expect(tokenMapOf(source)).toEqual(buildExportBlock(toExportDraft(source)).tokenMap);
+    expect(tokenMapOf(source)).toEqual({ IMG1: `[[IMG:${ID_A}]]`, IMG2: `[[IMG:${ID_B}]]` });
+  });
+
+  it("rasmi yo'q draftda xarita bo'sh", () => {
+    expect(tokenMapOf(row({ raw: { stage: "BLOCK", images: [] } }))).toEqual({});
+  });
+
+  it("buzuq `raw` yiqitmaydi — bo'sh xarita", () => {
+    expect(tokenMapOf(row({ raw: null }))).toEqual({});
+    expect(tokenMapOf(row({ raw: { images: "yo'q" } }))).toEqual({});
+  });
+
+  it("strukturalangan draftda variantdagi rasm ham xaritaga tushadi", () => {
+    // Raqamlash AVVAL savol matni, KEYIN variantlar bo'yicha ketadi: `raw.images`
+    // dagi rasm matn oxiriga qo'shiladi va birinchi raqamni oladi, variantdagi
+    // token esa o'z variantida qolib keyingisini oladi.
+    const source = row({
+      raw: { stage: "STRUCTURE_FAILED", images: [{ assetId: ID_A }] },
+      optionsOriginal: [{ label: "A", text: "Birinchi", imageToken: `[[IMG:${ID_B}]]` }],
+    });
+
+    expect(tokenMapOf(source)).toEqual({ IMG1: `[[IMG:${ID_A}]]`, IMG2: `[[IMG:${ID_B}]]` });
+  });
+
+  it("kalit qatori savol emas", () => {
+    expect(isRealQuestion(row())).toBe(true);
+    expect(isRealQuestion(row({ raw: { notQuestion: true } }))).toBe(false);
   });
 });
