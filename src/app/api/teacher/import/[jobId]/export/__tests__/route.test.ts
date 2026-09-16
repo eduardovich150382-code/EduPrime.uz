@@ -183,19 +183,17 @@ describe("GET /api/teacher/import/[jobId]/export", () => {
     expect(res.headers.get("X-Import-Next-After")).toBe("1");
   });
 
-  it("tokenMap draft raw iga yoziladi, qolgan maydonlar saqlanadi", async () => {
+  it("eksport BAZAGA YOZMAYDI — xarita `apply` da qayta hisoblanadi", async () => {
+    // Xarita `raw.tokenMap` ga yozilardi va `/blocks` ni qayta chaqirish yoki
+    // ZIP ni qayta yuklash uni yo'qotardi. Endi eksport holat qoldirmaydi.
     setup([draft(0, { images: [{ assetId: ID_A, url: "https://cdn.example/1.png" }], number: 1 })]);
 
     const text = await (await call()).text();
 
     expect(text).toContain("[[IMG1]]");
     expect(text).not.toContain("[[IMG:");
-
-    const raw = updateDraftMock.mock.calls[0][0].data.raw as Record<string, unknown>;
-    expect(raw.tokenMap).toEqual({ IMG1: `[[IMG:${ID_A}]]` });
-    expect(raw.stage).toBe("BLOCK");
-    expect(raw.number).toBe(1);
-    expect(transactionMock).toHaveBeenCalledTimes(1);
+    expect(updateDraftMock).not.toHaveBeenCalled();
+    expect(transactionMock).not.toHaveBeenCalled();
   });
 
   it("?prompt=1 ko'rsatma qaytaradi va bazaga YOZMAYDI", async () => {

@@ -56,12 +56,14 @@ import { NextRequest } from "next/server";
 import { POST } from "../route";
 
 const JOB = "job-1";
-const TOKEN = "[[IMG:cmu2gfe670005lc0438g6uky5]]";
+const ASSET = "cmu2gfe670005lc0438g6uky5";
+const TOKEN = `[[IMG:${ASSET}]]`;
 
 interface DraftRow {
   id: string;
   order: number;
   textOriginal: string;
+  text: string;
   optionsOriginal: unknown;
   raw: Record<string, unknown>;
   issues: string[];
@@ -72,6 +74,7 @@ function draft(order: number, raw: Record<string, unknown> = {}, issues: string[
     id: `d${order}`,
     order,
     textOriginal: `${order + 1}. Savol matni`,
+    text: `${order + 1}. Savol matni`,
     optionsOriginal: [],
     raw: { stage: "BLOCK", number: order + 1, images: [], notQuestion: false, ...raw },
     issues,
@@ -202,13 +205,58 @@ describe("POST /api/teacher/import/[jobId]/apply", () => {
   });
 
   it("READY draftga qayta qo'llash IDEMPOTENT — bir xil natija", async () => {
-    setup([draft(0, { stage: "READY", tokenMap: { IMG1: TOKEN } })], { total: 1, ready: 1 });
+    setup([draft(0, { stage: "READY", images: [{ assetId: ASSET }] })], { total: 1, ready: 1 });
 
     const body = await (await call([item(0, { text: "Savol matni [[IMG1]]" })])).json();
 
     expect(body).toMatchObject({ applied: 1, skipped: 0 });
     expect(written(0)!.data.text).toBe(`Savol matni ${TOKEN}`);
     expect((written(0)!.data.raw as Record<string, unknown>).stage).toBe("READY");
+  });
+
+  it("xarita BAZADAN emas, draftdan hisoblanadi — `raw.tokenMap` bo'lmasa ham rasm tiklanadi", async () => {
+    // Aynan shu holat prod'da 9/9 savolni `IMAGE_TOKEN_INVALID` qilgandi: ZIP
+    // qayta yuklangach job yangi bo'lib, eksport yozgan xarita eski jobda
+    // qolgandi. Endi xarita `raw.images` dan qayta hisoblanadi.
+    setup([draft(0, { images: [{ assetId: ASSET }] })], { total: 1, ready: 1 });
+
+    const body = await (await call([item(0, { text: "Savol matni [[IMG1]]" })])).json();
+
+    expect(body).toMatchObject({ applied: 1, skipped: 0 });
+    expect(body.problems).not.toContainEqual({ order: 0, code: "IMAGE_TOKEN_INVALID" });
+    expect(written(0)!.data.text).toBe(`Savol matni ${TOKEN}`);
+  });
+
+  it("eskirgan `raw.tokenMap` E'TIBORGA OLINMAYDI — joriy rasm qo'yiladi", async () => {
+    setup(
+      [draft(0, { images: [{ assetId: ASSET }], tokenMap: { IMG1: "[[IMG:eskirgan]]" } })],
+      { total: 1, ready: 1 },
+    );
+
+    const body = await (await call([item(0, { text: "Savol matni [[IMG1]]" })])).json();
+
+    expect(body.applied).toBe(1);
+    expect(written(0)!.data.text).toBe(`Savol matni ${TOKEN}`);
+  });
+
+  it("chat yo'q rasmni o'ylab topsa IMAGE_TOKEN_INVALID avvalgidek chiqadi", async () => {
+    setup([draft(0, { images: [{ assetId: ASSET }] })], { total: 1, ready: 1 });
+
+    const body = await (await call([item(0, { text: "Savol matni [[IMG1]] [[IMG2]]" })])).json();
+
+    expect(body.applied).toBe(1);
+    expect(body.problems).toContainEqual({ order: 0, code: "IMAGE_TOKEN_INVALID" });
+    expect(written(0)!.data.text).toBe(`Savol matni ${TOKEN} `);
+  });
+
+  it("chat rasmni tashlab ketsa IMAGE_TOKEN_MOVED va rasm oxiriga qaytariladi", async () => {
+    setup([draft(0, { images: [{ assetId: ASSET }] })], { total: 1, ready: 1 });
+
+    const body = await (await call([item(0, { text: "Savol matni" })])).json();
+
+    expect(body.applied).toBe(1);
+    expect(body.problems).toContainEqual({ order: 0, code: "IMAGE_TOKEN_MOVED" });
+    expect(written(0)!.data.text).toBe(`Savol matni ${TOKEN}`);
   });
 
   it("bitta order ikki marta kelsa ikkinchisi tashlanadi", async () => {
