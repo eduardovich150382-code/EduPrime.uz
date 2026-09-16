@@ -215,6 +215,22 @@ describe("POST /api/teacher/import/[jobId]/blocks", () => {
     expect(second.raw.pageImages).toEqual([{ page: 4, assetId: "page-4", url: "https://utfs.io/f/p4.png" }]);
   });
 
+  it("sahifa rejimini raw ga yozadi, yuborilmasa null", async () => {
+    await POST(post({ groups: [group(0, { mode: "qol" }), group(1)] }), { params });
+
+    const [first, second] = upsertCalls().map((c) => c.create);
+    expect(first.raw.mode).toBe("qol");
+    expect(second.raw.mode).toBeNull();
+  });
+
+  it("lug'atda yo'q rejimni rad etadi", async () => {
+    const mode = "kino" as UploadGroup["mode"];
+    const response = await POST(post({ groups: [group(0, { mode })] }), { params });
+
+    expect(response.status).toBe(400);
+    expect(upsertDraftMock).not.toHaveBeenCalled();
+  });
+
   it("raqamsiz (number: null) savolni qabul qiladi", async () => {
     const response = await POST(post({ groups: [group(0, { number: null })] }), { params });
 

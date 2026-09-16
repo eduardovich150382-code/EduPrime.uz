@@ -37,9 +37,22 @@ export interface ManifestImage {
   file: string;
 }
 
+/**
+ * Skript sahifani qaysi yo'l bilan o'qigani — ustoz uni `Rasm_ajratgich.py` da
+ * tanlaydi va manifestga har sahifa uchun alohida tushadi.
+ *
+ * `skan` va `qol` da matn OCR yoki qo'lda terilgan, ya'ni ISHONCHSIZ: keyingi
+ * bosqichlar shunga qarab yumshoqroq tekshiradi (lib/import/chat-apply.ts).
+ */
+export const SOURCE_MODES = ['avto', 'rasm', 'latex', 'skan', 'qol'] as const;
+
+export type SourceMode = (typeof SOURCE_MODES)[number];
+
 export interface ManifestPage {
   /** ASL PDF sahifa raqami — `pageCount` dan katta bo'lishi odatiy. */
   page: number;
+  /** Eski ZIP larda yo'q, noma'lum qiymat ham `undefined` — ./manifest-validate. */
+  mode?: SourceMode;
   width: number;
   height: number;
   pageImage?: string;
@@ -54,6 +67,18 @@ export interface Manifest {
   sourceLang: string;
   pageCount: number;
   pages: ManifestPage[];
+}
+
+/**
+ * Sahifa → rejim xaritasi, fallback bilan.
+ *
+ * Fallback BIR joyda: chaqiruvchilar hujjat darajasidagi `kind` haqida
+ * bilmasin. Skan hujjatning har sahifasi — skan, `mode` yozmagan eski skript
+ * uchun ham shu to'g'ri taxmin.
+ */
+export function pageModes(manifest: Manifest): Map<number, SourceMode> {
+  const fallback: SourceMode = manifest.kind === 'scanned' ? 'skan' : 'avto';
+  return new Map(manifest.pages.map((page) => [page.page, page.mode ?? fallback]));
 }
 
 export {

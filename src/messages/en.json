@@ -422,6 +422,7 @@
     "chatResult": "{applied} questions written, {skipped} skipped.",
     "chatProblems": "Problems:",
     "chatProblemLine": "Question {order} — {code}",
+    "chatProblemAlreadyProcessed": "Question {order} — already prepared by the automatic path; the chat answer was not applied.",
     "chatContinue": "Continue via chat",
     "chatErrorLoad": "Could not load the questions. Please try again.",
     "chatErrorCopy": "Could not copy — select the text manually.",

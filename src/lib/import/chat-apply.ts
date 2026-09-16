@@ -56,7 +56,20 @@ export interface ApplySource {
    * butunlay yo'qotardi.
    */
   sourceNumber: number | null;
+  /**
+   * `raw.mode` — savol olingan sahifaning rejimi (manifest.ts#SourceMode).
+   * Eski draftlarda yo'q, shuning uchun `string | null`: bu yerda qiymatni
+   * tor turga majburlashdan foyda yo'q, baza JSON'ida nima bo'lsa shu keladi.
+   */
+  sourceMode: string | null;
 }
+
+/**
+ * Manba matni ishonchsiz rejimlar: `skan` — OCR, `qol` — ustoz terib chiqqan
+ * matn. Ikkalasida ham chat matnni SAHIFA RASMIGA qarab tuzatadi, ya'ni
+ * sonlar qonuniy ravishda farq qiladi.
+ */
+const UNRELIABLE_TEXT_MODES = ['skan', 'qol'];
 
 function asRecord(value: unknown): Record<string, unknown> {
   return typeof value === 'object' && value !== null ? (value as Record<string, unknown>) : {};
@@ -179,10 +192,16 @@ export function applyChatItem(source: ApplySource, item: ChatItem): ApplyResult 
   // tutilmaydi va test bankida JIMGINA noto'g'ri javobga olib keladi.
   // Savol raqami IKKALA tomondan ham chiqariladi: chat uni ba'zan saqlaydi,
   // ba'zan tashlaydi — ikkalasi ham xato emas.
-  const number = source.sourceNumber === null ? null : String(source.sourceNumber);
-  const sourceNumbers = dropOnce(numbersOf(withoutImages(source.sourceText)), number);
-  const candidateNumbers = dropOnce(numbersOf(withoutImages(allText)), number);
-  if (!same(sourceNumbers, candidateNumbers)) flags.push('NUMBER_MISMATCH');
+  //
+  // Skan va qo'lda terilgan sahifada esa solishtiruv UMUMAN bajarilmaydi:
+  // manba `textOriginal` ning o'zi ishonchsiz, farq esa deyarli har savolda
+  // chiqib, bayroqni ma'nosiz shovqinga aylantiradi.
+  if (!UNRELIABLE_TEXT_MODES.includes(source.sourceMode ?? '')) {
+    const number = source.sourceNumber === null ? null : String(source.sourceNumber);
+    const sourceNumbers = dropOnce(numbersOf(withoutImages(source.sourceText)), number);
+    const candidateNumbers = dropOnce(numbersOf(withoutImages(allText)), number);
+    if (!same(sourceNumbers, candidateNumbers)) flags.push('NUMBER_MISMATCH');
+  }
 
   // Kitobdan naqsh bilan topilgan kalit ustun EMAS (chatdagi model savolni
   // o'zi ham yechadi), lekin farq jimgina yutilmaydi — ustoz ko'rib chiqsin.

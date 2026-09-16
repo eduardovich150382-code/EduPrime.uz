@@ -82,6 +82,9 @@ HECH QACHON O'ZGARMAYDIGAN NARSALAR
 - [[IMG1]], [[IMG2]] kabi belgilar — rasm o'rni. Ularni o'zgartirma, tarjima
   qilma, yangisini yaratma, o'chirma. Har biri javobingda AYNAN BIR MARTA
   bo'lsin, o'z joyida.
+- [[IMG1]], [[IMG2]] belgilarini faqat matnda berilganlarini ishlatib qayta
+  yoz. Yangi raqam qo'shma — matnda [[IMG2]] yo'q bo'lsa, javobingda ham
+  bo'lmasin.
 - SONLAR. Hech bir sonni o'zgartirma, yaxlitlama, birlikka moslashtirma.
 - $...$ ichidagi hamma narsa belgi-baboshi ko'chiriladi — ichidagi so'zni ham
   tarjima qilma. Matnda $ siz turgan matematik ifodani $...$ ichiga ol.

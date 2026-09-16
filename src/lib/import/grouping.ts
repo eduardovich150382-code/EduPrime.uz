@@ -17,6 +17,7 @@ import {
   type ManifestBlock,
   type ManifestImage,
   type ManifestPage,
+  type SourceMode,
 } from './manifest';
 import type { BBox } from './types';
 
@@ -91,6 +92,11 @@ export interface UploadGroup {
   answerKey?: ResolvedAnswer | null;
   /** Blok savol emas (javob kaliti qatori) — strukturalashga yuborilmaydi. */
   notQuestion?: boolean;
+  /**
+   * Savol BOSHLANGAN sahifaning rejimi (manifest.ts#SourceMode). Ko'p sahifali
+   * savolda ham `startPage` niki: savol matni va raqami o'sha yerda.
+   */
+  mode?: SourceMode;
   issues?: KeyIssue[];
 }
 
@@ -375,6 +381,7 @@ export function toUploadGroup(
   order: number,
   assetIds: ReadonlyMap<string, string>,
   keys: readonly KeyBlock[] = [],
+  mode?: SourceMode,
 ): UploadGroup {
   const images: UploadGroup['images'] = [];
   for (const image of q.images) {
@@ -409,6 +416,7 @@ export function toUploadGroup(
     images,
     answerKey,
     notQuestion,
+    mode,
     issues: issue ? [issue] : [],
   };
 }

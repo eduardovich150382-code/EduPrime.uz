@@ -422,6 +422,7 @@
     "chatResult": "Записано вопросов: {applied}, пропущено: {skipped}.",
     "chatProblems": "Проблемы:",
     "chatProblemLine": "Вопрос {order} — {code}",
+    "chatProblemAlreadyProcessed": "Вопрос {order} — уже подготовлен автоматическим способом, ответ из чата не применён.",
     "chatContinue": "Продолжить через чат",
     "chatErrorLoad": "Не удалось получить вопросы. Попробуйте ещё раз.",
     "chatErrorCopy": "Не удалось скопировать — выделите текст вручную.",

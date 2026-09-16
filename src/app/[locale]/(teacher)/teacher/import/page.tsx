@@ -12,6 +12,7 @@ import {
 } from '@/lib/import/constants';
 import { findAnswerKeys } from '@/lib/import/answer-key';
 import { flattenBlocks, groupIntoQuestions, toUploadGroup } from '@/lib/import/grouping';
+import { pageModes } from '@/lib/import/manifest';
 import type { Manifest, ManifestError } from '@/lib/import/manifest';
 import {
   markPageDone,
@@ -650,7 +651,13 @@ export default function TeacherImportPage() {
       // `preamble` da (bet tepasidagi qator) yoki kolontitulda turishi mumkin,
       // ular esa serverga umuman yuborilmaydi.
       const keys = findAnswerKeys(flattenBlocks(loaded.manifest));
-      const groups = plan.questions.map((q, order) => toUploadGroup(q, order, assetIds, keys));
+      // Sahifa rejimi savol bilan birga ketadi: keyingi bosqichlarda manifest
+      // yo'q, draft esa "matnim qayerdan keldi" degan savolga javob bera olishi
+      // kerak (lib/import/chat-apply.ts#sourceMode).
+      const modes = pageModes(loaded.manifest);
+      const groups = plan.questions.map((q, order) =>
+        toUploadGroup(q, order, assetIds, keys, modes.get(q.startPage)),
+      );
       await sendGroups(job.jobId, { groups, pageImages }).catch(uploadError);
       result.questions = groups.length;
       setSummary(result);

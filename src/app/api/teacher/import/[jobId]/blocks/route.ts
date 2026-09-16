@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { MAX_IMPORT_PAGES, MAX_SOURCE_PAGE } from '@/lib/import/constants';
 import type { UploadGroup } from '@/lib/import/grouping';
+import { SOURCE_MODES } from '@/lib/import/manifest';
 import type { BBox } from '@/lib/import/types';
 import { parsePagesDone, requireOwnedJob } from '@/lib/import-jobs';
 import { logger } from '@/lib/logger';
@@ -49,6 +50,12 @@ function isUploadGroup(value: unknown): value is UploadGroup {
   const g = value;
   if (!isAnswerKey(g.answerKey)) return false;
   if (g.notQuestion !== undefined && typeof g.notQuestion !== 'boolean') return false;
+  // Rejim ixtiyoriy (eski klient uni yubormaydi), lekin kelgan bo'lsa
+  // lug'atdagi qiymat bo'lsin: `raw.mode` keyin tekshiruv qat'iyligini
+  // belgilaydi, xato yozilgan qiymat esa jimgina bayroqni o'chirib qo'yardi.
+  if (g.mode !== undefined && !(SOURCE_MODES as readonly string[]).includes(g.mode as string)) {
+    return false;
+  }
   if (g.issues !== undefined) {
     if (!Array.isArray(g.issues)) return false;
     if (!g.issues.every((i: unknown) => typeof i === 'string' && KEY_ISSUES.includes(i))) return false;
@@ -172,6 +179,10 @@ export async function POST(
         // ko'rsin va noto'g'ri betdan olingan kalit shu orqali ushlansin.
         answerKey: group.answerKey ?? null,
         notQuestion: group.notQuestion === true,
+        // Savol boshlangan sahifaning rejimi — chat javobini tekshirishda
+        // kerak (lib/import/chat-apply.ts). Eski draftlarda bu yo'q va u
+        // yerda tekshiruv avvalgidek qat'iy qoladi.
+        mode: group.mode ?? null,
       } as unknown as Prisma.InputJsonValue;
       const common = {
         raw,
