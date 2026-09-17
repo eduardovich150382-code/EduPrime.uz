@@ -11,6 +11,7 @@ import type { AIImportedQuestion, QuestionCoreFields, QuestionType } from '@/typ
 import { isQuestionValid, mapQuestionForBank } from '@/lib/question-form';
 import QuestionEditorForm from '@/components/teacher/QuestionEditorForm';
 import AiImportPanel, { LOW_CONFIDENCE_THRESHOLD } from '@/components/teacher/AiImportPanel';
+import ImportImageAttach from '@/components/teacher/ImportImageAttach';
 import QuestionPreviewList from '@/components/teacher/QuestionPreviewList';
 
 interface DraftQuestion extends QuestionCoreFields {
@@ -362,11 +363,14 @@ export default function QuestionBankPage() {
 
           {/* STEP: AI IMPORT */}
           {wizardStep === 'ai-import' && (
-            <AiImportPanel
-              onImported={handleAiImported}
-              title="AI bilan savol import qilish"
-              subtitle="Matn kiriting yoki rasm/fayl yuklang — AI savollarni mavzu/Bloom/qiyinlik darajasi bilan birga ajratib beradi"
-            />
+            <div className="space-y-6">
+              <AiImportPanel
+                onImported={handleAiImported}
+                title="AI bilan savol import qilish"
+                subtitle="Matn kiriting yoki rasm/fayl yuklang — AI savollarni mavzu/Bloom/qiyinlik darajasi bilan birga ajratib beradi"
+              />
+              <ImportImageAttach questions={drafts} onChange={setDrafts} />
+            </div>
           )}
 
           {/* STEP: KO'RIB CHIQISH */}

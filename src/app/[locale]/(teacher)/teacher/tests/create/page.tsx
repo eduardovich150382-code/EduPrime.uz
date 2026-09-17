@@ -17,6 +17,7 @@ import { parseMatchingPairs } from '@/lib/matching';
 import { isQuestionValid, fillBlankCorrectAnswer, matchingOptions, mapQuestionForBank } from '@/lib/question-form';
 import QuestionEditorForm from '@/components/teacher/QuestionEditorForm';
 import AiImportPanel, { LOW_CONFIDENCE_THRESHOLD } from '@/components/teacher/AiImportPanel';
+import ImportImageAttach from '@/components/teacher/ImportImageAttach';
 import QuestionPreviewList from '@/components/teacher/QuestionPreviewList';
 
 interface QuestionForm extends QuestionCoreFields {
@@ -880,6 +881,7 @@ export default function CreateTestPage() {
       {currentStep === 'ai-import' && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="card p-6 space-y-6">
           <AiImportPanel onImported={handleAiImported} />
+          <ImportImageAttach questions={questions} onChange={setQuestions} />
         </motion.div>
       )}
 
