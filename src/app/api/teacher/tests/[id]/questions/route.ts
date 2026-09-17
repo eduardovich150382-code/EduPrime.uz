@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { logger } from '@/lib/logger';
+import { findDuplicateQuestions } from '@/lib/duplicate-questions';
 
 // PUT /api/teacher/tests/[id]/questions — savollarni yangilash
 export async function PUT(
@@ -39,6 +40,32 @@ export async function PUT(
 
     if (role !== 'ADMIN' && test.teacher?.userId !== session.user.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    // Bir xil matnli savollar kelganini YOZIB QO'YAMIZ, lekin so'rovni
+    // bloklamaymiz: ustoz ataylab o'xshash savol yozgan bo'lishi mumkin va
+    // klientda bu haqda allaqachon ogohlantirish bor. Egalik tekshiruvidan
+    // KEYIN turadi — begona testId bilan logni to'ldirib bo'lmasin.
+    //
+    // Nega kerak: bir ustozning 31 talik importi saqlangandan keyin 62 savolga
+    // aylangan, sababi esa kod bo'yicha izohlanmadi. Keyingi safar shu yozuv
+    // qaysi ekrandan (`source`) qanday ro'yxat kelganini darrov aytadi.
+    const incoming = questions as Array<Record<string, unknown> | null>;
+    const duplicates = findDuplicateQuestions(
+      incoming.map((q) => ({ text: typeof q?.text === 'string' ? q.text : '' })),
+    );
+    if (duplicates.length > 0) {
+      logger.warn('Test savollarida takroriy matn', {
+        testId: id,
+        source: typeof body.source === 'string' ? body.source : 'unknown',
+        total: questions.length,
+        groups: duplicates.length,
+        extras: duplicates.reduce((n, g) => n + g.indexes.length - 1, 0),
+        // `id` li nusxalar soni — update/create nisbatini ko'rsatadi
+        withId: incoming.filter((q) => typeof q?.id === 'string').length,
+        samples: duplicates.slice(0, 3).map((g) => ({ indexes: g.indexes, preview: g.key.slice(0, 80) })),
+        report: true,
+      });
     }
 
     // Update in place instead of delete+recreate: recreating every question on

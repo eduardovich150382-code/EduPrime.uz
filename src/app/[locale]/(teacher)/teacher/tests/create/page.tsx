@@ -15,7 +15,9 @@ import ImageUploadButton from '@/components/ui/ImageUploadButton';
 import { parseFillBlankCorrectAnswer } from '@/lib/fill-blank';
 import { parseMatchingPairs } from '@/lib/matching';
 import { isQuestionValid, fillBlankCorrectAnswer, matchingOptions, mapQuestionForBank } from '@/lib/question-form';
+import { dropDuplicateQuestions, findDuplicateQuestions, type DuplicateGroup } from '@/lib/duplicate-questions';
 import QuestionEditorForm from '@/components/teacher/QuestionEditorForm';
+import DuplicateQuestionsDialog from '@/components/teacher/DuplicateQuestionsDialog';
 import AiImportPanel, { LOW_CONFIDENCE_THRESHOLD } from '@/components/teacher/AiImportPanel';
 import ImportImageAttach from '@/components/teacher/ImportImageAttach';
 import QuestionPreviewList from '@/components/teacher/QuestionPreviewList';
@@ -107,6 +109,9 @@ export default function CreateTestPage() {
   const [bankLoading, setBankLoading] = useState(false);
   const [savingToBank, setSavingToBank] = useState(false);
   const [savingAllToBank, setSavingAllToBank] = useState(false);
+  // Saqlashdan oldingi dublikat ogohlantirishi — ustoz javob berguncha saqlash kutib turadi
+  const [duplicateGroups, setDuplicateGroups] = useState<DuplicateGroup[]>([]);
+  const [pendingPublish, setPendingPublish] = useState(false);
 
   // Savollar bazasidan tanlash uchun ro'yxatni yuklaydi (test fani bo'yicha filtrlaydi)
   const openBankPicker = async () => {
@@ -256,7 +261,9 @@ export default function CreateTestPage() {
         await fetch(`/api/teacher/tests/${currentDraftId}/questions`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ questions: questionsPayload }),
+          // `source` — faqat server logi uchun: dublikat holati takrorlansa
+          // qaysi ekranda tug'ilgani darrov ko'rinsin.
+          body: JSON.stringify({ questions: questionsPayload, source: 'create' }),
         });
       }
     } catch {
@@ -360,6 +367,22 @@ export default function CreateTestPage() {
       return;
     }
 
+    // Bir xil matnli savollar bo'lsa saqlash to'xtaydi va qarorni ustoz qabul
+    // qiladi. JIMGINA o'chirilmaydi: o'xshash savol ataylab yozilgan bo'lishi
+    // mumkin, jimgina o'chirish esa uning mehnatini yo'qotardi.
+    const duplicates = findDuplicateQuestions(validQuestions);
+    if (duplicates.length > 0) {
+      setDuplicateGroups(duplicates);
+      setPendingPublish(publish);
+      return;
+    }
+
+    await performSave(publish, validQuestions);
+  };
+
+  // Saqlashning o'zi — `handleSave` tekshiruvlaridan o'tgach, yoki dublikat
+  // modalidagi tanlovdan keyin chaqiriladi.
+  const performSave = async (publish: boolean, questionsToSave: QuestionForm[]) => {
     setSaving(true);
     try {
       // Exclude categoryType and accessType from the request body - only used client-side
@@ -368,7 +391,7 @@ export default function CreateTestPage() {
       // Map accessType to isFree and price
       const isFree = accessType === 'free';
       const price = accessType === 'paid' ? testInfo.price : 0;
-      const questionsPayload = validQuestions.map(mapQuestionForApi);
+      const questionsPayload = questionsToSave.map(mapQuestionForApi);
 
       // Avtosaqlash bu testni allaqachon serverda yaratgan bo'lishi mumkin —
       // shunday bo'lsa qayta POST qilib dublikat yaratish o'rniga o'sha
@@ -404,7 +427,9 @@ export default function CreateTestPage() {
         const qRes = await fetch(`/api/teacher/tests/${testId}/questions`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ questions: questionsPayload }),
+          // `source` — faqat server logi uchun: dublikat holati takrorlansa
+          // qaysi ekranda tug'ilgani darrov ko'rinsin.
+          body: JSON.stringify({ questions: questionsPayload, source: 'create' }),
         });
         if (!qRes.ok) {
           const qData = await qRes.json();
@@ -430,6 +455,22 @@ export default function CreateTestPage() {
       alert("Server xatolik. Qayta urinib ko'ring.");
     }
     setSaving(false);
+  };
+
+  // Dublikat modalidagi tanlovlar. Ro'yxat qaytadan filtrlanadi, chunki modal
+  // ochiq turganda ustoz savollarni tahrirlagan bo'lishi mumkin.
+  const closeDuplicateDialog = () => setDuplicateGroups([]);
+
+  const saveWithoutDuplicates = () => {
+    const validQuestions = questions.filter(isQuestionValid);
+    closeDuplicateDialog();
+    performSave(pendingPublish, dropDuplicateQuestions(validQuestions));
+  };
+
+  const saveKeepingDuplicates = () => {
+    const validQuestions = questions.filter(isQuestionValid);
+    closeDuplicateDialog();
+    performSave(pendingPublish, validQuestions);
   };
 
   // AiImportPanel savol topganda chaqiradi — AIImportedQuestion[] ni
@@ -913,6 +954,15 @@ export default function CreateTestPage() {
           </div>
         </motion.div>
       )}
+
+      <DuplicateQuestionsDialog
+        open={duplicateGroups.length > 0}
+        groups={duplicateGroups}
+        extras={duplicateGroups.reduce((n, g) => n + g.indexes.length - 1, 0)}
+        onDropDuplicates={saveWithoutDuplicates}
+        onKeepAll={saveKeepingDuplicates}
+        onCancel={closeDuplicateDialog}
+      />
 
       {/* Bank picker modal */}
       {bankPickerOpen && (
