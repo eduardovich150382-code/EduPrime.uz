@@ -20,6 +20,8 @@ import {
 import FillBlankEditor from '@/components/ui/FillBlankEditor';
 import MatchingEditor, { type MatchingPairInput } from '@/components/ui/MatchingEditor';
 import { parseMatchingPairs } from '@/lib/matching';
+import { dropDuplicateQuestions, findDuplicateQuestions, type DuplicateGroup } from '@/lib/duplicate-questions';
+import DuplicateQuestionsDialog from '@/components/teacher/DuplicateQuestionsDialog';
 
 interface QuestionForm {
   id?: string;
@@ -133,6 +135,9 @@ export default function EditTestPage() {
   const questionTextRef = useRef<HTMLTextAreaElement | null>(null);
   const explanationRef = useRef<HTMLTextAreaElement | null>(null);
   const [dropUploading, setDropUploading] = useState<'question' | 'explanation' | null>(null);
+  // Saqlashdan oldingi dublikat ogohlantirishi — ustoz javob berguncha saqlash kutib turadi
+  const [duplicateGroups, setDuplicateGroups] = useState<DuplicateGroup[]>([]);
+  const [pendingPublish, setPendingPublish] = useState(false);
 
   const handleImageDropOrPaste = async (file: File, target: 'question' | 'explanation') => {
     setDropUploading(target);
@@ -339,6 +344,22 @@ export default function EditTestPage() {
       return;
     }
 
+    // Bir xil matnli savollar bo'lsa saqlash to'xtaydi va qarorni ustoz qabul
+    // qiladi. JIMGINA o'chirilmaydi: o'xshash savol ataylab yozilgan bo'lishi
+    // mumkin, jimgina o'chirish esa uning mehnatini yo'qotardi.
+    const duplicates = findDuplicateQuestions(validQuestions);
+    if (duplicates.length > 0) {
+      setDuplicateGroups(duplicates);
+      setPendingPublish(publish);
+      return;
+    }
+
+    await performSave(publish, validQuestions);
+  };
+
+  // Saqlashning o'zi — `handleSave` tekshiruvlaridan o'tgach, yoki dublikat
+  // modalidagi tanlovdan keyin chaqiriladi.
+  const performSave = async (publish: boolean, questionsToSave: QuestionForm[]) => {
     setSaving(true);
     try {
       // Update test info
@@ -369,7 +390,10 @@ export default function EditTestPage() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          questions: validQuestions.map((q, index) => {
+          // `source` — faqat server logi uchun: dublikat holati takrorlansa
+          // qaysi ekranda tug'ilgani darrov ko'rinsin.
+          source: 'edit',
+          questions: questionsToSave.map((q, index) => {
             const isFillBlank = q.type === 'FILL_BLANK';
             const isMatching = q.type === 'MATCHING';
             return {
@@ -403,6 +427,22 @@ export default function EditTestPage() {
       alert("Server xatolik. Qayta urinib ko'ring.");
     }
     setSaving(false);
+  };
+
+  // Dublikat modalidagi tanlovlar. Ro'yxat qaytadan filtrlanadi, chunki modal
+  // ochiq turganda ustoz savollarni tahrirlagan bo'lishi mumkin.
+  const closeDuplicateDialog = () => setDuplicateGroups([]);
+
+  const saveWithoutDuplicates = () => {
+    const validQuestions = questions.filter(isQuestionValid);
+    closeDuplicateDialog();
+    performSave(pendingPublish, dropDuplicateQuestions(validQuestions));
+  };
+
+  const saveKeepingDuplicates = () => {
+    const validQuestions = questions.filter(isQuestionValid);
+    closeDuplicateDialog();
+    performSave(pendingPublish, validQuestions);
   };
 
   if (loading) {
@@ -1053,6 +1093,15 @@ export default function EditTestPage() {
           </div>
         </motion.div>
       )}
+
+      <DuplicateQuestionsDialog
+        open={duplicateGroups.length > 0}
+        groups={duplicateGroups}
+        extras={duplicateGroups.reduce((n, g) => n + g.indexes.length - 1, 0)}
+        onDropDuplicates={saveWithoutDuplicates}
+        onKeepAll={saveKeepingDuplicates}
+        onCancel={closeDuplicateDialog}
+      />
     </div>
   );
 }
