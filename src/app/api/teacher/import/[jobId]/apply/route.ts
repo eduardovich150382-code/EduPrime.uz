@@ -2,7 +2,7 @@ import type { Prisma } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { applyChatItem, parseChatJson } from '@/lib/import/chat-apply';
-import { tokenMapOf } from '@/lib/import/chat-export';
+import { sourceTextOf, tokenMapOf } from '@/lib/import/chat-export';
 import { requireOwnedJob } from '@/lib/import-jobs';
 import { logger } from '@/lib/logger';
 
@@ -29,17 +29,6 @@ function asRecord(value: unknown): Record<string, unknown> {
 function parseAnswerKey(raw: Record<string, unknown>): string | null {
   const letter = asRecord(raw.answerKey).letter;
   return typeof letter === 'string' && /^[A-H]$/.test(letter) ? letter : null;
-}
-
-/** Son solishtiruvi uchun manba: xom blokda variantlar matn ichida. */
-function sourceTextOf(textOriginal: string, optionsOriginal: unknown): string {
-  const options = Array.isArray(optionsOriginal)
-    ? optionsOriginal.map((entry) => {
-        const text = asRecord(entry).text;
-        return typeof text === 'string' ? text : '';
-      })
-    : [];
-  return [textOriginal, ...options].filter(Boolean).join('\n');
 }
 
 // POST /api/teacher/import/[jobId]/apply — chatdan qaytgan JSON ni draftlarga

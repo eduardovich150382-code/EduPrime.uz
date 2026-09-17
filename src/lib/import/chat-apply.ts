@@ -84,7 +84,7 @@ function same(a: readonly string[], b: readonly string[]): boolean {
 }
 
 /** Ro'yxatdan qiymatning BITTA uchrashini olib tashlaydi. */
-function dropOnce(values: readonly string[], value: string | null): string[] {
+export function dropOnce(values: readonly string[], value: string | null): string[] {
   if (value === null) return [...values];
   const index = values.indexOf(value);
   return index === -1 ? [...values] : [...values.slice(0, index), ...values.slice(index + 1)];
@@ -101,7 +101,7 @@ function dropOnce(values: readonly string[], value: string | null): string[] {
  * Regex EMAS, `imageTokensOf`: `structure.ts` dagi naqsh ataylab eksport
  * qilinmagan (`g` bayrog'i bilan u holatli).
  */
-function withoutImages(text: string): string {
+export function withoutImages(text: string): string {
   let out = text;
   for (const token of imageTokensOf(text)) out = out.replace(token, ' ');
   return out;

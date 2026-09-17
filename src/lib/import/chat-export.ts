@@ -77,6 +77,18 @@ function parseImages(raw: Record<string, unknown>): string[] {
     .filter((id): id is string => typeof id === 'string' && id.length > 0);
 }
 
+/**
+ * Son solishtiruvi uchun manba: savol matni va variantlar BIRGA.
+ *
+ * Xom blokda variantlar matn ichida, avtomatik yo'ldan o'tgan draftda esa
+ * `optionsOriginal` ustunida. Faqat matn olinsa ikkinchi holatda son to'plami
+ * chala bo'lib, yolg'on bayroq berardi. `apply` ham, `image-map` ham shu
+ * funksiyadan foydalanadi — ikki nusxa bir-biridan jimgina ajralib ketmasin.
+ */
+export function sourceTextOf(text: string, optionsOriginal: unknown): string {
+  return [text, ...parseOptions(optionsOriginal).map((o) => o.text)].filter(Boolean).join('\n');
+}
+
 /** Baza qatoridan eksport kirishi. */
 export function toExportDraft(row: DraftRow): ExportDraft {
   const raw = asRecord(row.raw);
