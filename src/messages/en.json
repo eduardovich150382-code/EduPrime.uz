@@ -453,6 +453,8 @@
     "attachRemove": "Remove image",
     "attachNewImport": "New import",
     "attachRefresh": "Refresh list",
-    "attachNotReady": "This import isn't ready yet — questions are still being written. Wait for it to finish in the import tab, then refresh the list."
+    "attachNotReady": "This import isn't ready yet — questions are still being written. Wait for it to finish in the import tab, then refresh the list.",
+    "aiQuotaExhausted": "Today's free AI limit has been reached. It resets tomorrow — please try again later.",
+    "aiNoQuestions": "AI found no questions in this text. Check the text and try again."
   }
 }

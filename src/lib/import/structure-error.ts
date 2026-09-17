@@ -108,6 +108,27 @@ export function isRateLimit(error: unknown): boolean {
   return /\b429\b|RESOURCE_EXHAUSTED/i.test(messageOf(error));
 }
 
+/** Google "bunday model yo'q" deganda xabarda qoldiradigan belgilar. */
+const MODEL_NOT_FOUND_TEXT = /NOT_FOUND|is not found for API version/i;
+
+/**
+ * Model API da yo'q — ro'yxatdagi nom noto'g'ri yoki model o'chirilgan.
+ *
+ * Zanjir (`structure-chain.ts`) bunda ham keyingi modelga o'tadi: aks holda
+ * `IMPORT_GEMINI_MODELS`/`AI_IMPORT_MODELS` dagi bitta noto'g'ri nom butun
+ * zanjirni ishdan chiqarardi. Google buni 404 bilan, ba'zan esa `NOT_FOUND`
+ * matnli 400 bilan qaytaradi — shuning uchun 400 da faqat matn hal qiladi,
+ * oddiy 400 (buzilgan so'rov) bu yerga tushmasin.
+ */
+export function isModelNotFound(error: unknown): boolean {
+  const status = statusOf(error);
+  if (status === 404) return true;
+  if (status === 400) return MODEL_NOT_FOUND_TEXT.test(messageOf(error));
+  if (status !== undefined) return false;
+  const message = messageOf(error);
+  return /\b404\b/.test(message) || MODEL_NOT_FOUND_TEXT.test(message);
+}
+
 function messageOf(error: unknown): string {
   if (error instanceof Error) return error.message;
   if (typeof error === 'string') return error;

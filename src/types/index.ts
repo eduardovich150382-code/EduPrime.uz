@@ -199,6 +199,12 @@ export interface AIImportResult {
   questions: AIImportedQuestion[];
   totalFound: number;
   warnings: string[];
+  /**
+   * Chaqiruv yiqilgan bo'lsa — sabab turi. Ixtiyoriy: muvaffaqiyatli yoki
+   * shunchaki bo'sh natijada yo'q. Panel kvota uchun alohida jumla chiqaradi,
+   * Google'ning xom xato matni esa klientga umuman yuborilmaydi.
+   */
+  errorCode?: 'AI_QUOTA_EXHAUSTED' | 'AI_ERROR';
 }
 
 // ===================== SHARED QUESTION EDITOR TYPES =====================

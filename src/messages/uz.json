@@ -453,6 +453,8 @@
     "attachRemove": "Rasmni olib tashlash",
     "attachNewImport": "Yangi import qilish",
     "attachRefresh": "Ro'yxatni yangilash",
-    "attachNotReady": "Bu import hali tayyor emas — savollar yozilmoqda. Import vkladkasida jarayon tugashini kuting, so'ng ro'yxatni yangilang."
+    "attachNotReady": "Bu import hali tayyor emas — savollar yozilmoqda. Import vkladkasida jarayon tugashini kuting, so'ng ro'yxatni yangilang.",
+    "aiQuotaExhausted": "Bugungi bepul AI limiti tugadi. U ertaga yangilanadi — keyinroq qayta urinib ko'ring.",
+    "aiNoQuestions": "AI bu matndan savol topmadi. Matnni tekshirib, qayta urinib ko'ring."
   }
 }

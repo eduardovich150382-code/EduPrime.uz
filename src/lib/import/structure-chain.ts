@@ -1,4 +1,5 @@
-import { isRateLimit, RateLimitedError } from './structure-error';
+import { logger } from '@/lib/logger';
+import { isModelNotFound, isRateLimit, RateLimitedError } from './structure-error';
 import type { Caller } from './structure';
 
 /**
@@ -28,13 +29,18 @@ export const DEFAULT_STRUCTURE_MODEL = 'gemini-3.5-flash';
  * elementlar tashlanadi va ro'yxat bo'sh chiqsa standartga qaytiladi: sozlama
  * xatosi tufayli import butunlay to'xtab qolmasin.
  */
-export function parseStructureModels(raw: string | undefined): string[] {
-  if (raw === undefined) return [DEFAULT_STRUCTURE_MODEL];
+export function parseStructureModels(
+  raw: string | undefined,
+  fallback: readonly string[] = [DEFAULT_STRUCTURE_MODEL],
+): string[] {
+  // Standart ro'yxat chaqiruvchiga bog'liq: strukturalash bitta model bilan
+  // boshlanadi, AI import (`gemini.ts`) esa uzun zanjir bilan.
+  if (raw === undefined) return [...fallback];
   const models = raw
     .split(',')
     .map((name) => name.trim())
     .filter((name) => name.length > 0);
-  return models.length > 0 ? models : [DEFAULT_STRUCTURE_MODEL];
+  return models.length > 0 ? models : [...fallback];
 }
 
 export const STRUCTURE_MODELS = parseStructureModels(process.env.IMPORT_GEMINI_MODELS);
@@ -43,22 +49,32 @@ export const STRUCTURE_MODELS = parseStructureModels(process.env.IMPORT_GEMINI_M
  * Zanjir bo'ylab chaqiradigan `ModelCaller` yasaydi.
  *
  * 429 (kvota) kelsa KUTMASDAN keyingi modelga o'tiladi — kutishning foydasi
- * yo'q, chegara kunlik. Boshqa xatolar (400, sxema, buzilgan JSON, timeout)
- * modelga bog'liq emas, shuning uchun ular o'sha zahoti tashqariga otiladi va
- * zanjir keyingi modelga tegmaydi.
+ * yo'q, chegara kunlik. Model API da TOPILMASA (404 / `NOT_FOUND`) ham
+ * o'tiladi: aks holda ro'yxatdagi bitta noto'g'ri nom butun zanjirni ishdan
+ * chiqarardi. Boshqa xatolar (oddiy 400, sxema, buzilgan JSON, timeout)
+ * haqiqiy nosozlik — ular o'sha zahoti tashqariga otiladi, zanjir ularni
+ * yashirmaydi.
  *
- * Kvota tugagan model SHU CHAQIRUVCHI umrida (ya'ni bitta HTTP so'rov
- * davomida) boshqa chaqirilmaydi: aks holda har blok uchun qaytadan urinib,
- * vaqt byudjetini va chegarani bekorga yeyardi.
+ * Kvotasi tugagan yoki topilmagan model SHU CHAQIRUVCHI umrida (ya'ni bitta
+ * HTTP so'rov davomida) boshqa chaqirilmaydi: aks holda har blok uchun
+ * qaytadan urinib, vaqt byudjetini va chegarani bekorga yeyardi.
  *
- * Hamma model tugagan bo'lsa `RateLimitedError` otiladi — u yiqilish emas,
- * marshrut blokni tegmasdan keyingi kunga qoldiradi.
+ * Zanjir tugaganda kamida bitta model 429 bergan bo'lsa `RateLimitedError`
+ * otiladi — u yiqilish emas, marshrut blokni keyingi kunga qoldiradi. Hech
+ * biri 429 bermagan (hamma nom topilmagan) bo'lsa asl xato otiladi: bu kvota
+ * emas, sozlama xatosi — uni "ertaga tiklanadi" deb ko'rsatish yolg'on
+ * bo'lardi va bloklar abadiy kechiktirilardi.
  */
 export function createChainedCaller<TInput>(
   models: readonly string[],
   make: (model: string) => Caller<TInput>,
 ): Caller<TInput> {
   const exhausted = new Set<string>();
+  // Oxirgi xatolar chaqiruvchi umri bo'yi saqlanadi: keyingi blokda hamma
+  // model allaqachon belgilangan bo'lsa ham, zanjir NIMA sababdan tugagani
+  // (kvota yoki noto'g'ri nom) yo'qolmasin.
+  let lastRateLimit: unknown;
+  let lastNotFound: unknown;
   // Chaqiruvchilar keshlanadi: har blok uchun yangi SDK obyekti yasash ham
   // ortiqcha, ham modelga bog'langan keshni (masalan rasm keshi) yo'qotardi.
   const callers = new Map<string, Caller<TInput>>();
@@ -72,8 +88,6 @@ export function createChainedCaller<TInput>(
   };
 
   return async (input, signal) => {
-    let lastError: unknown = new RateLimitedError();
-
     for (const model of models) {
       if (exhausted.has(model)) continue;
       try {
@@ -82,12 +96,22 @@ export function createChainedCaller<TInput>(
         // yoziladi va sifatni modellar kesimida taqqoslash imkonini beradi.
         return { ...result, model };
       } catch (error) {
-        if (!isRateLimit(error)) throw error;
+        if (isRateLimit(error)) {
+          lastRateLimit = error;
+        } else if (isModelNotFound(error)) {
+          // Sokin o'tib ketilmaydi: noto'g'ri nom env'da tuzatilishi kerak.
+          // Model shu chaqiruvchida bir marta belgilanadi, log ham bir marta.
+          logger.warn("[model-chain] model topilmadi, keyingisiga o'tildi", { model });
+          lastNotFound = error;
+        } else {
+          throw error;
+        }
         exhausted.add(model);
-        lastError = error;
       }
     }
 
-    throw new RateLimitedError(undefined, { cause: lastError });
+    // Kvota ustun: bitta model 429 bergan bo'lsa ham zanjir ertaga tiklanadi.
+    if (lastRateLimit === undefined && lastNotFound !== undefined) throw lastNotFound;
+    throw new RateLimitedError(undefined, { cause: lastRateLimit });
   };
 }
