@@ -434,7 +434,7 @@
     "attachJobOption": "{name} · {date} · {drafts} drafts",
     "attachNoJobs": "No ZIP imports yet.",
     "attachLoading": "Loading...",
-    "attachErrorJobs": "Could not load the import list. Refresh the page.",
+    "attachErrorJobs": "Could not load the import list. Try again.",
     "attachErrorMap": "Could not load the import images. Try selecting it again.",
     "attachCountMatch": "Import has {total} questions, draft has {count} — they match.",
     "attachCountMismatch": "Import has {total}, draft has {count} — automatic attaching is unavailable.",
@@ -450,6 +450,9 @@
     "attachStatus_verified": "checked",
     "attachStatus_flagged": "suspicious",
     "attachStatus_unchecked": "could not check",
-    "attachRemove": "Remove image"
+    "attachRemove": "Remove image",
+    "attachNewImport": "New import",
+    "attachRefresh": "Refresh list",
+    "attachNotReady": "This import isn't ready yet — questions are still being written. Wait for it to finish in the import tab, then refresh the list."
   }
 }
