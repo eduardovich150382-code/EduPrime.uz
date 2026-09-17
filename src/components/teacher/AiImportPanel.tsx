@@ -1,8 +1,10 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Bot, Loader2, Image, Paperclip, ShieldCheck, ShieldAlert } from 'lucide-react';
 import type { AIImportedQuestion, AIImportResult } from '@/types';
+import { getAiImportStatus } from '@/lib/import/ai-import-status';
 
 /** Shundan past ishonchlilikdagi savollar "tekshiring" deb ajratiladi — teacher e'tibori shu tomonga yo'naltirilsin. */
 export const LOW_CONFIDENCE_THRESHOLD = 0.85;
@@ -25,6 +27,7 @@ export default function AiImportPanel({
   title = 'AI bilan import qilish',
   subtitle = 'Test matnini kiriting — AI savollarni avtomatik ajratib beradi',
 }: AiImportPanelProps) {
+  const t = useTranslations('teacherImport');
   const [aiText, setAiText] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [aiFileLoading, setAiFileLoading] = useState(false);
@@ -183,7 +186,23 @@ export default function AiImportPanel({
         </button>
       </div>
 
-      {aiResult && (
+      {/* Yashil blok FAQAT savol kelganda: avval kvota xatosi ham "0 ta savol
+          import qilindi" deb muvaffaqiyat sifatida ko'rsatilardi. */}
+      {aiResult && getAiImportStatus(aiResult) === 'quota' && (
+        <div role="alert" className="p-4 rounded-xl bg-amber-50 border border-amber-200">
+          <p className="text-sm text-amber-800 font-medium break-words">⚠️ {t('aiQuotaExhausted')}</p>
+        </div>
+      )}
+
+      {aiResult && getAiImportStatus(aiResult) === 'failed' && (
+        <div role="alert" className="p-4 rounded-xl bg-red-50 border border-red-200">
+          <p className="text-sm text-red-700 font-medium break-words">
+            ⚠️ {aiResult.warnings?.length > 0 ? aiResult.warnings.join(', ') : t('aiNoQuestions')}
+          </p>
+        </div>
+      )}
+
+      {aiResult && getAiImportStatus(aiResult) === 'success' && (
         <div className="p-4 rounded-xl bg-green-50 border border-green-200">
           <p className="text-sm text-green-700 font-medium">
             ✅ {aiResult.totalFound || aiResult.questions?.length || 0} ta savol topildi va import qilindi!

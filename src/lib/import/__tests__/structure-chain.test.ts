@@ -5,7 +5,14 @@ import {
   parseStructureModels,
 } from "../structure-chain";
 import { RateLimitedError } from "../structure-error";
-import type { ModelCaller, StructureInput } from "../structure";
+import type { Caller, ModelCaller, StructureInput } from "../structure";
+import type { TranslateGroup } from "../translate";
+
+// Zanjir topilmagan modelni `logger.warn` ga yozadi — test Sentry'ga tegmasin.
+vi.mock("@/lib/logger", () => ({
+  logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
+  redactSecrets: (text: string) => text,
+}));
 
 const input = (order = 0) => ({ order } as StructureInput);
 
@@ -34,6 +41,16 @@ describe("parseStructureModels", () => {
     expect(parseStructureModels(" a , , b ,")).toEqual(["a", "b"]);
     // Faqat axlat qolsa — standartga qaytiladi, import to'xtab qolmasin.
     expect(parseStructureModels(",,, ,")).toEqual([DEFAULT_STRUCTURE_MODEL]);
+  });
+});
+
+describe("parseStructureModels — berilgan standart ro'yxat", () => {
+  it("o'zgaruvchi yo'q yoki faqat axlat bo'lsa berilgan ro'yxat qaytadi", () => {
+    const fallback = ["lite", "flash"];
+    expect(parseStructureModels(undefined, fallback)).toEqual(fallback);
+    expect(parseStructureModels(" , ", fallback)).toEqual(fallback);
+    // Env berilgan bo'lsa u ustun.
+    expect(parseStructureModels("x", fallback)).toEqual(["x"]);
   });
 });
 
@@ -109,3 +126,83 @@ describe("createChainedCaller", () => {
     expect(call).toHaveBeenCalledWith(expect.objectContaining({ order: 0 }), controller.signal);
   });
 });
+
+/** Google mavjud bo'lmagan model uchun aynan shunday qaytaradi. */
+function notFound(): Error {
+  return Object.assign(
+    new Error("[404 Not Found] models/gemini-x is not found for API version v1beta"),
+    { status: 404 },
+  );
+}
+
+// Strukturalash (S4) va tarjima (S5) bir xil zanjirdan foydalanadi — "model
+// topilmadi" xulqi ikkalasida ham tekshiriladi.
+describe.each([
+  { stage: "strukturalash", makeInput: () => ({ order: 0 } as StructureInput) },
+  { stage: "tarjima", makeInput: () => ({} as TranslateGroup) },
+] as const)("createChainedCaller — model topilmadi ($stage)", ({ makeInput }) => {
+  type Input = ReturnType<typeof makeInput>;
+  const ok = { json: { text: "ok" }, tokens: 5 };
+
+  it("o'rtadagi model 404 bersa keyingisi chaqiriladi va u qayta sinalmaydi", async () => {
+    const a = vi.fn<Caller<Input>>().mockRejectedValue(quota());
+    const b = vi.fn<Caller<Input>>().mockRejectedValue(notFound());
+    const c = vi.fn<Caller<Input>>().mockResolvedValue(ok);
+    const byName: Record<string, Caller<Input>> = { a, b, c };
+    const caller = createChainedCaller<Input>(["a", "b", "c"], (m) => byName[m]);
+
+    expect(await caller(makeInput())).toEqual({ ...ok, model: "c" });
+    await caller(makeInput());
+
+    expect(b).toHaveBeenCalledTimes(1);
+    expect(c).toHaveBeenCalledTimes(2);
+  });
+
+  it("NOT_FOUND matnli 400 da ham keyingisiga o'tiladi", async () => {
+    const a = vi.fn<Caller<Input>>().mockRejectedValue(
+      Object.assign(new Error("[400 Bad Request] NOT_FOUND: model not available"), { status: 400 }),
+    );
+    const b = vi.fn<Caller<Input>>().mockResolvedValue(ok);
+
+    const result = await createChainedCaller<Input>(["a", "b"], (m) => (m === "a" ? a : b))(makeInput());
+
+    expect(result.model).toBe("b");
+  });
+
+  it("oddiy 400 da zanjir to'xtaydi", async () => {
+    const a = vi.fn<Caller<Input>>().mockRejectedValue(
+      Object.assign(new Error("[400 Bad Request] invalid schema"), { status: 400 }),
+    );
+    const b = vi.fn<Caller<Input>>().mockResolvedValue(ok);
+
+    await expect(
+      createChainedCaller<Input>(["a", "b"], (m) => (m === "a" ? a : b))(makeInput()),
+    ).rejects.toThrow("invalid schema");
+    expect(b).not.toHaveBeenCalled();
+  });
+
+  it("404 va 429 aralash tugasa — kvota (RateLimitedError, sababi 429)", async () => {
+    const limit = quota();
+    const a = vi.fn<Caller<Input>>().mockRejectedValue(limit);
+    const b = vi.fn<Caller<Input>>().mockRejectedValue(notFound());
+
+    const failure = await createChainedCaller<Input>(["a", "b"], (m) => (m === "a" ? a : b))(makeInput()).catch(
+      (e: unknown) => e,
+    );
+
+    expect(failure).toBeInstanceOf(RateLimitedError);
+    expect((failure as RateLimitedError).cause).toBe(limit);
+  });
+
+  it("hamma model topilmasa kvota EMAS, asl xato otiladi — keyingi chaqiruvda ham", async () => {
+    const error = notFound();
+    const call = vi.fn<Caller<Input>>().mockRejectedValue(error);
+    const caller = createChainedCaller<Input>(["a", "b"], () => call);
+
+    await expect(caller(makeInput())).rejects.toBe(error);
+    // Hamma model belgilangan — lekin sabab yo'qolmaydi.
+    await expect(caller(makeInput())).rejects.toBe(error);
+    expect(call).toHaveBeenCalledTimes(2);
+  });
+});
+

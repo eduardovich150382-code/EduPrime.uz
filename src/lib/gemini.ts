@@ -1,5 +1,8 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI, type Part } from '@google/generative-ai';
 import type { AIImportResult, QuestionOption } from '@/types';
+import { logger } from '@/lib/logger';
+import { createChainedCaller, parseStructureModels } from '@/lib/import/structure-chain';
+import { RateLimitedError } from '@/lib/import/structure-error';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
@@ -116,67 +119,104 @@ function parseImportResponse(responseText: string, fallbackWarning: string): AII
 }
 
 /**
+ * AI import zanjirining standart tartibi.
+ *
+ * Gemini bepul tarifida kunlik chegara HAR MODELGA alohida, shuning uchun
+ * zanjirga model qo'shish umumiy sig'imni oshiradi. Flash-Lite birinchi: uning
+ * kunlik chegarasi eng katta (~500), qolganlari ~20 tadan; import quvurida
+ * Flash-Lite sifati Flash bilan teng chiqqani o'lchangan. `AI_IMPORT_MODELS`
+ * env faqat shu standartni almashtiradi.
+ */
+export const DEFAULT_AI_IMPORT_MODELS = [
+  'gemini-3.5-flash-lite',
+  'gemini-3.8-flash',
+  'gemini-3.7-flash',
+  'gemini-3.6-flash',
+  'gemini-3.5-flash',
+] as const;
+
+const AI_IMPORT_MODELS = parseStructureModels(process.env.AI_IMPORT_MODELS, DEFAULT_AI_IMPORT_MODELS);
+
+/** Google'ning xom xato matni o'rniga ustozga ko'rsatiladigan umumiy jumla. */
+const GENERIC_AI_ERROR = "AI bilan bog'lanishda xatolik — birozdan so'ng qayta urinib ko'ring";
+
+type ImportSource = 'text' | 'image' | 'file';
+
+/**
+ * Uchala importTestFrom* uchun umumiy Gemini chaqiruvi — model zanjiri
+ * (`lib/import/structure-chain.ts`) orqali: 429 yoki topilmagan modelda
+ * keyingisiga o'tiladi.
+ *
+ * Zanjir natijasining `json` maydoniga parse qilinMAgan xom MATN qo'yiladi:
+ * kesilgan javobni `parseImportResponse` o'zi aniqlab, aniq ogohlantirish
+ * berishi kerak.
+ *
+ * Xom xato (so'rov URL'i, Google matni) faqat `logger.error` ga ketadi —
+ * ustozga undan foyda yo'q, `quiz-from-text` marshruti esa `warnings` ni
+ * shundoq javobga qo'shadi.
+ */
+async function runImport(
+  parts: Array<string | Part>,
+  source: ImportSource,
+  fallbackWarning: string,
+): Promise<AIImportResult> {
+  const call = createChainedCaller<Array<string | Part>>(AI_IMPORT_MODELS, (name) => async (input) => {
+    const model = genAI.getGenerativeModel({
+      model: name,
+      generationConfig: { maxOutputTokens: 65536, responseMimeType: 'application/json' },
+    });
+    const result = await model.generateContent(input);
+    return { json: result.response.text(), tokens: result.response.usageMetadata?.totalTokenCount ?? 0 };
+  });
+
+  let text: string;
+  try {
+    const result = await call(parts);
+    // Qaysi model qancha ishlayotganini bilishning yagona manbai shu log.
+    logger.info('[ai-import] javob berdi', { model: result.model, tokens: result.tokens, source });
+    text = typeof result.json === 'string' ? result.json : '';
+  } catch (error) {
+    logger.error(`[ai-import] Gemini xatosi (${source})`, { error });
+    if (error instanceof RateLimitedError) {
+      return { questions: [], totalFound: 0, warnings: [], errorCode: 'AI_QUOTA_EXHAUSTED' };
+    }
+    return { questions: [], totalFound: 0, warnings: [GENERIC_AI_ERROR], errorCode: 'AI_ERROR' };
+  }
+
+  return parseImportResponse(text, fallbackWarning);
+}
+
+/**
  * Matndan testlarni AI yordamida import qilish
  */
 export async function importTestFromText(text: string): Promise<AIImportResult> {
-  try {
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-3.5-flash',
-      generationConfig: { maxOutputTokens: 65536, responseMimeType: 'application/json' },
-    });
-
-    const result = await model.generateContent([
-      IMPORT_PROMPT,
-      `\n\nQuyidagi matndan testlarni ajratib ber:\n\n${text}`,
-    ]);
-
-    return parseImportResponse(result.response.text(), "AI javobini parse qilib bo'lmadi");
-  } catch (error) {
-    console.error('Gemini AI error:', error);
-    return {
-      questions: [],
-      totalFound: 0,
-      warnings: [`AI xatolik: ${error instanceof Error ? error.message : 'Noma\'lum xatolik'}`],
-    };
-  }
+  return runImport(
+    [IMPORT_PROMPT, `\n\nQuyidagi matndan testlarni ajratib ber:\n\n${text}`],
+    'text',
+    "AI javobini parse qilib bo'lmadi",
+  );
 }
 
 /**
  * Rasmdan testlarni AI yordamida import qilish (OCR + tahlil)
  */
 export async function importTestFromImage(imageBase64: string, mimeType: string): Promise<AIImportResult> {
-  try {
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-3.5-flash',
-      generationConfig: { maxOutputTokens: 65536, responseMimeType: 'application/json' },
-    });
-
-    const result = await model.generateContent([
+  return runImport(
+    [
       IMPORT_PROMPT,
       '\n\nQuyidagi rasmdagi test savollarini ajratib ber:',
-      {
-        inlineData: {
-          data: imageBase64,
-          mimeType: mimeType,
-        },
-      },
-    ]);
-
-    return parseImportResponse(result.response.text(), "Rasmdan savollarni ajratib bo'lmadi");
-  } catch (error) {
-    console.error('Gemini Vision error:', error);
-    return {
-      questions: [],
-      totalFound: 0,
-      warnings: [`AI Vision xatolik: ${error instanceof Error ? error.message : 'Noma\'lum xatolik'}`],
-    };
-  }
+      { inlineData: { data: imageBase64, mimeType } },
+    ],
+    'image',
+    "Rasmdan savollarni ajratib bo'lmadi",
+  );
 }
 
 /**
  * PDF/DOCX fayldan matnni o'qib test import qilish
  */
 export async function importTestFromFile(fileUrl: string, fileName: string): Promise<AIImportResult> {
+  let base64: string;
   try {
     // Fetch file content — javob muvaffaqiyatli ekanini tekshirish shart,
     // aks holda (masalan URL muddati o'tgan/404 bo'lsa) xato sahifasining
@@ -188,41 +228,37 @@ export async function importTestFromFile(fileUrl: string, fileName: string): Pro
       throw new Error(`Faylni yuklab bo'lmadi (HTTP ${response.status})`);
     }
     const buffer = await response.arrayBuffer();
-    const base64 = Buffer.from(buffer).toString('base64');
-
-    // Determine MIME type
-    const ext = fileName.split('.').pop()?.toLowerCase();
-    let mimeType = 'application/octet-stream';
-    if (ext === 'pdf') mimeType = 'application/pdf';
-    else if (ext === 'png') mimeType = 'image/png';
-    else if (ext === 'jpg' || ext === 'jpeg') mimeType = 'image/jpeg';
-    else if (ext === 'txt') mimeType = 'text/plain';
-
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-3.5-flash',
-      generationConfig: { maxOutputTokens: 65536, responseMimeType: 'application/json' },
-    });
-
-    const result = await model.generateContent([
-      IMPORT_PROMPT,
-      `\n\nQuyidagi fayldan (${fileName}) test savollarini ajratib ber:`,
-      {
-        inlineData: {
-          data: base64,
-          mimeType,
-        },
-      },
-    ]);
-
-    return parseImportResponse(result.response.text(), "Fayldan savollarni ajratib bo'lmadi");
+    base64 = Buffer.from(buffer).toString('base64');
   } catch (error) {
-    console.error('File import error:', error);
+    // Bu Google xatosi emas — faylni olishning o'zi yiqilgan, sababi ustozga
+    // tushunarli (va unda maxfiy qiymat yo'q), shuning uchun avvalgidek
+    // ko'rsatiladi.
+    logger.error("[ai-import] faylni yuklab bo'lmadi", { error });
     return {
       questions: [],
       totalFound: 0,
-      warnings: [`Fayl import xatolik: ${error instanceof Error ? error.message : 'Noma\'lum xatolik'}`],
+      warnings: [`Fayl import xatolik: ${error instanceof Error ? error.message : "Noma'lum xatolik"}`],
+      errorCode: 'AI_ERROR',
     };
   }
+
+  // Determine MIME type
+  const ext = fileName.split('.').pop()?.toLowerCase();
+  let mimeType = 'application/octet-stream';
+  if (ext === 'pdf') mimeType = 'application/pdf';
+  else if (ext === 'png') mimeType = 'image/png';
+  else if (ext === 'jpg' || ext === 'jpeg') mimeType = 'image/jpeg';
+  else if (ext === 'txt') mimeType = 'text/plain';
+
+  return runImport(
+    [
+      IMPORT_PROMPT,
+      `\n\nQuyidagi fayldan (${fileName}) test savollarini ajratib ber:`,
+      { inlineData: { data: base64, mimeType } },
+    ],
+    'file',
+    "Fayldan savollarni ajratib bo'lmadi",
+  );
 }
 
 export interface SuggestMetadataParams {

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { ModelCaller, StructureInput } from "../structure";
 import {
+  isModelNotFound,
   isRateLimit,
   isRetriableError,
   parseStructureBatch,
@@ -22,6 +23,24 @@ const input = { order: 1 } as StructureInput;
 function httpError(status: number, message = "failed"): Error {
   return Object.assign(new Error(message), { status });
 }
+
+describe("isModelNotFound", () => {
+  it("404 ni va NOT_FOUND matnli 400 ni taniydi", () => {
+    expect(isModelNotFound(httpError(404))).toBe(true);
+    expect(isModelNotFound(httpError(400, "[400 Bad Request] NOT_FOUND"))).toBe(true);
+    expect(
+      isModelNotFound(new Error("models/gemini-x is not found for API version v1beta")),
+    ).toBe(true);
+    expect(isModelNotFound(new Error("[404 Not Found] model"))).toBe(true);
+  });
+
+  it("oddiy 400, 429 va boshqa xatolar — model topilmadi EMAS", () => {
+    expect(isModelNotFound(httpError(400, "invalid argument"))).toBe(false);
+    expect(isModelNotFound(httpError(429, "NOT_FOUND"))).toBe(false);
+    expect(isModelNotFound(httpError(503))).toBe(false);
+    expect(isModelNotFound(new Error("timeout"))).toBe(false);
+  });
+});
 
 describe("isRateLimit", () => {
   it("429 ni status bo'yicha ham, xabar matni bo'yicha ham taniydi", () => {
