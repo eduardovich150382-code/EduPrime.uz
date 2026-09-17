@@ -227,7 +227,7 @@ export function flattenBlocks(manifest: Manifest): LinearBlock[] {
  * raqam kelsa — bu o'nli son ("2.5 m/s"), savol emas. `\d{1,3}` "1990-yilda"
  * ni ham o'tkazmaydi: to'rtinchi raqamdan keyin `.` yoki `)` yo'q.
  */
-const QUESTION_START_PATTERNS: RegExp[] = [
+export const QUESTION_START_PATTERNS: RegExp[] = [
   /^\s*(\d{1,3})\s*\*?\s*[.)](?:\s+|(?=\p{L}))/u,
   /^\s*№\s*(\d{1,3})\b/,
   /^\s*(\d{1,3})\s*-\s*(savol|masala|question|soru)\b/i,

@@ -1,4 +1,5 @@
 import { dropOnce, withoutImages } from './chat-apply';
+import { QUESTION_START_PATTERNS } from './grouping';
 import { numbersOf } from './translate';
 
 /**
@@ -52,15 +53,23 @@ const FLAG_BELOW = 0.5;
  * Draftning son belgisi — tildan qat'i nazar o'zgarmaydigan yagona arzon belgi.
  *
  * Rasm tokenlari olib tashlanadi: cuid ichidagi raqamlar son emas. Savol
- * raqami ham bir marta olib tashlanadi: chatdan raqam so'ralmaydi, aks holda
- * yagona soni o'z raqami bo'lgan savol doim 0 ball olib, yolg'on bayroq berardi.
- * `chat-apply.ts` dagi son solishtiruvi bilan AYNI qoidalar.
+ * raqami ham olib tashlanadi: chatdan raqam so'ralmaydi, aks holda yagona soni
+ * o'z raqami bo'lgan savol doim 0 ball olib, yolg'on bayroq berardi.
+ *
+ * Raqam avval matn BOSHIDAN kesiladi — `raw.number` ga ishonib bo'lmaydi:
+ * guruhlash yulduzchali savolda ("37*.") qo'shni raqamni olgan holat bor.
+ * Naqshlar guruhlashdagi bilan bir xil, aks holda ikki joy turlicha "savol
+ * boshi" deb hisoblardi. Prefiks kesilsa `raw.number` qayta ishlatilmaydi:
+ * "8. Kuch 8 N" da matn ichidagi 8 ham yo'qolardi. Matn raqamsiz boshlansa
+ * (PDF'da raqam alohida blokda qolgan) — zaxira sifatida `raw.number` bir
+ * marta olib tashlanadi.
  */
 export function draftNumbersOf(sourceText: string, number: unknown): string[] {
-  return dropOnce(
-    numbersOf(withoutImages(sourceText)),
-    typeof number === 'number' ? String(number) : null,
-  );
+  const text = withoutImages(sourceText);
+  for (const pattern of QUESTION_START_PATTERNS) {
+    if (pattern.test(text)) return numbersOf(text.replace(pattern, ' '));
+  }
+  return dropOnce(numbersOf(text), typeof number === 'number' ? String(number) : null);
 }
 
 /**

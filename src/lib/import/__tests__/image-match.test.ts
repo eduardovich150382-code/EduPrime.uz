@@ -101,4 +101,21 @@ describe("draftNumbersOf", () => {
   it("raqam son bo'lmasa hech narsa olib tashlanmaydi", () => {
     expect(draftNumbersOf("3 va 4", "3")).toEqual(["3", "4"]);
   });
+
+  it("matn boshidagi yulduzchali raqam raw.number dan ustun", () => {
+    expect(draftNumbersOf("37*. Ipga osilgan C yuk", 36)).toEqual([]);
+  });
+
+  it("№ va -savol prefikslari kesiladi", () => {
+    expect(draftNumbersOf("№12 Jism 5 m", 3)).toEqual(["5"]);
+    expect(draftNumbersOf("12-savol Jism 5 m", 3)).toEqual(["5"]);
+  });
+
+  it("raqamsiz boshlanuvchi matnda ichki sonlar saqlanadi", () => {
+    expect(draftNumbersOf("Bir-biriga jips tekkan holda 2 ta 5 kg", 4)).toEqual(["2", "5"]);
+  });
+
+  it("$v_0$ dagi 0 saqlanadi", () => {
+    expect(draftNumbersOf("$v_0$ tezlik bilan 10 m", null)).toEqual(["0", "10"]);
+  });
 });
