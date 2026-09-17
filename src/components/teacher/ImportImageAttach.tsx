@@ -1,9 +1,11 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { CheckCircle2, AlertTriangle, HelpCircle, Images, Loader2, Link2, X } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, ExternalLink, HelpCircle, Images, Loader2, Link2, RefreshCw, X } from 'lucide-react';
+import { Link } from '@/i18n/routing';
 import { matchByOrder, type MapEntry, type Pair } from '@/lib/import/image-match';
+import { mergeJobs, type JobItem } from '@/lib/import/job-list';
 import {
   addImage,
   applyPairs,
@@ -22,13 +24,6 @@ interface Props<Q extends AttachableQuestion> {
   onChange: (next: Q[]) => void;
 }
 
-interface JobItem {
-  id: string;
-  fileName: string;
-  createdAt: string;
-  drafts: number;
-}
-
 interface AttachRun {
   pairs: Pair[];
   attached: number;
@@ -41,6 +36,9 @@ const STATUS_STYLE: Record<PairStatus, { icon: typeof CheckCircle2; className: s
   flagged: { icon: AlertTriangle, className: 'text-red-700 bg-red-50 border-red-300' },
   unchecked: { icon: HelpCircle, className: 'text-gray-600 bg-gray-50 border-gray-200' },
 };
+
+// Vkladkaga qaytishda `visibilitychange` va `focus` odatda birga keladi — bitta so'rov yetadi.
+const AUTO_REFRESH_GAP_MS = 5000;
 
 /**
  * Chatdan kelgan qoralama savollarga ZIP importi rasmlarini biriktirish.
@@ -68,24 +66,56 @@ export default function ImportImageAttach<Q extends AttachableQuestion>({ questi
   const [onlyFlagged, setOnlyFlagged] = useState(false);
   // Tez-tez tanlash almashtirilsa kechikkan javob yangi tanlovni bosib ketmasin.
   const requestRef = useRef(0);
+  const [refreshing, setRefreshing] = useState(false);
+  const inFlightRef = useRef(false);
+  const lastLoadRef = useRef(0);
+  const mountedRef = useRef(false);
+  // Ro'yxat callback ichida yangilanadi — tanlov eskirgan yopilishdan o'qilmasin.
+  const jobIdRef = useRef('');
 
-  useEffect(() => {
-    let cancelled = false;
-    fetch('/api/teacher/import/jobs')
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
-      .then((data: { jobs: JobItem[] }) => {
-        if (!cancelled) setJobs(data.jobs);
-      })
-      .catch(() => {
-        if (!cancelled) setJobsError(true);
-      });
-    return () => {
-      cancelled = true;
-    };
+  // Ustoz import vkladkasida yangi import yaratib qaytganda sahifani yangilamasligi
+  // kerak (qoralama yo'qoladi), shuning uchun ro'yxat o'zi qayta o'qiladi. Faqat
+  // `jobs` o'zgaradi: tanlov, xarita va biriktirish natijasi joyida qoladi.
+  const loadJobs = useCallback(async (force: boolean) => {
+    if (inFlightRef.current) return;
+    if (!force && Date.now() - lastLoadRef.current < AUTO_REFRESH_GAP_MS) return;
+    inFlightRef.current = true;
+    setRefreshing(true);
+    try {
+      const res = await fetch('/api/teacher/import/jobs');
+      if (!res.ok) throw new Error(String(res.status));
+      const data = (await res.json()) as { jobs: JobItem[] };
+      if (!mountedRef.current) return;
+      setJobs((prev) => mergeJobs(prev, data.jobs, jobIdRef.current));
+      setJobsError(false);
+    } catch {
+      if (mountedRef.current) setJobsError(true);
+    } finally {
+      inFlightRef.current = false;
+      lastLoadRef.current = Date.now();
+      if (mountedRef.current) setRefreshing(false);
+    }
   }, []);
 
-  const selectJob = async (id: string) => {
+  useEffect(() => {
+    mountedRef.current = true;
+    loadJobs(true);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') loadJobs(false);
+    };
+    const onFocus = () => loadJobs(false);
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', onFocus);
+    return () => {
+      mountedRef.current = false;
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onFocus);
+    };
+  }, [loadJobs]);
+
+  const selectJob = useCallback(async (id: string) => {
     const request = ++requestRef.current;
+    jobIdRef.current = id;
     setJobId(id);
     setEntries(null);
     setRun(null);
@@ -104,14 +134,31 @@ export default function ImportImageAttach<Q extends AttachableQuestion>({ questi
     } finally {
       if (request === requestRef.current) setMapLoading(false);
     }
-  };
+  }, []);
+
+  // Quvur tugamasdan tanlangan importda draft hali yo'q: "0 va 52 mos emas" deyish
+  // chalg'itadi — sabab mos kelmaslik emas, import tayyor emasligi.
+  const selectedDrafts = jobs?.find((job) => job.id === jobId)?.drafts;
+  const notReady = selectedDrafts === 0;
+
+  // Ro'yxat yangilanib draftlar paydo bo'lsa, eski bo'sh xarita qayta o'qiladi —
+  // aks holda ustoz importni qaytadan tanlashi kerak bo'lardi. Biriktirish natijasi
+  // bo'lsa tegilmaydi (u holda import allaqachon tayyor bo'lgan).
+  const prevDraftsRef = useRef<{ id: string; drafts: number | undefined }>({ id: '', drafts: undefined });
+  useEffect(() => {
+    const prev = prevDraftsRef.current;
+    prevDraftsRef.current = { id: jobId, drafts: selectedDrafts };
+    if (prev.id === jobId && prev.drafts === 0 && (selectedDrafts ?? 0) > 0 && run === null) {
+      selectJob(jobId);
+    }
+  }, [jobId, selectedDrafts, run, selectJob]);
 
   const fromMap = useMemo(() => mapUrls(entries ?? []), [entries]);
   const strip = useMemo(() => unattached(entries ?? [], questions), [entries, questions]);
   // Qoralama soni o'zgarsa belgilar boshqa savollarga tegishli bo'lib qoladi — ko'rsatilmaydi.
   const pairs = run && run.count === questions.length ? run.pairs : null;
   const summary = pairs ? summarize(pairs) : null;
-  const countMatches = entries !== null && entries.length === questions.length;
+  const countMatches = !notReady && entries !== null && entries.length === questions.length;
 
   const attach = () => {
     if (!entries) return;
@@ -141,29 +188,55 @@ export default function ImportImageAttach<Q extends AttachableQuestion>({ questi
         </div>
       </div>
 
-      {jobsError ? (
-        <p className="text-sm text-red-700">{t('attachErrorJobs')}</p>
-      ) : jobs === null ? (
-        <p className="text-sm text-text-secondary flex items-center gap-2">
-          <Loader2 size={14} className="animate-spin" /> {t('attachLoading')}
-        </p>
-      ) : jobs.length === 0 ? (
-        <p className="text-sm text-text-secondary">{t('attachNoJobs')}</p>
-      ) : (
-        <select
-          value={jobId}
-          onChange={(e) => selectJob(e.target.value)}
-          className="w-full min-h-[44px] px-3 rounded-xl border border-border bg-white text-sm"
-          aria-label={t('attachSelectJob')}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex-1 min-w-48">
+          {jobs === null ? (
+            jobsError ? (
+              <p className="text-sm text-red-700">{t('attachErrorJobs')}</p>
+            ) : (
+              <p className="text-sm text-text-secondary flex items-center gap-2">
+                <Loader2 size={14} className="animate-spin" /> {t('attachLoading')}
+              </p>
+            )
+          ) : jobs.length === 0 ? (
+            <p className="text-sm text-text-secondary">{t('attachNoJobs')}</p>
+          ) : (
+            <select
+              value={jobId}
+              onChange={(e) => selectJob(e.target.value)}
+              className="w-full min-h-[44px] px-3 rounded-xl border border-border bg-white text-sm"
+              aria-label={t('attachSelectJob')}
+            >
+              <option value="">{t('attachSelectJob')}</option>
+              {jobs.map((job) => (
+                <option key={job.id} value={job.id}>
+                  {t('attachJobOption', { name: job.fileName, date: formatDate(job.createdAt), drafts: job.drafts })}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={() => loadJobs(true)}
+          disabled={refreshing}
+          aria-label={t('attachRefresh')}
+          title={t('attachRefresh')}
+          className="h-11 w-11 shrink-0 flex items-center justify-center rounded-xl border border-border bg-white disabled:opacity-50"
         >
-          <option value="">{t('attachSelectJob')}</option>
-          {jobs.map((job) => (
-            <option key={job.id} value={job.id}>
-              {t('attachJobOption', { name: job.fileName, date: formatDate(job.createdAt), drafts: job.drafts })}
-            </option>
-          ))}
-        </select>
-      )}
+          <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
+        </button>
+        {/* Yangi vkladkada: shu sahifadan chiqilsa qoralamadagi savollar yo'qoladi. */}
+        <Link
+          href="/teacher/import"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="min-h-[44px] shrink-0 inline-flex items-center gap-1.5 px-2 text-sm font-medium text-primary-700 hover:underline"
+        >
+          <ExternalLink size={14} /> {t('attachNewImport')}
+        </Link>
+      </div>
+      {jobsError && jobs !== null && <p className="text-xs text-red-700">{t('attachErrorJobs')}</p>}
 
       {mapLoading && (
         <p className="text-sm text-text-secondary flex items-center gap-2">
@@ -174,7 +247,11 @@ export default function ImportImageAttach<Q extends AttachableQuestion>({ questi
 
       {entries && (
         <>
-          {countMatches ? (
+          {notReady ? (
+            <p className="text-sm text-text-secondary bg-gray-50 border border-border rounded-lg p-3">
+              {t('attachNotReady')}
+            </p>
+          ) : countMatches ? (
             <p className="text-sm text-green-700">
               {t('attachCountMatch', { total: entries.length, count: questions.length })}
             </p>

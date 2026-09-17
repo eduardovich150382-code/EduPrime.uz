@@ -434,7 +434,7 @@
     "attachJobOption": "{name} · {date} · черновиков: {drafts}",
     "attachNoJobs": "Импортов ZIP пока нет.",
     "attachLoading": "Загрузка...",
-    "attachErrorJobs": "Не удалось получить список импортов. Обновите страницу.",
+    "attachErrorJobs": "Не удалось получить список импортов. Попробуйте ещё раз.",
     "attachErrorMap": "Не удалось получить изображения импорта. Попробуйте выбрать снова.",
     "attachCountMatch": "В импорте {total} вопросов, в черновике {count} — совпадает.",
     "attachCountMismatch": "В импорте {total}, в черновике {count} — автоматическое прикрепление недоступно.",
@@ -450,6 +450,9 @@
     "attachStatus_verified": "проверено",
     "attachStatus_flagged": "сомнительно",
     "attachStatus_unchecked": "не проверить",
-    "attachRemove": "Убрать изображение"
+    "attachRemove": "Убрать изображение",
+    "attachNewImport": "Новый импорт",
+    "attachRefresh": "Обновить список",
+    "attachNotReady": "Этот импорт ещё не готов — вопросы записываются. Дождитесь завершения во вкладке импорта, затем обновите список."
   }
 }

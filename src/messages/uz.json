@@ -434,7 +434,7 @@
     "attachJobOption": "{name} · {date} · {drafts} ta draft",
     "attachNoJobs": "Hali ZIP import yo'q.",
     "attachLoading": "Yuklanmoqda...",
-    "attachErrorJobs": "Importlar ro'yxatini olib bo'lmadi. Sahifani yangilang.",
+    "attachErrorJobs": "Importlar ro'yxatini olib bo'lmadi. Qayta urinib ko'ring.",
     "attachErrorMap": "Import rasmlarini olib bo'lmadi. Qaytadan tanlab ko'ring.",
     "attachCountMatch": "Importda {total} savol, qoralamada {count} savol — mos.",
     "attachCountMismatch": "Importda {total}, qoralamada {count} — avtomatik biriktirish ishlamaydi.",
@@ -450,6 +450,9 @@
     "attachStatus_verified": "tekshirildi",
     "attachStatus_flagged": "shubhali",
     "attachStatus_unchecked": "tekshirib bo'lmadi",
-    "attachRemove": "Rasmni olib tashlash"
+    "attachRemove": "Rasmni olib tashlash",
+    "attachNewImport": "Yangi import qilish",
+    "attachRefresh": "Ro'yxatni yangilash",
+    "attachNotReady": "Bu import hali tayyor emas — savollar yozilmoqda. Import vkladkasida jarayon tugashini kuting, so'ng ro'yxatni yangilang."
   }
 }
