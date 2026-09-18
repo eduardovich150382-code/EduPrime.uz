@@ -592,6 +592,24 @@ export default function CreateTestPage() {
     setPendingImport(null);
   };
 
+  /**
+   * "Almashtirish" bosilgandagi HAQIQIY himoya.
+   *
+   * Tugmaning o'chiq turishi — faqat UI: `saveBusy` ni 500 ms lik interval
+   * yangilaydi, ya'ni saqlash shu tirqish ichida boshlansa tugma hali yoqiq
+   * ko'rinadi va poyga qaytadi. Shuning uchun navbat holati bosilgan PAYTDA
+   * ham o'qiladi. Dialog ochiq qoladi: ustoz yo kutadi, yo "Oxiriga
+   * qo'shish" ni tanlaydi.
+   */
+  const replacePendingImport = () => {
+    if (!pendingImport) return;
+    if (saveQueueRef.current.busy) {
+      setSaveBusy(true);
+      return;
+    }
+    applyImport(pendingImport, 'replace');
+  };
+
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Header */}
@@ -1058,7 +1076,7 @@ export default function CreateTestPage() {
         duplicateCount={incomingDuplicates(questions, pendingImport ?? []).count}
         replaceDisabled={saveBusy}
         onAppend={() => pendingImport && applyImport(pendingImport, 'append')}
-        onReplace={() => pendingImport && applyImport(pendingImport, 'replace')}
+        onReplace={replacePendingImport}
         onCancel={() => setPendingImport(null)}
       />
 
