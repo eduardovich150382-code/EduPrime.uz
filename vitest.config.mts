@@ -19,6 +19,14 @@ export default defineConfig({
   },
   test: {
     environment: "node",
+    // Workerlar soni ataylab cheklangan. Standart holda vitest yadrolar
+    // soniga qarab (bu mashinada 18 ta) o'nlab worker ochadi va 98 ta test
+    // fayli CPU uchun kurashadi. Eng og'ir testlar — paramgen'ning 200 ta
+    // variantni qayta hisoblaydigan testlari — standart 5 s timeout
+    // chegarasiga yaqin ishlaydi, shuning uchun yuklama tepaga chiqqanda
+    // tasodifan timeout bo'lib qolardi. Cheklov testlarning o'ziga emas,
+    // ularga yetarli CPU berishga qaratilgan.
+    maxWorkers: 2,
     include: [
       "src/**/*.{test,spec}.ts",
       "scripts/**/*.{test,spec}.ts",
