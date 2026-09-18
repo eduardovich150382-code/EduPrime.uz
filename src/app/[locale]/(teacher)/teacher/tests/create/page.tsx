@@ -19,6 +19,9 @@ import { createSaveQueue } from '@/lib/save-queue';
 import { dropDuplicateQuestions, findDuplicateQuestions, type DuplicateGroup } from '@/lib/duplicate-questions';
 import QuestionEditorForm from '@/components/teacher/QuestionEditorForm';
 import DuplicateQuestionsDialog from '@/components/teacher/DuplicateQuestionsDialog';
+import ImportMergeDialog from '@/components/teacher/ImportMergeDialog';
+import { toImportedCore } from '@/lib/import/imported-question';
+import { incomingDuplicates, isPristineDraft, mergeImported, type ImportMergeMode } from '@/lib/import/merge-imported';
 import AiImportPanel, { LOW_CONFIDENCE_THRESHOLD } from '@/components/teacher/AiImportPanel';
 import ImportImageAttach from '@/components/teacher/ImportImageAttach';
 import QuestionPreviewList from '@/components/teacher/QuestionPreviewList';
@@ -130,6 +133,9 @@ export default function CreateTestPage() {
   // Saqlashdan oldingi dublikat ogohlantirishi — ustoz javob berguncha saqlash kutib turadi
   const [duplicateGroups, setDuplicateGroups] = useState<DuplicateGroup[]>([]);
   const [pendingPublish, setPendingPublish] = useState(false);
+  // Import natijasi ustoz "qo'shish yoki almashtirish" ni tanlaguncha kutadi
+  const [pendingImport, setPendingImport] = useState<QuestionForm[] | null>(null);
+  const [saveBusy, setSaveBusy] = useState(false);
 
   // `draftTestId` ni holat va ref'da BIRGA yangilaydi — ikkisi ajralib qolsa
   // avtosaqlash eski null'ni ko'rib ikkinchi test yaratadi.
@@ -333,6 +339,17 @@ export default function CreateTestPage() {
       if (autoSaveTimerRef.current) clearInterval(autoSaveTimerRef.current);
     };
   }, [testInfo, questions, draftTestId]);
+
+  // Dialog ochiq turganda saqlash holatini kuzatadi. `busy` — navbat
+  // obyektidagi oddiy getter, u o'zgarganda React qayta render qilmaydi.
+  // 500 ms: ustoz tugmaning ochilishini sezadi, ortiqcha render bo'lmaydi.
+  useEffect(() => {
+    if (pendingImport === null) return;
+    const tick = () => setSaveBusy(saveQueueRef.current.busy);
+    tick();
+    const timer = setInterval(tick, 500);
+    return () => clearInterval(timer);
+  }, [pendingImport]);
 
   // Unmount'da navbat yopiladi — sahifadan ketayotganda yangi saqlash
   // boshlanib, allaqachon saqlangan testni qaytadan yozmasin.
@@ -539,36 +556,40 @@ export default function CreateTestPage() {
     performSave(pendingPublish, validQuestions);
   };
 
-  // AiImportPanel savol topganda chaqiradi — AIImportedQuestion[] ni
-  // to'liq QuestionForm[] ga (points/videoUrl kabi sahifaga xos maydonlar
-  // bilan) o'giradi.
+  // AiImportPanel savol topganda chaqiradi (matn va JSON rejimlarining
+  // IKKALASI ham shu yerdan o'tadi) — AIImportedQuestion[] ni QuestionForm[]
+  // ga o'giradi va qoralamaga qanday qo'shishni so'raydi.
   const handleAiImported = (imported: AIImportedQuestion[]) => {
     const mapped: QuestionForm[] = imported.map((q) => ({
-      text: q.text || '',
-      images: q.images || [],
-      options: q.type === 'OPEN_ENDED' ? [] : (q.options?.length ? q.options : [
-        { label: 'A', text: '', image: null },
-        { label: 'B', text: '', image: null },
-        { label: 'C', text: '', image: null },
-        { label: 'D', text: '', image: null },
-      ]),
-      correctAnswer: q.correctAnswer || '',
-      explanation: q.explanation || '',
-      explanationImages: [],
-      videoUrl: '',
-      type: q.type === 'OPEN_ENDED' ? 'OPEN_ENDED' : 'MULTIPLE_CHOICE',
+      ...toImportedCore(q),
       points: 1,
-      topic: q.topic || '',
-      bloomLevel: q.bloomLevel || '',
-      difficulty: q.difficulty ?? null,
-      blankAnswers: [''],
-      matchingPairs: [{ left: '', right: '' }, { left: '', right: '' }],
-      aiConfidence: q.confidence,
+      videoUrl: '',
     }));
-    setQuestions(mapped);
-    setActiveQuestion(0);
+    // Qoralama hali ochilgan holida bo'lsa so'rashning ma'nosi yo'q.
+    if (isPristineDraft(questions)) {
+      applyImport(mapped, 'replace');
+      return;
+    }
+    setPendingImport(mapped);
+  };
+
+  /**
+   * Import natijasini qoralamaga qo'yadi.
+   *
+   * `append` da mavjud savollar AYNAN o'sha obyektlar bo'lib qoladi, shuning
+   * uchun `id` lari saqlanadi va ketayotgan saqlashning javobi ham to'g'ri
+   * indekslarga tushadi. `replace` da esa bu xavfli — shuning uchun saqlash
+   * yo'ldaligida u tugma o'chirilgan bo'ladi (`saveBusy`).
+   */
+  const applyImport = (mapped: QuestionForm[], mode: ImportMergeMode) => {
+    // Indeks updater'dan TASHQARIDA hisoblanadi: `setQuestions` updater'i sof
+    // qolsin — React uni ikki marta chaqirishi mumkin (StrictMode, konkurrent
+    // render), ichidagi `setActiveQuestion` esa ikki marta ishlardi.
+    setActiveQuestion(mode === 'append' ? questions.length : 0);
+    setQuestions((prev) => mergeImported(prev, mapped, mode));
     setCurrentStep('questions');
     setShowOnlyLowConfidence(false);
+    setPendingImport(null);
   };
 
   return (
@@ -1028,6 +1049,17 @@ export default function CreateTestPage() {
         onDropDuplicates={saveWithoutDuplicates}
         onKeepAll={saveKeepingDuplicates}
         onCancel={closeDuplicateDialog}
+      />
+
+      <ImportMergeDialog
+        open={pendingImport !== null}
+        existingCount={questions.length}
+        incomingCount={pendingImport?.length ?? 0}
+        duplicateCount={incomingDuplicates(questions, pendingImport ?? []).count}
+        replaceDisabled={saveBusy}
+        onAppend={() => pendingImport && applyImport(pendingImport, 'append')}
+        onReplace={() => pendingImport && applyImport(pendingImport, 'replace')}
+        onCancel={() => setPendingImport(null)}
       />
 
       {/* Bank picker modal */}
