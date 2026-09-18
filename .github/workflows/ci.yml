@@ -86,3 +86,12 @@ jobs:
 
       - name: Migratsiya zanjirini bo'sh bazaga qo'llash
         run: npx prisma migrate deploy
+
+      # Advisory qulf — yagona raw SQL, uni na tipizatsiya, na mock qilingan
+      # test tekshiradi. #170 aynan shu yerda yiqilgan (`$queryRaw` `void`
+      # natijani deserializatsiya qilolmagan) va mock ostida ko'rinmay
+      # prod'ga chiqib ketgan. Shu qadam uni haqiqiy Postgres'da tutadi.
+      - name: Advisory qulf haqiqiy bazada ishlashini tekshirish
+        env:
+          INTEGRATION_DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/eduprime_ci?schema=public"
+        run: npx vitest run src/lib/__tests__/advisory-lock.integration.test.ts

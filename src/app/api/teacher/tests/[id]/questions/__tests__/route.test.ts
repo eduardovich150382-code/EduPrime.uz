@@ -30,10 +30,11 @@ function buildTx(existing: { id: string }[]) {
   const calls: string[] = [];
   let created = 0;
   const tx = {
-    $queryRaw: vi.fn((...args: unknown[]) => {
+    $executeRaw: vi.fn((...args: unknown[]) => {
       calls.push("lock");
       void args;
-      return Promise.resolve([{}]);
+      // `$executeRaw` ta'sirlangan qatorlar sonini qaytaradi, natija to'plamini emas
+      return Promise.resolve(1);
     }),
     question: {
       findMany: vi.fn(() => {
@@ -105,17 +106,18 @@ describe("PUT /api/teacher/tests/[id]/questions", () => {
     // ustma-ust tushgan ikki so'rov ham bo'sh ro'yxat ko'rib hammasini
     // qaytadan yaratadi.
     //
-    // DIQQAT: bu test `$queryRaw` ni MOCK qiladi, shuning uchun qulf
+    // DIQQAT: bu test `$executeRaw` ni MOCK qiladi, shuning uchun qulf
     // so'rovining Postgres'da haqiqatan bajarilishini ISBOTLAMAYDI — mock
-    // har qanday SQL'ni qabul qiladi. Bu yerda faqat CHAQIRUV TARTIBI
-    // tekshiriladi. Qulfning o'zi ishlashini faqat haqiqiy bazada saqlab
-    // ko'rish tasdiqlaydi (PR tavsifidagi qo'lda tekshirish).
+    // har qanday SQL'ni qabul qiladi. Aynan shu sababli #170 dagi `void`
+    // deserializatsiya xatosi mock ostida ko'rinmay prod'ga chiqib ketgan.
+    // Bu yerda faqat CHAQIRUV TARTIBI tekshiriladi; API ning haqiqatan
+    // ishlashi — `src/lib/__tests__/advisory-lock.integration.test.ts`.
     const { tx, calls } = buildTx([]);
     runWith(tx);
 
     await callPut([validQuestion()]);
 
-    expect(tx.$queryRaw).toHaveBeenCalledTimes(1);
+    expect(tx.$executeRaw).toHaveBeenCalledTimes(1);
     expect(calls.indexOf("lock")).toBe(0);
     expect(calls.indexOf("lock")).toBeLessThan(calls.indexOf("findMany"));
     expect(calls.indexOf("findMany")).toBeLessThan(calls.indexOf("deleteMany"));
@@ -127,7 +129,7 @@ describe("PUT /api/teacher/tests/[id]/questions", () => {
 
     await callPut([validQuestion()], "test1");
 
-    const values = tx.$queryRaw.mock.calls[0].slice(1);
+    const values = tx.$executeRaw.mock.calls[0].slice(1);
     expect(values).toContain("test-questions:test1");
   });
 

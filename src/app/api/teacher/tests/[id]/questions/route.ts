@@ -109,12 +109,19 @@ export async function PUT(
         // ketmaydi. Qulf kaliti test bo'yicha, ya'ni boshqa testlarni saqlash
         // kutib turmaydi.
         //
-        // `$queryRaw`, `$executeRaw` EMAS. `$executeRaw` o'zgartiruvchi
-        // so'rovlar uchun (ta'sirlangan qatorlar sonini qaytaradi) va Prisma'ning
-        // ba'zi versiyalari unga berilgan SELECT ni butunlay rad etadi. Qulf
-        // chaqiruvi yiqilsa butun saqlash yiqiladi, mock qilingan test esa buni
-        // ko'rsatmaydi — shuning uchun SELECT uchun mo'ljallangan API olinadi.
-        await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${`test-questions:${id}`}))`;
+        // `$executeRaw`, `$queryRaw` EMAS. `pg_advisory_xact_lock()` `void`
+        // qaytaradi; `$queryRaw` esa qaytgan ustunlarni deserializatsiya
+        // qilmoqchi bo'ladi va `void` turida yiqiladi ("Failed to deserialize
+        // column of type 'void'") — bu prod'da butun saqlashni to'xtatgan
+        // (#170). `$executeRaw` natija to'plamini umuman o'qimaydi, faqat
+        // ta'sirlangan qatorlar sonini qaytaradi, shuning uchun qulf uchun
+        // to'g'ri API aynan shu.
+        //
+        // Mock qilingan route testi bu xatoni KO'RSATMAYDI (mock har qanday
+        // SQL'ni qabul qiladi) — aynan shuning uchun u prod'ga chiqib ketgan.
+        // Haqiqiy bazadagi qoplama: `src/lib/__tests__/advisory-lock.integration.test.ts`,
+        // CI'dagi `migration-check` job'ida ishlaydi.
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`test-questions:${id}`}))`;
 
         // Qulfdan KEYIN o'qiladi — masalaning yuragi shu qator.
         const existingQuestions = await tx.question.findMany({
