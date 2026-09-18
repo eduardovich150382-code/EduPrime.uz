@@ -455,6 +455,42 @@
     "attachRefresh": "Refresh list",
     "attachNotReady": "This import isn't ready yet — questions are still being written. Wait for it to finish in the import tab, then refresh the list.",
     "aiQuotaExhausted": "Today's free AI limit has been reached. It resets tomorrow — please try again later.",
-    "aiNoQuestions": "AI found no questions in this text. Check the text and try again."
+    "aiNoQuestions": "AI found no questions in this text. Check the text and try again.",
+    "jsonModeAi": "Text (AI)",
+    "jsonModeJson": "JSON",
+    "jsonPasteHint": "Ask the chat to return the questions as JSON and paste it here. This mode does not call the AI — no quota, no length limit.",
+    "jsonPastePlaceholder": "Paste the JSON from your chat here...",
+    "jsonApply": "Read JSON",
+    "jsonCopyInstruction": "Copy chat instruction",
+    "jsonCopied": "Instruction copied — paste it into the chat.",
+    "jsonCopyFailed": "Could not copy. Select the text manually.",
+    "jsonInstructionBody": "Return the questions in the following JSON format.\n\n- Keep the questions IN BOOK ORDER.\n- Do not skip any question and do not merge two into one — images are attached by position later, and a single shift breaks all of them.\n- The \"order\" field is optional and unused in this mode: order comes from the position in the array.\n- Return JSON only: no comments, no preamble, no explanations.",
+    "jsonFound": "Questions read: {count}",
+    "jsonNoneImported": "No questions were added. Fix the following in the chat and paste the JSON again.",
+    "jsonProblemLine": "Question {order} — {message}",
+    "jsonWarningsTitle": "Please check:",
+    "jsonProblem": {
+      "JSON_INVALID": "Could not read the JSON. Check that you copied the whole chat reply.",
+      "JSON_TRUNCATED": "The JSON is cut off — ask the chat to continue.",
+      "NOT_ARRAY": "No array of questions was found in the JSON.",
+      "EMPTY": "The text is empty.",
+      "TOO_LARGE": "The text is too long. Paste the questions in smaller batches.",
+      "TOO_MANY": "You can paste at most {max} questions at a time.",
+      "TEXT_EMPTY": "the question text is empty",
+      "OPTION_COUNT_INVALID": "there must be between {min} and {max} options"
+    },
+    "jsonWarning": {
+      "ANSWER_MISSING": "no correct answer given — pick one manually",
+      "ANSWER_UNKNOWN": "the answer is not among the options — pick one manually",
+      "LATEX_UNBALANCED": "a formula is left open (odd number of $)",
+      "IMAGE_TOKEN_STRIPPED": "image marker removed — attach the image in the next step"
+    },
+    "mergeTitle": "The draft already has questions",
+    "mergeBody": "Questions in the draft: {existing}. New questions: {incoming}.",
+    "mergeAppend": "Append to end",
+    "mergeReplace": "Replace — will delete {count} questions",
+    "mergeCancel": "Cancel",
+    "mergeDuplicates": "Already in the draft: {count} questions",
+    "mergeSaving": "Saving…"
   }
 }

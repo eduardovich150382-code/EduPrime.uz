@@ -455,6 +455,42 @@
     "attachRefresh": "Ro'yxatni yangilash",
     "attachNotReady": "Bu import hali tayyor emas — savollar yozilmoqda. Import vkladkasida jarayon tugashini kuting, so'ng ro'yxatni yangilang.",
     "aiQuotaExhausted": "Bugungi bepul AI limiti tugadi. U ertaga yangilanadi — keyinroq qayta urinib ko'ring.",
-    "aiNoQuestions": "AI bu matndan savol topmadi. Matnni tekshirib, qayta urinib ko'ring."
+    "aiNoQuestions": "AI bu matndan savol topmadi. Matnni tekshirib, qayta urinib ko'ring.",
+    "jsonModeAi": "Matn (AI)",
+    "jsonModeJson": "JSON",
+    "jsonPasteHint": "Savollarni chatda JSON qilib so’ratib oling va shu yerga qo’ying. Bu rejimda AI chaqirilmaydi — kvota ham, uzunlik chegarasi ham yo’q.",
+    "jsonPastePlaceholder": "Chatdan olingan JSON ni shu yerga qo’ying...",
+    "jsonApply": "JSON ni o’qish",
+    "jsonCopyInstruction": "Chat uchun ko’rsatmani nusxalash",
+    "jsonCopied": "Ko’rsatma nusxalandi — chatga qo’ying.",
+    "jsonCopyFailed": "Nusxalab bo’lmadi. Matnni qo’lda belgilab nusxalang.",
+    "jsonInstructionBody": "Savollarni quyidagi JSON shaklida qaytar.\n\n- Savollar kitobdagi TARTIBDA bo’lsin.\n- Birorta savolni tashlab ketma va ikkitasini birlashtirma — rasmlar keyinchalik tartib bo’yicha ulanadi, bitta siljish hammasini buzadi.\n- \"order\" maydoni ixtiyoriy va bu rejimda ishlatilmaydi: tartib massivdagi o’rindan olinadi.\n- Faqat JSON qaytar: izoh, kirish so’zi va tushuntirish yozma.",
+    "jsonFound": "Savollar o’qildi: {count}",
+    "jsonNoneImported": "Hech bir savol qo’shilmadi. Quyidagilarni chatda tuzatib, JSON ni qaytadan qo’ying.",
+    "jsonProblemLine": "{order}-savol — {message}",
+    "jsonWarningsTitle": "Tekshirib chiqing:",
+    "jsonProblem": {
+      "JSON_INVALID": "JSON o’qilmadi. Chat javobini to’liq nusxalaganingizni tekshiring.",
+      "JSON_TRUNCATED": "JSON oxirigacha kelmagan — chatdan davomini so’rang.",
+      "NOT_ARRAY": "JSON ichida savollar massivi topilmadi.",
+      "EMPTY": "Matn bo’sh.",
+      "TOO_LARGE": "Matn juda uzun. Savollarni bo’lak-bo’lak qo’ying.",
+      "TOO_MANY": "Bir martada {max} tadan ko’p savol qo’yib bo’lmaydi.",
+      "TEXT_EMPTY": "savol matni bo’sh",
+      "OPTION_COUNT_INVALID": "variantlar soni {min} tadan {max} tagacha bo’lishi kerak"
+    },
+    "jsonWarning": {
+      "ANSWER_MISSING": "to’g’ri javob ko’rsatilmagan — qo’lda tanlang",
+      "ANSWER_UNKNOWN": "javob variantlar ichida yo’q — qo’lda tanlang",
+      "LATEX_UNBALANCED": "formula ochilib yopilmagan ($ soni toq)",
+      "IMAGE_TOKEN_STRIPPED": "rasm belgisi olib tashlandi — rasmni keyingi qadamda ulang"
+    },
+    "mergeTitle": "Qoralamada savollar bor",
+    "mergeBody": "Qoralamada savollar bor: {existing}. Yangi savollar: {incoming}.",
+    "mergeAppend": "Oxiriga qo’shish",
+    "mergeReplace": "Almashtirish — o’chadi: {count} savol",
+    "mergeCancel": "Bekor qilish",
+    "mergeDuplicates": "Qoralamada allaqachon bor: {count} savol",
+    "mergeSaving": "Saqlanmoqda…"
   }
 }
