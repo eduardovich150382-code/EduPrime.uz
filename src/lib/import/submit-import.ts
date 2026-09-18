@@ -1,5 +1,4 @@
-import type { AIImportResult } from '@/types';
-import type { AIImportedQuestion } from '@/types';
+import type { AIImportedQuestion, AIImportResult } from '@/types';
 import {
   parsePastedQuestions,
   type PastedProblem,
