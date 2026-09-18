@@ -130,9 +130,7 @@ export async function POST(request: NextRequest) {
         } : undefined,
       },
       include: {
-        // `orderBy` majburiy: create sahifasi javobdagi savol ID larini `order`
-        // bo'yicha moslashtiradi, Postgres esa tartibsiz qaytarishi mumkin.
-        questions: { orderBy: { order: 'asc' } },
+        questions: true,
         subject: true,
       },
     });
