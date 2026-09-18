@@ -1,5 +1,6 @@
 import { glossaryFor } from './translate-prompt';
 import { shouldTranslate } from './translate';
+import { CHAT_JSON_SCHEMA } from './chat-schema';
 
 /**
  * Ustoz chatga BIRINCHI tashlaydigan ko'rsatma.
@@ -13,16 +14,6 @@ import { shouldTranslate } from './translate';
  * STRUKTURA ham so'raydi (matn, variantlar, javob), chunki chat yo'lida S4
  * bosqichi umuman yo'q.
  */
-
-/** Chatdan so'raladigan JSON — `lib/import/chat-apply.ts` shu shaklni o'qiydi. */
-const SCHEMA = `[
-  {
-    "order": 12,
-    "text": "savol matni",
-    "options": ["birinchi variant", "ikkinchi variant", "uchinchi variant"],
-    "answer": "C"
-  }
-]`;
 
 function glossaryText(sourceLang: string): string {
   const entries = Object.entries(glossaryFor(sourceLang));
@@ -97,7 +88,7 @@ JAVOB SHAKLI
 - "answer" — to'g'ri variantning harfi: birinchi variant "A", ikkinchisi "B" va
   hokazo.
 
-${SCHEMA}
+${CHAT_JSON_SCHEMA}
 
 Savollar keyingi xabarda keladi.`;
 }

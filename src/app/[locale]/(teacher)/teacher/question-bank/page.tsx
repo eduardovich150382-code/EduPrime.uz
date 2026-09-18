@@ -13,6 +13,9 @@ import QuestionEditorForm from '@/components/teacher/QuestionEditorForm';
 import AiImportPanel, { LOW_CONFIDENCE_THRESHOLD } from '@/components/teacher/AiImportPanel';
 import ImportImageAttach from '@/components/teacher/ImportImageAttach';
 import QuestionPreviewList from '@/components/teacher/QuestionPreviewList';
+import ImportMergeDialog from '@/components/teacher/ImportMergeDialog';
+import { toImportedCore } from '@/lib/import/imported-question';
+import { incomingDuplicates, isPristineDraft, mergeImported, type ImportMergeMode } from '@/lib/import/merge-imported';
 
 interface DraftQuestion extends QuestionCoreFields {
   /** Faqat AI import orqali kelgan qoralamalarda bo'ladi — qo'lda qo'shilganlarda undefined. */
@@ -81,6 +84,8 @@ export default function QuestionBankPage() {
   const [drafts, setDrafts] = useState<DraftQuestion[]>([{ ...emptyDraft }]);
   const [activeDraft, setActiveDraft] = useState(0);
   const [showOnlyLowConfidence, setShowOnlyLowConfidence] = useState(false);
+  // Import natijasi ustoz "qo'shish yoki almashtirish" ni tanlaguncha kutadi
+  const [pendingImport, setPendingImport] = useState<DraftQuestion[] | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -138,33 +143,35 @@ export default function QuestionBankPage() {
     if (activeDraft >= drafts.length - 1) setActiveDraft(Math.max(0, drafts.length - 2));
   };
 
-  // AiImportPanel savol topganda chaqiradi — AIImportedQuestion[] ni
-  // qoralama massiviga o'giradi.
+  // AiImportPanel savol topganda chaqiradi (matn va JSON rejimlarining
+  // IKKALASI ham shu yerdan o'tadi) — mapping `imported-question.ts` da,
+  // test yaratish sahifasi bilan bitta nusxada.
   const handleAiImported = (imported: AIImportedQuestion[]) => {
-    const mapped: DraftQuestion[] = imported.map((q) => ({
-      text: q.text || '',
-      images: q.images || [],
-      options: q.type === 'OPEN_ENDED' ? [] : (q.options?.length ? q.options : [
-        { label: 'A', text: '', image: null },
-        { label: 'B', text: '', image: null },
-        { label: 'C', text: '', image: null },
-        { label: 'D', text: '', image: null },
-      ]),
-      correctAnswer: q.correctAnswer || '',
-      explanation: q.explanation || '',
-      explanationImages: [],
-      type: q.type === 'OPEN_ENDED' ? 'OPEN_ENDED' : 'MULTIPLE_CHOICE',
-      topic: q.topic || '',
-      bloomLevel: q.bloomLevel || '',
-      difficulty: q.difficulty ?? null,
-      blankAnswers: [''],
-      matchingPairs: [{ left: '', right: '' }, { left: '', right: '' }],
-      aiConfidence: q.confidence,
-    }));
-    setDrafts(mapped);
-    setActiveDraft(0);
+    const mapped: DraftQuestion[] = imported.map(toImportedCore);
+    // Qoralama hali ochilgan holida bo'lsa so'rashning ma'nosi yo'q.
+    if (isPristineDraft(drafts)) {
+      applyImport(mapped, 'replace');
+      return;
+    }
+    setPendingImport(mapped);
+  };
+
+  /**
+   * Import natijasini qoralamaga qo'yadi.
+   *
+   * Indeks updater'dan TASHQARIDA hisoblanadi: `setDrafts` updater'i sof
+   * qolsin — React uni ikki marta chaqirishi mumkin.
+   *
+   * Bu sahifada avtosaqlash yo'q (saqlash faqat "Hammasini saqlash" orqali),
+   * shuning uchun test yaratish sahifasidagi "Almashtirish" darvozasi bu
+   * yerda kerak emas.
+   */
+  const applyImport = (mapped: DraftQuestion[], mode: ImportMergeMode) => {
+    setActiveDraft(mode === 'append' ? drafts.length : 0);
+    setDrafts((prev) => mergeImported(prev, mapped, mode));
     setWizardStep('questions');
     setShowOnlyLowConfidence(false);
+    setPendingImport(null);
   };
 
   const handleSaveAll = async () => {
@@ -445,6 +452,16 @@ export default function QuestionBankPage() {
           ))}
         </div>
       )}
+
+      <ImportMergeDialog
+        open={pendingImport !== null}
+        existingCount={drafts.length}
+        incomingCount={pendingImport?.length ?? 0}
+        duplicateCount={incomingDuplicates(drafts, pendingImport ?? []).count}
+        onAppend={() => pendingImport && applyImport(pendingImport, 'append')}
+        onReplace={() => pendingImport && applyImport(pendingImport, 'replace')}
+        onCancel={() => setPendingImport(null)}
+      />
     </div>
   );
 }

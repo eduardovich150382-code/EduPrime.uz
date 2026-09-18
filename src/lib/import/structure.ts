@@ -10,6 +10,7 @@ import {
   type RetryOptions,
 } from './structure-error';
 import type { BBox } from './types';
+import { imageToken, imageTokenPattern } from './image-token';
 
 /**
  * Xom blokni strukturalangan savolga aylantirish — prompt, sxema va javobni
@@ -28,24 +29,11 @@ import type { BBox } from './types';
 /** `lib/gemini.ts` dagi bilan bir xil ro'yxat — Bloom taksonomiyasi. */
 const BLOOM_VALUES = ['BILISH', 'TUSHUNISH', 'QOLLASH', 'TAHLIL', 'BAHOLASH', 'YARATISH'];
 
-/** Rasm tokeni: model matn ichida shu ko'rinishda ko'radi va qaytaradi. */
-export function imageToken(assetId: string): string {
-  return `[[IMG:${assetId}]]`;
-}
-
-const IMAGE_TOKEN = /\[\[IMG:[^\]]*\]\]/g;
-
-/**
- * Matndagi hamma rasm tokenini qaytaradi.
- *
- * Regexning O'ZI eksport qilinmaydi: `g` bayrog'i bilan u holatli
- * (`lastIndex`) va ikki modul uni baham ko'rsa, biri ikkinchisining
- * qidiruvini jimgina yarmidan boshlab yuborardi. S5 (`translate.ts`) shu
- * funksiyani ishlatadi.
- */
-export function imageTokensOf(text: string): string[] {
-  return text.match(IMAGE_TOKEN) ?? [];
-}
+// Rasm tokeni yordamchilari `./image-token` ga ko'chirildi — u yerda SDK
+// importi yo'q, shuning uchun klient komponenti ham ishlata oladi. Bu yerdan
+// re-export qilinadi: mavjud chaqiruvchilar (`chat-export.ts`, `translate.ts`)
+// va ularning testlari import satrini o'zgartirmasdan ishlab turadi.
+export { imageToken, imageTokensOf } from './image-token';
 
 export interface StructureInput {
   order: number;
@@ -334,10 +322,10 @@ function reconcileImages(
     return true;
   };
 
-  let cleanText = text.replace(IMAGE_TOKEN, (token) => (keepFirst(token) ? token : ''));
+  let cleanText = text.replace(imageTokenPattern(), (token) => (keepFirst(token) ? token : ''));
   const cleanOptions = options.map((option) => ({
     ...option,
-    text: option.text.replace(IMAGE_TOKEN, (token) => (keepFirst(token) ? token : '')).trim(),
+    text: option.text.replace(imageTokenPattern(), (token) => (keepFirst(token) ? token : '')).trim(),
     imageToken: option.imageToken && keepFirst(option.imageToken) ? option.imageToken : null,
   }));
 
