@@ -1,8 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { Prisma, type QuestionType } from '@prisma/client';
 import { auth } from '@/lib/auth';
 import { logger } from '@/lib/logger';
 import { findDuplicateQuestions } from '@/lib/duplicate-questions';
+
+/**
+ * Mijozdan kelayotgan savol. Hamma maydon `unknown`/ixtiyoriy: bu tashqi
+ * kirish, va quyida har biri alohida normallashtiriladi (default qiymat yoki
+ * null). `id` bo'lsa — mavjud savolni yangilash so'rovi.
+ */
+interface IncomingQuestion {
+  id?: unknown;
+  text?: string;
+  images?: string[];
+  options?: unknown;
+  correctAnswer?: string;
+  type?: string;
+  explanation?: string | null;
+  explanationImages?: string[];
+  videoUrl?: string | null;
+  topic?: string | null;
+  bloomLevel?: string | null;
+  difficulty?: unknown;
+  points?: number;
+}
 
 // PUT /api/teacher/tests/[id]/questions — savollarni yangilash
 export async function PUT(
@@ -50,7 +72,7 @@ export async function PUT(
     // Nega kerak: bir ustozning 31 talik importi saqlangandan keyin 62 savolga
     // aylangan, sababi esa kod bo'yicha izohlanmadi. Keyingi safar shu yozuv
     // qaysi ekrandan (`source`) qanday ro'yxat kelganini darrov aytadi.
-    const incoming = questions as Array<Record<string, unknown> | null>;
+    const incoming = questions as Array<IncomingQuestion | null>;
     const duplicates = findDuplicateQuestions(
       incoming.map((q) => ({ text: typeof q?.text === 'string' ? q.text : '' })),
     );
@@ -73,49 +95,83 @@ export async function PUT(
     // (they reference the old questionId) and makes "correct answer" display
     // inconsistent for anyone who already took the test. Existing questions
     // keep their id; only questions the teacher actually removed are deleted.
-    const existingQuestions = await db.question.findMany({
-      where: { testId: id },
-      select: { id: true },
-    });
-    const existingIds = new Set(existingQuestions.map((q) => q.id));
-    const incomingIds = questions
-      .map((q: any) => q.id)
-      .filter((qid: any) => typeof qid === 'string' && existingIds.has(qid));
+    //
+    // Hammasi BITTA interaktiv tranzaksiyada va advisory qulf ostida: ilgari
+    // mavjud ID larni o'qish tranzaksiyadan tashqarida edi, shuning uchun
+    // ustma-ust tushgan ikki saqlash (avtosaqlash + qo'lda saqlash) ikkalasi
+    // ham bo'sh ro'yxat ko'rib, ikkalasi ham hammasini qaytadan yaratardi —
+    // 31 savol 62 ga aylanardi. Mijoz tarafidagi navbat yetarli emas: ikki
+    // vkladka yoki ikki qurilma ochiq bo'lsa u ishlamaydi.
+    const written = await db.$transaction(
+      async (tx) => {
+        // `pg_advisory_xact_lock` — tranzaksiya tugashi bilan avtomatik
+        // bo'shaydi, shuning uchun xato yoki timeout holatida ham qulf qolib
+        // ketmaydi. Qulf kaliti test bo'yicha, ya'ni boshqa testlarni saqlash
+        // kutib turmaydi.
+        //
+        // `$queryRaw`, `$executeRaw` EMAS. `$executeRaw` o'zgartiruvchi
+        // so'rovlar uchun (ta'sirlangan qatorlar sonini qaytaradi) va Prisma'ning
+        // ba'zi versiyalari unga berilgan SELECT ni butunlay rad etadi. Qulf
+        // chaqiruvi yiqilsa butun saqlash yiqiladi, mock qilingan test esa buni
+        // ko'rsatmaydi — shuning uchun SELECT uchun mo'ljallangan API olinadi.
+        await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${`test-questions:${id}`}))`;
 
-    await db.$transaction([
-      db.question.deleteMany({
-        where: { testId: id, id: { notIn: incomingIds.length ? incomingIds : ['__none__'] } },
-      }),
-      ...questions.map((q: any, index: number) => {
-        const data = {
-          text: q.text,
-          images: q.images || [],
-          options: q.options || [],
-          correctAnswer: q.correctAnswer,
-          type: q.type || 'MULTIPLE_CHOICE',
-          explanation: q.explanation || null,
-          explanationImages: q.explanationImages || [],
-          videoUrl: q.videoUrl || null,
-          topic: q.topic || null,
-          bloomLevel: q.bloomLevel || null,
-          difficulty: Number.isInteger(q.difficulty) && q.difficulty >= 1 && q.difficulty <= 5 ? q.difficulty : null,
-          points: q.points || 1,
-          order: index,
-        };
-        if (q.id && existingIds.has(q.id)) {
-          return db.question.update({ where: { id: q.id }, data });
+        // Qulfdan KEYIN o'qiladi — masalaning yuragi shu qator.
+        const existingQuestions = await tx.question.findMany({
+          where: { testId: id },
+          select: { id: true },
+        });
+        const existingIds = new Set(existingQuestions.map((q) => q.id));
+        const incomingIds = questions
+          .map((q: { id?: unknown }) => q.id)
+          .filter((qid: unknown): qid is string => typeof qid === 'string' && existingIds.has(qid));
+
+        await tx.question.deleteMany({
+          where: { testId: id, id: { notIn: incomingIds.length ? incomingIds : ['__none__'] } },
+        });
+
+        // Ketma-ket: mijozga qaytariladigan ID larni tartib bilan yig'ish
+        // kerak, chunki PUT da yangi yaratilgan savol ham ID sini bilib
+        // olmasa, keyingi saqlashda yana qaytadan yaratilardi.
+        const rows: { id: string; order: number }[] = [];
+        for (const [index, q] of (questions as IncomingQuestion[]).entries()) {
+          const data = {
+            text: q.text ?? '',
+            images: q.images || [],
+            options: (q.options || []) as Prisma.InputJsonValue,
+            correctAnswer: q.correctAnswer ?? '',
+            type: (q.type || 'MULTIPLE_CHOICE') as QuestionType,
+            explanation: q.explanation || null,
+            explanationImages: q.explanationImages || [],
+            videoUrl: q.videoUrl || null,
+            topic: q.topic || null,
+            bloomLevel: q.bloomLevel || null,
+            difficulty: typeof q.difficulty === 'number' && Number.isInteger(q.difficulty) && q.difficulty >= 1 && q.difficulty <= 5 ? q.difficulty : null,
+            points: q.points || 1,
+            order: index,
+          };
+          const row = typeof q.id === 'string' && existingIds.has(q.id)
+            ? await tx.question.update({ where: { id: q.id }, data, select: { id: true, order: true } })
+            : await tx.question.create({ data: { testId: id, ...data }, select: { id: true, order: true } });
+          rows.push(row);
         }
-        return db.question.create({ data: { testId: id, ...data } });
-      }),
-    ]);
 
-    // Update question count
-    await db.test.update({
-      where: { id },
-      data: { questionCount: questions.length },
-    });
+        // Haqiqiy qator sonidan olinadi, `questions.length` dan emas: agar
+        // kelgusida hisob va qatorlar ajralib ketsa, nomuvofiqlik jimgina
+        // qolib ketmasin.
+        const questionCount = await tx.question.count({ where: { testId: id } });
+        await tx.test.update({ where: { id }, data: { questionCount } });
 
-    return NextResponse.json({ message: 'Questions updated', count: questions.length });
+        return rows;
+      },
+      // 60+ savol uchun standart 5s kam: har savol alohida yozuv, ustiga qulf
+      // kutish vaqti qo'shiladi.
+      { maxWait: 10_000, timeout: 20_000 },
+    );
+
+    // `questions` — mijoz ID larni holatida saqlab, keyingi saqlashda ularni
+    // qaytarib yuborishi uchun (o'shanda delete+recreate emas, update bo'ladi).
+    return NextResponse.json({ message: 'Questions updated', count: written.length, questions: written });
   } catch (error) {
     logger.error('PUT /api/teacher/tests/[id]/questions error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });

@@ -14,7 +14,8 @@ import {
 import ImageUploadButton from '@/components/ui/ImageUploadButton';
 import { parseFillBlankCorrectAnswer } from '@/lib/fill-blank';
 import { parseMatchingPairs } from '@/lib/matching';
-import { isQuestionValid, fillBlankCorrectAnswer, matchingOptions, mapQuestionForBank } from '@/lib/question-form';
+import { isQuestionValid, fillBlankCorrectAnswer, matchingOptions, mapQuestionForBank, applyServerQuestionIds } from '@/lib/question-form';
+import { createSaveQueue } from '@/lib/save-queue';
 import { dropDuplicateQuestions, findDuplicateQuestions, type DuplicateGroup } from '@/lib/duplicate-questions';
 import QuestionEditorForm from '@/components/teacher/QuestionEditorForm';
 import DuplicateQuestionsDialog from '@/components/teacher/DuplicateQuestionsDialog';
@@ -23,6 +24,13 @@ import ImportImageAttach from '@/components/teacher/ImportImageAttach';
 import QuestionPreviewList from '@/components/teacher/QuestionPreviewList';
 
 interface QuestionForm extends QuestionCoreFields {
+  /**
+   * Server bergan ID. Saqlash orasida o'zgarmasligi SHART: savol qaytadan
+   * yaratilsa yangi ID oladi va `TestResult.answers` dagi `questionId`
+   * bog'lanishi uziladi — nashr qilingan testda o'quvchilar natijalari buziladi.
+   * Birinchi saqlashdan oldin `undefined`.
+   */
+  id?: string;
   videoUrl: string;
   points: number;
   /** Faqat AI import orqali kelgan savollarda bo'ladi — qo'lda qo'shilgan/bazadan tanlangan savollarda undefined (belgi ko'rsatilmaydi). */
@@ -61,10 +69,14 @@ const emptyQuestion: QuestionForm = {
 // Bitta savolni API kutayotgan formatga o'giradi — qoralamani serverga
 // avtosaqlash va aniq "Saqlash"/"Nashr qilish" tugmalari bir xil mapping'dan
 // foydalanadi, shu sababli ikkalasi sinxronsizlanmaydi.
-function mapQuestionForApi(q: QuestionForm) {
+function mapQuestionForApi(q: QuestionForm, index: number) {
   const isFillBlank = q.type === 'FILL_BLANK';
   const isMatching = q.type === 'MATCHING';
   return {
+    // `id` va `order` — serverdagi update shoxi shu ikkisiga tayanadi. `id`
+    // yuborilmasa savol o'chirilib qaytadan yaratiladi (ID lar uziladi).
+    id: q.id,
+    order: index,
     text: q.text,
     images: q.images,
     options: isMatching ? matchingOptions(q) : (q.type === 'OPEN_ENDED' || isFillBlank) ? [] : q.options.filter((o) => o.text),
@@ -103,7 +115,13 @@ export default function CreateTestPage() {
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [draftTestId, setDraftTestId] = useState<string | null>(null);
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const draftSaveInFlightRef = useRef(false);
+  // Qo'lda saqlash va avtosaqlash BITTA navbatdan o'tadi — ustma-ust tushgan
+  // ikki so'rov savollarni ikkilantirardi (31 → 62).
+  const saveQueueRef = useRef(createSaveQueue());
+  // `draftTestId` ni ref'da ham ushlaymiz: avtosaqlash `useEffect` closure'ida
+  // eski (null) qiymatni ko'rib ikkinchi `POST /api/tests` yuborishi va
+  // DUBLIKAT TEST yaratishi mumkin edi.
+  const draftTestIdRef = useRef<string | null>(null);
   const [bankPickerOpen, setBankPickerOpen] = useState(false);
   const [bankQuestions, setBankQuestions] = useState<any[]>([]);
   const [bankLoading, setBankLoading] = useState(false);
@@ -112,6 +130,22 @@ export default function CreateTestPage() {
   // Saqlashdan oldingi dublikat ogohlantirishi — ustoz javob berguncha saqlash kutib turadi
   const [duplicateGroups, setDuplicateGroups] = useState<DuplicateGroup[]>([]);
   const [pendingPublish, setPendingPublish] = useState(false);
+
+  // `draftTestId` ni holat va ref'da BIRGA yangilaydi — ikkisi ajralib qolsa
+  // avtosaqlash eski null'ni ko'rib ikkinchi test yaratadi.
+  const applyDraftTestId = (id: string) => {
+    draftTestIdRef.current = id;
+    setDraftTestId(id);
+  };
+
+  // Server qaytargan savol ID larini holatga singdiradi. `sentOriginalIndexes`
+  // kerak, chunki serverga faqat yaroqli (va dublikatsiz) savollar yuborilgan —
+  // yuborilgan ro'yxat indeksi holat indeksiga teng emas.
+  const absorbQuestionIds = (sentOriginalIndexes: number[], payload: unknown) => {
+    const serverQuestions = (payload as { questions?: { id: string; order: number }[] } | null)?.questions;
+    if (!Array.isArray(serverQuestions) || serverQuestions.length === 0) return;
+    setQuestions((prev) => applyServerQuestionIds(prev, sentOriginalIndexes, serverQuestions));
+  };
 
   // Savollar bazasidan tanlash uchun ro'yxatni yuklaydi (test fani bo'yicha filtrlaydi)
   const openBankPicker = async () => {
@@ -234,43 +268,54 @@ export default function CreateTestPage() {
   // sababli har 30 soniyada yangi-yangi test yaratilmaydi. Faqat sarlavha va
   // fan tanlangandan keyin ishga tushadi; savollar tugallanmagan bo'lsa ham
   // saqlanadi — bu shunchaki qoralama, nashr qilish uchun emas.
-  const saveDraftToServer = async (currentTestInfo: typeof testInfo, currentQuestions: QuestionForm[], currentDraftId: string | null) => {
+  const saveDraftToServer = async (currentTestInfo: typeof testInfo, currentQuestions: QuestionForm[]) => {
     if (!currentTestInfo.titleUz || !currentTestInfo.subjectId) return;
-    if (draftSaveInFlightRef.current) return; // Bir vaqtda ikkita saqlash — dublikat test yaratilishining oldini oladi
-    draftSaveInFlightRef.current = true;
+    const queue = saveQueueRef.current;
+    // Navbatda ish bo'lsa avtosaqlash o'zini o'tkazib yuboradi — 30 soniyadan
+    // keyin qaytadan urinadi. Sahifa yopilayotganda ham yangi so'rov ketmaydi.
+    if (queue.busy || queue.closed) return;
     try {
-      const { categoryType, accessType, ...testData } = currentTestInfo;
-      const isFree = accessType === 'free';
-      const price = accessType === 'paid' ? currentTestInfo.price : 0;
-      const questionsPayload = currentQuestions.map(mapQuestionForApi);
+      await queue.enqueue(async () => {
+        const { categoryType, accessType, ...testData } = currentTestInfo;
+        const isFree = accessType === 'free';
+        const price = accessType === 'paid' ? currentTestInfo.price : 0;
+        const questionsPayload = currentQuestions.map(mapQuestionForApi);
+        // Avtosaqlash hamma savolni yuboradi, shuning uchun moslik to'g'ridan-to'g'ri
+        const sentOriginalIndexes = currentQuestions.map((_, i) => i);
+        // Navbat kutgan vaqtda qo'lda saqlash testni yaratib qo'ygan bo'lishi
+        // mumkin — shuning uchun ref'dan endi o'qiladi, closure'dan emas.
+        const currentDraftId = draftTestIdRef.current;
 
-      if (!currentDraftId) {
-        const res = await fetch('/api/tests', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...testData, isFree, price, accessType, questions: questionsPayload }),
-        });
-        const data = await res.json();
-        if (res.ok && data.test?.id) setDraftTestId(data.test.id);
-      } else {
-        await fetch(`/api/tests/${currentDraftId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...testData, isFree, price, accessType }),
-        });
-        await fetch(`/api/teacher/tests/${currentDraftId}/questions`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          // `source` — faqat server logi uchun: dublikat holati takrorlansa
-          // qaysi ekranda tug'ilgani darrov ko'rinsin.
-          body: JSON.stringify({ questions: questionsPayload, source: 'create' }),
-        });
-      }
+        if (!currentDraftId) {
+          const res = await fetch('/api/tests', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...testData, isFree, price, accessType, questions: questionsPayload }),
+          });
+          const data = await res.json();
+          if (res.ok && data.test?.id) {
+            applyDraftTestId(data.test.id);
+            absorbQuestionIds(sentOriginalIndexes, data.test);
+          }
+        } else {
+          await fetch(`/api/tests/${currentDraftId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...testData, isFree, price, accessType }),
+          });
+          const qRes = await fetch(`/api/teacher/tests/${currentDraftId}/questions`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            // `source` — faqat server logi uchun: dublikat holati takrorlansa
+            // qaysi ekranda tug'ilgani darrov ko'rinsin.
+            body: JSON.stringify({ questions: questionsPayload, source: 'create' }),
+          });
+          if (qRes.ok) absorbQuestionIds(sentOriginalIndexes, await qRes.json());
+        }
+      });
     } catch {
       // Jim tarzda ishlaydi — server bilan bog'lanish vaqtincha uzilsa ham
       // localStorage'dagi nusxa saqlanib qoladi, keyingi avtosaqlash urinishida davom etadi.
-    } finally {
-      draftSaveInFlightRef.current = false;
     }
   };
 
@@ -280,7 +325,7 @@ export default function CreateTestPage() {
       const data = { testInfo, questions, draftTestId, timestamp: Date.now() };
       localStorage.setItem('teacher_test_draft', JSON.stringify(data));
       setLastSaved(new Date().toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' }));
-      saveDraftToServer(testInfo, questions, draftTestId);
+      saveDraftToServer(testInfo, questions);
     };
 
     autoSaveTimerRef.current = setInterval(saveDraft, 30000);
@@ -288,6 +333,13 @@ export default function CreateTestPage() {
       if (autoSaveTimerRef.current) clearInterval(autoSaveTimerRef.current);
     };
   }, [testInfo, questions, draftTestId]);
+
+  // Unmount'da navbat yopiladi — sahifadan ketayotganda yangi saqlash
+  // boshlanib, allaqachon saqlangan testni qaytadan yozmasin.
+  useEffect(() => {
+    const queue = saveQueueRef.current;
+    return () => queue.close();
+  }, []);
 
   // Restore from localStorage on mount
   useEffect(() => {
@@ -299,7 +351,7 @@ export default function CreateTestPage() {
         if (parsed.timestamp && Date.now() - parsed.timestamp < 86400000) {
           if (parsed.testInfo && !testInfo.titleUz) {
             setTestInfo(parsed.testInfo);
-            if (parsed.draftTestId) setDraftTestId(parsed.draftTestId);
+            if (parsed.draftTestId) applyDraftTestId(parsed.draftTestId);
           }
           if (parsed.questions && parsed.questions.length > 0 && questions.length === 1 && !questions[0].text) {
             setQuestions(parsed.questions);
@@ -383,74 +435,88 @@ export default function CreateTestPage() {
   // Saqlashning o'zi — `handleSave` tekshiruvlaridan o'tgach, yoki dublikat
   // modalidagi tanlovdan keyin chaqiriladi.
   const performSave = async (publish: boolean, questionsToSave: QuestionForm[]) => {
+    // `saving` navbatni KUTISH paytida ham yoqiladi — aks holda ustoz tugma
+    // javob bermayapti deb ikkinchi marta bosardi.
     setSaving(true);
+    // Serverga yuborilayotgan savollarning holatdagi asl indekslari. Ro'yxat
+    // `questions` dan `.filter` bilan olingani uchun havolalar (references)
+    // saqlanadi, shuning uchun `indexOf` ishonchli.
+    const sentOriginalIndexes = questionsToSave.map((q) => questions.indexOf(q));
     try {
-      // Exclude categoryType and accessType from the request body - only used client-side
-      const { categoryType, accessType, ...testData } = testInfo;
+      // Ketayotgan avtosaqlash bo'lsa navbatda kutadi — ilgari ikkalasi
+      // ustma-ust ketib savollarni ikkilantirardi.
+      await saveQueueRef.current.enqueue(async () => {
+        // Exclude categoryType and accessType from the request body - only used client-side
+        const { categoryType, accessType, ...testData } = testInfo;
 
-      // Map accessType to isFree and price
-      const isFree = accessType === 'free';
-      const price = accessType === 'paid' ? testInfo.price : 0;
-      const questionsPayload = questionsToSave.map(mapQuestionForApi);
+        // Map accessType to isFree and price
+        const isFree = accessType === 'free';
+        const price = accessType === 'paid' ? testInfo.price : 0;
+        const questionsPayload = questionsToSave.map(mapQuestionForApi);
 
-      // Avtosaqlash bu testni allaqachon serverda yaratgan bo'lishi mumkin —
-      // shunday bo'lsa qayta POST qilib dublikat yaratish o'rniga o'sha
-      // qatorni yangilaymiz.
-      let testId = draftTestId;
+        // Avtosaqlash bu testni allaqachon serverda yaratgan bo'lishi mumkin —
+        // shunday bo'lsa qayta POST qilib dublikat yaratish o'rniga o'sha
+        // qatorni yangilaymiz. Ref'dan o'qiladi: navbat kutgan vaqtda
+        // avtosaqlash testni yaratib qo'ygan bo'lishi mumkin.
+        let testId = draftTestIdRef.current;
 
-      if (!testId) {
-        const res = await fetch('/api/tests', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...testData, isFree, price, accessType, questions: questionsPayload }),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          alert(data.error || "Xatolik yuz berdi");
-          setSaving(false);
-          return;
-        }
-        testId = data.test.id;
-        setDraftTestId(testId);
-      } else {
-        const res = await fetch(`/api/tests/${testId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...testData, isFree, price, accessType }),
-        });
-        if (!res.ok) {
+        if (!testId) {
+          const res = await fetch('/api/tests', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...testData, isFree, price, accessType, questions: questionsPayload }),
+          });
           const data = await res.json();
-          alert(data.error || "Xatolik yuz berdi");
-          setSaving(false);
-          return;
+          if (!res.ok) {
+            alert(data.error || "Xatolik yuz berdi");
+            return;
+          }
+          testId = data.test.id as string;
+          applyDraftTestId(testId);
+          absorbQuestionIds(sentOriginalIndexes, data.test);
+        } else {
+          const res = await fetch(`/api/tests/${testId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...testData, isFree, price, accessType }),
+          });
+          if (!res.ok) {
+            const data = await res.json();
+            alert(data.error || "Xatolik yuz berdi");
+            return;
+          }
+          const qRes = await fetch(`/api/teacher/tests/${testId}/questions`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            // `source` — faqat server logi uchun: dublikat holati takrorlansa
+            // qaysi ekranda tug'ilgani darrov ko'rinsin.
+            body: JSON.stringify({ questions: questionsPayload, source: 'create' }),
+          });
+          if (!qRes.ok) {
+            const qData = await qRes.json();
+            alert(qData.error || "Savollarni saqlashda xatolik");
+            return;
+          }
+          absorbQuestionIds(sentOriginalIndexes, await qRes.json());
         }
-        const qRes = await fetch(`/api/teacher/tests/${testId}/questions`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          // `source` — faqat server logi uchun: dublikat holati takrorlansa
-          // qaysi ekranda tug'ilgani darrov ko'rinsin.
-          body: JSON.stringify({ questions: questionsPayload, source: 'create' }),
-        });
-        if (!qRes.ok) {
-          const qData = await qRes.json();
-          alert(qData.error || "Savollarni saqlashda xatolik");
-          setSaving(false);
-          return;
-        }
-      }
 
-      // Publish if requested
-      if (publish && testId) {
-        await fetch(`/api/tests/${testId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ isPublished: true }),
-        });
-      }
-      // Clear auto-saved draft
-      localStorage.removeItem('teacher_test_draft');
-      alert(publish ? "Test yaratildi va nashr qilindi! ✅" : "Test saqlandi (qoralama)!");
-      router.push('/teacher');
+        // Publish if requested
+        if (publish && testId) {
+          await fetch(`/api/tests/${testId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ isPublished: true }),
+          });
+        }
+        // Clear auto-saved draft
+        localStorage.removeItem('teacher_test_draft');
+        // Navbat sahifadan ketishdan OLDIN yopiladi — aks holda 30 soniyalik
+        // avtosaqlash hali o'lmagan taymerdan ishga tushib, saqlangan testni
+        // qaytadan yozishi mumkin.
+        saveQueueRef.current.close();
+        alert(publish ? "Test yaratildi va nashr qilindi! ✅" : "Test saqlandi (qoralama)!");
+        router.push('/teacher');
+      });
     } catch (error) {
       alert("Server xatolik. Qayta urinib ko'ring.");
     }
