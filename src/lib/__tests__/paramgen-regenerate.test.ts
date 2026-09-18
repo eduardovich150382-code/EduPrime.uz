@@ -16,7 +16,16 @@ const seeded = generateVariants(template, { count: template.seedCount ?? 200, se
 const sample = seeded[0];
 
 describe("regenerateVariant", () => {
-  it("saqlangan variantSig'ga mos asl variantni topadi", () => {
+  // Standart 5 s emas, alohida chegara. `regenerateVariant` ichkarida 200 ta
+  // variantni qayta hisoblaydi — bu son testning tanlovi emas, `constants.ts`
+  // dagi PARAMGEN_PER_TEMPLATE niki, u `seed.ts` bilan umumiy va kamaytirilsa
+  // bazadagi variantSig'lar jimgina yaroqsiz bo'ladi. Yolg'iz ishlaganda
+  // ~800 ms, lekin butun to'plam parallel ishlaganda CPU raqobatidan bir necha
+  // barobar shishadi va 5 s dan o'tib ketardi — testda nuqson yo'q, chegara
+  // shishishga bardosh bermasdi. Xuddi shu sabab bilan
+  // scripts/validate-templates-lib.test.ts dagi validateAllTemplates ham
+  // alohida chegara bilan ishlaydi.
+  it("saqlangan variantSig'ga mos asl variantni topadi", { timeout: 20000 }, () => {
     const regenerated = regenerateVariant(template.id, sample.variantId, "uz");
     expect(regenerated).not.toBeNull();
     expect(regenerated?.stem).toBe(sample.stem);
