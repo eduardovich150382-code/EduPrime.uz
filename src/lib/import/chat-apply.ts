@@ -1,4 +1,6 @@
-import { imageTokensOf, type StructuredOption } from './structure';
+import type { StructuredOption } from './structure';
+import { withoutImageTokens } from './image-token';
+import { labelToIndex, MAX_OPTIONS, MIN_OPTIONS, optionLabel } from './option-labels';
 import { numbersOf, unmaskImageTokens, type MaskedToken } from './translate';
 
 /**
@@ -13,10 +15,6 @@ import { numbersOf, unmaskImageTokens, type MaskedToken } from './translate';
  * baribir yoziladi. `translateBatch` dagi bilan bir xil sabab — qayta ishlash
  * ustozning vaqti, bitta buzuq savol esa qolgan 49 tasini yo'qotmasligi kerak.
  */
-
-/** Variantlarning eng kam va eng ko'p soni — A dan H gacha. */
-const MIN_OPTIONS = 2;
-const MAX_OPTIONS = 8;
 
 /** Chatdan kelgan bitta savol. */
 export interface ChatItem {
@@ -90,22 +88,9 @@ export function dropOnce(values: readonly string[], value: string | null): strin
   return index === -1 ? [...values] : [...values.slice(0, index), ...values.slice(index + 1)];
 }
 
-/**
- * Rasm tokenlarini matndan olib tashlaydi — son solishtiruvidan OLDIN.
- *
- * Tokenning ichidagi cuid da raqamlar bor (`cmu2gfe670005lc0438g6uky5`), manba
- * matnida esa token umuman bo'lmaydi: `BLOCK` bosqichida rasmlar `raw.images`
- * da turadi. Tozalamasdan solishtirilsa HAR rasmli savol yolg'on
- * `NUMBER_MISMATCH` olardi va bayroq ma'nosini butunlay yo'qotardi.
- *
- * Regex EMAS, `imageTokensOf`: `structure.ts` dagi naqsh ataylab eksport
- * qilinmagan (`g` bayrog'i bilan u holatli).
- */
-export function withoutImages(text: string): string {
-  let out = text;
-  for (const token of imageTokensOf(text)) out = out.replace(token, ' ');
-  return out;
-}
+// Tana `./image-token` da — u yerda SDK importi yo'q. Nomi shu yerda saqlanadi:
+// `apply/route.ts` va mavjud testlar shu nom bilan import qiladi.
+export const withoutImages = withoutImageTokens;
 
 /**
  * Model javobidagi massivni topadi.
@@ -168,11 +153,11 @@ export function applyChatItem(source: ApplySource, item: ChatItem): ApplyResult 
   }
 
   const answer = item.answer.trim().toUpperCase();
-  const index = answer.length === 1 ? answer.charCodeAt(0) - 65 : -1;
+  const index = labelToIndex(answer);
   if (index < 0 || index >= item.options.length) return { ok: false, code: 'ANSWER_INVALID' };
 
   const options: StructuredOption[] = item.options.map((text, i) => ({
-    label: String.fromCharCode(65 + i),
+    label: optionLabel(i),
     text,
     imageToken: null,
   }));
