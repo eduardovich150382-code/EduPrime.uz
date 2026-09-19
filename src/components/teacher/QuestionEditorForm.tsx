@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Bot, Loader2, Plus, Trash2 } from 'lucide-react';
 import LatexRenderer from '@/components/ui/LatexRenderer';
 import LatexToolbar from '@/components/ui/LatexToolbar';
@@ -10,7 +11,8 @@ import ImageUploadButton, {
 import { FILL_BLANK_MARKER } from '@/lib/fill-blank';
 import FillBlankEditor from '@/components/ui/FillBlankEditor';
 import MatchingEditor from '@/components/ui/MatchingEditor';
-import { BLOOM_LEVELS, type QuestionCoreFields } from '@/types';
+import type { QuestionCoreFields } from '@/types';
+import DifficultyPicker from '@/components/teacher/DifficultyPicker';
 
 interface QuestionEditorFormProps<T extends QuestionCoreFields> {
   question: T;
@@ -40,7 +42,7 @@ const TYPE_DESCRIPTIONS: Record<QuestionCoreFields['type'], string> = {
 /**
  * Bitta savolni tahrirlash formasi — savol matni/rasm, tur almashtirish,
  * turga xos tana (variantlar+rasm / bo'shliq / moslashtirish / ochiq javob),
- * mavzu/Bloom/qiyinlik + AI taklif, va yechim/rasm. Test yaratish va
+ * mavzu/qiyinlik + AI taklif, va yechim/rasm. Test yaratish va
  * Savollar bazasi sahifalari o'rtasida qayta ishlatiladi — `T` generik
  * turi orqali har sahifa o'z qo'shimcha maydonlarini (masalan `points`)
  * `QuestionCoreFields` ustiga qo'shishi mumkin.
@@ -56,6 +58,7 @@ export default function QuestionEditorForm<T extends QuestionCoreFields>({
   const explanationRef = useRef<HTMLTextAreaElement | null>(null);
   const [dropUploading, setDropUploading] = useState<'question' | 'explanation' | null>(null);
   const [aiSuggestLoading, setAiSuggestLoading] = useState(false);
+  const t = useTranslations('teacherQuestionForm');
 
   const patch = (fields: Partial<T>) => onChange((prev) => ({ ...prev, ...fields }));
 
@@ -157,9 +160,10 @@ export default function QuestionEditorForm<T extends QuestionCoreFields>({
     });
   };
 
-  // AI orqali bo'sh variantlarga distraktor va mavzu/Bloom darajasi taklif
-  // qilish. Faqat bo'sh maydonlarni to'ldiradi — o'qituvchi allaqachon
-  // yozgan narsani bosib o'tmaydi.
+  // AI orqali bo'sh variantlarga distraktor va mavzu/qiyinlik taklif qilish.
+  // Faqat bo'sh maydonlarni to'ldiradi — o'qituvchi allaqachon yozgan narsani
+  // bosib o'tmaydi. `bloomLevel` ham shu yerda jimgina to'ladi: u ekranda
+  // ko'rinmaydi, lekin `lib/item-picker.ts` dagi filtr uni o'qiydi.
   const handleAiSuggest = async () => {
     if (!question.text || !question.correctAnswer) return;
     setAiSuggestLoading(true);
@@ -393,10 +397,11 @@ export default function QuestionEditorForm<T extends QuestionCoreFields>({
         )}
       </div>
 
-      {/* Topic tag, Bloom level & difficulty */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 rounded-xl bg-gray-50 border border-border">
-        <div className="sm:col-span-3 flex items-center justify-between">
-          <p className="text-xs font-medium text-text-secondary">Mavzu, daraja va variantlarni AI to&apos;ldirsin</p>
+      {/* Mavzu tegi va qiyinlik. Bloom ustozga ko'rsatilmaydi — qiymat AI
+          to'ldirishida jimgina saqlanadi (`lib/item-picker.ts` uni o'qiydi). */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-gray-50 border border-border">
+        <div className="sm:col-span-2 flex items-center justify-between">
+          <p className="text-xs font-medium text-text-secondary">{t('aiFillHint')}</p>
           <button
             type="button"
             onClick={handleAiSuggest}
@@ -404,49 +409,25 @@ export default function QuestionEditorForm<T extends QuestionCoreFields>({
             className="text-xs font-medium text-primary-600 hover:text-primary-700 flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {aiSuggestLoading ? <Loader2 size={12} className="animate-spin" /> : <Bot size={12} />}
-            AI bilan to&apos;ldirish
+            {t('aiFillButton')}
           </button>
         </div>
         <div>
-          <label className="text-xs font-medium text-text-secondary block mb-1.5">Mavzu tegi (ixtiyoriy)</label>
+          <label className="text-xs font-medium text-text-secondary block mb-1.5">{t('topicLabel')}</label>
           <input
             type="text"
             value={question.topic}
             onChange={(e) => patch({ topic: e.target.value } as Partial<T>)}
-            placeholder="Masalan: Kvadrat tenglama"
+            placeholder={t('topicPlaceholder')}
             className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all"
           />
         </div>
-        <div>
-          <label className="text-xs font-medium text-text-secondary block mb-1.5">Bloom darajasi (ixtiyoriy)</label>
-          <select
-            value={question.bloomLevel}
-            onChange={(e) => patch({ bloomLevel: e.target.value } as Partial<T>)}
-            className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all"
-          >
-            <option value="">Tanlanmagan</option>
-            {BLOOM_LEVELS.map((b) => (
-              <option key={b.value} value={b.value}>{b.label}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="text-xs font-medium text-text-secondary block mb-1.5">Qiyinlik darajasi (ixtiyoriy)</label>
-          <select
-            value={question.difficulty ?? ''}
-            onChange={(e) => patch({ difficulty: e.target.value ? Number(e.target.value) : null } as Partial<T>)}
-            className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all"
-          >
-            <option value="">Tanlanmagan</option>
-            <option value="1">1 — Juda oson</option>
-            <option value="2">2 — Oson</option>
-            <option value="3">3 — O&apos;rta</option>
-            <option value="4">4 — Qiyin</option>
-            <option value="5">5 — Juda qiyin</option>
-          </select>
-        </div>
-        <p className="text-xs text-text-secondary sm:col-span-3">
-          Bu teglar savol darajasidagi tahlil, shaxsiylashtirilgan tavsiyalar va DTM Online&apos;dagi qiyinlik balanslash uchun ishlatiladi.
+        <DifficultyPicker
+          value={question.difficulty}
+          onChange={(value) => patch({ difficulty: value } as Partial<T>)}
+        />
+        <p className="text-xs text-text-secondary sm:col-span-2">
+          {t('metaNote')}
         </p>
       </div>
 

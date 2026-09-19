@@ -492,5 +492,19 @@
     "mergeCancel": "Отмена",
     "mergeDuplicates": "Уже в черновике вопросов: {count}",
     "mergeSaving": "Сохранение…"
+  },
+  "teacherQuestionForm": {
+    "aiFillHint": "Пусть ИИ заполнит тему, уровень и варианты",
+    "aiFillButton": "Заполнить с ИИ",
+    "topicLabel": "Тема (необязательно)",
+    "topicPlaceholder": "Например: Квадратное уравнение",
+    "difficultyLabel": "Уровень сложности",
+    "difficultyEasy": "Легко",
+    "difficultyMedium": "Средне",
+    "difficultyHard": "Сложно",
+    "metaNote": "Эти теги используются для анализа по вопросам, персональных рекомендаций и балансировки сложности в DTM Online.",
+    "testTopicLabel": "Тема теста",
+    "testTopicPlaceholder": "Например: Квадратное уравнение",
+    "testTopicNote": "Это поле не сохраняется — оно только подставляет тему новым вопросам."
   }
 }

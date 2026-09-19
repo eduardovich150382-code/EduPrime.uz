@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import { useRouter } from 'next/navigation';
@@ -14,7 +15,10 @@ import {
 import ImageUploadButton from '@/components/ui/ImageUploadButton';
 import { parseFillBlankCorrectAnswer } from '@/lib/fill-blank';
 import { parseMatchingPairs } from '@/lib/matching';
-import { isQuestionValid, fillBlankCorrectAnswer, matchingOptions, mapQuestionForBank, applyServerQuestionIds } from '@/lib/question-form';
+import { isQuestionValid, mapQuestionForBank, applyServerQuestionIds } from '@/lib/question-form';
+import { mapQuestionForApi } from '@/lib/question/map-for-api';
+import { applyDefaultTopic } from '@/lib/question/default-topic';
+import { DEFAULT_DIFFICULTY } from '@/lib/question/difficulty';
 import { createSaveQueue } from '@/lib/save-queue';
 import { dropDuplicateQuestions, findDuplicateQuestions, type DuplicateGroup } from '@/lib/duplicate-questions';
 import QuestionEditorForm from '@/components/teacher/QuestionEditorForm';
@@ -64,36 +68,12 @@ const emptyQuestion: QuestionForm = {
   points: 1,
   topic: '',
   bloomLevel: '',
-  difficulty: null,
+  // Picker "O'rta" ko'rsatib turadi, shuning uchun yangi savol shu qiymat bilan
+  // tushadi — aks holda ekranda ko'rgani bilan saqlangani zid bo'lardi.
+  difficulty: DEFAULT_DIFFICULTY,
   blankAnswers: [''],
   matchingPairs: [{ left: '', right: '' }, { left: '', right: '' }],
 };
-
-// Bitta savolni API kutayotgan formatga o'giradi — qoralamani serverga
-// avtosaqlash va aniq "Saqlash"/"Nashr qilish" tugmalari bir xil mapping'dan
-// foydalanadi, shu sababli ikkalasi sinxronsizlanmaydi.
-function mapQuestionForApi(q: QuestionForm, index: number) {
-  const isFillBlank = q.type === 'FILL_BLANK';
-  const isMatching = q.type === 'MATCHING';
-  return {
-    // `id` va `order` — serverdagi update shoxi shu ikkisiga tayanadi. `id`
-    // yuborilmasa savol o'chirilib qaytadan yaratiladi (ID lar uziladi).
-    id: q.id,
-    order: index,
-    text: q.text,
-    images: q.images,
-    options: isMatching ? matchingOptions(q) : (q.type === 'OPEN_ENDED' || isFillBlank) ? [] : q.options.filter((o) => o.text),
-    correctAnswer: isFillBlank ? fillBlankCorrectAnswer(q) : isMatching ? '' : q.correctAnswer,
-    explanation: q.explanation || null,
-    explanationImages: q.explanationImages,
-    videoUrl: q.videoUrl || null,
-    type: q.type,
-    points: q.points || 1,
-    topic: q.topic || null,
-    bloomLevel: q.bloomLevel || null,
-    difficulty: q.difficulty || null,
-  };
-}
 
 export default function CreateTestPage() {
   const router = useRouter();
@@ -112,6 +92,10 @@ export default function CreateTestPage() {
     accessType: 'free' as 'free' | 'premium' | 'teacher' | 'premium_teacher' | 'paid',
   });
   const [questions, setQuestions] = useState<QuestionForm[]>([{ ...emptyQuestion }]);
+  // Ataylab `testInfo` dan tashqarida: `Test` modelida `topic` ustuni yo'q,
+  // ya'ni bu qiymat POST tanasiga tushmasligi kerak. Faqat forma holati.
+  const [defaultTopic, setDefaultTopic] = useState('');
+  const t = useTranslations('teacherQuestionForm');
   const [currentStep, setCurrentStep] = useState<'info' | 'questions' | 'ai-import' | 'preview'>('info');
   const [activeQuestion, setActiveQuestion] = useState(0);
   const [showOnlyLowConfidence, setShowOnlyLowConfidence] = useState(false);
@@ -406,7 +390,7 @@ export default function CreateTestPage() {
     : subjects;
 
   const addQuestion = () => {
-    setQuestions([...questions, { ...emptyQuestion }]);
+    setQuestions([...questions, ...applyDefaultTopic([{ ...emptyQuestion }], defaultTopic)]);
     setActiveQuestion(questions.length);
   };
 
@@ -560,11 +544,16 @@ export default function CreateTestPage() {
   // IKKALASI ham shu yerdan o'tadi) — AIImportedQuestion[] ni QuestionForm[]
   // ga o'giradi va qoralamaga qanday qo'shishni so'raydi.
   const handleAiImported = (imported: AIImportedQuestion[]) => {
-    const mapped: QuestionForm[] = imported.map((q) => ({
-      ...toImportedCore(q),
-      points: 1,
-      videoUrl: '',
-    }));
+    // Standart mavzu FAQAT kelayotgan savollarga — `mergeImported` dan keyin
+    // qo'llansa `append` da qoralamadagi eski savollarga ham tegib ketardi.
+    const mapped: QuestionForm[] = applyDefaultTopic(
+      imported.map((q) => ({
+        ...toImportedCore(q),
+        points: 1,
+        videoUrl: '',
+      })),
+      defaultTopic,
+    );
     // Qoralama hali ochilgan holida bo'lsa so'rashning ma'nosi yo'q.
     if (isPristineDraft(questions)) {
       applyImport(mapped, 'replace');
@@ -757,6 +746,21 @@ export default function CreateTestPage() {
                 className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all"
               />
             </div>
+          </div>
+
+          {/* Test mavzusi — SAQLANMAYDI. Yuqoridagi "Qiyinlik (1-5)" test
+              darajasidagi `Test.difficulty`, bu esa savollarning `topic` iga
+              standart qiymat beradigan forma holati. */}
+          <div>
+            <label className="text-sm font-medium text-text-primary block mb-2">{t('testTopicLabel')}</label>
+            <input
+              type="text"
+              value={defaultTopic}
+              onChange={(e) => setDefaultTopic(e.target.value)}
+              placeholder={t('testTopicPlaceholder')}
+              className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all"
+            />
+            <p className="text-xs text-text-secondary mt-1.5">{t('testTopicNote')}</p>
           </div>
 
           {/* Access type / Tarif selector */}

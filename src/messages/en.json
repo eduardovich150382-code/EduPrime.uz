@@ -492,5 +492,19 @@
     "mergeCancel": "Cancel",
     "mergeDuplicates": "Already in the draft: {count} questions",
     "mergeSaving": "Saving…"
+  },
+  "teacherQuestionForm": {
+    "aiFillHint": "Let AI fill in the topic, level and options",
+    "aiFillButton": "Fill with AI",
+    "topicLabel": "Topic tag (optional)",
+    "topicPlaceholder": "For example: Quadratic equation",
+    "difficultyLabel": "Difficulty level",
+    "difficultyEasy": "Easy",
+    "difficultyMedium": "Medium",
+    "difficultyHard": "Hard",
+    "metaNote": "These tags power per-question analytics, personalised recommendations and difficulty balancing in DTM Online.",
+    "testTopicLabel": "Test topic",
+    "testTopicPlaceholder": "For example: Quadratic equation",
+    "testTopicNote": "This field is not saved — it only pre-fills the topic for new questions."
   }
 }
