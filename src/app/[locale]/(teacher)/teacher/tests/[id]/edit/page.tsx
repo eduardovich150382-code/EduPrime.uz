@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import { useRouter, useParams } from 'next/navigation';
 import LatexRenderer from '@/components/ui/LatexRenderer';
 import LatexToolbar from '@/components/ui/LatexToolbar';
-import { BLOOM_LEVELS } from '@/types';
+import DifficultyPicker from '@/components/teacher/DifficultyPicker';
 import {
   ArrowLeft, Plus, Trash2, Save, Loader2, Send,
   FileUp, CheckCircle, Bot,
@@ -135,6 +136,7 @@ export default function EditTestPage() {
   const questionTextRef = useRef<HTMLTextAreaElement | null>(null);
   const explanationRef = useRef<HTMLTextAreaElement | null>(null);
   const [dropUploading, setDropUploading] = useState<'question' | 'explanation' | null>(null);
+  const t = useTranslations('teacherQuestionForm');
   // Saqlashdan oldingi dublikat ogohlantirishi — ustoz javob berguncha saqlash kutib turadi
   const [duplicateGroups, setDuplicateGroups] = useState<DuplicateGroup[]>([]);
   const [pendingPublish, setPendingPublish] = useState(false);
@@ -949,10 +951,11 @@ export default function EditTestPage() {
             </div>
             )}
 
-            {/* Topic tag, Bloom level & difficulty */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 rounded-xl bg-gray-50 border border-border">
+            {/* Mavzu tegi va qiyinlik. Bloom ustozga ko'rsatilmaydi — bazadagi
+                qiymat saqlanib qoladi va `lib/item-picker.ts` uni o'qiydi. */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-gray-50 border border-border">
               <div>
-                <label className="text-xs font-medium text-text-secondary block mb-1.5">Mavzu tegi (ixtiyoriy)</label>
+                <label className="text-xs font-medium text-text-secondary block mb-1.5">{t('topicLabel')}</label>
                 <input
                   type="text"
                   value={questions[activeQuestion]?.topic || ''}
@@ -961,46 +964,18 @@ export default function EditTestPage() {
                     updated[activeQuestion] = { ...updated[activeQuestion], topic: e.target.value };
                     setQuestions(updated);
                   }}
-                  placeholder="Masalan: Kvadrat tenglama"
+                  placeholder={t('topicPlaceholder')}
                   className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all"
                 />
               </div>
-              <div>
-                <label className="text-xs font-medium text-text-secondary block mb-1.5">Bloom darajasi (ixtiyoriy)</label>
-                <select
-                  value={questions[activeQuestion]?.bloomLevel || ''}
-                  onChange={(e) => {
-                    const updated = [...questions];
-                    updated[activeQuestion] = { ...updated[activeQuestion], bloomLevel: e.target.value };
-                    setQuestions(updated);
-                  }}
-                  className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all"
-                >
-                  <option value="">Tanlanmagan</option>
-                  {BLOOM_LEVELS.map((b) => (
-                    <option key={b.value} value={b.value}>{b.label}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-medium text-text-secondary block mb-1.5">Qiyinlik darajasi (ixtiyoriy)</label>
-                <select
-                  value={questions[activeQuestion]?.difficulty ?? ''}
-                  onChange={(e) => {
-                    const updated = [...questions];
-                    updated[activeQuestion] = { ...updated[activeQuestion], difficulty: e.target.value ? Number(e.target.value) : null };
-                    setQuestions(updated);
-                  }}
-                  className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all"
-                >
-                  <option value="">Tanlanmagan</option>
-                  <option value="1">1 — Juda oson</option>
-                  <option value="2">2 — Oson</option>
-                  <option value="3">3 — O&apos;rta</option>
-                  <option value="4">4 — Qiyin</option>
-                  <option value="5">5 — Juda qiyin</option>
-                </select>
-              </div>
+              <DifficultyPicker
+                value={questions[activeQuestion]?.difficulty ?? null}
+                onChange={(value) => {
+                  const updated = [...questions];
+                  updated[activeQuestion] = { ...updated[activeQuestion], difficulty: value };
+                  setQuestions(updated);
+                }}
+              />
             </div>
 
             {/* Explanation */}

@@ -492,5 +492,19 @@
     "mergeCancel": "Bekor qilish",
     "mergeDuplicates": "Qoralamada allaqachon bor: {count} savol",
     "mergeSaving": "Saqlanmoqda…"
+  },
+  "teacherQuestionForm": {
+    "aiFillHint": "Mavzu, daraja va variantlarni AI to‘ldirsin",
+    "aiFillButton": "AI bilan to‘ldirish",
+    "topicLabel": "Mavzu tegi (ixtiyoriy)",
+    "topicPlaceholder": "Masalan: Kvadrat tenglama",
+    "difficultyLabel": "Qiyinlik darajasi",
+    "difficultyEasy": "Oson",
+    "difficultyMedium": "O‘rta",
+    "difficultyHard": "Qiyin",
+    "metaNote": "Bu teglar savol darajasidagi tahlil, shaxsiylashtirilgan tavsiyalar va DTM Online’dagi qiyinlik balanslash uchun ishlatiladi.",
+    "testTopicLabel": "Test mavzusi",
+    "testTopicPlaceholder": "Masalan: Kvadrat tenglama",
+    "testTopicNote": "Bu maydon saqlanmaydi — u faqat yangi savollarga mavzu qo‘yib beradi."
   }
 }

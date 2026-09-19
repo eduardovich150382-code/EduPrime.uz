@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import LatexRenderer from '@/components/ui/LatexRenderer';
@@ -9,6 +10,7 @@ import {
 } from 'lucide-react';
 import type { AIImportedQuestion, QuestionCoreFields, QuestionType } from '@/types';
 import { isQuestionValid, mapQuestionForBank } from '@/lib/question-form';
+import { bandOf, DEFAULT_DIFFICULTY, type DifficultyBand } from '@/lib/question/difficulty';
 import QuestionEditorForm from '@/components/teacher/QuestionEditorForm';
 import AiImportPanel, { LOW_CONFIDENCE_THRESHOLD } from '@/components/teacher/AiImportPanel';
 import ImportImageAttach from '@/components/teacher/ImportImageAttach';
@@ -16,6 +18,13 @@ import QuestionPreviewList from '@/components/teacher/QuestionPreviewList';
 import ImportMergeDialog from '@/components/teacher/ImportMergeDialog';
 import { toImportedCore } from '@/lib/import/imported-question';
 import { incomingDuplicates, isPristineDraft, mergeImported, type ImportMergeMode } from '@/lib/import/merge-imported';
+
+// Ro'yxatdagi badge uchun — raqam ko'rsatilmaydi, faqat pog'ona.
+const BAND_BADGE_KEY: Record<DifficultyBand, 'difficultyEasy' | 'difficultyMedium' | 'difficultyHard'> = {
+  easy: 'difficultyEasy',
+  medium: 'difficultyMedium',
+  hard: 'difficultyHard',
+};
 
 interface DraftQuestion extends QuestionCoreFields {
   /** Faqat AI import orqali kelgan qoralamalarda bo'ladi — qo'lda qo'shilganlarda undefined. */
@@ -62,7 +71,8 @@ const emptyDraft: DraftQuestion = {
   type: 'MULTIPLE_CHOICE',
   topic: '',
   bloomLevel: '',
-  difficulty: null,
+  // Picker "O'rta" ko'rsatadi — yangi qoralama ham shu qiymat bilan tushadi.
+  difficulty: DEFAULT_DIFFICULTY,
   blankAnswers: [''],
   matchingPairs: [{ left: '', right: '' }, { left: '', right: '' }],
 };
@@ -82,6 +92,7 @@ export default function QuestionBankPage() {
   const [wizardSubjectId, setWizardSubjectId] = useState('');
   const [wizardStep, setWizardStep] = useState<'questions' | 'ai-import' | 'review'>('questions');
   const [drafts, setDrafts] = useState<DraftQuestion[]>([{ ...emptyDraft }]);
+  const t = useTranslations('teacherQuestionForm');
   const [activeDraft, setActiveDraft] = useState(0);
   const [showOnlyLowConfidence, setShowOnlyLowConfidence] = useState(false);
   // Import natijasi ustoz "qo'shish yoki almashtirish" ni tanlaguncha kutadi
@@ -374,7 +385,7 @@ export default function QuestionBankPage() {
               <AiImportPanel
                 onImported={handleAiImported}
                 title="AI bilan savol import qilish"
-                subtitle="Matn kiriting yoki rasm/fayl yuklang — AI savollarni mavzu/Bloom/qiyinlik darajasi bilan birga ajratib beradi"
+                subtitle="Matn kiriting yoki rasm/fayl yuklang — AI savollarni mavzu va qiyinlik darajasi bilan birga ajratib beradi"
               />
               <ImportImageAttach questions={drafts} onChange={setDrafts} />
             </div>
@@ -428,8 +439,11 @@ export default function QuestionBankPage() {
                       {q.subject.icon} {q.subject.nameUz}
                     </span>
                     {q.topic && <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">{q.topic}</span>}
-                    {q.bloomLevel && <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600">{q.bloomLevel}</span>}
-                    {q.difficulty && <span className="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-600">Qiyinlik: {q.difficulty}/5</span>}
+                    {bandOf(q.difficulty) && (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-600">
+                        {t(BAND_BADGE_KEY[bandOf(q.difficulty)!])}
+                      </span>
+                    )}
                     {q.type === 'OPEN_ENDED' && <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">Ochiq</span>}
                     {q.type === 'MULTI_SELECT' && <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">Ko&apos;p tanlovli</span>}
                     {q.type === 'TRUE_FALSE' && <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">T/N</span>}
