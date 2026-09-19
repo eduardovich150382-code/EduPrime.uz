@@ -49,7 +49,8 @@ function ConfidenceSummary({ questions }: { questions: AIImportedQuestion[] }) {
  * Matn/rasm/fayl (PDF, DOCX, TXT) orqali AI (Gemini) yordamida savol import
  * qilish paneli — test yaratish va Savollar bazasi sahifalari o'rtasida
  * qayta ishlatiladi. `/api/ai/import` bitta umumiy endpointdan foydalanadi
- * (mavzu/Bloom/qiyinlik darajasini ham avtomatik qaytaradi).
+ * (mavzu/qiyinlik, shuningdek ekranda ko'rinmaydigan Bloom darajasini ham
+ * avtomatik qaytaradi).
  */
 export default function AiImportPanel({
   onImported,
