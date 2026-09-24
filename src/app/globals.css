@@ -26,6 +26,17 @@
   body {
     @apply bg-background text-text-primary font-sans antialiased;
   }
+
+  /* To'liq ekran rejimi. Fullscreen elementi sahifa aylanishini meros qilib
+     olmaydi va foni qora bo'lib qoladi — shuning uchun o'lchami, foni va
+     aylanishi shu yerda aniq beriladi. Busiz uzun savol yoki rasmli savolning
+     variantlari ekrandan chiqib ketadi va ularga yetib bo'lmaydi. */
+  :fullscreen {
+    @apply bg-background overflow-y-auto;
+    width: 100%;
+    height: 100%;
+    padding: 1rem 1.5rem 3rem;
+  }
 }
 
 @layer components {

@@ -1,0 +1,14 @@
+<svg viewBox="0 0 420 280" xmlns="http://www.w3.org/2000/svg"><title>Platforma chetidan chiqib turgan balka</title><defs><marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0 0 L7 3 L0 6 z" fill="#F97316"/></marker><marker id="ax" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0 0 L7 3 L0 6 z" fill="#334155"/></marker></defs>
+<rect x="60" y="150" width="200" height="60" fill="#BFDBFE" stroke="#1E3A8A" stroke-width="2"/>
+<rect x="160" y="133" width="150" height="17" fill="#334155" rx="2"/>
+<circle cx="235" cy="141" r="4" fill="#FFFFFF" stroke="#0EA5E9" stroke-width="2"/>
+<line x1="235" y1="152" x2="235" y2="205" stroke="#F97316" stroke-width="2.5" marker-end="url(#ar)"/>
+<line x1="310" y1="72" x2="310" y2="127" stroke="#F97316" stroke-width="2.5" marker-end="url(#ar)"/>
+<circle cx="260" cy="150" r="4" fill="#FFFFFF" stroke="#1E3A8A" stroke-width="2"/>
+<g stroke="#94A3B8" stroke-width="1.2">
+<line x1="260" y1="230" x2="310" y2="230"/><line x1="260" y1="222" x2="260" y2="238"/><line x1="310" y1="222" x2="310" y2="238"/>
+<line x1="160" y1="230" x2="260" y2="230"/><line x1="160" y1="222" x2="160" y2="238"/></g>
+<g font-family="Inter, Segoe UI, Arial, sans-serif" font-size="13" fill="#334155">
+<text x="316" y="102" fill="#F97316">F</text><text x="228" y="128">C</text><text x="246" y="176" fill="#F97316">Mg</text><text x="264" y="172">O</text>
+<text x="272" y="252">L/3</text><text x="192" y="252">2L/3</text>
+<text x="140" y="112">M = 120 kg</text></g></svg>

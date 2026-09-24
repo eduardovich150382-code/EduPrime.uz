@@ -1,0 +1,14 @@
+<svg viewBox="0 0 420 280" xmlns="http://www.w3.org/2000/svg"><title>Tezlik-vaqt grafigi</title><defs><marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0 0 L7 3 L0 6 z" fill="#F97316"/></marker><marker id="ax" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0 0 L7 3 L0 6 z" fill="#334155"/></marker></defs>
+<line x1="50" y1="250" x2="370" y2="250" stroke="#94A3B8" stroke-width="1.2" stroke-dasharray="4 3"/>
+<line x1="50" y1="70" x2="274" y2="70" stroke="#94A3B8" stroke-width="1.2" stroke-dasharray="4 3"/>
+<line x1="40" y1="190" x2="400" y2="190" stroke="#334155" stroke-width="2" marker-end="url(#ax)"/>
+<line x1="50" y1="268" x2="50" y2="45" stroke="#334155" stroke-width="2" marker-end="url(#ax)"/>
+<polyline points="50,190 146,70 274,70 338,190 370,250" fill="none" stroke="#1E3A8A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<g stroke="#334155" stroke-width="1.2">
+<line x1="146" y1="190" x2="146" y2="195"/><line x1="274" y1="190" x2="274" y2="195"/>
+<line x1="338" y1="190" x2="338" y2="195"/><line x1="370" y1="190" x2="370" y2="195"/>
+<line x1="50" y1="70" x2="45" y2="70"/><line x1="50" y1="250" x2="45" y2="250"/></g>
+<g font-family="Inter, Segoe UI, Arial, sans-serif" font-size="13" fill="#334155">
+<text x="141" y="208">3</text><text x="269" y="208">7</text><text x="333" y="208">9</text><text x="362" y="208">10</text>
+<text x="26" y="74">12</text><text x="22" y="254">-6</text>
+<text x="380" y="218">t, s</text><text x="58" y="56">v, m/s</text></g></svg>
