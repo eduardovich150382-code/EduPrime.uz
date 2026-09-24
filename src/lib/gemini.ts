@@ -8,6 +8,14 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 const BLOOM_VALUES = ['BILISH', 'TUSHUNISH', 'QOLLASH', 'TAHLIL', 'BAHOLASH', 'YARATISH'];
 
+/**
+ * Import promptining nozik joyi — "explanation" (16 va 17-qoidalar).
+ *
+ * Muallif yechimi o'qituvchi tekshiruvidan o'tgan matn, modelning qayta yozgan
+ * varianti esa yo'q: unda qadam tushib qolishi yoki noto'g'ri xulosa paydo
+ * bo'lishi mumkin. Shuning uchun matnda yechim bo'lsa u o'zgarmasin, bo'lmasa
+ * bo'sh qolsin — soxta tushuntirish yechim yo'qligidan yomonroq.
+ */
 const IMPORT_PROMPT = `Sen test savollarini tahlil qiluvchi AI assistantsan.
 
 Berilgan matndan/fayldan test savollarini ajratib ol va quyidagi JSON formatda qaytar:
@@ -24,7 +32,7 @@ Berilgan matndan/fayldan test savollarini ajratib ol va quyidagi JSON formatda q
         {"label": "D", "text": "Variant matni", "image": null}
       ],
       "correctAnswer": "A",
-      "explanation": "Yechim (LaTeX formatda, ixtiyoriy)",
+      "explanation": "Matndagi muallif yechimi AYNAN; matnda yechim bo'lmasa bo'sh satr",
       "topic": "qisqa mavzu tegi (2-4 so'z, masalan: Kvadrat tenglama)",
       "bloomLevel": "QOLLASH",
       "difficulty": 3,
@@ -35,7 +43,7 @@ Berilgan matndan/fayldan test savollarini ajratib ol va quyidagi JSON formatda q
       "type": "OPEN_ENDED",
       "options": [],
       "correctAnswer": "1024",
-      "explanation": "$2^{10} = 1024$",
+      "explanation": "",
       "topic": "Darajali ifodalar",
       "bloomLevel": "BILISH",
       "difficulty": 1,
@@ -61,7 +69,15 @@ QOIDALAR:
 12. Agar savolda A), B), C), D) variantlar berilgan bo'lsa — bu MULTIPLE_CHOICE
 13. Har bir savol uchun "topic", "bloomLevel" va "difficulty" maydonlarini ALBATTA to'ldir — bo'sh qoldirma
 14. difficulty — 1 dan 5 gacha butun son: bir bosqichli hisob/eslab qolish = 1-2, ko'p bosqichli fikrlash yoki chuqur tahlil = 4-5
-15. bloomLevel faqat quyidagilardan biri bo'lishi kerak: ${BLOOM_VALUES.join(', ')}`;
+15. bloomLevel faqat quyidagilardan biri bo'lishi kerak: ${BLOOM_VALUES.join(', ')}
+16. YECHIM — MUALLIF MATNI. Savoldan keyin "Yechim:", "Yechish:", "Решение:",
+    "Solution:" yoki shu ma'nodagi sarlavha bilan boshlanadigan qism bo'lsa, uni
+    "explanation" ga AYNAN ko'chir. QISQARTIRMA, qayta yozma, xulosa qilma,
+    TARJIMA QILMA — manba tilida qoldir. Ko'p qatorli bo'lsa qatorlarni saqla.
+    O'zgartirishga ruxsat berilgan yagona narsa — formulalarni LaTeX $...$ ga
+    o'girish. Sarlavhaning o'zini ("Yechim:") ko'chirmasa ham bo'ladi.
+17. Matnda yechim bo'lmasa "explanation": "" — O'ZINGDAN yechim YOZMA. Yechimsiz
+    savol normal holat, bu xato emas`;
 
 /**
  * Uchala importTestFrom* funksiya bir xil "JSON ajratib olish + parse qilish +

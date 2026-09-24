@@ -1,0 +1,11 @@
+<svg viewBox="0 0 420 280" xmlns="http://www.w3.org/2000/svg"><title>Tezlanish bilan kotarilayotgan lift ichidagi qiya tekislik</title><defs><marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0 0 L7 3 L0 6 z" fill="#F97316"/></marker><marker id="ax" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0 0 L7 3 L0 6 z" fill="#334155"/></marker></defs>
+<line x1="210" y1="14" x2="210" y2="40" stroke="#334155" stroke-width="2"/>
+<rect x="110" y="40" width="200" height="180" fill="none" stroke="#334155" stroke-width="2" rx="4"/>
+<line x1="110" y1="205" x2="310" y2="205" stroke="#334155" stroke-width="2"/>
+<path d="M150 205 L240 205 L240 49 Z" fill="#BFDBFE" stroke="#1E3A8A" stroke-width="2" stroke-linejoin="round"/>
+<g transform="translate(197,125) rotate(-60)"><rect x="-19" y="-15" width="38" height="15" fill="#334155" rx="2"/></g>
+<path d="M186 205 A36 36 0 0 0 168 174" fill="none" stroke="#1E3A8A" stroke-width="1.2"/>
+<line x1="355" y1="195" x2="355" y2="105" stroke="#F97316" stroke-width="2.5" marker-end="url(#ar)"/>
+<g font-family="Inter, Segoe UI, Arial, sans-serif" font-size="13" fill="#334155">
+<text x="192" y="199">60°</text><text x="140" y="112">m = 4 kg</text>
+<text x="363" y="150" fill="#F97316">a</text><text x="122" y="60">lift</text></g></svg>

@@ -76,7 +76,7 @@ export default function QuestionDisplay({
 
         {/* Question images */}
         {images.length > 0 && (
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap justify-center gap-3">
             {images.map((img, i) => (
               <div
                 key={i}
@@ -86,7 +86,7 @@ export default function QuestionDisplay({
                 <img
                   src={img}
                   alt={`Savol rasmi ${i + 1}`}
-                  className="max-h-64 w-auto object-contain"
+                  className="max-h-80 sm:max-h-96 w-auto object-contain"
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
                   <ZoomIn size={24} className="text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg" />

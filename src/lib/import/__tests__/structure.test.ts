@@ -356,6 +356,40 @@ describe("structureBatch", () => {
   });
 });
 
+describe("normalizeStructured — muallif yechimi", () => {
+  it("ko'p qatorli LaTeX'li yechim aynan saqlanadi", () => {
+    const solution = [
+      "Yechim:",
+      "$a = \\frac{v - v_0}{t} = \\frac{20}{4} = 5\\ \\text{m/s}^2$",
+      "",
+      "Javob: $5\\ \\text{m/s}^2$",
+    ].join("\n");
+
+    const result = normalizeStructured(
+      {
+        text: "Tezlanishni toping",
+        options: [],
+        correctAnswer: "5",
+        explanation: solution,
+        type: "OPEN_ENDED",
+        notQuestion: false,
+      },
+      input(),
+    );
+
+    expect(result.explanation).toBe(solution);
+  });
+
+  it("yechim bo'lmasa explanation bo'sh qoladi", () => {
+    const result = normalizeStructured(
+      { text: "S", options: [], correctAnswer: "5", type: "OPEN_ENDED", notQuestion: false },
+      input(),
+    );
+
+    expect(result.explanation).toBe("");
+  });
+});
+
 describe("buildStructurePrompt", () => {
   it("kalit berilganda tekshirish qoidasi bor, kalit yo'qda esa o'z yechimi", () => {
     const withKey = buildStructurePrompt(input({ givenKey: key("C"), keyIssue: null }));
@@ -365,6 +399,27 @@ describe("buildStructurePrompt", () => {
     const without = buildStructurePrompt(input());
     expect(without).toContain("NO_KEY_FOUND");
     expect(without).toContain("O'Z\n  yechimingni yoz");
+  });
+
+  it("muallif yechimini aynan ko'chirish qoidasi ikkala tarmoqda ham bor", () => {
+    const prompts = [
+      buildStructurePrompt(input()),
+      buildStructurePrompt(input({ givenKey: key("C"), keyIssue: null })),
+    ];
+
+    for (const prompt of prompts) {
+      expect(prompt).toContain("YECHIM (MUALLIF)");
+      expect(prompt).toContain("Yechim:");
+      expect(prompt).toContain("AYNAN ko'chir");
+      expect(prompt).toContain("O'ZINGDAN yechim YOZMA");
+    }
+  });
+
+  it("kalit bor tarmog'ida mismatch izohi faqat muallif yechimi yo'qda so'raladi", () => {
+    const withKey = buildStructurePrompt(input({ givenKey: key("C"), keyIssue: null }));
+
+    expect(withKey).toContain("matnda muallif yechimi bo'lsa");
+    expect(withKey).toContain("Muallif yechimi\n  yo'q bo'lsa");
   });
 
   it("rasm tokenlari ro'yxati va bbox promptga tushadi", () => {
