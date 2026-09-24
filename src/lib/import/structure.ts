@@ -196,8 +196,10 @@ function keyText(input: StructureInput): string {
 - Yechiming kalit bilan mos bo'lsa: "correctAnswer": "${input.givenKey.letter}",
   "answerMismatch": false.
 - Yechiming kalitdan FARQ qilsa: "correctAnswer" ga baribir KALITNI yoz
-  ("${input.givenKey.letter}") — o'qituvchi qaror qilsin, "answerMismatch": true qo'y va
-  "explanation" da nega senda boshqacha chiqqanini qisqa yoz.`;
+  ("${input.givenKey.letter}") — o'qituvchi qaror qilsin, "answerMismatch": true qo'y.
+- Farq bo'lgan holatda: matnda muallif yechimi bo'lsa "explanation" da AYNAN
+  o'sha yechim qolsin (farqni "answerMismatch" bildiradi). Muallif yechimi
+  yo'q bo'lsa — "explanation" da nega senda boshqacha chiqqanini qisqa yoz.`;
 }
 
 function imagesText(input: StructureInput): string {
@@ -270,6 +272,16 @@ TURI
   beriladigan bo'lsa ("tenglamasini yozing", "grafikni chizing") → OPEN_ENDED.
 - Standart qiymat sifatida MULTIPLE_CHOICE qo'yma — turini matndan aniqla.
 - OPEN_ENDED da "options" bo'sh massiv, "correctAnswer" esa javob matni.
+
+YECHIM (MUALLIF)
+- Savol matnidan keyin "Yechim:", "Yechish:", "Решение:", "Solution:" yoki shu
+  ma'nodagi sarlavha bilan boshlanadigan qism bo'lsa — uni "explanation" ga
+  AYNAN ko'chir. QISQARTIRMA, qayta yozma, xulosa qilma, TARJIMA QILMA.
+- Ko'p qatorli yechimning qatorlarini saqla. O'zgartirishga ruxsat berilgan
+  yagona narsa — yuqoridagi FORMULALAR qoidalari: Unicode glifini va tekis
+  yozilgan daraja/indeksni LaTeX $...$ ga o'girish.
+- Matnda yechim bo'lmasa "explanation": "" — O'ZINGDAN yechim YOZMA. Yechimsiz
+  savol normal holat.
 
 METAMA'LUMOT
 - "topicGuess" — qisqa mavzu tegi (2-4 so'z, masalan: Kvadrat tenglama).

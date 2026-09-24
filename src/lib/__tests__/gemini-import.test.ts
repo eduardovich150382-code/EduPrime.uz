@@ -7,6 +7,8 @@ const mocks = vi.hoisted(() => {
     /** Model nomi → chaqiruv xulqi. Berilmagan model muvaffaqiyatli javob beradi. */
     behavior: new Map<string, () => Promise<unknown>>(),
     called: [] as string[],
+    /** Har chaqiruvda modelga ketgan matnli qismlar — prompt qoidalarini tekshirish uchun. */
+    prompts: [] as string[],
   };
 });
 
@@ -14,8 +16,11 @@ vi.mock("@google/generative-ai", () => ({
   GoogleGenerativeAI: class {
     getGenerativeModel({ model }: { model: string }) {
       return {
-        generateContent: async () => {
+        generateContent: async (parts: unknown) => {
           mocks.called.push(model);
+          if (Array.isArray(parts)) {
+            mocks.prompts.push(parts.filter((part): part is string => typeof part === "string").join("\n"));
+          }
           const run = mocks.behavior.get(model);
           if (run) return run();
           return {
@@ -47,6 +52,7 @@ function reject(status: number, message: string) {
 beforeEach(() => {
   mocks.behavior.clear();
   mocks.called.length = 0;
+  mocks.prompts.length = 0;
   vi.clearAllMocks();
 });
 
@@ -105,5 +111,63 @@ describe("importTestFromText — model zanjiri", () => {
     expect(result.questions).toEqual([]);
     expect(result.errorCode).toBeUndefined();
     expect(result.warnings[0]).toContain("AI javobi to'liq kelmadi");
+  });
+});
+
+/** Ko'p qatorli, LaTeX'li muallif yechimi — import quvurida buzilmasligi kerak. */
+const AUTHOR_SOLUTION = [
+  "Yechim:",
+  "Tezlanish $a = \\frac{v - v_0}{t}$ formulasidan topiladi.",
+  "",
+  "1) $v_0 = 0$ bo'lgani uchun $a = \\frac{20}{4} = 5\\ \\text{m/s}^2$.",
+  "2) Yo'l: $S = \\frac{a t^2}{2} = 40\\ \\text{m}$.",
+  "",
+  "Javob: $a = 5\\ \\text{m/s}^2$, $S = 40\\ \\text{m}$.",
+].join("\n");
+
+function respondWith(question: Record<string, unknown>) {
+  return () =>
+    Promise.resolve({
+      response: { text: () => JSON.stringify({ questions: [question] }), usageMetadata: {} },
+    });
+}
+
+describe("importTestFromText — muallif yechimi", () => {
+  it("promptda yechimni aynan ko'chirish qoidasi bor", async () => {
+    await importTestFromText("1. 2+2?");
+
+    const prompt = mocks.prompts[0];
+    expect(prompt).toContain("Yechim:");
+    expect(prompt).toContain("Решение:");
+    expect(prompt).toContain("Solution:");
+    expect(prompt).toContain("AYNAN ko'chir");
+    expect(prompt).toContain("TARJIMA QILMA");
+    expect(prompt).toContain("O'ZINGDAN yechim YOZMA");
+  });
+
+  it("ko'p qatorli LaTeX'li yechim aynan qaytadi", async () => {
+    mocks.behavior.set(
+      "gemini-3.5-flash-lite",
+      respondWith({ text: "Savol", options: [], correctAnswer: "A", explanation: AUTHOR_SOLUTION }),
+    );
+
+    const result = await importTestFromText("1. ... Yechim: ...");
+
+    // Aynan teng: kesish, trim yoki qatorlarni yo'qotish bo'lmasin.
+    expect(result.questions[0].explanation).toBe(AUTHOR_SOLUTION);
+  });
+
+  it("yechim bo'sh kelsa bo'sh qoladi, maydon yo'q bo'lsa undefined", async () => {
+    mocks.behavior.set(
+      "gemini-3.5-flash-lite",
+      respondWith({ text: "Savol", options: [], correctAnswer: "A", explanation: "" }),
+    );
+    expect((await importTestFromText("1. 2+2?")).questions[0].explanation).toBe("");
+
+    mocks.behavior.set(
+      "gemini-3.5-flash-lite",
+      respondWith({ text: "Savol", options: [], correctAnswer: "A" }),
+    );
+    expect((await importTestFromText("1. 2+2?")).questions[0].explanation).toBeUndefined();
   });
 });
