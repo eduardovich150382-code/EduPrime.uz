@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 320" width="560" height="320" font-family="Arial, Helvetica, sans-serif"><title>Gorizontal sirtda brusok, kuch gorizontga α burchak ostida</title>
+<rect width="560" height="320" fill="#fff"/>
+<rect x="40" y="250" width="480" height="14" rx="0" fill="#e7d3a8" stroke="#78350f" stroke-width="3"/>
+<rect x="200" y="170" width="130" height="80" rx="3" fill="#60a5fa" stroke="#1e3a8a" stroke-width="3.5"/>
+<text x="232" y="236" font-size="24" fill="#111827" text-anchor="middle"><tspan font-style="italic">m</tspan></text>
+<line x1="265" y1="210" x2="427.8" y2="116" stroke="#F97316" stroke-width="5" stroke-linecap="round"/>
+<polygon points="438.2,110 422.1,112 428.4,123" fill="#F97316"/>
+<text x="457.3" y="99" font-size="24" fill="#F97316" text-anchor="middle"><tspan font-style="italic">F</tspan></text>
+<line x1="265" y1="210" x2="465" y2="210" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="7 6"/>
+<path d="M345,210 A80,80 0 0 0 334.3,170" stroke="#1e293b" stroke-width="2.8" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="365" y="198" font-size="22" fill="#111827" text-anchor="middle"><tspan font-style="italic">α</tspan></text>
+<line x1="150" y1="130" x2="218" y2="130" stroke="#0EA5E9" stroke-width="4" stroke-linecap="round"/>
+<polygon points="230,130 215,123.7 215,136.3" fill="#0EA5E9"/>
+<text x="110" y="136" font-size="19" fill="#111827" text-anchor="middle"><tspan font-style="italic">v</tspan> = const</text>
+</svg>

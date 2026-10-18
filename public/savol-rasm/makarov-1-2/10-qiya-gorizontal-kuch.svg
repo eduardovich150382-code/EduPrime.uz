@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 360" width="600" height="360" font-family="Arial, Helvetica, sans-serif"><title>Qiya tekislikdagi jismga tekislik va gorizont kesishish chizig'i bo'ylab kuch</title>
+<rect width="600" height="360" fill="#fff"/>
+<polygon points="40,300 480,300 590,300 150,300" fill="#f1f5f9" stroke="#64748b" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="80,300 440,300 550,150 190,150" fill="#dbeafe" stroke="#1e293b" stroke-width="4" stroke-linejoin="round"/>
+<line x1="550" y1="150" x2="550" y2="300" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="7 6"/>
+<line x1="440" y1="300" x2="550" y2="300" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="7 6"/>
+<text x="538" y="285" font-size="22" fill="#111827" text-anchor="middle"><tspan font-style="italic">α</tspan></text>
+<polygon points="260,243 340,243 364,211 284,211" fill="#f87171" stroke="#7f1d1d" stroke-width="3.5" stroke-linejoin="round"/>
+<text x="312" y="234" font-size="22" fill="#111827" text-anchor="middle"><tspan font-style="italic">m</tspan></text>
+<line x1="340" y1="227" x2="418" y2="227" stroke="#F97316" stroke-width="5" stroke-linecap="round"/>
+<polygon points="430,227 415,220.7 415,233.3" fill="#F97316"/>
+<text x="450" y="233" font-size="24" fill="#F97316" text-anchor="middle"><tspan font-style="italic">F</tspan></text>
+<text x="70" y="345" font-size="18" fill="#111827" text-anchor="start"><tspan font-style="italic">F</tspan> — kesishish chizig'iga parallel (gorizontal)</text>
+<text x="70" y="40" font-size="20" fill="#111827" text-anchor="start"><tspan font-style="italic">α</tspan> = 30°,  <tspan font-style="italic">m</tspan> = 2 kg,  <tspan font-style="italic">μ</tspan> = 0,8</text>
+</svg>

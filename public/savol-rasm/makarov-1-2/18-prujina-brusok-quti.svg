@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 580 300" width="580" height="300" font-family="Arial, Helvetica, sans-serif"><title>Devorga prujina bilan bog'langan brusok va uning ustidagi quti</title>
+<rect width="580" height="300" fill="#fff"/>
+<rect x="40" y="240" width="520" height="14" rx="0" fill="#e7d3a8" stroke="#78350f" stroke-width="3"/>
+<rect x="64" y="110" width="16" height="130" rx="0" fill="#e7d3a8" stroke="#78350f" stroke-width="3"/>
+<path d="M80,205 L100.4,205 L106.9,219 L119.8,191 L132.7,219 L145.6,191 L158.5,219 L171.5,191 L184.4,219 L197.3,191 L210.2,219 L223.1,191 L229.6,205 L250,205" stroke="#475569" stroke-width="3.5" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="250" y="170" width="160" height="70" rx="3" fill="#60a5fa" stroke="#1e3a8a" stroke-width="3.5"/>
+<text x="330" y="214" font-size="24" fill="#111827" text-anchor="middle"><tspan font-style="italic">M</tspan></text>
+<rect x="340" y="132" width="56" height="38" rx="3" fill="#fde68a" stroke="#78350f" stroke-width="3.5"/>
+<text x="368" y="158" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">m</tspan></text>
+<line x1="410" y1="272" x2="471.2" y2="272" stroke="#64748b" stroke-width="2.5" stroke-linecap="round"/>
+<polygon points="480,272 469,267.4 469,276.6" fill="#64748b"/>
+<line x1="480" y1="272" x2="418.8" y2="272" stroke="#64748b" stroke-width="2.5" stroke-linecap="round"/>
+<polygon points="410,272 421,276.6 421,267.4" fill="#64748b"/>
+<text x="445" y="296" font-size="20" fill="#111827" text-anchor="middle">Δ<tspan font-style="italic">l</tspan></text>
+<line x1="410" y1="250" x2="410" y2="285" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 4"/>
+<line x1="480" y1="250" x2="480" y2="285" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 4"/>
+<text x="100" y="70" font-size="19" fill="#111827" text-anchor="start"><tspan font-style="italic">k</tspan> = 600 N/m</text>
+</svg>

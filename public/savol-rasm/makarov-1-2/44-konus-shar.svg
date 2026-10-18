@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" width="640" height="360" font-family="Arial, Helvetica, sans-serif"><title>Silliq konus sirtida ip bilan cho'qqiga bog'langan sharcha</title>
+<rect width="640" height="360" fill="#fff"/>
+<rect x="15" y="310" width="610" height="14" rx="0" fill="#e7d3a8" stroke="#78350f" stroke-width="3"/>
+<path d="M320,140 L25.551362713290928,310 L614.4486372867091,310 Z" stroke="#334155" stroke-width="4" fill="#e2e8f0" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="320" y1="140" x2="320" y2="310" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="8 6"/>
+<line x1="320" y1="140" x2="467.2" y2="225" stroke="#111827" stroke-width="3" stroke-linecap="round"/>
+<circle cx="475.2" cy="211.1" r="16" fill="#f87171" stroke="#7f1d1d" stroke-width="3.5"/>
+<path d="M320,200 A60,60 0 0 0 372,170" stroke="#1e293b" stroke-width="2.8" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="354" y="210" font-size="22" fill="#111827" text-anchor="middle"><tspan font-style="italic">α</tspan></text>
+<text x="415.1" y="170.9" font-size="22" fill="#111827" text-anchor="middle"><tspan font-style="italic">l</tspan></text>
+<text x="40" y="40" font-size="20" fill="#111827" text-anchor="start">2<tspan font-style="italic">α</tspan> = 120°</text>
+</svg>

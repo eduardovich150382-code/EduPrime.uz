@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 340" width="560" height="340" font-family="Arial, Helvetica, sans-serif"><title>Yarim sfera: chap yarmi silliq, o'ng yarmi g'adir-budir</title>
+<rect width="560" height="340" fill="#fff"/>
+<path d="M58,80 A222,222 0 0 0 502,80 L480,80 A200,200 0 0 1 80,80 Z" stroke="#1e293b" stroke-width="3.5" fill="#e2e8f0" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M80,80 A200,200 0 0 0 280,280" stroke="#0EA5E9" stroke-width="6" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M280,280 A200,200 0 0 0 480,80" stroke="#b45309" stroke-width="7" fill="none" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="3 6"/>
+<line x1="280" y1="80" x2="280" y2="280" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
+<circle cx="94" cy="84" r="12" fill="#f87171" stroke="#7f1d1d" stroke-width="3.5"/>
+<text x="175" y="175" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">μ</tspan> = 0</text>
+<text x="385" y="175" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">μ</tspan> = 0,2</text>
+<line x1="280" y1="80" x2="480" y2="80" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
+<text x="380" y="70" font-size="22" fill="#111827" text-anchor="middle"><tspan font-style="italic">R</tspan></text>
+</svg>
