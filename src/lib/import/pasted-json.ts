@@ -111,6 +111,13 @@ function latexUnbalanced(parts: string[]): boolean {
   return (joined.match(/\$/g) ?? []).length % 2 !== 0;
 }
 
+/** Faqat satr elementlarni qoldiradi; massiv bo'lmasa — `undefined`. */
+function stringList(value: unknown): string[] | undefined {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === 'string')
+    : undefined;
+}
+
 export function parsePastedQuestions(text: string): PastedParseResult {
   const failed = (code: PastedProblemCode, totalSeen = 0): PastedParseResult => ({
     questions: [],
@@ -233,9 +240,10 @@ export function parsePastedQuestions(text: string): PastedParseResult {
       options: type === 'OPEN_ENDED' ? [] : options,
       correctAnswer,
       explanation: typeof raw.explanation === 'string' ? raw.explanation : undefined,
-      images: Array.isArray(raw.images)
-        ? raw.images.filter((image): image is string => typeof image === 'string')
-        : undefined,
+      images: stringList(raw.images),
+      // Yechim rasmlari (kitobdagi yechim chizmalari). Ilgari bu maydon
+      // jimgina tashlab yuborilardi va ustoz har savolga qo'lda yuklardi.
+      explanationImages: stringList(raw.explanationImages),
       type,
       topic: str(raw.topic).slice(0, 100),
       bloomLevel: str(raw.bloomLevel),

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 330" width="460" height="330" font-family="Arial, Helvetica, sans-serif"><title>Nomarkaziy to'qnashuv: tezliklar</title>
+<rect width="460" height="330" fill="#fff"/>
+<line x1="40" y1="170" x2="430.4" y2="170" stroke="#64748B" stroke-width="2.4" stroke-linecap="round"/>
+<polygon points="440,170 428,175.4 428,164.6" fill="#64748B"/>
+<text x="440" y="196" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">x</tspan></text>
+<line x1="230" y1="320" x2="230" y2="29.6" stroke="#64748B" stroke-width="2.4" stroke-linecap="round"/>
+<polygon points="230,20 235.4,32 224.6,32" fill="#64748B"/>
+<text x="214" y="30" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">y</tspan></text>
+<circle cx="80" cy="170" r="11" fill="#EF4444" stroke="#334155" stroke-width="3"/>
+<text x="80" y="148" font-size="20" fill="#111827" text-anchor="middle" font-weight="bold">1</text>
+<line x1="94" y1="170" x2="178" y2="170" stroke="#F97316" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="190,170 175,176.8 175,163.2" fill="#F97316"/>
+<text x="140" y="200" font-size="21" fill="#111827" text-anchor="middle"><tspan font-style="italic">v</tspan>⃗₁</text>
+<circle cx="400" cy="140" r="11" fill="#0EA5E9" stroke="#334155" stroke-width="3"/>
+<text x="400" y="118" font-size="20" fill="#111827" text-anchor="middle" font-weight="bold">2</text>
+<line x1="386" y1="140" x2="302" y2="140" stroke="#2563EB" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="290,140 305,133.2 305,146.8" fill="#2563EB"/>
+<text x="340" y="126" font-size="21" fill="#111827" text-anchor="middle"><tspan font-style="italic">v</tspan>⃗₂</text>
+<line x1="230" y1="170" x2="230" y2="82" stroke="#16A34A" stroke-width="5" stroke-linecap="round"/>
+<polygon points="230,70 236.8,85 223.2,85" fill="#16A34A"/>
+<text x="216" y="90" font-size="21" fill="#111827" text-anchor="end"><tspan font-style="italic">u</tspan>⃗₁</text>
+<line x1="230" y1="170" x2="265.5" y2="258.9" stroke="#A855F7" stroke-width="5" stroke-linecap="round"/>
+<polygon points="270,270 258.2,258.6 270.7,253.6" fill="#A855F7"/>
+<text x="280" y="262" font-size="21" fill="#111827" text-anchor="start"><tspan font-style="italic">u</tspan>⃗₂</text>
+<circle cx="230" cy="170" r="6" fill="#1f2937"/>
+</svg>

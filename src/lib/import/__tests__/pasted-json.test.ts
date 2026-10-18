@@ -66,6 +66,19 @@ describe("parsePastedQuestions — chat shakli", () => {
   });
 });
 
+describe("parsePastedQuestions — yechim rasmlari", () => {
+  it("explanationImages ni o'tkazadi, satr bo'lmaganlarini tashlaydi", () => {
+    const raw = JSON.stringify([
+      chatItem({ images: ["/savol-rasm/a.svg"], explanationImages: ["/savol-rasm/a-yechim.svg", 5] }),
+      chatItem(),
+    ]);
+    const [withImages, plain] = parsePastedQuestions(raw).questions;
+    expect(withImages.images).toEqual(["/savol-rasm/a.svg"]);
+    expect(withImages.explanationImages).toEqual(["/savol-rasm/a-yechim.svg"]);
+    expect(plain.explanationImages).toBeUndefined();
+  });
+});
+
 describe("parsePastedQuestions — API shakli", () => {
   it("yorliqlarni indeksdan qayta qo'yadi va ixtiyoriy maydonlarni o'tkazadi", () => {
     const raw = JSON.stringify({

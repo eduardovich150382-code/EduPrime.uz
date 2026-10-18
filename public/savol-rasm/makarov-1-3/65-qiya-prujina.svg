@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 300" width="520" height="300" font-family="Arial, Helvetica, sans-serif"><title>Qiya tekislikda brusok va prujina</title>
+<rect width="520" height="300" fill="#fff"/>
+<polygon points="50,260 431.1,260 431.1,40" fill="#E2E8F0" stroke="#334155" stroke-width="4" stroke-linejoin="round"/>
+<path d="M120,260 A70,70 0 0 0 110.6,225" fill="none" stroke="#1f2937" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="135" y="244.2" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">α</tspan></text>
+<line x1="67.3" y1="250" x2="47.3" y2="215.4" stroke="#334155" stroke-width="6" stroke-linecap="round"/>
+<polyline points="58.3,234.4 67.8,228.9 75.2,236.2 70,216.1 84.8,230.7 79.5,210.6 94.3,225.2 89,205.1 103.8,219.7 98.6,199.6 113.3,214.2 108.1,194.1 122.9,208.7 117.6,188.6 132.4,203.2 127.1,183.1 141.9,197.7 136.7,177.6 144.1,184.9 153.6,179.4" fill="none" stroke="#475569" stroke-width="3" stroke-linejoin="round"/>
+<text x="85.6" y="181.7" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">k</tspan>, <tspan font-style="italic">l</tspan></text>
+<polygon points="379.1,70 409.4,52.5 396.4,30 366.1,47.5" fill="#EF4444" stroke="#334155" stroke-width="3" stroke-linejoin="round"/>
+<text x="373.4" y="20.2" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">m</tspan></text>
+<line x1="394.7" y1="61" x2="394.7" y2="260" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
+<line x1="370.7" y1="69.8" x2="370.7" y2="251.2" stroke="#64748B" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="370.7,260 365.7,249 375.6,249" fill="#64748B"/>
+<polygon points="370.7,61 375.6,72 365.7,72" fill="#64748B"/>
+<text x="358.7" y="166.5" font-size="22" fill="#111827" text-anchor="end"><tspan font-style="italic">H</tspan></text>
+<text x="300" y="280" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">μ</tspan></text>
+</svg>

@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 380" width="360" height="380" font-family="Arial, Helvetica, sans-serif"><title>Blok orqali osilgan ikki yuk</title>
+<rect width="360" height="380" fill="#fff"/>
+<line x1="120" y1="30" x2="240" y2="30" stroke="#334155" stroke-width="4" stroke-linecap="butt"/>
+<line x1="124" y1="28" x2="134" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="138" y1="28" x2="148" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="152" y1="28" x2="162" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="166" y1="28" x2="176" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="180" y1="28" x2="190" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="194" y1="28" x2="204" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="208" y1="28" x2="218" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="222" y1="28" x2="232" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="236" y1="28" x2="246" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="180" y1="30" x2="180" y2="80" stroke="#334155" stroke-width="4" stroke-linecap="round"/>
+<circle cx="180" cy="80" r="40" fill="#CBD5E1" stroke="#334155" stroke-width="3.5"/>
+<circle cx="180" cy="80" r="5" fill="#334155"/>
+<line x1="140" y1="80" x2="140" y2="230" stroke="#7C5A3A" stroke-width="3" stroke-linecap="round"/>
+<line x1="220" y1="80" x2="220" y2="230" stroke="#7C5A3A" stroke-width="3" stroke-linecap="round"/>
+<rect x="118" y="230" width="44" height="40" rx="3" fill="#EF4444" stroke="#334155" stroke-width="3.5"/>
+<rect x="198" y="230" width="44" height="40" rx="3" fill="#0EA5E9" stroke="#334155" stroke-width="3.5"/>
+<text x="105" y="258" font-size="22" fill="#111827" text-anchor="end"><tspan font-style="italic">m</tspan>₁</text>
+<text x="256" y="258" font-size="22" fill="#111827" text-anchor="start"><tspan font-style="italic">m</tspan>₂</text>
+<line x1="60" y1="350" x2="300" y2="350" stroke="#334155" stroke-width="4" stroke-linecap="butt"/>
+<line x1="66" y1="352" x2="55" y2="363" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="82" y1="352" x2="71" y2="363" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="98" y1="352" x2="87" y2="363" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="114" y1="352" x2="103" y2="363" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="130" y1="352" x2="119" y2="363" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="146" y1="352" x2="135" y2="363" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="162" y1="352" x2="151" y2="363" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="178" y1="352" x2="167" y2="363" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="194" y1="352" x2="183" y2="363" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="210" y1="352" x2="199" y2="363" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="226" y1="352" x2="215" y2="363" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="242" y1="352" x2="231" y2="363" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="258" y1="352" x2="247" y2="363" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="274" y1="352" x2="263" y2="363" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="290" y1="352" x2="279" y2="363" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="198" y1="270" x2="300" y2="270" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
+<line x1="285" y1="280.8" x2="285" y2="339.2" stroke="#64748B" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="285,348 280.1,337 289.9,337" fill="#64748B"/>
+<polygon points="285,272 289.9,283 280.1,283" fill="#64748B"/>
+<text x="300" y="318" font-size="22" fill="#111827" text-anchor="start"><tspan font-style="italic">h</tspan></text>
+</svg>

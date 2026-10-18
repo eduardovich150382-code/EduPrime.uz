@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 320" width="460" height="320" font-family="Arial, Helvetica, sans-serif"><title>Pona va shar tezliklari</title>
+<rect width="460" height="320" fill="#fff"/>
+<line x1="117" y1="20.9" x2="411.9" y2="227.4" stroke="#334155" stroke-width="3" stroke-linecap="round"/>
+<line x1="330" y1="170" x2="122" y2="170" stroke="#2563EB" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="110,170 125,163.2 125,176.8" fill="#2563EB"/>
+<text x="140" y="196" font-size="21" fill="#111827" text-anchor="middle"><tspan font-style="italic">v</tspan>⃗₀</text>
+<line x1="330" y1="170" x2="192.2" y2="73.5" stroke="#16A34A" stroke-width="4" stroke-linecap="round"/>
+<polygon points="182.4,66.6 198.5,69.7 190.8,80.8" fill="#16A34A"/>
+<text x="188.4" y="54.6" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">v</tspan>⃗<tspan font-size="14" dy="5">∥</tspan><tspan dy="-5"> </tspan></text>
+<line x1="330" y1="170" x2="369" y2="114.3" stroke="#A855F7" stroke-width="4" stroke-linecap="round"/>
+<polygon points="375.9,104.5 372.8,120.6 361.8,112.9" fill="#A855F7"/>
+<text x="385.9" y="108.5" font-size="21" fill="#111827" text-anchor="start"><tspan font-style="italic">u</tspan>⃗</text>
+<line x1="330" y1="170" x2="234.5" y2="11.4" stroke="#F97316" stroke-width="5" stroke-linecap="round"/>
+<polygon points="228.3,1.1 241.8,10.5 230.2,17.4" fill="#F97316"/>
+<text x="220.3" y="-8.9" font-size="22" fill="#111827" text-anchor="middle"><tspan font-style="italic">v</tspan>⃗</text>
+<line x1="182.4" y1="66.6" x2="228.3" y2="1.1" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 4"/>
+<line x1="375.9" y1="104.5" x2="228.3" y2="1.1" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 4"/>
+<line x1="110" y1="280" x2="42" y2="280" stroke="#EF4444" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="30,280 45,273.2 45,286.8" fill="#EF4444"/>
+<text x="70" y="268" font-size="21" fill="#111827" text-anchor="middle"><tspan font-style="italic">U</tspan>⃗</text>
+<path d="M280.9,135.6 A60,60 0 0 0 270,170" fill="none" stroke="#1f2937" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="255.6" y="153.5" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">α</tspan></text>
+</svg>

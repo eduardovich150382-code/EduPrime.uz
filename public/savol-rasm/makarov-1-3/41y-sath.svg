@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 420" width="500" height="420" font-family="Arial, Helvetica, sans-serif"><title>Tros bo'laklarining og'irlik markazlari</title>
+<rect width="500" height="420" fill="#fff"/>
+<line x1="150" y1="30" x2="250" y2="30" stroke="#334155" stroke-width="4" stroke-linecap="butt"/>
+<line x1="154" y1="28" x2="164" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="168" y1="28" x2="178" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="182" y1="28" x2="192" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="196" y1="28" x2="206" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="210" y1="28" x2="220" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="224" y1="28" x2="234" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="238" y1="28" x2="248" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<circle cx="200" cy="70" r="36" fill="#CBD5E1" stroke="#334155" stroke-width="3.5"/>
+<circle cx="200" cy="70" r="5" fill="#334155"/>
+<line x1="40" y1="340" x2="460" y2="340" stroke="#94A3B8" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="8 6"/>
+<text x="30" y="346" font-size="20" fill="#111827" text-anchor="end"><tspan font-style="italic">O</tspan></text>
+<text x="470" y="346" font-size="20" fill="#111827" text-anchor="start"><tspan font-style="italic">O</tspan>₁</text>
+<line x1="40" y1="120" x2="460" y2="120" stroke="#94A3B8" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="8 6"/>
+<text x="30" y="126" font-size="20" fill="#111827" text-anchor="end"><tspan font-style="italic">A</tspan></text>
+<text x="470" y="126" font-size="20" fill="#111827" text-anchor="start"><tspan font-style="italic">A</tspan>₁</text>
+<line x1="164" y1="70" x2="164" y2="340" stroke="#7C5A3A" stroke-width="3" stroke-linecap="round" stroke-dasharray="6 5"/>
+<rect x="140" y="340" width="48" height="60" rx="3" fill="none" stroke="#94A3B8" stroke-width="2.5"/>
+<line x1="164" y1="70" x2="164" y2="220" stroke="#7C5A3A" stroke-width="3.5" stroke-linecap="round"/>
+<rect x="140" y="220" width="48" height="60" rx="3" fill="#0EA5E9" stroke="#334155" stroke-width="3.5"/>
+<text x="164" y="256" font-size="20" fill="#111827" text-anchor="middle">К</text>
+<line x1="236" y1="70" x2="236" y2="240" stroke="#7C5A3A" stroke-width="3.5" stroke-linecap="round"/>
+<rect x="222" y="240" width="28" height="80" rx="3" fill="#475569" stroke="#334155" stroke-width="3.5"/>
+<text x="260" y="286" font-size="20" fill="#111827" text-anchor="start">П</text>
+<line x1="110" y1="331.2" x2="110" y2="228.8" stroke="#64748B" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="110,220 115,231 105,231" fill="#64748B"/>
+<polygon points="110,340 105,329 115,329" fill="#64748B"/>
+<text x="98" y="286" font-size="21" fill="#111827" text-anchor="end"><tspan font-style="italic">h</tspan></text>
+<line x1="330" y1="128.8" x2="330" y2="231.2" stroke="#64748B" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="330,240 325.1,229 334.9,229" fill="#64748B"/>
+<polygon points="330,120 334.9,131 325.1,131" fill="#64748B"/>
+<text x="342" y="186" font-size="21" fill="#111827" text-anchor="start"><tspan font-style="italic">h</tspan></text>
+<circle cx="236" cy="180" r="7" fill="#EF4444"/>
+<circle cx="164" cy="170" r="7" fill="#EF4444"/>
+<text x="150" y="176" font-size="17" fill="#111827" text-anchor="end">(<tspan font-style="italic">H</tspan>+<tspan font-style="italic">h</tspan>)/2</text>
+<text x="250" y="186" font-size="17" fill="#111827" text-anchor="start"><tspan font-style="italic">H</tspan>−<tspan font-style="italic">h</tspan>/2</text>
+</svg>

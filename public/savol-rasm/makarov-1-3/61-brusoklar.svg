@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 240" width="500" height="240" font-family="Arial, Helvetica, sans-serif"><title>Ikki brusok va ikki sharcha</title>
+<rect width="500" height="240" fill="#fff"/>
+<line x1="20" y1="100" x2="480" y2="100" stroke="#334155" stroke-width="4" stroke-linecap="butt"/>
+<rect x="210" y="54" width="56" height="46" rx="3" fill="#D6A15C" stroke="#334155" stroke-width="3.5"/>
+<rect x="330" y="54" width="56" height="46" rx="3" fill="none" stroke="#94A3B8" stroke-width="2.5"/>
+<circle cx="90" cy="77" r="9" fill="#F59E0B" stroke="#334155" stroke-width="3"/>
+<line x1="102" y1="77" x2="168" y2="77" stroke="#F97316" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="180,77 165,83.8 165,70.2" fill="#F97316"/>
+<text x="140" y="65" font-size="21" fill="#111827" text-anchor="middle"><tspan font-style="italic">v</tspan>⃗</text>
+<text x="90" y="52" font-size="15" fill="#64748B" text-anchor="middle">plastilin</text>
+<line x1="274.8" y1="45" x2="321.2" y2="45" stroke="#64748B" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="330,45 319,50 319,40" fill="#64748B"/>
+<polygon points="266,45 277,40 277,50" fill="#64748B"/>
+<line x1="20" y1="210" x2="480" y2="210" stroke="#334155" stroke-width="4" stroke-linecap="butt"/>
+<rect x="210" y="164" width="56" height="46" rx="3" fill="#D6A15C" stroke="#334155" stroke-width="3.5"/>
+<rect x="330" y="164" width="56" height="46" rx="3" fill="none" stroke="#94A3B8" stroke-width="2.5"/>
+<circle cx="90" cy="187" r="9" fill="#94A3B8" stroke="#334155" stroke-width="3"/>
+<line x1="102" y1="187" x2="168" y2="187" stroke="#F97316" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="180,187 165,193.8 165,180.2" fill="#F97316"/>
+<text x="140" y="175" font-size="21" fill="#111827" text-anchor="middle"><tspan font-style="italic">v</tspan>⃗</text>
+<text x="90" y="162" font-size="15" fill="#64748B" text-anchor="middle">metall</text>
+<line x1="274.8" y1="155" x2="321.2" y2="155" stroke="#64748B" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="330,155 319,159.9 319,150.1" fill="#64748B"/>
+<polygon points="266,155 277,150.1 277,159.9" fill="#64748B"/>
+<text x="298" y="36" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">S</tspan>₁</text>
+<text x="298" y="146" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">S</tspan>₂</text>
+</svg>

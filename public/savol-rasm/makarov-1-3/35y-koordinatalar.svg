@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 340" width="460" height="340" font-family="Arial, Helvetica, sans-serif"><title>Impuls proyeksiyalari</title>
+<rect width="460" height="340" fill="#fff"/>
+<line x1="40" y1="180" x2="430.4" y2="180" stroke="#64748B" stroke-width="2.4" stroke-linecap="round"/>
+<polygon points="440,180 428,185.4 428,174.6" fill="#64748B"/>
+<text x="440" y="206" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">x</tspan></text>
+<line x1="240" y1="320" x2="240" y2="29.6" stroke="#64748B" stroke-width="2.4" stroke-linecap="round"/>
+<polygon points="240,20 245.4,32 234.6,32" fill="#64748B"/>
+<text x="224" y="30" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">y</tspan></text>
+<circle cx="80" cy="180" r="10" fill="#EF4444" stroke="#334155" stroke-width="3"/>
+<text x="70" y="214" font-size="20" fill="#111827" text-anchor="middle" font-weight="bold">2</text>
+<line x1="92" y1="180" x2="188" y2="180" stroke="#F97316" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="200,180 185,186.8 185,173.2" fill="#F97316"/>
+<text x="150" y="168" font-size="21" fill="#111827" text-anchor="middle"><tspan font-style="italic">v</tspan>⃗₂</text>
+<circle cx="240" cy="300" r="10" fill="#0EA5E9" stroke="#334155" stroke-width="3"/>
+<text x="270" y="306" font-size="20" fill="#111827" text-anchor="middle" font-weight="bold">1</text>
+<line x1="240" y1="288" x2="240" y2="234" stroke="#2563EB" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="240,222 246.8,237 233.2,237" fill="#2563EB"/>
+<text x="252" y="258" font-size="21" fill="#111827" text-anchor="start"><tspan font-style="italic">v</tspan>⃗₁</text>
+<line x1="240" y1="180" x2="339.3" y2="130.4" stroke="#16A34A" stroke-width="5" stroke-linecap="round"/>
+<polygon points="350,125 339.6,137.7 333.6,125.7" fill="#16A34A"/>
+<text x="360" y="119" font-size="22" fill="#111827" text-anchor="start"><tspan font-style="italic">v</tspan>⃗</text>
+<line x1="350" y1="125" x2="350" y2="180" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
+<line x1="350" y1="125" x2="240" y2="125" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
+<text x="350" y="206" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">v</tspan><tspan font-size="14" dy="5">x</tspan><tspan dy="-5"> </tspan></text>
+<text x="230" y="131" font-size="20" fill="#111827" text-anchor="end"><tspan font-style="italic">v</tspan><tspan font-size="14" dy="5">y</tspan><tspan dy="-5"> </tspan></text>
+<text x="226" y="204" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">O</tspan></text>
+</svg>

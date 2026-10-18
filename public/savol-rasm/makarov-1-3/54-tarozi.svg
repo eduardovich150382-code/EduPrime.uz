@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 330" width="520" height="330" font-family="Arial, Helvetica, sans-serif"><title>Yomg'ir ostidagi richagli tarozi</title>
+<rect width="520" height="330" fill="#fff"/>
+<polygon points="240,300 280,300 260,150" fill="#CBD5E1" stroke="#334155" stroke-width="3.5" stroke-linejoin="round"/>
+<line x1="140" y1="300" x2="380" y2="300" stroke="#334155" stroke-width="4" stroke-linecap="butt"/>
+<line x1="80" y1="150" x2="440" y2="150" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<circle cx="260" cy="150" r="6" fill="#1f2937"/>
+<line x1="110" y1="150" x2="110" y2="210" stroke="#334155" stroke-width="2.5" stroke-linecap="round"/>
+<rect x="62" y="210" width="96" height="30" rx="2" fill="#fff" stroke="#334155" stroke-width="3"/>
+<line x1="410" y1="150" x2="410" y2="210" stroke="#334155" stroke-width="2.5" stroke-linecap="round"/>
+<rect x="362" y="210" width="96" height="30" rx="2" fill="#fff" stroke="#334155" stroke-width="3"/>
+<rect x="364" y="212" width="92" height="26" rx="1" fill="#BFDBFE" stroke="#BFDBFE" stroke-width="0"/>
+<text x="410" y="268" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">S</tspan>, <tspan font-style="italic">h</tspan></text>
+<text x="110" y="268" font-size="22" fill="#111827" text-anchor="middle" font-weight="bold">?</text>
+<polygon points="30,60 190,60 180,40 40,40" fill="#94A3B8" stroke="#334155" stroke-width="2.5" stroke-linejoin="round"/>
+<text x="110" y="30" font-size="16" fill="#64748B" text-anchor="middle">ayvon</text>
+<line x1="354" y1="40" x2="354" y2="58" stroke="#2563EB" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="353" y1="100" x2="353" y2="118" stroke="#2563EB" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="376" y1="40" x2="376" y2="58" stroke="#2563EB" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="375" y1="100" x2="375" y2="118" stroke="#2563EB" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="398" y1="40" x2="398" y2="58" stroke="#2563EB" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="397" y1="100" x2="397" y2="118" stroke="#2563EB" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="420" y1="40" x2="420" y2="58" stroke="#2563EB" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="419" y1="100" x2="419" y2="118" stroke="#2563EB" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="442" y1="40" x2="442" y2="58" stroke="#2563EB" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="441" y1="100" x2="441" y2="118" stroke="#2563EB" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="464" y1="40" x2="464" y2="58" stroke="#2563EB" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="463" y1="100" x2="463" y2="118" stroke="#2563EB" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="470" y1="60" x2="470" y2="120.4" stroke="#2563EB" stroke-width="3" stroke-linecap="round"/>
+<polygon points="470,130 464.6,118 475.4,118" fill="#2563EB"/>
+<text x="482" y="100" font-size="20" fill="#111827" text-anchor="start"><tspan font-style="italic">v</tspan></text>
+</svg>

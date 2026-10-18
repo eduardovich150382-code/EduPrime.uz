@@ -29,7 +29,7 @@ export function toImportedCore(q: AIImportedQuestion): ImportedCore {
         : DEFAULT_OPTION_LABELS.map((label) => ({ label, text: '', image: null })),
     correctAnswer: q.correctAnswer || '',
     explanation: q.explanation || '',
-    explanationImages: [],
+    explanationImages: q.explanationImages || [],
     type: isOpenEnded ? 'OPEN_ENDED' : 'MULTIPLE_CHOICE',
     topic: q.topic || '',
     bloomLevel: q.bloomLevel || '',

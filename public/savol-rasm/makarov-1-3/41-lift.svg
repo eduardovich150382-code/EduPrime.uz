@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 420" width="380" height="420" font-family="Arial, Helvetica, sans-serif"><title>Lift kabinasi va qarshi yuk</title>
+<rect width="380" height="420" fill="#fff"/>
+<line x1="130" y1="30" x2="250" y2="30" stroke="#334155" stroke-width="4" stroke-linecap="butt"/>
+<line x1="134" y1="28" x2="144" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="148" y1="28" x2="158" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="162" y1="28" x2="172" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="176" y1="28" x2="186" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="190" y1="28" x2="200" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="204" y1="28" x2="214" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="218" y1="28" x2="228" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="232" y1="28" x2="242" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="246" y1="28" x2="256" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="190" y1="30" x2="190" y2="60" stroke="#334155" stroke-width="4" stroke-linecap="round"/>
+<circle cx="190" cy="75" r="38" fill="#CBD5E1" stroke="#334155" stroke-width="3.5"/>
+<circle cx="190" cy="75" r="5" fill="#334155"/>
+<line x1="152" y1="75" x2="152" y2="330" stroke="#7C5A3A" stroke-width="3" stroke-linecap="round"/>
+<line x1="228" y1="75" x2="228" y2="120" stroke="#7C5A3A" stroke-width="3" stroke-linecap="round"/>
+<rect x="210" y="120" width="36" height="90" rx="3" fill="#475569" stroke="#334155" stroke-width="3.5"/>
+<text x="262" y="170" font-size="22" fill="#111827" text-anchor="start">П</text>
+<rect x="124" y="330" width="56" height="70" rx="3" fill="#0EA5E9" stroke="#334155" stroke-width="3.5"/>
+<text x="108" y="372" font-size="22" fill="#111827" text-anchor="end">К</text>
+<line x1="180" y1="330" x2="300" y2="330" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
+<line x1="246" y1="120" x2="300" y2="120" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
+<line x1="292" y1="128.8" x2="292" y2="321.2" stroke="#64748B" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="292,330 287.1,319 296.9,319" fill="#64748B"/>
+<polygon points="292,120 296.9,131 287.1,131" fill="#64748B"/>
+<text x="306" y="232" font-size="22" fill="#111827" text-anchor="start"><tspan font-style="italic">H</tspan></text>
+</svg>

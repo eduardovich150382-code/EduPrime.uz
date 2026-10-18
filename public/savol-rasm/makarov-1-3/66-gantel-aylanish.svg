@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 230" width="480" height="230" font-family="Arial, Helvetica, sans-serif"><title>Spitsa bilan bog'langan ikki shar</title>
+<rect width="480" height="230" fill="#fff"/>
+<line x1="70" y1="110" x2="410" y2="110" stroke="#475569" stroke-width="4" stroke-linecap="round"/>
+<circle cx="70" cy="110" r="22" fill="#EF4444" stroke="#334155" stroke-width="3"/>
+<circle cx="410" cy="110" r="15" fill="#0EA5E9" stroke="#334155" stroke-width="3"/>
+<text x="70" y="158" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">m</tspan>₁</text>
+<text x="410" y="154" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">m</tspan>₂</text>
+<circle cx="210" cy="110" r="7" fill="#334155"/>
+<line x1="210" y1="70" x2="210" y2="150" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 4"/>
+<path d="M174,92 A40,14 0 1 0 240,88" fill="none" stroke="#2563EB" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="234" y1="86" x2="238.1" y2="88.1" stroke="#2563EB" stroke-width="3" stroke-linecap="round"/>
+<polygon points="246,92 233.9,91.5 238.4,82.7" fill="#2563EB"/>
+<text x="258" y="84" font-size="22" fill="#111827" text-anchor="start"><tspan font-style="italic">ω</tspan></text>
+<line x1="78.8" y1="180" x2="401.2" y2="180" stroke="#64748B" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="410,180 399,184.9 399,175.1" fill="#64748B"/>
+<polygon points="70,180 81,175.1 81,184.9" fill="#64748B"/>
+<text x="240" y="208" font-size="22" fill="#111827" text-anchor="middle"><tspan font-style="italic">l</tspan></text>
+</svg>
