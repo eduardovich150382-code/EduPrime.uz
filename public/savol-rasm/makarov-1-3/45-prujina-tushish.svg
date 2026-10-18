@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 380" width="360" height="380" font-family="Arial, Helvetica, sans-serif"><title>Prujinaga tushayotgan brusok</title>
+<rect width="360" height="380" fill="#fff"/>
+<line x1="40" y1="340" x2="320" y2="340" stroke="#334155" stroke-width="4" stroke-linecap="butt"/>
+<line x1="46" y1="342" x2="35" y2="353" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="62" y1="342" x2="51" y2="353" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="78" y1="342" x2="67" y2="353" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="94" y1="342" x2="83" y2="353" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="110" y1="342" x2="99" y2="353" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="126" y1="342" x2="115" y2="353" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="142" y1="342" x2="131" y2="353" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="158" y1="342" x2="147" y2="353" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="174" y1="342" x2="163" y2="353" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="190" y1="342" x2="179" y2="353" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="206" y1="342" x2="195" y2="353" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="222" y1="342" x2="211" y2="353" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="238" y1="342" x2="227" y2="353" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="254" y1="342" x2="243" y2="353" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="270" y1="342" x2="259" y2="353" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="286" y1="342" x2="275" y2="353" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="302" y1="342" x2="291" y2="353" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="318" y1="342" x2="307" y2="353" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<polyline points="170,340 170,328 198,324 142,316 198,308 142,300 198,292 142,284 198,276 142,268 198,260 142,252 198,244 142,236 198,228 142,220 198,212 142,204 198,196 142,188 198,180 142,172 198,164 142,156 170,152 170,140" fill="none" stroke="#475569" stroke-width="3.5" stroke-linejoin="round"/>
+<rect x="140" y="135" width="60" height="6" rx="3" fill="#334155" stroke="#334155" stroke-width="2"/>
+<rect x="140" y="36" width="60" height="26" rx="3" fill="#EF4444" stroke="#334155" stroke-width="3.5"/>
+<line x1="140" y1="62" x2="80" y2="62" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
+<line x1="140" y1="140" x2="80" y2="140" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
+<line x1="90" y1="70.8" x2="90" y2="131.2" stroke="#64748B" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="90,140 85,129 95,129" fill="#64748B"/>
+<polygon points="90,62 95,73 85,73" fill="#64748B"/>
+<text x="78" y="108" font-size="22" fill="#111827" text-anchor="end"><tspan font-style="italic">h</tspan></text>
+<line x1="90" y1="148.8" x2="90" y2="331.2" stroke="#64748B" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="90,340 85,329 95,329" fill="#64748B"/>
+<polygon points="90,140 95,151 85,151" fill="#64748B"/>
+<text x="78" y="246" font-size="22" fill="#111827" text-anchor="end"><tspan font-style="italic">l</tspan>₀</text>
+</svg>

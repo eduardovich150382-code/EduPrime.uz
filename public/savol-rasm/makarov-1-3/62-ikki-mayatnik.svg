@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 340" width="420" height="340" font-family="Arial, Helvetica, sans-serif"><title>Ikki ipga osilgan sharchalar</title>
+<rect width="420" height="340" fill="#fff"/>
+<line x1="170" y1="30" x2="270" y2="30" stroke="#334155" stroke-width="4" stroke-linecap="butt"/>
+<line x1="174" y1="28" x2="184" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="188" y1="28" x2="198" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="202" y1="28" x2="212" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="216" y1="28" x2="226" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="230" y1="28" x2="240" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="244" y1="28" x2="254" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="258" y1="28" x2="268" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="210" y1="30" x2="210" y2="250" stroke="#7C5A3A" stroke-width="3" stroke-linecap="round"/>
+<line x1="236" y1="30" x2="236" y2="250" stroke="#7C5A3A" stroke-width="3" stroke-linecap="round"/>
+<circle cx="210" cy="261" r="11" fill="#EF4444" stroke="#334155" stroke-width="3"/>
+<circle cx="236" cy="265" r="15" fill="#0EA5E9" stroke="#334155" stroke-width="3"/>
+<text x="192" y="294" font-size="20" fill="#111827" text-anchor="end"><tspan font-style="italic">m</tspan>₁</text>
+<text x="256" y="294" font-size="20" fill="#111827" text-anchor="start"><tspan font-style="italic">m</tspan>₂</text>
+<line x1="210" y1="30" x2="68.6" y2="198.5" stroke="#94A3B8" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="7 6"/>
+<circle cx="61.5" cy="207" r="11" fill="none" stroke="#94A3B8" stroke-width="2.5" stroke-dasharray="5 4"/>
+<path d="M171.4,76 A60,60 0 0 0 210,90" fill="none" stroke="#1f2937" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="182.6" y="112.2" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">α</tspan></text>
+<text x="140" y="140" font-size="21" fill="#111827" text-anchor="end"><tspan font-style="italic">l</tspan>₁</text>
+</svg>

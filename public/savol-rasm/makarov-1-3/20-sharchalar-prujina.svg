@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 170" width="520" height="170" font-family="Arial, Helvetica, sans-serif"><title>Prujina bilan bog'langan ikki sharcha</title>
+<rect width="520" height="170" fill="#fff"/>
+<line x1="20" y1="130" x2="500" y2="130" stroke="#334155" stroke-width="4" stroke-linecap="butt"/>
+<line x1="26" y1="132" x2="15" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="42" y1="132" x2="31" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="58" y1="132" x2="47" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="74" y1="132" x2="63" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="90" y1="132" x2="79" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="106" y1="132" x2="95" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="122" y1="132" x2="111" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="138" y1="132" x2="127" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="154" y1="132" x2="143" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="170" y1="132" x2="159" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="186" y1="132" x2="175" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="202" y1="132" x2="191" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="218" y1="132" x2="207" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="234" y1="132" x2="223" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="250" y1="132" x2="239" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="266" y1="132" x2="255" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="282" y1="132" x2="271" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="298" y1="132" x2="287" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="314" y1="132" x2="303" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="330" y1="132" x2="319" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="346" y1="132" x2="335" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="362" y1="132" x2="351" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="378" y1="132" x2="367" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="394" y1="132" x2="383" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="410" y1="132" x2="399" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="426" y1="132" x2="415" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="442" y1="132" x2="431" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="458" y1="132" x2="447" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="474" y1="132" x2="463" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="490" y1="132" x2="479" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<circle cx="170" cy="108" r="20" fill="#EF4444" stroke="#334155" stroke-width="3"/>
+<circle cx="340" cy="108" r="20" fill="#0EA5E9" stroke="#334155" stroke-width="3"/>
+<polyline points="190,108 202,108 204.9,118 210.8,98 216.7,118 222.6,98 228.5,118 234.4,98 240.3,118 246.2,98 252.1,118 257.9,98 263.8,118 269.7,98 275.6,118 281.5,98 287.4,118 293.3,98 299.2,118 305.1,98 308,108 320,108" fill="none" stroke="#475569" stroke-width="3" stroke-linejoin="round"/>
+<text x="170" y="76" font-size="22" fill="#111827" text-anchor="middle"><tspan font-style="italic">m</tspan>₁</text>
+<text x="340" y="76" font-size="22" fill="#111827" text-anchor="middle"><tspan font-style="italic">m</tspan>₂</text>
+<text x="255" y="86" font-size="22" fill="#111827" text-anchor="middle"><tspan font-style="italic">k</tspan></text>
+<line x1="150" y1="108" x2="92" y2="108" stroke="#F97316" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="80,108 95,101.2 95,114.8" fill="#F97316"/>
+<text x="108" y="96" font-size="22" fill="#111827" text-anchor="middle"><tspan font-style="italic">v</tspan>₀</text>
+<line x1="178.8" y1="155" x2="331.2" y2="155" stroke="#64748B" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="340,155 329,159.9 329,150.1" fill="#64748B"/>
+<polygon points="170,155 181,150.1 181,159.9" fill="#64748B"/>
+<text x="255" y="150" font-size="22" fill="#111827" text-anchor="middle"><tspan font-style="italic">l</tspan></text>
+</svg>

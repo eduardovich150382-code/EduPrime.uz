@@ -188,6 +188,8 @@ export interface AIImportedQuestion {
   correctAnswer: string;
   explanation?: string;
   images?: string[];
+  /** Yechim rasmlari — JSON importda kelsa saqlanadi. */
+  explanationImages?: string[];
   type?: QuestionType;
   topic?: string;
   bloomLevel?: string;

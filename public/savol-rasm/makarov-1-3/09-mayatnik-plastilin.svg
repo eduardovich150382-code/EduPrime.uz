@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 360" width="480" height="360" font-family="Arial, Helvetica, sans-serif"><title>Mayatnik va plastilin sharcha</title>
+<rect width="480" height="360" fill="#fff"/>
+<line x1="210" y1="30" x2="290" y2="30" stroke="#334155" stroke-width="4" stroke-linecap="butt"/>
+<line x1="214" y1="28" x2="224" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="228" y1="28" x2="238" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="242" y1="28" x2="252" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="256" y1="28" x2="266" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="270" y1="28" x2="280" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="284" y1="28" x2="294" y2="18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="250" y1="30" x2="250" y2="280" stroke="#7C5A3A" stroke-width="3" stroke-linecap="round"/>
+<circle cx="250" cy="296" r="18" fill="#0EA5E9" stroke="#334155" stroke-width="3"/>
+<text x="278" y="300" font-size="22" fill="#111827" text-anchor="start"><tspan font-style="italic">M</tspan></text>
+<line x1="250" y1="30" x2="96.1" y2="227" stroke="#94A3B8" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="7 6"/>
+<circle cx="86.2" cy="239.6" r="18" fill="none" stroke="#94A3B8" stroke-width="2.5" stroke-dasharray="6 5"/>
+<line x1="110.2" y1="239.6" x2="350" y2="239.6" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
+<line x1="275" y1="296" x2="350" y2="296" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
+<line x1="345" y1="248.4" x2="345" y2="287.2" stroke="#64748B" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="345,296 340.1,285 349.9,285" fill="#64748B"/>
+<polygon points="345,239.6 349.9,250.6 340.1,250.6" fill="#64748B"/>
+<text x="357" y="273.8" font-size="22" fill="#111827" text-anchor="start"><tspan font-style="italic">h</tspan></text>
+<circle cx="80" cy="296" r="7" fill="#F59E0B" stroke="#334155" stroke-width="3"/>
+<text x="80" y="274" font-size="22" fill="#111827" text-anchor="middle"><tspan font-style="italic">m</tspan></text>
+<line x1="95" y1="296" x2="158" y2="296" stroke="#F97316" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="170,296 155,302.8 155,289.2" fill="#F97316"/>
+<text x="140" y="324" font-size="22" fill="#111827" text-anchor="middle"><tspan font-style="italic">v</tspan></text>
+</svg>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 260" width="460" height="260" font-family="Arial, Helvetica, sans-serif"><title>Yarim sfera ichidagi ikki jism</title>
+<rect width="460" height="260" fill="#fff"/>
+<path d="M46,50 L60,50 A170,170 0 0 0 400,50 L414,50" fill="none" stroke="#334155" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="62" y="48" width="20" height="16" rx="3" fill="#EF4444" stroke="#334155" stroke-width="2.5"/>
+<rect x="378" y="48" width="20" height="16" rx="3" fill="#0EA5E9" stroke="#334155" stroke-width="2.5"/>
+<text x="72" y="38" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">m</tspan>₁</text>
+<text x="388" y="38" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">m</tspan>₂</text>
+<line x1="230" y1="50" x2="360.2" y2="159.3" stroke="#94A3B8" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="7 6"/>
+<circle cx="230" cy="50" r="4" fill="#64748B"/>
+<text x="309.1" y="102.6" font-size="22" fill="#111827" text-anchor="start"><tspan font-style="italic">R</tspan></text>
+</svg>

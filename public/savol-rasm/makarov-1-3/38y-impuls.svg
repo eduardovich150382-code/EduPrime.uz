@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 360" width="440" height="360" font-family="Arial, Helvetica, sans-serif"><title>Tezliklar va impuls o'zgarishi</title>
+<rect width="440" height="360" fill="#fff"/>
+<line x1="250" y1="30" x2="250" y2="158" stroke="#2563EB" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="250,170 243.2,155 256.8,155" fill="#2563EB"/>
+<text x="264" y="70" font-size="21" fill="#111827" text-anchor="start"><tspan font-style="italic">v</tspan>⃗₀</text>
+<line x1="250" y1="170" x2="156.5" y2="116" stroke="#F97316" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="146.1,110 162.4,111.7 155.7,123.3" fill="#F97316"/>
+<text x="138.1" y="98" font-size="22" fill="#111827" text-anchor="middle"><tspan font-style="italic">v</tspan>⃗</text>
+<path d="M250,124 A46,46 0 0 0 210.2,147" fill="none" stroke="#1f2937" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="218" y="121.6" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">β</tspan></text>
+<line x1="250" y1="170" x2="250" y2="30" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 4"/>
+<line x1="250" y1="170" x2="250" y2="298" stroke="#64748B" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="7 6"/>
+<polygon points="250,310 243.2,295 256.8,295" fill="#64748B"/>
+<text x="260" y="310" font-size="20" fill="#111827" text-anchor="start"><tspan font-style="italic">v</tspan>⃗₀</text>
+<line x1="250" y1="310" x2="151.6" y2="120.6" stroke="#16A34A" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="146.1,110 159,120.2 147,126.4" fill="#16A34A"/>
+<text x="178" y="220" font-size="21" fill="#111827" text-anchor="end">Δ<tspan font-style="italic">v</tspan>⃗</text>
+<line x1="330" y1="120" x2="398" y2="120" stroke="#A855F7" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="410,120 395,126.8 395,113.2" fill="#A855F7"/>
+<text x="370" y="108" font-size="22" fill="#111827" text-anchor="middle"><tspan font-style="italic">u</tspan>⃗</text>
+<text x="280" y="340" font-size="17" fill="#64748B" text-anchor="middle">Δ<tspan font-style="italic">v</tspan>⃗ qiyalikka perpendikulyar</text>
+</svg>

@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 170" width="520" height="170" font-family="Arial, Helvetica, sans-serif"><title>Brusokni prujina orqali tortish</title>
+<rect width="520" height="170" fill="#fff"/>
+<line x1="20" y1="130" x2="500" y2="130" stroke="#334155" stroke-width="4" stroke-linecap="butt"/>
+<line x1="26" y1="132" x2="15" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="42" y1="132" x2="31" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="58" y1="132" x2="47" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="74" y1="132" x2="63" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="90" y1="132" x2="79" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="106" y1="132" x2="95" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="122" y1="132" x2="111" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="138" y1="132" x2="127" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="154" y1="132" x2="143" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="170" y1="132" x2="159" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="186" y1="132" x2="175" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="202" y1="132" x2="191" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="218" y1="132" x2="207" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="234" y1="132" x2="223" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="250" y1="132" x2="239" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="266" y1="132" x2="255" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="282" y1="132" x2="271" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="298" y1="132" x2="287" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="314" y1="132" x2="303" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="330" y1="132" x2="319" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="346" y1="132" x2="335" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="362" y1="132" x2="351" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="378" y1="132" x2="367" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="394" y1="132" x2="383" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="410" y1="132" x2="399" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="426" y1="132" x2="415" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="442" y1="132" x2="431" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="458" y1="132" x2="447" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="474" y1="132" x2="463" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<line x1="490" y1="132" x2="479" y2="143" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+<rect x="70" y="82" width="120" height="48" rx="3" fill="#D6A15C" stroke="#334155" stroke-width="3.5"/>
+<text x="130" y="114" font-size="24" fill="#111827" text-anchor="middle"><tspan font-style="italic">m</tspan></text>
+<polyline points="190,106 202,106 205.9,116 213.7,96 221.5,116 229.3,96 237.1,116 244.9,96 252.7,116 260.5,96 268.3,116 276.1,96 283.9,116 291.7,96 299.5,116 307.3,96 315.1,116 322.9,96 330.7,116 338.5,96 346.3,116 354.1,96 358,106 370,106" fill="none" stroke="#475569" stroke-width="3" stroke-linejoin="round"/>
+<line x1="370" y1="106" x2="438" y2="106" stroke="#F97316" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="450,106 435,112.8 435,99.2" fill="#F97316"/>
+<text x="416" y="92" font-size="22" fill="#111827" text-anchor="middle"><tspan font-style="italic">F</tspan>⃗</text>
+<text x="280" y="82" font-size="22" fill="#111827" text-anchor="middle"><tspan font-style="italic">k</tspan></text>
+<text x="130" y="158" font-size="22" fill="#111827" text-anchor="middle"><tspan font-style="italic">μ</tspan></text>
+</svg>

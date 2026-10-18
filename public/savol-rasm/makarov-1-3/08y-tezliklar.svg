@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 360" width="420" height="360" font-family="Arial, Helvetica, sans-serif"><title>Sharcha tezliklari</title>
+<rect width="420" height="360" fill="#fff"/>
+<line x1="260" y1="180" x2="260" y2="318" stroke="#2563EB" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="260,330 253.2,315 266.8,315" fill="#2563EB"/>
+<text x="282" y="330" font-size="22" fill="#111827" text-anchor="start"><tspan font-style="italic">u</tspan>⃗₀</text>
+<line x1="260" y1="180" x2="191" y2="60.5" stroke="#F97316" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="185,50.1 198.3,59.7 186.7,66.5" fill="#F97316"/>
+<text x="161" y="56.1" font-size="22" fill="#111827" text-anchor="middle"><tspan font-style="italic">u</tspan>⃗</text>
+<line x1="260" y1="180" x2="100" y2="180" stroke="#94A3B8" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="7 6"/>
+<path d="M225,119.4 A70,70 0 0 0 190,180" fill="none" stroke="#1f2937" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="183.8" y="143" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">α</tspan></text>
+<circle cx="260" cy="180" r="6" fill="#1f2937"/>
+</svg>

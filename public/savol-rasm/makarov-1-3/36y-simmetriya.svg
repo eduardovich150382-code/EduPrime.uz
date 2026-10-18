@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 300" width="480" height="300" font-family="Arial, Helvetica, sans-serif"><title>Simmetriya o'qi bo'yicha proyeksiyalar</title>
+<rect width="480" height="300" fill="#fff"/>
+<line x1="40" y1="150" x2="450" y2="150" stroke="#94A3B8" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="8 6"/>
+<circle cx="209.8" cy="29.8" r="6" fill="#1f2937"/>
+<line x1="209.8" y1="29.8" x2="272" y2="92" stroke="#F97316" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="280.5,100.5 265.1,94.7 274.7,85.1" fill="#F97316"/>
+<line x1="280.5" y1="100.5" x2="280.5" y2="150" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 4"/>
+<circle cx="209.8" cy="270.2" r="6" fill="#1f2937"/>
+<line x1="209.8" y1="270.2" x2="272" y2="208" stroke="#2563EB" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="280.5,199.5 274.7,214.9 265.1,205.3" fill="#2563EB"/>
+<line x1="280.5" y1="199.5" x2="280.5" y2="150" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 4"/>
+<path d="M266.4,86.4 A90,90 0 0 0 240,150" fill="none" stroke="#1f2937" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="221" y="111.5" font-size="19" fill="#111827" text-anchor="middle"><tspan font-style="italic">α</tspan>/2</text>
+<path d="M260,150 A70,70 0 0 0 280.5,199.5" fill="none" stroke="#1f2937" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="237.6" y="194.9" font-size="19" fill="#111827" text-anchor="middle"><tspan font-style="italic">α</tspan>/2</text>
+<text x="170" y="80" font-size="22" fill="#111827" text-anchor="middle"><tspan font-style="italic">v</tspan>⃗</text>
+<text x="170" y="236" font-size="22" fill="#111827" text-anchor="middle"><tspan font-style="italic">v</tspan>⃗'</text>
+<circle cx="338" cy="150" r="12" fill="#F59E0B" stroke="#334155" stroke-width="3"/>
+<line x1="354" y1="150" x2="428" y2="150" stroke="#16A34A" stroke-width="5" stroke-linecap="round"/>
+<polygon points="440,150 425,156.8 425,143.2" fill="#16A34A"/>
+<text x="420" y="136" font-size="22" fill="#111827" text-anchor="middle"><tspan font-style="italic">u</tspan>⃗</text>
+</svg>

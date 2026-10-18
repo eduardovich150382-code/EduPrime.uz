@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 340" width="500" height="340" font-family="Arial, Helvetica, sans-serif"><title>Tosh traektoriyasi va qiyalik</title>
+<rect width="500" height="340" fill="#fff"/>
+<line x1="60" y1="60" x2="460.4" y2="60" stroke="#64748B" stroke-width="2.4" stroke-linecap="round"/>
+<polygon points="470,60 458,65.4 458,54.6" fill="#64748B"/>
+<text x="470" y="50" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">x</tspan></text>
+<line x1="60" y1="60" x2="60" y2="310.4" stroke="#64748B" stroke-width="2.4" stroke-linecap="round"/>
+<polygon points="60,320 54.6,308 65.4,308" fill="#64748B"/>
+<text x="46" y="318" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">y</tspan></text>
+<text x="46" y="54" font-size="20" fill="#111827" text-anchor="end"><tspan font-style="italic">O</tspan></text>
+<line x1="60" y1="60" x2="423.7" y2="270" stroke="#334155" stroke-width="4" stroke-linecap="round"/>
+<polyline points="60,60 67.1,60.1 74.3,60.4 81.4,60.9 88.6,61.6 95.7,62.6 102.9,63.7 110,65.1 117.2,66.6 124.3,68.4 131.4,70.3 138.6,72.5 145.7,74.8 152.9,77.4 160,80.2 167.2,83.2 174.3,86.4 181.5,89.8 188.6,93.4 195.7,97.2 202.9,101.2 210,105.5 217.2,109.9 224.3,114.6 231.5,119.4 238.6,124.5 245.8,129.7 252.9,135.2 260.1,140.8 267.2,146.7 274.3,152.8 281.5,159.1 288.6,165.6 295.8,172.3 302.9,179.2 310.1,186.3 317.2,193.6 324.4,201.2 331.5,208.9 338.6,216.9 345.8,225" fill="none" stroke="#F97316" stroke-width="3.5" stroke-linejoin="round"/>
+<line x1="60" y1="60" x2="138" y2="60" stroke="#F97316" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="150,60 135,66.8 135,53.2" fill="#F97316"/>
+<text x="120" y="48" font-size="21" fill="#111827" text-anchor="middle"><tspan font-style="italic">v</tspan>⃗₀</text>
+<path d="M120.6,95 A70,70 0 0 0 130,60" fill="none" stroke="#1f2937" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="145" y="89.8" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">α</tspan></text>
+<line x1="345.8" y1="225" x2="345.8" y2="60" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
+<text x="345.8" y="50" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">x</tspan>₀</text>
+<circle cx="345.8" cy="225" r="6" fill="#EF4444"/>
+</svg>
