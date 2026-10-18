@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 340" width="560" height="340" font-family="Arial, Helvetica, sans-serif">
+<rect width="560" height="340" fill="#fff"/>
+<line x1="429.1" y1="138.4" x2="90.9" y2="261.6" stroke="#334155" stroke-width="8" stroke-linecap="round"/>
+<circle cx="429.1" cy="138.4" r="6" fill="#334155"/>
+<text x="443.1" y="126.4" font-size="22" fill="#111827" text-anchor="start" font-weight="bold"><tspan font-style="italic">A</tspan></text>
+<circle cx="90.9" cy="261.6" r="6" fill="#334155"/>
+<text x="64.9" y="249.6" font-size="22" fill="#111827" text-anchor="start" font-weight="bold"><tspan font-style="italic">B</tspan></text>
+<circle cx="260.0" cy="200.0" r="6" fill="#334155"/>
+<text x="250.0" y="186.0" font-size="22" fill="#111827" text-anchor="end"><tspan font-style="italic">O</tspan></text>
+<line x1="260.0" y1="200.0" x2="358.0" y2="200.0" stroke="#F97316" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="370.0,200.0 355.0,193.2 355.0,206.8" fill="#F97316"/>
+<text x="376.0" y="218.0" font-size="20" fill="#111827" text-anchor="start"><tspan font-style="italic">v</tspan>₀ — ?</text>
+<path d="M320.0,200.0 A60,60 0 0 0 316.4,179.5" stroke="#374151" stroke-width="3" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="328.0" y="182.0" font-size="17" fill="#111827" text-anchor="start">20°</text>
+<line x1="90.9" y1="261.6" x2="147.1" y2="181.3" stroke="#F97316" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="153.9,171.5 139.8,179.9 150.9,187.6" fill="#F97316"/>
+<text x="143.9" y="175.5" font-size="20" fill="#111827" text-anchor="end"><tspan font-style="italic">v</tspan><tspan font-size="70%" dy="5">B</tspan><tspan dy="-5">&#8203;</tspan> = 3 m/s</text>
+<text x="280.0" y="320.0" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">v</tspan><tspan font-size="70%" dy="5">A</tspan><tspan dy="-5">&#8203;</tspan> ⊥ <tspan font-style="italic">v</tspan><tspan font-size="70%" dy="5">B</tspan><tspan dy="-5">&#8203;</tspan></text>
+</svg>

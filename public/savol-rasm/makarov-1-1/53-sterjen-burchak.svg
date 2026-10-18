@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 380" width="520" height="380" font-family="Arial, Helvetica, sans-serif">
+<rect width="520" height="380" fill="#fff"/>
+<line x1="150.0" y1="320.0" x2="330.0" y2="70.0" stroke="#334155" stroke-width="8" stroke-linecap="round"/>
+<circle cx="150.0" cy="320.0" r="6" fill="#334155"/>
+<line x1="150.0" y1="320.0" x2="248.5" y2="275.6" stroke="#F97316" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="259.4,270.7 243.0,270.7 248.5,283.0" fill="#F97316"/>
+<text x="271.4" y="280.7" font-size="22" fill="#111827" text-anchor="start"><tspan font-style="italic">v</tspan>₁</text>
+<line x1="150.0" y1="320.0" x2="208.4" y2="238.8" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
+<circle cx="330.0" cy="70.0" r="6" fill="#334155"/>
+<line x1="330.0" y1="70.0" x2="437.7" y2="62.0" stroke="#0EA5E9" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="449.7,61.1 434.2,55.5 435.2,69.0" fill="#0EA5E9"/>
+<text x="461.7" y="67.1" font-size="22" fill="#111827" text-anchor="start"><tspan font-style="italic">v</tspan>₂</text>
+<line x1="330.0" y1="70.0" x2="388.4" y2="-11.2" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
+<path d="M195.6,299.5 A50,50 0 0 0 179.2,279.4" stroke="#374151" stroke-width="3" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="202.0" y="286.0" font-size="22" fill="#111827" text-anchor="start"><tspan font-style="italic">α</tspan></text>
+<path d="M379.9,66.3 A50,50 0 0 0 359.2,29.4" stroke="#374151" stroke-width="3" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="376.0" y="66.0" font-size="22" fill="#111827" text-anchor="start"><tspan font-style="italic">β</tspan></text>
+<text x="260.0" y="365.0" font-size="17" fill="#64748b" text-anchor="middle"><tspan font-style="italic">γ</tspan> — ? (markaz tezligi va sterjen orasidagi burchak)</text>
+</svg>

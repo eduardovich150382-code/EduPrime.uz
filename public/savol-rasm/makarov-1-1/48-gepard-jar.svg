@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 360" width="600" height="360" font-family="Arial, Helvetica, sans-serif">
+<rect width="600" height="360" fill="#fff"/>
+<polygon points="20.0,130.0 260.0,130.0 260.0,302.8 580.0,302.8 580.0,322.8 20.0,322.8" fill="#fde68a" stroke="#78350f" stroke-width="4" stroke-linejoin="round"/>
+<path d="M164,130 Q212.0,104 260,130" stroke="#7c3aed" stroke-width="3" fill="none" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="6 5"/>
+<path d="M68,130 Q116.0,104 164,130" stroke="#7c3aed" stroke-width="3" fill="none" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="6 5"/>
+<line x1="68.0" y1="152.0" x2="164.0" y2="152.0" stroke="#374151" stroke-width="2.5" stroke-linecap="round"/>
+<polygon points="68.0,152.0 79.0,147.1 79.0,156.9" fill="#374151"/>
+<polygon points="164.0,152.0 153.0,147.1 153.0,156.9" fill="#374151"/>
+<text x="116.0" y="180.0" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">l</tspan> = 6 m</text>
+<path d="M186.0,108 q14,-10 34,-4 q10,-6 16,0 l-4,6 q-14,2 -18,8 l-24,4 z" stroke="#b45309" stroke-width="2.5" fill="#f59e0b" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M260.0,130.0 L262.4,127.5 L264.8,125.1 L267.2,122.8 L269.6,120.6 L272.0,118.6 L274.4,116.7 L276.8,115.0 L279.2,113.4 L281.6,111.9 L284.0,110.5 L286.4,109.3 L288.8,108.2 L291.2,107.2 L293.6,106.3 L296.0,105.6 L298.4,105.0 L300.8,104.6 L303.2,104.3 L305.6,104.1 L308.0,104.0 L308.0,104.0 L314.0,104.1 L320.0,104.5 L326.0,105.1 L332.0,106.0 L338.0,107.1 L344.0,108.5 L350.0,110.1 L356.0,112.0 L362.0,114.1 L368.0,116.4 L374.0,119.0 L380.0,121.9 L386.0,125.0 L392.0,128.4 L398.0,132.0 L404.0,135.8 L410.0,139.9 L416.0,144.3 L422.0,148.9 L428.0,153.7 L434.0,158.8 L440.0,164.1 L446.0,169.7 L452.0,175.6 L458.0,181.7 L464.0,188.0 L470.0,194.6 L476.0,201.4 L482.0,208.5 L488.0,215.8 L494.0,223.4 L500.0,231.2 L506.0,239.3 L512.0,247.6 L518.0,256.2 L524.0,265.0 L530.0,274.1 L536.0,283.4 L542.0,293.0 L548.0,302.8" stroke="#7c3aed" stroke-width="3.5" fill="none" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="9 7"/>
+<line x1="308.0" y1="104.0" x2="308.0" y2="302.8" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 5"/>
+<line x1="276.0" y1="130.0" x2="276.0" y2="302.8" stroke="#374151" stroke-width="2.5" stroke-linecap="round"/>
+<polygon points="276.0,130.0 280.9,141.0 271.1,141.0" fill="#374151"/>
+<polygon points="276.0,302.8 280.9,291.8 271.1,291.8" fill="#374151"/>
+<text x="284.0" y="223.4" font-size="20" fill="#111827" text-anchor="start"><tspan font-style="italic">H</tspan> = 2,7 m</text>
+<line x1="260.0" y1="352.8" x2="548.0" y2="352.8" stroke="#374151" stroke-width="2.5" stroke-linecap="round"/>
+<polygon points="260.0,352.8 271.0,347.9 271.0,357.8" fill="#374151"/>
+<polygon points="548.0,352.8 537.0,347.9 537.0,357.8" fill="#374151"/>
+<text x="404.0" y="346.8" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">L</tspan> — ?</text>
+<text x="150.0" y="40.0" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">v</tspan> = 72 km/soat</text>
+<line x1="90.0" y1="60.0" x2="198.0" y2="60.0" stroke="#F97316" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="210.0,60.0 195.0,53.2 195.0,66.8" fill="#F97316"/>
+</svg>

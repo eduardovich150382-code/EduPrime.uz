@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 400" width="560" height="400" font-family="Arial, Helvetica, sans-serif">
+<rect width="560" height="400" fill="#fff"/>
+<polygon points="235.0,44.2 400.0,330.0 70.0,330.0" fill="#ecfeff" stroke="#0d9488" stroke-width="5" stroke-linejoin="round"/>
+<text x="235.0" y="30.2" font-size="22" fill="#111827" text-anchor="middle" font-weight="bold"><tspan font-style="italic">A</tspan></text>
+<text x="416.0" y="356.0" font-size="22" fill="#111827" text-anchor="middle" font-weight="bold"><tspan font-style="italic">B</tspan></text>
+<text x="52.0" y="356.0" font-size="22" fill="#111827" text-anchor="middle" font-weight="bold"><tspan font-style="italic">C</tspan></text>
+<circle cx="235.0" cy="234.7" r="6" fill="#334155"/>
+<line x1="235.0" y1="234.7" x2="333.0" y2="234.7" stroke="#F97316" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="345.0,234.7 330.0,228.0 330.0,241.5" fill="#F97316"/>
+<text x="351.0" y="240.7" font-size="20" fill="#111827" text-anchor="start"><tspan font-style="italic">v</tspan>₀ — ?</text>
+<line x1="235.0" y1="44.2" x2="343.0" y2="44.2" stroke="#0EA5E9" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="355.0,44.2 340.0,37.5 340.0,51.0" fill="#0EA5E9"/>
+<text x="361.0" y="50.2" font-size="20" fill="#111827" text-anchor="start"><tspan font-style="italic">v</tspan>₁ = 3 m/s</text>
+<line x1="400.0" y1="330.0" x2="488.6" y2="360.1" stroke="#0EA5E9" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="500.0,364.0 488.0,352.8 483.6,365.6" fill="#0EA5E9"/>
+<text x="460.0" y="392.0" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">v</tspan>₂ = 2 m/s</text>
+</svg>

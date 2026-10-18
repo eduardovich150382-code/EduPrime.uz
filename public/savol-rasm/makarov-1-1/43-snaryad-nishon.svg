@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 390" width="600" height="390" font-family="Arial, Helvetica, sans-serif">
+<rect width="600" height="390" fill="#fff"/>
+<rect x="20.0" y="310.0" width="560.0" height="14.0" rx="0" fill="#d97706" stroke="#78350f" stroke-width="3"/>
+<line x1="60.0" y1="310.0" x2="60.0" y2="30.0" stroke="#374151" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="60.0" y1="310.0" x2="60.0" y2="35.6" stroke="#374151" stroke-width="2.5" stroke-linecap="round"/>
+<polygon points="60.0,26.0 54.6,38.0 65.4,38.0" fill="#374151"/>
+<line x1="60.0" y1="310.0" x2="565.4" y2="310.0" stroke="#374151" stroke-width="2.5" stroke-linecap="round"/>
+<polygon points="575.0,310.0 563.0,304.6 563.0,315.4" fill="#374151"/>
+<text x="48.0" y="34.0" font-size="20" fill="#111827" text-anchor="end"><tspan font-style="italic">y</tspan></text>
+<text x="568.0" y="340.0" font-size="20" fill="#111827" text-anchor="start"><tspan font-style="italic">x</tspan></text>
+<text x="48.0" y="334.0" font-size="20" fill="#111827" text-anchor="end"><tspan font-style="italic">O</tspan></text>
+<path d="M60.0,310.0 L68.0,305.7 L76.0,301.6 L84.0,297.6 L92.0,293.9 L100.0,290.3 L108.0,286.9 L116.0,283.7 L124.0,280.7 L132.0,277.9 L140.0,275.3 L148.0,272.8 L156.0,270.5 L164.0,268.5 L172.0,266.6 L180.0,264.8 L188.0,263.3 L196.0,262.0 L204.0,260.8 L212.0,259.8 L220.0,259.0 L228.0,258.4 L236.0,258.0 L244.0,257.8 L252.0,257.8 L260.0,257.9 L268.0,258.2 L276.0,258.7 L284.0,259.4 L292.0,260.3 L300.0,261.4 L308.0,262.6 L316.0,264.0 L324.0,265.7 L332.0,267.5 L340.0,269.5 L348.0,271.6 L356.0,274.0 L364.0,276.5 L372.0,279.3 L380.0,282.2 L388.0,285.3 L396.0,288.6 L404.0,292.1 L412.0,295.7 L420.0,299.6 L428.0,303.6 L436.0,307.8" stroke="#a5b4fc" stroke-width="3" fill="none" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="9 7"/>
+<path d="M60.0,310.0 L68.0,304.1 L76.0,298.4 L84.0,293.0 L92.0,287.8 L100.0,282.8 L108.0,278.0 L116.0,273.4 L124.0,269.1 L132.0,265.0 L140.0,261.1 L148.0,257.4 L156.0,254.0 L164.0,250.8 L172.0,247.8 L180.0,245.0 L188.0,242.4 L196.0,240.1 L204.0,238.0 L212.0,236.1 L220.0,234.4 L228.0,233.0 L236.0,231.8 L244.0,230.8 L252.0,230.0 L260.0,229.4 L268.0,229.1 L276.0,229.0 L284.0,229.1 L292.0,229.4 L300.0,230.0 L308.0,230.8 L316.0,231.8 L324.0,233.0 L332.0,234.4 L340.0,236.1 L348.0,238.0 L356.0,240.1 L364.0,242.4 L372.0,245.0 L380.0,247.8 L388.0,250.8 L396.0,254.0 L404.0,257.4 L412.0,261.1 L420.0,265.0 L428.0,269.1 L436.0,273.4 L444.0,278.0 L452.0,282.8 L460.0,287.8 L468.0,293.0 L476.0,298.4 L484.0,304.1 L492.0,310.0" stroke="#7c3aed" stroke-width="3.5" fill="none" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="9 7"/>
+<path d="M60.0,310.0 L68.0,301.4 L76.0,293.0 L84.0,285.0 L92.0,277.3 L100.0,269.9 L108.0,262.9 L116.0,256.1 L124.0,249.7 L132.0,243.5 L140.0,237.7 L148.0,232.2 L156.0,227.0 L164.0,222.2 L172.0,217.6 L180.0,213.4 L188.0,209.4 L196.0,205.8 L204.0,202.5 L212.0,199.5 L220.0,196.9 L228.0,194.5 L236.0,192.5 L244.0,190.7 L252.0,189.3 L260.0,188.2 L268.0,187.4 L276.0,187.0 L284.0,186.8 L292.0,187.0 L300.0,187.4 L308.0,188.2 L316.0,189.3 L324.0,190.7 L332.0,192.5 L340.0,194.5 L348.0,196.9 L356.0,199.5 L364.0,202.5 L372.0,205.8 L380.0,209.4 L388.0,213.4 L396.0,217.6 L404.0,222.2 L412.0,227.1 L420.0,232.2 L428.0,237.7 L436.0,243.6 L444.0,249.7 L452.0,256.1 L460.0,262.9 L468.0,270.0 L476.0,277.3 L484.0,285.0 L492.0,293.1 L500.0,301.4" stroke="#a5b4fc" stroke-width="3" fill="none" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="9 7"/>
+<rect x="434.0" y="245.7" width="12.0" height="60.0" rx="0" fill="#fecaca" stroke="#b91c1c" stroke-width="3"/>
+<circle cx="440.0" cy="275.7" r="9" fill="#fff" stroke="#b91c1c" stroke-width="3"/>
+<circle cx="440.0" cy="275.7" r="3" fill="#b91c1c"/>
+<line x1="440.0" y1="305.7" x2="440.0" y2="310.0" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="6 5"/>
+<line x1="480.0" y1="275.7" x2="480.0" y2="310.0" stroke="#374151" stroke-width="2.5" stroke-linecap="round"/>
+<polygon points="480.0,275.7 484.9,286.7 475.1,286.7" fill="#374151"/>
+<polygon points="480.0,310.0 484.9,299.0 475.1,299.0" fill="#374151"/>
+<text x="490.0" y="299.8" font-size="20" fill="#111827" text-anchor="start"><tspan font-style="italic">h</tspan> — ?</text>
+<line x1="60.0" y1="350.0" x2="440.0" y2="350.0" stroke="#374151" stroke-width="2.5" stroke-linecap="round"/>
+<polygon points="60.0,350.0 71.0,345.1 71.0,354.9" fill="#374151"/>
+<polygon points="440.0,350.0 429.0,345.1 429.0,354.9" fill="#374151"/>
+<text x="250.0" y="378.0" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">l</tspan> = 2 km</text>
+<line x1="60.0" y1="310.0" x2="122.3" y2="263.1" stroke="#F97316" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="131.9,255.8 115.8,259.5 124.0,270.3" fill="#F97316"/>
+<text x="140.0" y="296.0" font-size="20" fill="#111827" text-anchor="start"><tspan font-style="italic">v</tspan>₀ = 400 m/s</text>
+</svg>

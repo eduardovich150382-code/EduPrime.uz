@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 340" width="560" height="340" font-family="Arial, Helvetica, sans-serif">
+<rect width="560" height="340" fill="#fff"/>
+<line x1="110.0" y1="110.0" x2="400.0" y2="220.0" stroke="#334155" stroke-width="8" stroke-linecap="round"/>
+<circle cx="110.0" cy="110.0" r="6" fill="#334155"/>
+<circle cx="400.0" cy="220.0" r="6" fill="#334155"/>
+<line x1="400.0" y1="220.0" x2="468.2" y2="164.3" stroke="#F97316" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="477.5,156.8 461.6,161.0 470.1,171.5" fill="#F97316"/>
+<text x="465.5" y="146.8" font-size="20" fill="#111827" text-anchor="end"><tspan font-style="italic">v</tspan>₁ = 2 m/s</text>
+<line x1="400.0" y1="220.0" x2="484.1" y2="251.9" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="6 5"/>
+<path d="M441.1,235.6 A44,44 0 0 0 434.1,192.2" stroke="#374151" stroke-width="3" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="450.0" y="214.0" font-size="18" fill="#111827" text-anchor="start">60°</text>
+<line x1="110.0" y1="110.0" x2="115.3" y2="217.9" stroke="#0EA5E9" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="115.9,229.9 121.9,214.5 108.4,215.2" fill="#0EA5E9"/>
+<text x="125.9" y="243.9" font-size="20" fill="#111827" text-anchor="start"><tspan font-style="italic">v</tspan>₂ = 2,5 m/s</text>
+<text x="265.0" y="205.0" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">l</tspan> = 1,2 m</text>
+<text x="280.0" y="325.0" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">ω</tspan> — ?</text>
+</svg>

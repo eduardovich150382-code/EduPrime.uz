@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 330" width="560" height="330" font-family="Arial, Helvetica, sans-serif">
+<rect width="560" height="330" fill="#fff"/>
+<rect x="30.0" y="70.0" width="500.0" height="190.0" rx="0" fill="#BFDBFE"/>
+<line x1="30.0" y1="70.0" x2="530.0" y2="70.0" stroke="#16a34a" stroke-width="6" stroke-linecap="round"/>
+<line x1="30.0" y1="260.0" x2="530.0" y2="260.0" stroke="#16a34a" stroke-width="6" stroke-linecap="round"/>
+<rect x="30.0" y="40.0" width="500.0" height="30.0" rx="0" fill="#bbf7d0"/>
+<rect x="30.0" y="260.0" width="500.0" height="30.0" rx="0" fill="#bbf7d0"/>
+<path d="M60,110 q20,-10 40,0 t40,0 t40,0" stroke="#60a5fa" stroke-width="2.5" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M60,170 q20,-10 40,0 t40,0 t40,0" stroke="#60a5fa" stroke-width="2.5" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M60,225 q20,-10 40,0 t40,0 t40,0" stroke="#60a5fa" stroke-width="2.5" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="400.0" y1="165.0" x2="488.0" y2="165.0" stroke="#1E3A8A" stroke-width="5" stroke-linecap="round"/>
+<polygon points="500.0,165.0 485.0,158.2 485.0,171.8" fill="#1E3A8A"/>
+<text x="450.0" y="155.0" font-size="24" fill="#1E3A8A" text-anchor="middle" font-weight="bold"><tspan font-style="italic">u</tspan></text>
+<line x1="150.0" y1="260.0" x2="150.0" y2="70.0" stroke="#ef4444" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="8 6"/>
+<line x1="140.0" y1="230.0" x2="140.0" y2="110.4" stroke="#ef4444" stroke-width="3.5" stroke-linecap="round"/>
+<polygon points="140.0,100.0 134.2,113.0 145.8,113.0" fill="#ef4444"/>
+<line x1="160.0" y1="100.0" x2="160.0" y2="219.6" stroke="#ef4444" stroke-width="3.5" stroke-linecap="round"/>
+<polygon points="160.0,230.0 165.8,217.0 154.2,217.0" fill="#ef4444"/>
+<circle cx="150.0" cy="268.0" r="8" fill="#ef4444" stroke="#7f1d1d" stroke-width="2.5"/>
+<line x1="95.0" y1="70.0" x2="95.0" y2="260.0" stroke="#374151" stroke-width="2.5" stroke-linecap="round"/>
+<polygon points="95.0,70.0 100.0,81.0 90.0,81.0" fill="#374151"/>
+<polygon points="95.0,260.0 100.0,249.0 90.0,249.0" fill="#374151"/>
+<text x="70.0" y="172.0" font-size="20" fill="#111827" text-anchor="start"><tspan font-style="italic">L</tspan></text>
+<text x="150.0" y="25.0" font-size="20" fill="#ef4444" text-anchor="middle" font-weight="bold"><tspan font-style="italic">t</tspan>₁ = 3 min</text>
+<line x1="270.0" y1="240.0" x2="470.0" y2="240.0" stroke="#7c3aed" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="8 6"/>
+<line x1="285.0" y1="230.0" x2="444.6" y2="230.0" stroke="#7c3aed" stroke-width="3.5" stroke-linecap="round"/>
+<polygon points="455.0,230.0 442.0,224.2 442.0,235.8" fill="#7c3aed"/>
+<line x1="455.0" y1="250.0" x2="295.4" y2="250.0" stroke="#7c3aed" stroke-width="3.5" stroke-linecap="round"/>
+<polygon points="285.0,250.0 298.0,255.8 298.0,244.2" fill="#7c3aed"/>
+<circle cx="270.0" cy="240.0" r="8" fill="#7c3aed" stroke="#4c1d95" stroke-width="2.5"/>
+<text x="370.0" y="315.0" font-size="20" fill="#7c3aed" text-anchor="middle" font-weight="bold"><tspan font-style="italic">L</tspan> (qirg'oq bo'ylab), <tspan font-style="italic">t</tspan>₂ = 5 min</text>
+</svg>

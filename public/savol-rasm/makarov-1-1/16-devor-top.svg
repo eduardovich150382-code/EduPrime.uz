@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 380" width="600" height="380" font-family="Arial, Helvetica, sans-serif">
+<rect width="600" height="380" fill="#fff"/>
+<rect x="20.0" y="300.0" width="520.0" height="14.0" rx="0" fill="#d97706" stroke="#78350f" stroke-width="3"/>
+<rect x="460.0" y="60.0" width="22.0" height="240.0" rx="0" fill="#cbd5e1" stroke="#334155" stroke-width="3.5"/>
+<path d="M60.0,300.0 L66.7,293.4 L73.3,286.9 L80.0,280.6 L86.7,274.3 L93.3,268.2 L100.0,262.2 L106.7,256.4 L113.3,250.6 L120.0,245.0 L126.7,239.5 L133.3,234.1 L140.0,228.9 L146.7,223.8 L153.3,218.8 L160.0,213.9 L166.7,209.1 L173.3,204.5 L180.0,200.0 L186.7,195.6 L193.3,191.4 L200.0,187.2 L206.7,183.2 L213.3,179.3 L220.0,175.6 L226.7,171.9 L233.3,168.4 L240.0,165.0 L246.7,161.7 L253.3,158.6 L260.0,155.6 L266.7,152.7 L273.3,149.9 L280.0,147.2 L286.7,144.7 L293.3,142.3 L300.0,140.0 L306.7,137.8 L313.3,135.8 L320.0,133.9 L326.7,132.1 L333.3,130.4 L340.0,128.9 L346.7,127.5 L353.3,126.2 L360.0,125.0 L366.7,124.0 L373.3,123.0 L380.0,122.2 L386.7,121.5 L393.3,121.0 L400.0,120.6 L406.7,120.2 L413.3,120.1 L420.0,120.0 L426.7,120.1 L433.3,120.2 L440.0,120.6 L446.7,121.0 L453.3,121.5 L460.0,122.2" stroke="#7c3aed" stroke-width="3.5" fill="none" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="9 7"/>
+<circle cx="452.0" cy="122.2" r="10" fill="#ef4444" stroke="#7f1d1d" stroke-width="3"/>
+<circle cx="60.0" cy="292.0" r="10" fill="#ef4444" stroke="#7f1d1d" stroke-width="3"/>
+<line x1="60.0" y1="292.0" x2="115.2" y2="236.8" stroke="#F97316" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="123.6,228.4 108.3,234.2 117.8,243.7" fill="#F97316"/>
+<text x="110.0" y="200.0" font-size="20" fill="#111827" text-anchor="end"><tspan font-style="italic">v</tspan>₀ = 12 m/s</text>
+<path d="M100.0,292.0 A40,40 0 0 0 88.3,263.7" stroke="#374151" stroke-width="3" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="106.0" y="286.0" font-size="18" fill="#111827" text-anchor="start">45°</text>
+<line x1="60.0" y1="340.0" x2="460.0" y2="340.0" stroke="#374151" stroke-width="2.5" stroke-linecap="round"/>
+<polygon points="60.0,340.0 71.0,335.1 71.0,344.9" fill="#374151"/>
+<polygon points="460.0,340.0 449.0,335.1 449.0,344.9" fill="#374151"/>
+<text x="260.0" y="372.0" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">l</tspan> = 8 m</text>
+<line x1="505.0" y1="122.2" x2="505.0" y2="300.0" stroke="#374151" stroke-width="2.5" stroke-linecap="round"/>
+<polygon points="505.0,122.2 509.9,133.2 500.1,133.2" fill="#374151"/>
+<polygon points="505.0,300.0 509.9,289.0 500.1,289.0" fill="#374151"/>
+<text x="515.0" y="218.1" font-size="20" fill="#111827" text-anchor="start"><tspan font-style="italic">h</tspan> — ?</text>
+</svg>

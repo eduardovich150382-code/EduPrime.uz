@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 440" width="520" height="440" font-family="Arial, Helvetica, sans-serif">
+<rect width="520" height="440" fill="#fff"/>
+<rect x="140.0" y="34.0" width="120.0" height="16.0" rx="0" fill="#64748b" stroke="#334155" stroke-width="3"/>
+<rect x="20.0" y="302.0" width="480.0" height="14.0" rx="0" fill="#d97706" stroke="#78350f" stroke-width="3"/>
+<line x1="200.0" y1="50.0" x2="200.0" y2="218.0" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="7 5"/>
+<line x1="200.0" y1="50.0" x2="54.5" y2="134.0" stroke="#334155" stroke-width="3" stroke-linecap="round"/>
+<circle cx="54.5" cy="134.0" r="11" fill="#ef4444" stroke="#7f1d1d" stroke-width="3"/>
+<path d="M54.5,134.0 A168.0,168.0 0 0 0 200,218.0" stroke="#64748b" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="5 5"/>
+<path d="M156.7,75.0 A50,50 0 0 0 200.0,100.0" stroke="#374151" stroke-width="3" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="178.0" y="128.0" font-size="18" fill="#111827" text-anchor="end">60°</text>
+<circle cx="200.0" cy="218.0" r="8" fill="#fff" stroke="#ef4444" stroke-width="2.5"/>
+<path d="M200.0,218.0 L204.2,218.1 L208.4,218.2 L212.6,218.5 L216.8,218.8 L221.0,219.3 L225.2,219.9 L229.4,220.6 L233.6,221.4 L237.8,222.3 L242.0,223.2 L246.2,224.4 L250.4,225.6 L254.6,226.9 L258.8,228.3 L263.0,229.8 L267.2,231.4 L271.4,233.2 L275.6,235.0 L279.8,237.0 L284.0,239.0 L288.2,241.2 L292.4,243.4 L296.6,245.8 L300.8,248.2 L305.0,250.8 L309.2,253.5 L313.4,256.3 L317.6,259.2 L321.8,262.2 L326.0,265.2 L330.2,268.5 L334.4,271.8 L338.6,275.2 L342.8,278.7 L347.0,282.3 L351.2,286.0 L355.4,289.9 L359.6,293.8 L363.8,297.9 L368.0,302.0" stroke="#7c3aed" stroke-width="3.5" fill="none" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="9 7"/>
+<line x1="346.0" y1="280.0" x2="359.5" y2="293.5" stroke="#F97316" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="368.0,302.0 362.2,286.6 352.6,296.2" fill="#F97316"/>
+<line x1="368.0" y1="302.0" x2="368.0" y2="232.0" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="6 5"/>
+<text x="376.0" y="268.0" font-size="20" fill="#111827" text-anchor="start"><tspan font-style="italic">β</tspan> — ?</text>
+<text x="113.3" y="92.0" font-size="20" fill="#111827" text-anchor="end"><tspan font-style="italic">l</tspan> = 1,2 m</text>
+<line x1="440.0" y1="50.0" x2="440.0" y2="302.0" stroke="#374151" stroke-width="2.5" stroke-linecap="round"/>
+<polygon points="440.0,50.0 444.9,61.0 435.1,61.0" fill="#374151"/>
+<polygon points="440.0,302.0 444.9,291.0 435.1,291.0" fill="#374151"/>
+<text x="430.0" y="183.0" font-size="20" fill="#111827" text-anchor="end"><tspan font-style="italic">h</tspan> = 1,8 m</text>
+</svg>
