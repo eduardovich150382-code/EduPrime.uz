@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 380" width="600" height="380" font-family="Arial, Helvetica, sans-serif"><title>Qiyaligi 30° bo'lgan yonbag'irda chang'ichi</title>
+<rect width="600" height="380" fill="#fff"/>
+<polygon points="60,48.6 60,320 530,320" fill="#e0f2fe" stroke="#1e293b" stroke-width="4" stroke-linejoin="round"/>
+<path d="M478,290 A60,60 0 0 0 470,320" stroke="#1e293b" stroke-width="2.8" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="464" y="310" font-size="20" fill="#111827" text-anchor="end">α = 30°</text>
+<rect x="30" y="320" width="540" height="14" rx="0" fill="#e7d3a8" stroke="#78350f" stroke-width="3"/>
+<rect x="255.7" y="138.3" width="46" height="34" rx="3" fill="#60a5fa" stroke="#1e3a8a" stroke-width="3.5" transform="rotate(30 278.7 155.3)"/>
+<line x1="231.2" y1="147.5" x2="309.2" y2="192.5" stroke="#1e3a8a" stroke-width="5" stroke-linecap="round"/>
+<circle cx="262.7" cy="127.6" r="13" fill="#fcd34d" stroke="#92400e" stroke-width="3"/>
+<text x="286.7" y="85.3" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">m</tspan> = 80 kg</text>
+<line x1="313.3" y1="175.3" x2="376.6" y2="211.8" stroke="#0EA5E9" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="386.9,217.8 377.1,204.8 370.8,215.7" fill="#0EA5E9"/>
+<text x="408.6" y="230.3" font-size="22" fill="#0EA5E9" text-anchor="middle"><tspan font-style="italic">v</tspan></text>
+<text x="150" y="360" font-size="19" fill="#111827" text-anchor="start"><tspan font-style="italic">μ</tspan> = 0,1;  <tspan font-style="italic">F</tspan><tspan font-size="0.72em" baseline-shift="sub">qarsh</tspan> = <tspan font-style="italic">βv</tspan>², <tspan font-style="italic">β</tspan> = 0,8 kg/m</text>
+</svg>

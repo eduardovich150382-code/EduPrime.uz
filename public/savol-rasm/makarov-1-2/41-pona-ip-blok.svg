@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 340" width="600" height="340" font-family="Arial, Helvetica, sans-serif"><title>Stoldagi pona, uning sirtidagi brusok va blok orqali tayanchga bog'langan ip</title>
+<rect width="600" height="340" fill="#fff"/>
+<rect x="20" y="290" width="560" height="14" rx="0" fill="#e7d3a8" stroke="#78350f" stroke-width="3"/>
+<rect x="44" y="60" width="16" height="230" rx="0" fill="#e7d3a8" stroke="#78350f" stroke-width="3"/>
+<polygon points="190,290 190,110 447.1,290" fill="#ddd6fe" stroke="#4c1d95" stroke-width="4" stroke-linejoin="round"/>
+<path d="M397.9,255.6 A60,60 0 0 0 387.1,290" stroke="#1e293b" stroke-width="2.8" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="375.1" y="280" font-size="22" fill="#111827" text-anchor="end"><tspan font-style="italic">α</tspan></text>
+<line x1="190" y1="110" x2="196" y2="88" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<circle cx="196" cy="88" r="20" fill="#e2e8f0" stroke="#334155" stroke-width="4"/>
+<circle cx="196" cy="88" r="5" fill="#334155" stroke="#334155" stroke-width="2"/>
+<line x1="60" y1="68" x2="196" y2="68" stroke="#111827" stroke-width="2.5" stroke-linecap="round"/>
+<rect x="275.2" y="150.1" width="52" height="34" rx="3" fill="#60a5fa" stroke="#1e3a8a" stroke-width="3.5" transform="rotate(35 301.2 167.1)"/>
+<text x="331.2" y="133.1" font-size="22" fill="#111827" text-anchor="start"><tspan font-style="italic">m</tspan></text>
+<line x1="279.9" y1="152.2" x2="207.5" y2="104.4" stroke="#111827" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="400" y1="318" x2="508" y2="318" stroke="#7c3aed" stroke-width="5" stroke-linecap="round"/>
+<polygon points="520,318 505,311.7 505,324.3" fill="#7c3aed"/>
+<text x="540" y="325" font-size="22" fill="#7c3aed" text-anchor="middle"><tspan font-style="italic">a</tspan><tspan font-size="0.72em" baseline-shift="sub">0</tspan></text>
+</svg>
