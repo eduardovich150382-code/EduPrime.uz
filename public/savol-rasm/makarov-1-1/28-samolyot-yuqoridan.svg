@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 420" width="520" height="420" font-family="Arial, Helvetica, sans-serif">
+<rect width="520" height="420" fill="#fff"/>
+<circle cx="120.0" cy="360.0" r="6" fill="#334155"/>
+<text x="100.0" y="368.0" font-size="22" fill="#111827" text-anchor="end"><tspan font-style="italic">O</tspan></text>
+<path d="M380.0,360.0 A260,260 0 0 0 97.3,101.0" stroke="#1E3A8A" stroke-width="4" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="178.9,106.4 166.9,94.1 163.4,113.8" fill="#0EA5E9" stroke="#1E3A8A" stroke-width="2.5" stroke-linejoin="round"/>
+<line x1="165.1" y1="103.9" x2="232.1" y2="115.8" stroke="#F97316" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="243.9,117.8 230.3,108.6 228.0,121.9" fill="#F97316"/>
+<text x="259.8" y="119.6" font-size="22" fill="#111827" text-anchor="start"><tspan font-style="italic">v</tspan></text>
+<text x="170.4" y="80.4" font-size="22" fill="#ef4444" text-anchor="middle" font-weight="bold">1</text>
+<polygon points="347.9,234.1 349.0,216.9 332.0,227.5" fill="#0EA5E9" stroke="#1E3A8A" stroke-width="2.5" stroke-linejoin="round"/>
+<line x1="340.5" y1="222.2" x2="376.5" y2="279.9" stroke="#F97316" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="382.9,290.1 380.7,273.8 369.2,280.9" fill="#F97316"/>
+<text x="394.2" y="298.5" font-size="22" fill="#111827" text-anchor="start"><tspan font-style="italic">v</tspan></text>
+<text x="365.9" y="212.3" font-size="22" fill="#ef4444" text-anchor="middle" font-weight="bold">2</text>
+<line x1="120.0" y1="360.0" x2="165.1" y2="103.9" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="7 5"/>
+<line x1="120.0" y1="360.0" x2="340.5" y2="222.2" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="7 5"/>
+<text x="180.0" y="230.0" font-size="20" fill="#111827" text-anchor="start"><tspan font-style="italic">R</tspan> = 1,2 km</text>
+<text x="300.0" y="405.0" font-size="17" fill="#64748b" text-anchor="middle">yuqoridan ko'rinish; 1→2 oraliq <tspan font-style="italic">τ</tspan> = 10 s</text>
+</svg>

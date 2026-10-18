@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 420" width="560" height="420" font-family="Arial, Helvetica, sans-serif">
+<rect width="560" height="420" fill="#fff"/>
+<polygon points="50.0,120.0 530.0,397.1 50.0,397.1" fill="#e2e8f0" stroke="#334155" stroke-width="4" stroke-linejoin="round"/>
+<path d="M478.0,367.1 A60,60 0 0 0 470.0,397.1" stroke="#374151" stroke-width="3" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="448.0" y="387.1" font-size="20" fill="#111827" text-anchor="middle">30°</text>
+<circle cx="150.0" cy="105.7" r="9" fill="#ef4444" stroke="#7f1d1d" stroke-width="3"/>
+<line x1="150.0" y1="117.7" x2="150.0" y2="173.7" stroke="#ef4444" stroke-width="3" stroke-linecap="round" stroke-dasharray="7 5"/>
+<line x1="124.0" y1="105.7" x2="124.0" y2="177.7" stroke="#374151" stroke-width="2.5" stroke-linecap="round"/>
+<polygon points="124.0,105.7 128.9,116.7 119.0,116.7" fill="#374151"/>
+<polygon points="124.0,177.7 128.9,166.7 119.0,166.7" fill="#374151"/>
+<text x="116.0" y="109.7" font-size="20" fill="#111827" text-anchor="end"><tspan font-style="italic">h</tspan> = 80 sm</text>
+<path d="M150.0,177.7 L154.2,175.4 L158.3,173.3 L162.5,171.3 L166.6,169.4 L170.8,167.7 L174.9,166.2 L179.1,164.9 L183.3,163.7 L187.4,162.6 L191.6,161.7 L195.7,161.0 L199.9,160.5 L204.0,160.1 L208.2,159.8 L212.4,159.7 L216.5,159.8 L220.7,160.1 L224.8,160.5 L229.0,161.0 L233.1,161.7 L237.3,162.6 L241.5,163.7 L245.6,164.9 L249.8,166.2 L253.9,167.7 L258.1,169.4 L262.2,171.3 L266.4,173.3 L270.6,175.4 L274.7,177.7 L278.9,180.2 L283.0,182.9 L287.2,185.7 L291.3,188.6 L295.5,191.7 L299.6,195.0 L303.8,198.5 L308.0,202.1 L312.1,205.8 L316.3,209.7 L320.4,213.8 L324.6,218.1 L328.7,222.5 L332.9,227.0 L337.1,231.7 L341.2,236.6 L345.4,241.7 L349.5,246.9 L353.7,252.2 L357.8,257.7 L362.0,263.4 L366.2,269.3 L370.3,275.3 L374.5,281.4 L378.6,287.7 L382.8,294.2 L386.9,300.9 L391.1,307.7 L395.3,314.6 L399.4,321.7" stroke="#7c3aed" stroke-width="3.5" fill="none" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="9 7"/>
+<circle cx="399.4" cy="315.7" r="8" fill="#ef4444" stroke="#7f1d1d" stroke-width="3"/>
+<line x1="133.0" y1="207.2" x2="382.4" y2="351.2" stroke="#374151" stroke-width="2.5" stroke-linecap="round"/>
+<polygon points="133.0,207.2 145.0,208.4 140.1,217.0" fill="#374151"/>
+<polygon points="382.4,351.2 375.4,341.4 370.4,350.0" fill="#374151"/>
+<text x="243.7" y="303.4" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">S</tspan> — ?</text>
+</svg>

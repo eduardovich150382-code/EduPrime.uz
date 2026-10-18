@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 490" width="520" height="490" font-family="Arial, Helvetica, sans-serif">
+<rect width="520" height="490" fill="#fff"/>
+<polygon points="85.5,105.0 250.0,200.0 400.0,459.8 85.5,459.8" fill="#fee2e2" stroke="#7f1d1d" stroke-width="4" stroke-linejoin="round"/>
+<line x1="85.5" y1="105.0" x2="250.0" y2="200.0" stroke="#b91c1c" stroke-width="7" stroke-linecap="round"/>
+<line x1="250.0" y1="200.0" x2="400.0" y2="459.8" stroke="#b91c1c" stroke-width="7" stroke-linecap="round"/>
+<line x1="250.0" y1="200.0" x2="360.0" y2="200.0" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
+<line x1="85.5" y1="105.0" x2="205.5" y2="105.0" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
+<path d="M154.7,145.0 A80,80 0 0 0 165.5,105.0" stroke="#374151" stroke-width="3" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="173.5" y="127.0" font-size="18" fill="#111827" text-anchor="start">30°</text>
+<path d="M275.0,243.3 A50,50 0 0 0 300.0,200.0" stroke="#374151" stroke-width="3" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="308.0" y="232.0" font-size="18" fill="#111827" text-anchor="start">60°</text>
+<rect x="92.5" y="90.0" width="24" height="24" fill="#0EA5E9" stroke="#1E3A8A" stroke-width="3" transform="rotate(30 104.5 116.0)"/>
+<line x1="107.5" y1="66.9" x2="272.0" y2="161.9" stroke="#374151" stroke-width="2.5" stroke-linecap="round"/>
+<polygon points="107.5,66.9 119.5,68.1 114.5,76.7" fill="#374151"/>
+<polygon points="272.0,161.9 264.9,152.1 260.0,160.7" fill="#374151"/>
+<text x="222.7" y="91.9" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">L</tspan> = 1,2 m</text>
+<path d="M250.0,200.0 L254.1,202.5 L258.2,205.3 L262.2,208.5 L266.3,211.9 L270.4,215.7 L274.5,219.8 L278.5,224.2 L282.6,228.9 L286.7,233.9 L290.8,239.2 L294.8,244.9 L298.9,250.8 L303.0,257.1 L307.1,263.7 L311.1,270.6 L315.2,277.8 L319.3,285.3 L323.4,293.2 L327.4,301.3 L331.5,309.8 L335.6,318.6 L339.7,327.7 L343.7,337.1 L347.8,346.8 L351.9,356.9 L356.0,367.2 L360.0,377.9 L364.1,388.9 L368.2,400.2 L372.3,411.8" stroke="#7c3aed" stroke-width="3.5" fill="none" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="9 7"/>
+<text x="470.0" y="60.0" font-size="20" fill="#111827" text-anchor="end"><tspan font-style="italic">μ</tspan> = 0,2</text>
+<text x="470.0" y="90.0" font-size="20" fill="#111827" text-anchor="end"><tspan font-style="italic">τ</tspan> — ?</text>
+</svg>

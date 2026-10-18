@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" width="600" height="400" font-family="Arial, Helvetica, sans-serif">
+<rect width="600" height="400" fill="#fff"/>
+<rect x="20.0" y="350.0" width="560.0" height="14.0" rx="0" fill="#d97706" stroke="#78350f" stroke-width="3"/>
+<rect x="150.0" y="170.0" width="70.0" height="180.0" rx="0" fill="#cbd5e1" stroke="#334155" stroke-width="3.5"/>
+<line x1="150.0" y1="190.0" x2="220.0" y2="190.0" stroke="#64748b" stroke-width="2" stroke-linecap="round"/>
+<line x1="150.0" y1="216.0" x2="220.0" y2="216.0" stroke="#64748b" stroke-width="2" stroke-linecap="round"/>
+<line x1="150.0" y1="242.0" x2="220.0" y2="242.0" stroke="#64748b" stroke-width="2" stroke-linecap="round"/>
+<line x1="150.0" y1="268.0" x2="220.0" y2="268.0" stroke="#64748b" stroke-width="2" stroke-linecap="round"/>
+<line x1="150.0" y1="294.0" x2="220.0" y2="294.0" stroke="#64748b" stroke-width="2" stroke-linecap="round"/>
+<line x1="150.0" y1="320.0" x2="220.0" y2="320.0" stroke="#64748b" stroke-width="2" stroke-linecap="round"/>
+<line x1="150.0" y1="346.0" x2="220.0" y2="346.0" stroke="#64748b" stroke-width="2" stroke-linecap="round"/>
+<path d="M220.0,170.0 L223.6,166.5 L227.3,163.2 L230.9,160.1 L234.6,157.2 L238.2,154.5 L241.9,152.1 L245.5,149.9 L249.2,147.9 L252.8,146.2 L256.5,144.6 L260.1,143.3 L263.7,142.2 L267.4,141.3 L271.0,140.7 L274.7,140.2 L278.3,140.0 L282.0,140.0 L285.6,140.3 L289.3,140.7 L292.9,141.4 L296.6,142.3 L300.2,143.4 L303.9,144.7 L307.5,146.3 L311.1,148.1 L314.8,150.1 L318.4,152.3 L322.1,154.8 L325.7,157.4 L329.4,160.3 L333.0,163.4 L336.7,166.8 L340.3,170.3 L344.0,174.1 L347.6,178.1 L351.2,182.3 L354.9,186.7 L358.5,191.4 L362.2,196.3 L365.8,201.4 L369.5,206.7 L373.1,212.3 L376.8,218.0 L380.4,224.0 L384.1,230.2 L387.7,236.7 L391.4,243.3 L395.0,250.2 L398.6,257.3 L402.3,264.6 L405.9,272.2 L409.6,279.9 L413.2,287.9 L416.9,296.1 L420.5,304.5 L424.2,313.2 L427.8,322.1 L431.5,331.2 L435.1,340.5 L438.7,350.0" stroke="#7c3aed" stroke-width="3.5" fill="none" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="9 7"/>
+<circle cx="220.0" cy="168.0" r="10" fill="#ef4444" stroke="#7f1d1d" stroke-width="3"/>
+<line x1="220.0" y1="168.0" x2="268.1" y2="119.9" stroke="#F97316" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="276.6,111.4 261.2,117.3 270.7,126.8" fill="#F97316"/>
+<text x="280.0" y="98.0" font-size="20" fill="#111827" text-anchor="start"><tspan font-style="italic">v</tspan>₀ = 5 m/s</text>
+<path d="M256.0,168.0 A36,36 0 0 0 245.5,142.5" stroke="#374151" stroke-width="3" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="262.0" y="164.0" font-size="18" fill="#111827" text-anchor="start">45°</text>
+<polygon points="388.7,350.0 538.7,350.0 538.7,293.3" fill="#e2e8f0" stroke="#334155" stroke-width="4" stroke-linejoin="round"/>
+<path d="M458.7,350.0 A70,70 0 0 0 454.2,325.3" stroke="#374151" stroke-width="3" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="468.7" y="342.0" font-size="20" fill="#111827" text-anchor="start"><tspan font-style="italic">β</tspan> — ?</text>
+<line x1="120.0" y1="170.0" x2="120.0" y2="350.0" stroke="#374151" stroke-width="2.5" stroke-linecap="round"/>
+<polygon points="120.0,170.0 125.0,181.0 115.0,181.0" fill="#374151"/>
+<polygon points="120.0,350.0 125.0,339.0 115.0,339.0" fill="#374151"/>
+<text x="110.0" y="267.0" font-size="20" fill="#111827" text-anchor="end"><tspan font-style="italic">h</tspan> = 3,75 m</text>
+</svg>
