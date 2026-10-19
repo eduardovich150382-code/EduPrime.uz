@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 340" width="520" height="340" font-family="Arial, Helvetica, sans-serif"><title>Stolda turgan bak yon devoridagi teshikdan otilgan oqim</title>
+<rect width="520" height="340" fill="#fff"/>
+<line x1="20" y1="300" x2="510" y2="300" stroke="#7c4a1e" stroke-width="6" stroke-linecap="round"/>
+<rect x="70" y="62" width="120" height="238" fill="#bfdbfe" stroke="none" stroke-width="0"/>
+<line x1="72" y1="62" x2="188" y2="62" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round"/>
+<polyline points="70,60 70,300 190,300 190,60" fill="none" stroke="#1f2937" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M190,186 Q290,188 382,300 L392,300 Q296,194 190,194 Z" fill="#bfdbfe" stroke="#2563eb" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="40" y1="62" x2="40" y2="300" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<polygon points="40,62 35,70 45,70" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="40,300 35,292 45,292" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="24" y="188" font-size="20" fill="#111827" text-anchor="end"><tspan font-style="italic">H</tspan></text>
+<line x1="165" y1="190" x2="165" y2="300" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<polygon points="165,190 160,198 170,198" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="165,300 160,292 170,292" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="149" y="252" font-size="20" fill="#111827" text-anchor="end"><tspan font-style="italic">h</tspan></text>
+<line x1="190" y1="325" x2="387" y2="325" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<polygon points="190,325 198,320 198,330" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="387,325 379,320 379,330" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="288.5" y="317" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">S</tspan></text>
+</svg>

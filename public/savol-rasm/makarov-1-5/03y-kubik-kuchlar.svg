@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 360" width="520" height="360" font-family="Arial, Helvetica, sans-serif"><title>Kubikka ta'sir qiluvchi kuchlar</title>
+<rect width="520" height="360" fill="#fff"/>
+<line x1="40" y1="320" x2="447" y2="85" stroke="#1f2937" stroke-width="5" stroke-linecap="round"/>
+<polygon points="174.6,233.1 287.1,168.1 222.1,55.5 109.6,120.5" fill="#94a3b8" stroke="#334155" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="198.4" cy="144.3" r="5" fill="#111827" stroke="#111827" stroke-width="1"/>
+<line x1="198.4" y1="144.3" x2="198.4" y2="267.3" stroke="#dc2626" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="198.4,279.3 191.3,266 205.4,266" fill="#dc2626" stroke="#dc2626" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="230.4" y="275.3" font-size="22" fill="#dc2626" text-anchor="middle"><tspan font-style="italic">mg</tspan></text>
+<line x1="223.4" y1="256.6" x2="237.4" y2="256.6" stroke="#dc2626" stroke-width="1.8" stroke-linecap="round"/>
+<polygon points="239.4,256.6 234.4,253.1 234.4,260.1" fill="#dc2626" stroke="#dc2626" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="198.4" y1="144.3" x2="198.4" y2="61.3" stroke="#1d4ed8" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="198.4,49.3 205.4,62.5 191.3,62.5" fill="#1d4ed8" stroke="#1d4ed8" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="170.4" y="57.3" font-size="22" fill="#1d4ed8" text-anchor="middle"><tspan font-style="italic">F</tspan><tspan font-size="70%" dy="6">A</tspan><tspan dy="-6">​</tspan></text>
+<line x1="158.4" y1="38.6" x2="172.4" y2="38.6" stroke="#1d4ed8" stroke-width="1.8" stroke-linecap="round"/>
+<polygon points="174.4,38.6 169.4,35.1 169.4,42.1" fill="#1d4ed8" stroke="#1d4ed8" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="198.4" y1="144.3" x2="149.4" y2="59.4" stroke="#16a34a" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="143.4,49 156.1,57 143.9,64" fill="#16a34a" stroke="#16a34a" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="121.4" y="49" font-size="22" fill="#16a34a" text-anchor="middle"><tspan font-style="italic">N</tspan></text>
+<line x1="114.4" y1="30.3" x2="128.4" y2="30.3" stroke="#16a34a" stroke-width="1.8" stroke-linecap="round"/>
+<polygon points="130.4,30.3 125.4,26.8 125.4,33.8" fill="#16a34a" stroke="#16a34a" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="198.4" y1="144.3" x2="283.2" y2="95.3" stroke="#ea580c" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="293.6,89.3 285.7,102 278.6,89.8" fill="#ea580c" stroke="#ea580c" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="329.6" y="101.3" font-size="22" fill="#ea580c" text-anchor="middle"><tspan font-style="italic">F</tspan><tspan font-size="70%" dy="6">ishq</tspan><tspan dy="-6">​</tspan></text>
+<line x1="308.6" y1="82.6" x2="322.6" y2="82.6" stroke="#ea580c" stroke-width="1.8" stroke-linecap="round"/>
+<polygon points="324.6,82.6 319.6,79.1 319.6,86.1" fill="#ea580c" stroke="#ea580c" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="40" y1="320" x2="190" y2="320" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="7 6"/>
+<path d="M110,320 A70,70 0 0 0 100.6,285" fill="none" stroke="#1e293b" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="130" y="306" font-size="24" fill="#111827" text-anchor="middle"><tspan font-style="italic">α</tspan></text>
+</svg>

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 360" width="540" height="360" font-family="Arial, Helvetica, sans-serif"><title>Gorizontal truba: tor va keng qismlaridagi teshiklardan suv vertikal otilmoqda</title>
+<rect width="540" height="360" fill="#fff"/>
+<polygon points="30,272 230,272 300,254 520,254 520,326 300,326 230,308 30,308" fill="#bfdbfe" stroke="none" stroke-width="0" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="30,272 230,272 300,254 520,254" fill="none" stroke="#1f2937" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="520,326 300,326 230,308 30,308" fill="none" stroke="#1f2937" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="30" y1="290" x2="520" y2="290" stroke="#64748b" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="8 6"/>
+<path d="M126,272 L126,180 Q130,164 134,180 L134,272 Z" fill="#bfdbfe" stroke="#2563eb" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M406,254 L406,105 Q410,89 414,105 L414,254 Z" fill="#bfdbfe" stroke="#2563eb" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="90" y1="170" x2="90" y2="290" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<polygon points="90,170 85,178 95,178" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="90,290 85,282 95,282" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="74" y="237" font-size="20" fill="#111827" text-anchor="end"><tspan font-style="italic">h</tspan><tspan font-size="70%" dy="6">1</tspan><tspan dy="-6">​</tspan></text>
+<line x1="460" y1="95" x2="460" y2="290" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<polygon points="460,95 455,103 465,103" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="460,290 455,282 465,282" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="476" y="199.5" font-size="20" fill="#111827" text-anchor="start"><tspan font-style="italic">h</tspan><tspan font-size="70%" dy="6">2</tspan><tspan dy="-6">​</tspan></text>
+<text x="150" y="340" font-size="22" fill="#111827" text-anchor="middle"><tspan font-style="italic">d</tspan><tspan font-size="70%" dy="6">1</tspan><tspan dy="-6">​</tspan></text>
+<text x="410" y="350" font-size="22" fill="#111827" text-anchor="middle"><tspan font-style="italic">d</tspan><tspan font-size="70%" dy="6">2</tspan><tspan dy="-6">​</tspan></text>
+<line x1="40" y1="345" x2="88" y2="345" stroke="#ea580c" stroke-width="3.5" stroke-linecap="round"/>
+<polygon points="100,345 86.8,352 86.8,338" fill="#ea580c" stroke="#ea580c" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="118" y="351" font-size="22" fill="#ea580c" text-anchor="middle"><tspan font-style="italic">ν</tspan></text>
+</svg>

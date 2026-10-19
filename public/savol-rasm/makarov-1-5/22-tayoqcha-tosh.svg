@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 330" width="500" height="330" font-family="Arial, Helvetica, sans-serif"><title>Bir uchi suvdan chiqib turgan tosh uchiga tiralgan tayoqcha, ikkinchi uchi suvda</title>
+<rect width="500" height="330" fill="#fff"/>
+<rect x="20" y="190" width="460" height="130" fill="#bfdbfe" stroke="none" stroke-width="0"/>
+<line x1="20" y1="190" x2="480" y2="190" stroke="#2563eb" stroke-width="3" stroke-linecap="round"/>
+<polygon points="40,320 95,120 150,320" fill="#a8a29e" stroke="#44403c" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="95" y1="122" x2="440" y2="230" stroke="#7c4a1e" stroke-width="9" stroke-linecap="round"/>
+<line x1="95" y1="122" x2="440" y2="230" stroke="#d6a467" stroke-width="5" stroke-linecap="round"/>
+<line x1="20" y1="190" x2="480" y2="190" stroke="#2563eb" stroke-width="3" stroke-linecap="round"/>
+<text x="110" y="105" font-size="18" fill="#44403c" text-anchor="start">tosh</text>
+</svg>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 300" width="460" height="300" font-family="Arial, Helvetica, sans-serif"><title>Ichiga alyuminiy brusok muzlab qolgan muz bo'lagi suvda suzmoqda</title>
+<rect width="460" height="300" fill="#fff"/>
+<rect x="20" y="110" width="420" height="170" fill="#bfdbfe" stroke="none" stroke-width="0"/>
+<line x1="20" y1="110" x2="440" y2="110" stroke="#2563eb" stroke-width="3" stroke-linecap="round"/>
+<rect x="130" y="100" width="200" height="120" rx="6" fill="#e0f2fe" stroke="#0369a1" stroke-width="4"/>
+<rect x="130" y="110" width="200" height="110" rx="6" fill="#7dd3fc" opacity="0.35"/>
+<rect x="195" y="140" width="70" height="34" rx="2" fill="#94a3b8" stroke="#334155" stroke-width="3"/>
+<text x="230" y="164" font-size="18" fill="#1e293b" text-anchor="middle" font-weight="bold">Al</text>
+<line x1="20" y1="110" x2="440" y2="110" stroke="#2563eb" stroke-width="3" stroke-linecap="round"/>
+<text x="380" y="96" font-size="18" fill="#0369a1" text-anchor="middle">muz</text>
+</svg>

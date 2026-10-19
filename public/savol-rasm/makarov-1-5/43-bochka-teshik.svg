@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 360" width="460" height="360" font-family="Arial, Helvetica, sans-serif"><title>Bochkaga suv quyilmoqda, yon devordagi teshikdan suv oqib chiqmoqda</title>
+<rect width="460" height="360" fill="#fff"/>
+<rect x="100" y="140" width="200" height="190" fill="#bfdbfe" stroke="none" stroke-width="0"/>
+<line x1="102" y1="140" x2="298" y2="140" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round"/>
+<polyline points="100,70 100,330 300,330 300,70" fill="none" stroke="#1f2937" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="60" y="30" width="110" height="18" fill="#94a3b8" stroke="#334155" stroke-width="3"/>
+<rect x="150" y="30" width="20" height="30" fill="#94a3b8" stroke="#334155" stroke-width="3"/>
+<rect x="153" y="60" width="14" height="80" fill="#bfdbfe" stroke="none" stroke-width="0"/>
+<text x="185" y="50" font-size="22" fill="#111827" text-anchor="start"><tspan font-style="italic">ν</tspan></text>
+<path d="M300,285 Q350,286 384,345 L396,345 Q356,295 300,295 Z" fill="#bfdbfe" stroke="#2563eb" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="70" y1="140" x2="70" y2="330" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<polygon points="70,140 65,148 75,148" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="70,330 65,322 75,322" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="54" y="242" font-size="20" fill="#111827" text-anchor="end"><tspan font-style="italic">H</tspan></text>
+<line x1="280" y1="290" x2="280" y2="330" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<polygon points="280,290 275,298 285,298" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="280,330 275,322 285,322" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="264" y="317" font-size="20" fill="#111827" text-anchor="end"><tspan font-style="italic">h</tspan></text>
+<line x1="20" y1="330" x2="440" y2="330" stroke="#7c4a1e" stroke-width="5" stroke-linecap="round"/>
+<text x="282" y="278" font-size="20" fill="#111827" text-anchor="end"><tspan font-style="italic">d</tspan></text>
+</svg>

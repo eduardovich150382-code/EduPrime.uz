@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 340" width="460" height="340" font-family="Arial, Helvetica, sans-serif"><title>Suvda suzib yurgan yog'och kub, ustidan F kuch bilan botiriladi</title>
+<rect width="460" height="340" fill="#fff"/>
+<rect x="60" y="150" width="340" height="160" fill="#bfdbfe" stroke="none" stroke-width="0"/>
+<line x1="62" y1="150" x2="398" y2="150" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round"/>
+<polyline points="60,40 60,310 400,310 400,40" fill="none" stroke="#1f2937" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="170" y="102" width="120" height="120" rx="2" fill="#d6a467" stroke="#7c4a1e" stroke-width="4"/>
+<line x1="230" y1="20" x2="230" y2="86" stroke="#dc2626" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="230,98 223,84.8 237,84.8" fill="#dc2626" stroke="#dc2626" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="252" y="50" font-size="22" fill="#dc2626" text-anchor="middle"><tspan font-style="italic">F</tspan></text>
+<line x1="170" y1="240" x2="290" y2="240" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<polygon points="170,240 178,235 178,245" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="290,240 282,235 282,245" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="230" y="264" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">a</tspan></text>
+<text x="370" y="180" font-size="18" fill="#2563eb" text-anchor="middle">suv</text>
+</svg>

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 350" width="520" height="350" font-family="Arial, Helvetica, sans-serif"><title>Ikki porshen ip bilan bog'langan, oralig'ida suyuqlik</title>
+<rect width="520" height="350" fill="#fff"/>
+<polygon points="152,92 368,92 368,175 303,175 303,275 217,275 217,175 152,175" fill="#bfdbfe" stroke="none" stroke-width="0" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="150,40 150,175 215,175 215,325" fill="none" stroke="#1f2937" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="370,40 370,175 305,175 305,325" fill="none" stroke="#1f2937" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="152" y="78" width="216" height="14" fill="#f59e0b" stroke="#92400e" stroke-width="3"/>
+<rect x="217" y="275" width="86" height="14" fill="#f59e0b" stroke="#92400e" stroke-width="3"/>
+<line x1="260" y1="92" x2="260" y2="275" stroke="#111827" stroke-width="3" stroke-linecap="round" stroke-dasharray="9 6"/>
+<text x="390" y="92" font-size="24" fill="#111827" text-anchor="start"><tspan font-style="italic">S</tspan><tspan font-size="70%" dy="6">1</tspan><tspan dy="-6">​</tspan></text>
+<text x="325" y="292" font-size="24" fill="#111827" text-anchor="start"><tspan font-style="italic">S</tspan><tspan font-size="70%" dy="6">2</tspan><tspan dy="-6">​</tspan></text>
+<line x1="110" y1="92" x2="110" y2="275" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<polygon points="110,92 105,100 115,100" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="110,275 105,267 115,267" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="94" y="190.5" font-size="20" fill="#111827" text-anchor="end"><tspan font-style="italic">l</tspan></text>
+<line x1="110" y1="92" x2="150" y2="92" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="4 4"/>
+<line x1="110" y1="275" x2="215" y2="275" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="4 4"/>
+<text x="260" y="140" font-size="24" fill="#1d4ed8" text-anchor="middle"><tspan font-style="italic">ρ</tspan></text>
+</svg>

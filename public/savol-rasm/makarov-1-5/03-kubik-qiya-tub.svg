@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 340" width="560" height="340" font-family="Arial, Helvetica, sans-serif"><title>Qiya tubli idishda tagliklarda turgan alyuminiy kubik</title>
+<rect width="560" height="340" fill="#fff"/>
+<polygon points="50,40 50,315 413.7,105 413.7,40" fill="#bfdbfe" stroke="none" stroke-width="0" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="50" y1="40" x2="50" y2="315" stroke="#1f2937" stroke-width="5" stroke-linecap="round"/>
+<line x1="50" y1="315" x2="413.7" y2="105" stroke="#1f2937" stroke-width="5" stroke-linecap="round"/>
+<line x1="413.7" y1="105" x2="413.7" y2="40" stroke="#1f2937" stroke-width="5" stroke-linecap="round"/>
+<line x1="52" y1="46" x2="411.7" y2="46" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round"/>
+<polygon points="192.9,232.5 205,225.5 199,215.1 186.9,222.1" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="262.2,192.5 274.3,185.5 268.3,175.1 256.2,182.1" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="173.9,229.6 279.6,168.6 218.6,63 112.9,124" fill="#94a3b8" stroke="#334155" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="196.2" y="154.3" font-size="24" fill="#111827" text-anchor="middle"><tspan font-style="italic">a</tspan></text>
+<line x1="50" y1="315" x2="200" y2="315" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="7 6"/>
+<path d="M120,315 A70,70 0 0 0 110.6,280" fill="none" stroke="#1e293b" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="140" y="300" font-size="24" fill="#111827" text-anchor="middle"><tspan font-style="italic">α</tspan></text>
+<text x="470" y="95" font-size="20" fill="#2563eb" text-anchor="middle">suv</text>
+</svg>
