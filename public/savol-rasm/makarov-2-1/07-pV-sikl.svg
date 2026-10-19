@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 340" width="420" height="340" font-family="Arial, Helvetica, sans-serif"><title>1–2 izoxorik, 2–3 izobarik jarayonli sikl (p–V)</title>
+<rect width="420" height="340" fill="#fff"/>
+<line x1="70" y1="300" x2="386" y2="300" stroke="#1e293b" stroke-width="3" stroke-linecap="round"/>
+<polygon points="400,300 386,293 386,307" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="70" y1="300" x2="70" y2="44" stroke="#1e293b" stroke-width="3" stroke-linecap="round"/>
+<polygon points="70,30 63,44 77,44" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="396" y="326" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">V</tspan></text>
+<text x="54" y="40" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">p</tspan></text>
+<text x="56" y="322" font-size="18" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">O</tspan></text>
+<line x1="70" y1="300" x2="180" y2="230" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="7 6"/>
+<polygon points="180,230 180,110 368.6,110" fill="none" stroke="#2563eb" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="180" y1="190" x2="180" y2="175" stroke="#2563eb" stroke-width="4" stroke-linecap="round"/>
+<polygon points="180,160 172.5,175 187.5,175" fill="#2563eb" stroke="#2563eb" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="250" y1="110" x2="265" y2="110" stroke="#2563eb" stroke-width="4" stroke-linecap="round"/>
+<polygon points="280,110 265,102.5 265,117.5" fill="#2563eb" stroke="#2563eb" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="288.6" y1="161" x2="271.2" y2="172" stroke="#2563eb" stroke-width="4" stroke-linecap="round"/>
+<polygon points="258.6,180 275.3,178.3 267.2,165.6" fill="#2563eb" stroke="#2563eb" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="180" cy="230" r="6" fill="#dc2626"/>
+<text x="194" y="250" font-size="20" fill="#dc2626" text-anchor="middle" font-weight="bold"><tspan>1</tspan></text>
+<circle cx="180" cy="110" r="6" fill="#dc2626"/>
+<text x="164" y="102" font-size="20" fill="#dc2626" text-anchor="middle" font-weight="bold"><tspan>2</tspan></text>
+<circle cx="368.6" cy="110" r="6" fill="#dc2626"/>
+<text x="382.6" y="102" font-size="20" fill="#dc2626" text-anchor="middle" font-weight="bold"><tspan>3</tspan></text>
+</svg>

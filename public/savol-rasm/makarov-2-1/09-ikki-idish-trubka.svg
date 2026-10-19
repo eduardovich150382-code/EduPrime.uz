@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 580 255" width="580" height="255" font-family="Arial, Helvetica, sans-serif"><title>Trubka bilan tutashtirilgan ikki bir xil idish, turli haroratda</title>
+<rect width="580" height="255" fill="#fff"/>
+<rect x="50" y="50" width="200" height="150" fill="#dbeafe"/><path d="M143 108h0M82 176h0M57 125h0M225 67h0M160 141h0M64 108h0M188 118h0M192 78h0M101 71h0M151 183h0M167 163h0M128 159h0M75 96h0M183 156h0M135 68h0M106 85h0M109 168h0M94 178h0M221 64h0M127 124h0M60 115h0M226 71h0M168 73h0M165 180h0M94 57h0M72 130h0M59 68h0M149 183h0M135 111h0M176 69h0M165 80h0M170 188h0M66 133h0M170 77h0M106 193h0M244 73h0M189 187h0M101 140h0M64 107h0M183 137h0M202 68h0M121 175h0M166 118h0M132 192h0M164 59h0M206 101h0M138 85h0M139 101h0M73 143h0M75 164h0M61 164h0M208 125h0M189 90h0M195 115h0M99 189h0M131 107h0M218 107h0M181 80h0M215 92h0M65 191h0M88 187h0M241 140h0" stroke="#3b82f6" stroke-width="4.6" stroke-linecap="round"/>
+<rect x="50" y="50" width="200" height="150" rx="8" fill="none" stroke="#334155" stroke-width="5"/>
+<rect x="120" y="88" width="60" height="34" rx="6" fill="#fff" stroke="#cbd5e1" stroke-width="1.5"/>
+<text x="150" y="113" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">t</tspan><tspan font-size="14" dy="6">1</tspan><tspan dy="-6"> </tspan></text>
+<text x="150" y="235" font-size="17" fill="#1e293b" text-anchor="middle">1-idish</text>
+<path d="M90,212 q10,-10 20,0 q10,10 20,0 q10,-10 20,0 q10,10 20,0 q10,-10 20,0 q10,10 20,0" fill="none" stroke="#ea580c" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="330" y="50" width="200" height="150" fill="#fee2e2"/><path d="M443 115h0M445 84h0M489 170h0M459 78h0M434 101h0M383 187h0M523 62h0M498 139h0M408 95h0M463 119h0M465 147h0M361 162h0M521 190h0M451 62h0M337 74h0M513 98h0M405 180h0M395 132h0M418 65h0M446 172h0M365 87h0M414 61h0M429 169h0M460 130h0M497 77h0M443 108h0M449 72h0M482 69h0M367 167h0M514 116h0M414 90h0M388 141h0M370 72h0M422 79h0M458 169h0M482 122h0M401 116h0M337 154h0M398 100h0M351 118h0M446 110h0M499 149h0M381 128h0M507 128h0M449 65h0M428 120h0M411 114h0M446 130h0M428 79h0M419 190h0M414 61h0M337 130h0M346 69h0M356 119h0M523 123h0M422 116h0M430 118h0M473 180h0M467 114h0M458 182h0M365 89h0M452 151h0" stroke="#ef4444" stroke-width="4.6" stroke-linecap="round"/>
+<rect x="330" y="50" width="200" height="150" rx="8" fill="none" stroke="#334155" stroke-width="5"/>
+<rect x="400" y="88" width="60" height="34" rx="6" fill="#fff" stroke="#cbd5e1" stroke-width="1.5"/>
+<text x="430" y="113" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">t</tspan><tspan font-size="14" dy="6">2</tspan><tspan dy="-6"> </tspan></text>
+<text x="430" y="235" font-size="17" fill="#1e293b" text-anchor="middle">2-idish</text>
+<path d="M370,212 q10,-10 20,0 q10,10 20,0 q10,-10 20,0 q10,10 20,0 q10,-10 20,0 q10,10 20,0" fill="none" stroke="#ea580c" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="248" y="168" width="86" height="16" rx="3" fill="#e2e8f0" stroke="#334155" stroke-width="3"/>
+<rect x="246" y="171" width="90" height="10" rx="0" fill="#dbeafe" stroke="none" stroke-width="0"/>
+</svg>

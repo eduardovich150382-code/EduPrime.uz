@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 340" width="400" height="340" font-family="Arial, Helvetica, sans-serif"><title>Yuqoriga g/2 tezlanish berilgan og'ir porshenli idish</title>
+<rect width="400" height="340" fill="#fff"/>
+<rect x="132" y="172" width="156" height="146" fill="#dbeafe"/><path d="M144 271h0M159 240h0M235 284h0M203 245h0M141 236h0M192 292h0M217 279h0M201 202h0M261 288h0M192 191h0M212 244h0M249 258h0M211 255h0M192 185h0M147 304h0M259 218h0M266 248h0M153 293h0M222 303h0M236 191h0M228 283h0M267 222h0M214 272h0M162 292h0M250 185h0M223 227h0M165 259h0M278 252h0M154 244h0M250 306h0M241 184h0M277 259h0M150 195h0M150 267h0M160 286h0M154 250h0M202 183h0M138 299h0M279 195h0M244 311h0M268 297h0M187 274h0M210 304h0M239 291h0M261 230h0M241 190h0M168 304h0M196 270h0M221 213h0M222 300h0M185 224h0M165 202h0M257 273h0M277 268h0M276 208h0" stroke="#3b82f6" stroke-width="4.6" stroke-linecap="round"/>
+<line x1="130" y1="50" x2="130" y2="320" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<line x1="290" y1="50" x2="290" y2="320" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<line x1="128" y1="320" x2="292" y2="320" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<rect x="132" y="150" width="156" height="22" rx="3" fill="#64748b" stroke="#334155" stroke-width="3"/>
+<text x="210" y="167" font-size="20" fill="#fff" text-anchor="middle" font-weight="bold"><tspan font-style="italic">M</tspan></text>
+<line x1="330" y1="280" x2="330" y2="176" stroke="#dc2626" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="330,160 322,176 338,176" fill="#dc2626" stroke="#dc2626" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="360" y="220" font-size="22" fill="#dc2626" text-anchor="middle"><tspan font-style="italic">g/2</tspan></text>
+<rect x="197.3" y="239.1" width="25.4" height="31.9" rx="6" fill="#fff" fill-opacity="0.92" stroke="#cbd5e1" stroke-width="1.2"/><text x="210" y="260" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">S</tspan></text>
+<text x="210" y="40" font-size="20" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">p</tspan><tspan font-size="13" dy="5">0</tspan><tspan dy="-5"> </tspan></text>
+</svg>

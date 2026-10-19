@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 360" width="440" height="360" font-family="Arial, Helvetica, sans-serif"><title>Yopiq idishda prujinaga osilgan sfera</title>
+<rect width="440" height="360" fill="#fff"/>
+<rect x="60" y="30" width="320" height="300" rx="10" fill="#eff6ff" stroke="#334155" stroke-width="5"/>
+<polyline points="220,32 220,42 206,45.5 234,52.5 206,59.5 234,66.5 206,73.5 234,80.5 206,87.5 234,94.5 206,101.5 234,108.5 206,115.5 234,122.5 206,129.5 234,136.5 220,140 220,150" fill="none" stroke="#475569" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="220" cy="200" r="50" fill="#fbbf24" stroke="#92400e" stroke-width="4.5"/>
+<text x="220" y="208" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">V</tspan></text>
+<text x="255" y="95" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">k</tspan></text>
+<text x="110" y="300" font-size="20" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">p</tspan><tspan>, </tspan><tspan font-style="italic">t</tspan></text>
+<text x="310" y="300" font-size="16" fill="#64748b" text-anchor="middle">havo</text>
+</svg>

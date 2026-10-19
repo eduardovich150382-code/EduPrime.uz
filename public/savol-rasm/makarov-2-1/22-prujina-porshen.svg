@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 360" width="400" height="360" font-family="Arial, Helvetica, sans-serif"><title>Porsheni idish tubiga prujina bilan ulangan vertikal silindr</title>
+<rect width="400" height="360" fill="#fff"/>
+<rect x="132" y="154" width="156" height="184" fill="#dbeafe"/><path d="M271 323h0M267 174h0M223 233h0M214 182h0M166 236h0M170 238h0M142 175h0M240 232h0M212 286h0M190 170h0M251 261h0M233 267h0M278 222h0M247 223h0M220 274h0M183 175h0M206 283h0M223 237h0M231 191h0M164 216h0M255 194h0M154 177h0M144 207h0M220 301h0M186 224h0M180 212h0M250 254h0M175 178h0M251 282h0M257 201h0M217 318h0M223 323h0M162 328h0M146 232h0M141 299h0M237 327h0M254 323h0M216 330h0M246 220h0M278 225h0M166 173h0M205 194h0M272 323h0M169 178h0M214 189h0M216 300h0M174 233h0M268 236h0M187 313h0M255 314h0M237 231h0M238 303h0M230 201h0M181 230h0M249 256h0M217 302h0M154 269h0M186 256h0M258 203h0M275 174h0M219 253h0M172 256h0M206 237h0M241 161h0M192 295h0M158 309h0M167 277h0M163 237h0M199 174h0M239 243h0" stroke="#3b82f6" stroke-width="4.6" stroke-linecap="round"/>
+<line x1="130" y1="50" x2="130" y2="340" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<line x1="290" y1="50" x2="290" y2="340" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<line x1="128" y1="340" x2="292" y2="340" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<rect x="132" y="140" width="156" height="14" rx="2" fill="#94a3b8" stroke="#334155" stroke-width="3"/>
+<polyline points="210,338 210,328 226,322.9 194,312.6 226,302.4 194,292.1 226,281.9 194,271.6 226,261.4 194,251.1 226,240.9 194,230.6 226,220.4 194,210.1 226,199.9 194,189.6 226,179.4 194,169.1 210,164 210,154" fill="none" stroke="#475569" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="244" y="250" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">k</tspan></text>
+<rect x="153.3" y="279.1" width="25.4" height="31.9" rx="6" fill="#fff" fill-opacity="0.92" stroke="#cbd5e1" stroke-width="1.2"/><text x="166" y="300" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">m</tspan></text>
+<line x1="320" y1="147" x2="320" y2="330" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="320,340 325,330 315,330" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="320" y1="340" x2="320" y2="157" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="320,147 315,157 325,157" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="342" y="250" font-size="18" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">h</tspan></text>
+<text x="210" y="40" font-size="16" fill="#64748b" text-anchor="middle"><tspan font-style="italic">atmosfera</tspan></text>
+</svg>

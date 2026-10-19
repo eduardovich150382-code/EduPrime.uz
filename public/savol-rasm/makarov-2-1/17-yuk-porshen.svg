@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 350" width="420" height="350" font-family="Arial, Helvetica, sans-serif"><title>Vertikal silindrda yuk qo'yilgan porshen</title>
+<rect width="420" height="350" fill="#fff"/>
+<rect x="122" y="136" width="176" height="192" fill="#dbeafe"/><path d="M158 261h0M183 178h0M208 231h0M207 224h0M171 188h0M241 200h0M239 284h0M270 312h0M166 185h0M249 246h0M161 264h0M271 292h0M163 196h0M129 318h0M164 273h0M216 249h0M214 291h0M226 197h0M147 228h0M279 168h0M240 256h0M154 179h0M241 221h0M195 228h0M145 269h0M224 238h0M184 288h0M263 240h0M143 169h0M153 156h0M234 240h0M161 306h0M231 285h0M262 265h0M214 319h0M150 266h0M273 228h0M262 175h0M196 191h0M193 268h0M152 203h0M267 196h0M149 321h0M217 145h0M222 168h0M155 275h0M235 219h0M212 243h0M203 160h0M254 281h0M197 215h0M228 227h0M196 300h0M276 169h0M156 283h0M285 273h0M177 153h0M264 309h0M252 274h0M288 236h0M281 189h0M141 293h0M243 285h0M149 196h0M224 154h0M182 251h0M282 271h0M193 215h0M212 275h0M291 144h0" stroke="#3b82f6" stroke-width="4.6" stroke-linecap="round"/>
+<line x1="120" y1="30" x2="120" y2="330" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<line x1="300" y1="30" x2="300" y2="330" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<line x1="118" y1="330" x2="302" y2="330" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<rect x="122" y="70" width="176" height="16" rx="2" fill="none" stroke="#64748b" stroke-width="2.5" stroke-dasharray="7 5"/>
+<rect x="122" y="120" width="176" height="16" rx="2" fill="#94a3b8" stroke="#334155" stroke-width="3"/>
+<rect x="178" y="84" width="64" height="36" rx="4" fill="#f59e0b" stroke="#92400e" stroke-width="3"/>
+<text x="210" y="109" font-size="20" fill="#fff" text-anchor="middle" font-weight="bold"><tspan font-style="italic">m</tspan></text>
+<line x1="340" y1="86" x2="340" y2="320" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="340,330 345,320 335,320" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="340" y1="330" x2="340" y2="96" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="340,86 335,96 345,96" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="370" y="230" font-size="18" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">h</tspan><tspan font-size="12" dy="5">0</tspan><tspan dy="-5"> </tspan></text>
+<line x1="90" y1="86" x2="90" y2="126" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="90,136 95,126 85,126" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="90" y1="136" x2="90" y2="96" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="90,86 85,96 95,96" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="58" y="120" font-size="18" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">Δh</tspan></text>
+<rect x="197.3" y="229.1" width="25.4" height="31.9" rx="6" fill="#fff" fill-opacity="0.92" stroke="#cbd5e1" stroke-width="1.2"/><text x="210" y="250" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">S</tspan></text>
+<text x="330" y="30" font-size="20" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">p</tspan><tspan font-size="13" dy="5">0</tspan><tspan dy="-5"> </tspan></text>
+</svg>

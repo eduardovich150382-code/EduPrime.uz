@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 380" width="440" height="380" font-family="Arial, Helvetica, sans-serif"><title>Tutash idishlar: o'ng idishdagi porshen prujina bilan tayanchga ulangan</title>
+<rect width="440" height="380" fill="#fff"/>
+<rect x="60" y="220" width="100" height="120" rx="0" fill="#7dd3fc" stroke="none" stroke-width="0"/>
+<rect x="260" y="220" width="100" height="120" rx="0" fill="#7dd3fc" stroke="none" stroke-width="0"/>
+<rect x="158" y="300" width="104" height="40" rx="0" fill="#7dd3fc" stroke="none" stroke-width="0"/>
+<rect x="260" y="130" width="100" height="90" fill="#dbeafe"/><path d="M306 204h0M269 158h0M351 188h0M277 163h0M343 170h0M269 206h0M277 186h0M321 172h0M351 150h0M319 145h0M351 147h0M311 201h0M344 144h0M343 202h0M294 195h0M286 148h0M280 160h0M339 172h0M353 206h0M285 170h0M272 182h0M320 182h0M274 184h0M276 202h0M307 144h0M352 210h0M295 209h0M291 178h0M316 198h0M272 139h0M279 166h0M336 192h0M275 193h0M283 138h0M308 207h0M346 170h0M336 151h0" stroke="#3b82f6" stroke-width="4.6" stroke-linecap="round"/>
+<polyline points="60,120 60,340 360,340 360,40" fill="none" stroke="#334155" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,120 160,300 260,300 260,40" fill="none" stroke="#334155" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="262" y="116" width="96" height="14" rx="2" fill="#94a3b8" stroke="#334155" stroke-width="3"/>
+<polyline points="310,40 310,50 296,52.3 324,57 296,61.7 324,66.3 296,71 324,75.7 296,80.3 324,85 296,89.7 324,94.3 296,99 324,103.7 310,106 310,116" fill="none" stroke="#475569" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="240" y1="40" x2="380" y2="40" stroke="#334155" stroke-width="4.5" stroke-linecap="round"/>
+<line x1="244" y1="40" x2="233" y2="29" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="257" y1="40" x2="246" y2="29" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="270" y1="40" x2="259" y2="29" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="283" y1="40" x2="272" y2="29" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="296" y1="40" x2="285" y2="29" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="309" y1="40" x2="298" y2="29" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="322" y1="40" x2="311" y2="29" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="335" y1="40" x2="324" y2="29" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="348" y1="40" x2="337" y2="29" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="361" y1="40" x2="350" y2="29" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="374" y1="40" x2="363" y2="29" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<text x="340" y="80" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">k</tspan></text>
+<line x1="385" y1="130" x2="385" y2="210" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="385,220 390,210 380,210" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="385" y1="220" x2="385" y2="140" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="385,130 380,140 390,140" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="405" y="182" font-size="18" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">l</tspan></text>
+<text x="110" y="160" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">p</tspan><tspan font-size="14" dy="6">0</tspan><tspan dy="-6"> </tspan></text>
+<rect x="292.6" y="166" width="34.8" height="29" rx="6" fill="#fff" fill-opacity="0.92" stroke="#cbd5e1" stroke-width="1.2"/><text x="310" y="185" font-size="20" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">T</tspan><tspan font-size="13" dy="5">0</tspan><tspan dy="-5"> </tspan></text>
+<text x="110" y="280" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">ρ</tspan></text>
+<text x="240" y="360" font-size="20" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">S</tspan></text>
+</svg>

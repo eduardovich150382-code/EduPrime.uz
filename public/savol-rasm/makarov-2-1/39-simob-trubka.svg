@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 360" width="420" height="360" font-family="Arial, Helvetica, sans-serif"><title>Simobli idishga botirilgan, yuqori uchi kavsharlangan trubka</title>
+<rect width="420" height="360" fill="#fff"/>
+<rect x="60" y="230" width="300" height="110" rx="0" fill="#9ca3af" stroke="#334155" stroke-width="0"/>
+<polyline points="60,180 60,340 360,340 360,180" fill="none" stroke="#334155" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="180" y="50" width="50" height="250" rx="0" fill="#fff" stroke="none" stroke-width="0"/>
+<rect x="180" y="52" width="50" height="150" fill="#dbeafe"/><path d="M194 111h0M193 113h0M207 147h0M196 107h0M193 170h0M197 180h0M189 59h0M202 116h0M215 178h0M206 99h0M213 122h0M196 102h0M186 156h0M188 84h0M210 144h0M210 145h0M216 188h0M223 111h0M199 77h0M202 82h0M221 162h0M195 153h0M213 72h0M217 159h0M204 188h0M189 63h0M213 150h0M186 142h0M208 110h0M191 171h0M220 135h0" stroke="#3b82f6" stroke-width="4.6" stroke-linecap="round"/>
+<rect x="180" y="202" width="50" height="98" rx="0" fill="#9ca3af" stroke="none" stroke-width="0"/>
+<path d="M180,300 L180,50 Q205.0,30 230,50 L230,300" fill="none" stroke="#334155" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="60" y1="230" x2="180" y2="230" stroke="#475569" stroke-width="2" stroke-linecap="round"/>
+<line x1="230" y1="230" x2="360" y2="230" stroke="#475569" stroke-width="2" stroke-linecap="round"/>
+<line x1="260" y1="202" x2="260" y2="220" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="260,230 265,220 255,220" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="260" y1="230" x2="260" y2="212" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="260,202 255,212 265,212" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="282" y="222" font-size="18" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">h</tspan></text>
+<line x1="150" y1="50" x2="150" y2="192" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="150,202 155,192 145,192" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="150" y1="202" x2="150" y2="60" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="150,50 145,60 155,60" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="130" y="130" font-size="18" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">l</tspan></text>
+<rect x="187.6" y="113" width="34.8" height="29" rx="6" fill="#fff" fill-opacity="0.92" stroke="#cbd5e1" stroke-width="1.2"/><text x="205" y="132" font-size="20" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">t</tspan><tspan font-size="13" dy="5">0</tspan><tspan dy="-5"> </tspan></text>
+<text x="330" y="160" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">p</tspan><tspan font-size="14" dy="6">0</tspan><tspan dy="-6"> </tspan></text>
+<text x="110" y="300" font-size="16" fill="#1f2937" text-anchor="middle">simob</text>
+</svg>

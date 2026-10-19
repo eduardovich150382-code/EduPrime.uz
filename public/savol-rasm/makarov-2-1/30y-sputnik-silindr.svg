@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 300" width="500" height="300" font-family="Arial, Helvetica, sans-serif"><title>Sputnik τ vaqtda S=πR² kesimli, vτ uzunlikdagi silindrdagi molekulalarga uriladi</title>
+<rect width="500" height="300" fill="#fff"/>
+<rect x="120" y="80" width="340" height="140" fill="#ede9fe"/><path d="M303 123h0M136 170h0M195 119h0M256 168h0M450 145h0M452 213h0M206 95h0M178 194h0M323 203h0M445 170h0M302 95h0M134 189h0M346 184h0M312 172h0M336 201h0M163 149h0M227 192h0M414 118h0M152 117h0M229 185h0M260 182h0M225 153h0M187 169h0M294 196h0M437 153h0M148 206h0M436 147h0M285 205h0M209 119h0M354 172h0M351 192h0M294 140h0M200 113h0M247 141h0M369 165h0M294 135h0M331 135h0M388 168h0M354 134h0M296 178h0M440 154h0M231 174h0M165 129h0M137 157h0M209 136h0M384 167h0M138 143h0M128 191h0M289 195h0M213 191h0M171 197h0M254 95h0M426 193h0M190 160h0M282 104h0M266 211h0M251 183h0M375 184h0M327 201h0M238 147h0M273 99h0M286 184h0M314 109h0M206 148h0M161 112h0M368 100h0M164 106h0M296 89h0M351 158h0M375 185h0M363 152h0M226 163h0M175 115h0M356 163h0M171 143h0M322 114h0M339 104h0M180 139h0M220 178h0M262 123h0M394 193h0M379 101h0M215 99h0M370 145h0M156 206h0M151 92h0M421 144h0M406 161h0M171 148h0M376 88h0M381 131h0M294 127h0M385 148h0M274 94h0M365 108h0M324 87h0M161 166h0M219 162h0M353 131h0M301 136h0M140 194h0M300 197h0M336 167h0M162 165h0M267 121h0M163 109h0M149 171h0M265 102h0M312 198h0M430 96h0M330 165h0M283 134h0M279 130h0M255 109h0M353 195h0M444 134h0M203 118h0M133 172h0M173 150h0M410 176h0M333 184h0M326 192h0M326 115h0M149 206h0M163 154h0M413 193h0M374 92h0M136 153h0M159 115h0M210 188h0M393 188h0M415 198h0M186 214h0" stroke="#7c3aed" stroke-width="4.6" stroke-linecap="round"/>
+<line x1="120" y1="80" x2="460" y2="80" stroke="#7c3aed" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="8 6"/>
+<line x1="120" y1="220" x2="460" y2="220" stroke="#7c3aed" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="8 6"/>
+<ellipse cx="460" cy="150" rx="18" ry="70" fill="none" stroke="#7c3aed" stroke-width="2.5" stroke-dasharray="8 6"/>
+<circle cx="120" cy="150" r="70" fill="#cbd5e1" stroke="#334155" stroke-width="4.5"/>
+<line x1="120" y1="150" x2="169" y2="101" stroke="#dc2626" stroke-width="3" stroke-linecap="round"/>
+<text x="138" y="120" font-size="22" fill="#dc2626" text-anchor="middle"><tspan font-style="italic">R</tspan></text>
+<line x1="80" y1="260" x2="164" y2="260" stroke="#2563eb" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="180,260 164,252 164,268" fill="#2563eb" stroke="#2563eb" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="130" y="290" font-size="22" fill="#2563eb" text-anchor="middle"><tspan font-style="italic">v</tspan></text>
+<line x1="120" y1="58" x2="450" y2="58" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="460,58 450,53 450,63" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="460" y1="58" x2="130" y2="58" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="120,58 130,63 130,53" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="290" y="48" font-size="18" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">vτ</tspan></text>
+<rect x="306.6" y="139" width="86.8" height="29" rx="6" fill="#fff" fill-opacity="0.92" stroke="#cbd5e1" stroke-width="1.2"/><text x="350" y="158" font-size="20" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">S</tspan><tspan> = </tspan><tspan font-style="italic">πR²</tspan></text>
+</svg>

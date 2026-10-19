@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 350" width="400" height="350" font-family="Arial, Helvetica, sans-serif"><title>Og'ir porshenli vertikal silindrda azot isitilmoqda</title>
+<rect width="400" height="350" fill="#fff"/>
+<rect x="122" y="220" width="166" height="108" fill="#dbeafe"/><path d="M238 307h0M156 322h0M158 290h0M142 299h0M151 294h0M240 300h0M196 309h0M280 237h0M208 318h0M242 269h0M175 317h0M141 299h0M258 241h0M178 255h0M211 261h0M266 315h0M177 312h0M139 235h0M230 303h0M254 321h0M260 252h0M242 315h0M142 273h0M152 240h0M202 290h0M278 239h0M206 322h0M246 277h0M165 287h0M168 288h0M228 264h0M250 265h0M200 306h0M167 244h0M216 268h0M263 250h0M185 232h0M197 256h0M197 299h0M134 321h0M238 304h0M211 281h0M191 264h0" stroke="#3b82f6" stroke-width="4.6" stroke-linecap="round"/>
+<line x1="120" y1="40" x2="120" y2="330" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<line x1="290" y1="40" x2="290" y2="330" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<line x1="118" y1="330" x2="292" y2="330" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<rect x="122" y="190" width="166" height="30" rx="3" fill="#64748b" stroke="#334155" stroke-width="3"/>
+<text x="205" y="212" font-size="20" fill="#fff" text-anchor="middle" font-weight="bold"><tspan font-style="italic">M</tspan><tspan font-size="13" dy="5">0</tspan><tspan dy="-5"> </tspan></text>
+<rect x="122" y="120" width="166" height="30" rx="3" fill="none" stroke="#64748b" stroke-width="2.5" stroke-dasharray="7 5"/>
+<line x1="310" y1="205" x2="310" y2="148" stroke="#dc2626" stroke-width="3.5" stroke-linecap="round"/>
+<polygon points="310,135 303.5,148 316.5,148" fill="#dc2626" stroke="#dc2626" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="330" y="175" font-size="22" fill="#dc2626" text-anchor="middle"><tspan font-style="italic">h</tspan></text>
+<rect x="158" y="269.1" width="94.1" height="31.9" rx="6" fill="#fff" fill-opacity="0.92" stroke="#cbd5e1" stroke-width="1.2"/><text x="205" y="290" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">T</tspan><tspan font-size="14" dy="6">1</tspan><tspan dy="-6"> </tspan><tspan> </tspan><tspan font-style="italic">→ </tspan><tspan font-style="italic">T</tspan><tspan font-size="14" dy="6">2</tspan><tspan dy="-6"> </tspan></text>
+<text x="205" y="30" font-size="20" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">p</tspan><tspan font-size="13" dy="5">0</tspan><tspan dy="-5"> </tspan></text>
+<text x="95" y="212" font-size="20" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">S</tspan></text>
+</svg>

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 350" width="420" height="350" font-family="Arial, Helvetica, sans-serif"><title>Og'ir porshen va devor orasidagi tirqishdan gaz sekin sizib chiqmoqda</title>
+<rect width="420" height="350" fill="#fff"/>
+<rect x="132" y="154" width="166" height="174" fill="#dbeafe"/><path d="M226 262h0M264 205h0M238 304h0M278 190h0M238 260h0M216 317h0M219 232h0M283 263h0M184 210h0M214 169h0M232 279h0M204 297h0M281 250h0M243 179h0M147 319h0M182 195h0M276 281h0M157 212h0M175 204h0M139 245h0M185 224h0M167 178h0M143 301h0M253 251h0M157 184h0M156 211h0M147 205h0M169 191h0M239 234h0M211 218h0M221 287h0M185 171h0M212 221h0M258 178h0M272 162h0M222 232h0M187 304h0M246 186h0M214 259h0M143 174h0M231 278h0M209 228h0M216 202h0M273 316h0M212 163h0M199 290h0M188 177h0M167 275h0M234 206h0M234 283h0M287 295h0M205 291h0M281 301h0M254 255h0M217 298h0M234 277h0M173 175h0M180 255h0M226 192h0M167 314h0M149 310h0M257 253h0M291 270h0M139 312h0M202 308h0M263 182h0M144 163h0M258 288h0M173 178h0M194 289h0" stroke="#3b82f6" stroke-width="4.6" stroke-linecap="round"/>
+<line x1="130" y1="40" x2="130" y2="330" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<line x1="300" y1="40" x2="300" y2="330" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<line x1="128" y1="330" x2="302" y2="330" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<rect x="138" y="130" width="154" height="24" rx="3" fill="#64748b" stroke="#334155" stroke-width="3"/>
+<line x1="135" y1="160" x2="135" y2="110" stroke="#0ea5e9" stroke-width="2.5" stroke-linecap="round"/>
+<polygon points="135,100 130,110 140,110" fill="#0ea5e9" stroke="#0ea5e9" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="295" y1="160" x2="295" y2="110" stroke="#0ea5e9" stroke-width="2.5" stroke-linecap="round"/>
+<polygon points="295,100 290,110 300,110" fill="#0ea5e9" stroke="#0ea5e9" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="215" y1="120" x2="215" y2="71" stroke="#fff" stroke-width="0.1" stroke-linecap="round"/>
+<polygon points="215,70 214.5,71 215.5,71" fill="#fff" stroke="#fff" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="330" y1="120" x2="330" y2="165" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/>
+<polygon points="330,180 337.5,165 322.5,165" fill="#dc2626" stroke="#dc2626" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="350" y="156" font-size="22" fill="#dc2626" text-anchor="middle"><tspan font-style="italic">v</tspan></text>
+<line x1="100" y1="142" x2="100" y2="320" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="100,330 105,320 95,320" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="100" y1="330" x2="100" y2="152" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="100,142 95,152 105,152" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="80" y="240" font-size="18" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">h</tspan></text>
+<rect x="185.1" y="239.1" width="59.8" height="31.9" rx="6" fill="#fff" fill-opacity="0.92" stroke="#cbd5e1" stroke-width="1.2"/><text x="215" y="260" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">m</tspan><tspan>, </tspan><tspan font-style="italic">T</tspan></text>
+<text x="215" y="30" font-size="15" fill="#0369a1" text-anchor="middle">tirqishdan gaz sizadi</text>
+</svg>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 580 300" width="580" height="300" font-family="Arial, Helvetica, sans-serif"><title>Tog' cho'qqisidagi havo: p1, t1 va dengiz sathidagi p0, t0</title>
+<rect width="580" height="300" fill="#fff"/>
+<polygon points="20,250 150,120 215,160 300,40 400,170 460,130 560,250" fill="#cbd5e1" stroke="#475569" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="268,85 300,40 334,90 318,82 300,96 284,82" fill="#fff" stroke="#64748b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="300" y1="40" x2="300" y2="8" stroke="#7c2d12" stroke-width="3.5" stroke-linecap="round"/>
+<polygon points="300,9 330,17 300,25" fill="#dc2626" stroke="#dc2626" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="20" y1="250" x2="560" y2="250" stroke="#166534" stroke-width="5" stroke-linecap="round"/>
+<rect x="70.2" y="31" width="159.6" height="29" rx="6" fill="#fff" fill-opacity="0.92" stroke="#cbd5e1" stroke-width="1.2"/><text x="150" y="50" font-size="20" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">p</tspan><tspan font-size="13" dy="5">1</tspan><tspan dy="-5"> </tspan><tspan>, </tspan><tspan font-style="italic">t</tspan><tspan font-size="13" dy="5">1</tspan><tspan dy="-5"> </tspan><tspan>, </tspan><tspan font-style="italic">ρ</tspan><tspan font-size="13" dy="5">1</tspan><tspan dy="-5"> </tspan><tspan> — ?</tspan></text>
+<text x="110" y="285" font-size="20" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">p</tspan><tspan font-size="13" dy="5">0</tspan><tspan dy="-5"> </tspan><tspan>, </tspan><tspan font-style="italic">t</tspan><tspan font-size="13" dy="5">0</tspan><tspan dy="-5"> </tspan><tspan>, </tspan><tspan font-style="italic">ρ</tspan><tspan font-size="13" dy="5">0</tspan><tspan dy="-5"> </tspan></text>
+<line x1="520" y1="245" x2="520" y2="55" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="520,45 515,55 525,55" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="520" y1="45" x2="520" y2="235" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="520,245 525,235 515,235" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="545" y="150" font-size="18" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">h</tspan></text>
+<line x1="305" y1="40" x2="520" y2="40" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
+</svg>
