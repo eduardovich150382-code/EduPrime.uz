@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 420" width="460" height="420" font-family="Arial, Helvetica, sans-serif"><title>Sterjen yuklariga ta'sir etuvchi tortishish kuchlari</title>
+<rect width="460" height="420" fill="#fff"/>
+<circle cx="200" cy="395" r="8" fill="#86efac" stroke="#166534" stroke-width="3"/>
+<text x="216" y="401" font-size="16" fill="#166534" text-anchor="start">sayyora markazi</text>
+<line x1="200" y1="30" x2="200" y2="395" stroke="#1e293b" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="6 5"/>
+<line x1="263.6" y1="68.2" x2="200" y2="395" stroke="#0ea5e9" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="5 4"/>
+<line x1="136.4" y1="271.8" x2="200" y2="395" stroke="#0ea5e9" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="5 4"/>
+<line x1="263.6" y1="68.2" x2="136.4" y2="271.8" stroke="#475569" stroke-width="5" stroke-linecap="round"/>
+<circle cx="263.6" cy="68.2" r="12" fill="#fbbf24" stroke="#92400e" stroke-width="3.5"/>
+<circle cx="136.4" cy="271.8" r="12" fill="#fbbf24" stroke="#92400e" stroke-width="3.5"/>
+<circle cx="200" cy="170" r="5" fill="#fff" stroke="#1e293b" stroke-width="2.5"/>
+<line x1="263.6" y1="68.2" x2="251.9" y2="128.1" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/>
+<polygon points="249.3,141.9 258.8,129.4 245.1,126.8" fill="#dc2626" stroke="#dc2626" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="136.4" y1="271.8" x2="164.4" y2="326" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/>
+<polygon points="170.8,338.4 170.6,322.8 158.2,329.2" fill="#dc2626" stroke="#dc2626" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="281.6" y="64.2" font-size="20" fill="#1e293b" text-anchor="start">1</text>
+<text x="118.4" y="273.8" font-size="20" fill="#1e293b" text-anchor="end">2</text>
+<text x="267.6" y="142.2" font-size="19" fill="#dc2626" text-anchor="start"><tspan font-style="italic">F</tspan><tspan font-size="0.72em" baseline-shift="sub">1</tspan></text>
+<text x="132.4" y="343.8" font-size="19" fill="#dc2626" text-anchor="end"><tspan font-style="italic">F</tspan><tspan font-size="0.72em" baseline-shift="sub">2</tspan></text>
+<path d="M200,130 A40,40 0 0 1 221.2,136.1" stroke="#1e293b" stroke-width="2.2" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="214" y="124" font-size="19" fill="#1e293b" text-anchor="start"><tspan font-style="italic">φ</tspan></text>
+<text x="208" y="300" font-size="20" fill="#1e293b" text-anchor="start"><tspan font-style="italic">r</tspan></text>
+<text x="275" y="260" font-size="19" fill="#0ea5e9" text-anchor="start"><tspan font-style="italic">r</tspan><tspan font-size="0.72em" baseline-shift="sub">1</tspan></text>
+<text x="168" y="372" font-size="19" fill="#0ea5e9" text-anchor="end"><tspan font-style="italic">r</tspan><tspan font-size="0.72em" baseline-shift="sub">2</tspan></text>
+</svg>

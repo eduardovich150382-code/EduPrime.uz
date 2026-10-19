@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 360" width="420" height="360" font-family="Arial, Helvetica, sans-serif"><title>Lift kabinasi shiftiga prujinada osilgan tosh</title>
+<rect width="420" height="360" fill="#fff"/>
+<rect x="90" y="30" width="220" height="300" rx="4" fill="#f1f5f9" stroke="#1e293b" stroke-width="4"/>
+<polyline points="200,32 200,44 186,49.2 214,59.5 186,69.9 214,80.3 186,90.6 214,101 186,111.4 214,121.7 186,132.1 214,142.5 186,152.8 200,158 200,170" fill="none" stroke="#475569" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="172" y="170" width="56" height="48" rx="3" fill="#94a3b8" stroke="#1e293b" stroke-width="3.5"/>
+<text x="200" y="201" font-size="21" fill="#fff" text-anchor="middle" font-weight="bold"><tspan font-style="italic">m</tspan></text>
+<text x="170" y="100" font-size="22" fill="#1e293b" text-anchor="end"><tspan font-style="italic">k</tspan></text>
+<line x1="360" y1="260" x2="360" y2="134" stroke="#dc2626" stroke-width="5" stroke-linecap="round"/>
+<polygon points="360,120 353,134 367,134" fill="#dc2626" stroke="#dc2626" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="372" y="200" font-size="24" fill="#dc2626" text-anchor="start"><tspan font-style="italic">a</tspan></text>
+</svg>

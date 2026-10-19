@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 320" width="560" height="320" font-family="Arial, Helvetica, sans-serif"><title>Tosh koordinatasining vaqtga bog'liqlik grafigi</title>
+<rect width="560" height="320" fill="#fff"/>
+<line x1="80" y1="280" x2="516" y2="280" stroke="#1e293b" stroke-width="3" stroke-linecap="round"/>
+<polygon points="530,280 516,273 516,287" fill="#1e293b" stroke="#1e293b" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="80" y1="280" x2="80" y2="44" stroke="#1e293b" stroke-width="3" stroke-linecap="round"/>
+<polygon points="80,30 73,44 87,44" fill="#1e293b" stroke="#1e293b" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="520" y="305" font-size="21" fill="#111827" text-anchor="middle"><tspan font-style="italic">t</tspan></text>
+<text x="66" y="42" font-size="21" fill="#1e293b" text-anchor="end"><tspan font-style="italic">x</tspan></text>
+<polyline points="80,210 82.5,209.9 85,209.7 87.5,209.4 90,208.8 92.5,208.2 95,207.4 97.5,206.5 100,205.4 102.5,204.2 105,202.9 107.5,201.5 110,199.9 112.5,198.2 115,196.4 117.5,194.5 120,192.4 122.5,190.3 125,188.1 127.5,185.7 130,183.3 132.5,180.8 135,178.3 137.5,175.7 140,173 142.5,170.2 145,167.4 147.5,164.6 150,161.7 152.5,158.8 155,155.9 157.5,152.9 160,150 162.5,147.1 165,144.1 167.5,141.2 170,138.3 172.5,135.4 175,132.6 177.5,129.8 180,127 182.5,124.3 185,121.7 187.5,119.2 190,116.7 192.5,114.3 195,111.9 197.5,109.7 200,107.6 202.5,105.5 205,103.6 207.5,101.8 210,100.1 212.5,98.5 215,97.1 217.5,95.8 220,94.6 222.5,93.5 225,92.6 227.5,91.8 230,91.2 232.5,90.6 235,90.3 237.5,90.1 240,90 242.5,90.1 245,90.3 247.5,90.6 250,91.2 252.5,91.8 255,92.6 257.5,93.5 260,94.6 262.5,95.8 265,97.1 267.5,98.5 270,100.1 272.5,101.8 275,103.6 277.5,105.5 280,107.6 282.5,109.7 285,111.9 287.5,114.3 290,116.7 292.5,119.2 295,121.7 297.5,124.3 300,127 302.5,129.8 305,132.6 307.5,135.4 310,138.3 312.5,141.2 315,144.1 317.5,147.1 320,150 322.5,152.9 325,155.9 327.5,158.8 330,161.7 332.5,164.6 335,167.4 337.5,170.2 340,173 342.5,175.7 345,178.3 347.5,180.8 350,183.3 352.5,185.7 355,188.1 357.5,190.3 360,192.4 362.5,194.5 365,196.4 367.5,198.2 370,199.9 372.5,201.5 375,202.9 377.5,204.2 380,205.4 382.5,206.5 385,207.4 387.5,208.2 390,208.8 392.5,209.4 395,209.7 397.5,209.9 400,210 402.5,209.9 405,209.7 407.5,209.4 410,208.8 412.5,208.2 415,207.4 417.5,206.5 420,205.4 422.5,204.2 425,202.9 427.5,201.5 430,199.9 432.5,198.2 435,196.4 437.5,194.5 440,192.4 442.5,190.3 445,188.1 447.5,185.7 450,183.3 452.5,180.8 455,178.3 457.5,175.7 460,173 462.5,170.2 465,167.4 467.5,164.6 470,161.7 472.5,158.8 475,155.9 477.5,152.9 480,150" fill="none" stroke="#1e3a8a" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="80" y1="210" x2="500" y2="210" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="6 5"/>
+<text x="72" y="217" font-size="19" fill="#1e293b" text-anchor="end"><tspan font-style="italic">x</tspan><tspan font-size="0.72em" baseline-shift="sub">0</tspan></text>
+<line x1="80" y1="150" x2="500" y2="150" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="6 5"/>
+<text x="72" y="157" font-size="19" fill="#1e293b" text-anchor="end"><tspan font-style="italic">x</tspan><tspan font-size="0.72em" baseline-shift="sub">1</tspan></text>
+<line x1="80" y1="90" x2="500" y2="90" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="6 5"/>
+<text x="72" y="97" font-size="19" fill="#1e293b" text-anchor="end"><tspan font-style="italic">x</tspan><tspan font-size="0.72em" baseline-shift="sub">max</tspan></text>
+<line x1="240" y1="90" x2="240" y2="280" stroke="#dc2626" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="5 4"/>
+<text x="240" y="306" font-size="19" fill="#dc2626" text-anchor="middle"><tspan font-style="italic">T</tspan>/2</text>
+<line x1="400" y1="210" x2="400" y2="280" stroke="#1e293b" stroke-width="1.4" stroke-linecap="round" stroke-dasharray="5 4"/>
+<text x="400" y="306" font-size="19" fill="#111827" text-anchor="middle"><tspan font-style="italic">T</tspan></text>
+<text x="72" y="302" font-size="19" fill="#1e293b" text-anchor="end"><tspan font-style="italic">O</tspan></text>
+</svg>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 360" width="460" height="360" font-family="Arial, Helvetica, sans-serif"><title>Vatar uzunligi va sfera radiusi orasidagi bog'lanish</title>
+<rect width="460" height="360" fill="#fff"/>
+<path d="M33.7,267.6 A290,290 0 0 0 405.1,235.1" stroke="#1e293b" stroke-width="4" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="200" y1="30" x2="200" y2="320" stroke="#1e293b" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="200" y1="30" x2="386.4" y2="252.2" stroke="#1e293b" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="200" y1="320" x2="386.4" y2="252.2" stroke="#7c3aed" stroke-width="4" stroke-linecap="round"/>
+<line x1="160" y1="320" x2="360" y2="320" stroke="#1e293b" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="5 4"/>
+<path d="M250,320 A50,50 0 0 0 247,302.9" stroke="#1e293b" stroke-width="2.4" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="264" y="314" font-size="19" fill="#1e293b" text-anchor="start"><tspan font-style="italic">α</tspan></text>
+<path d="M200,80 A50,50 0 0 0 232.1,68.3" stroke="#1e293b" stroke-width="2.4" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="216" y="104" font-size="18" fill="#1e293b" text-anchor="start">2<tspan font-style="italic">α</tspan></text>
+<text x="186" y="180" font-size="21" fill="#1e293b" text-anchor="end"><tspan font-style="italic">R</tspan></text>
+<text x="307.2" y="141.1" font-size="21" fill="#1e293b" text-anchor="start"><tspan font-style="italic">R</tspan></text>
+<text x="283.2" y="274.1" font-size="21" fill="#7c3aed" text-anchor="middle"><tspan font-style="italic">l</tspan></text>
+<text x="200" y="22" font-size="19" fill="#111827" text-anchor="middle"><tspan font-style="italic">O</tspan></text>
+<text x="190" y="346" font-size="21" fill="#111827" text-anchor="middle"><tspan font-style="italic">B</tspan></text>
+<text x="396.4" y="258.2" font-size="21" fill="#1e293b" text-anchor="start"><tspan font-style="italic">A</tspan></text>
+<circle cx="200" cy="30" r="4" fill="#1e293b" stroke="#1e293b" stroke-width="1"/>
+<text x="360" y="345" font-size="19" fill="#7c3aed" text-anchor="middle"><tspan font-style="italic">l</tspan> = 2<tspan font-style="italic">R</tspan> sin <tspan font-style="italic">α</tspan></text>
+</svg>

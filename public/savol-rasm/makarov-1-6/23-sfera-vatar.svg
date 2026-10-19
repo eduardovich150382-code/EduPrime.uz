@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 260" width="600" height="260" font-family="Arial, Helvetica, sans-serif"><title>Sfera ichki sirti va AB vatar bo'ylab sirpanayotgan jismlar</title>
+<rect width="600" height="260" fill="#fff"/>
+<path d="M40,152.8 A620,620 0 0 0 560,152.8" stroke="#1e293b" stroke-width="4.5" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="300" y1="210" x2="512.1" y2="172.6" stroke="#7c3aed" stroke-width="4" stroke-linecap="round"/>
+<circle cx="508.1" cy="158.6" r="10" fill="#60a5fa" stroke="#1e3a8a" stroke-width="3"/>
+<circle cx="490.1" cy="170.6" r="10" fill="#fbbf24" stroke="#92400e" stroke-width="3"/>
+<text x="530.1" y="178.6" font-size="22" fill="#1e293b" text-anchor="start"><tspan font-style="italic">A</tspan></text>
+<text x="300" y="242" font-size="22" fill="#111827" text-anchor="middle"><tspan font-style="italic">B</tspan></text>
+<circle cx="300" cy="210" r="4" fill="#1e293b" stroke="#1e293b" stroke-width="1"/>
+<text x="300" y="40" font-size="21" fill="#111827" text-anchor="middle"><tspan font-style="italic">AB</tspan> ≪ <tspan font-style="italic">R</tspan></text>
+</svg>

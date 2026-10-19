@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 230" width="600" height="230" font-family="Arial, Helvetica, sans-serif"><title>Prujina bilan devorga ulangan brusokka o'q tegishi</title>
+<rect width="600" height="230" fill="#fff"/>
+<line x1="40" y1="60" x2="40" y2="170" stroke="#78350f" stroke-width="4.5" stroke-linecap="round"/>
+<line x1="40" y1="64" x2="28" y2="76" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="40" y1="78" x2="28" y2="90" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="40" y1="92" x2="28" y2="104" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="40" y1="106" x2="28" y2="118" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="40" y1="120" x2="28" y2="132" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="40" y1="134" x2="28" y2="146" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="40" y1="148" x2="28" y2="160" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="40" y1="162" x2="28" y2="174" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<rect x="20" y="170" width="560" height="14" rx="0" fill="#e7d3a8" stroke="#78350f" stroke-width="3"/>
+<polyline points="40,135 52,135 60.2,147 76.5,123 92.8,147 109.2,123 125.5,147 141.8,123 158.2,147 174.5,123 190.8,147 207.2,123 223.5,147 239.8,123 248,135 260,135" fill="none" stroke="#475569" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="260" y="100" width="100" height="70" rx="3" fill="#d6a96a" stroke="#78350f" stroke-width="3.5"/>
+<text x="310" y="142" font-size="22" fill="#fff" text-anchor="middle" font-weight="bold"><tspan font-style="italic">M</tspan></text>
+<path d="M470,129 L500,129 L512,135 L500,141 L470,141 Z" stroke="#92400e" stroke-width="2.5" fill="#fbbf24" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="490" y="116" font-size="21" fill="#111827" text-anchor="middle"><tspan font-style="italic">m</tspan></text>
+<line x1="450" y1="162" x2="399" y2="162" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/>
+<polygon points="385,162 399,169 399,155" fill="#dc2626" stroke="#dc2626" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="418" y="157" font-size="21" fill="#dc2626" text-anchor="middle"><tspan font-style="italic">v</tspan></text>
+<text x="300" y="40" font-size="19" fill="#111827" text-anchor="middle"><tspan font-style="italic">m</tspan> = 20 g,   <tspan font-style="italic">T</tspan> = 0,2 s,   <tspan font-style="italic">α</tspan> = 0,96</text>
+</svg>

@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300" width="600" height="300" font-family="Arial, Helvetica, sans-serif"><title>Qarama-qarshi aylanayotgan ikki valik ustidagi taxta</title>
+<rect width="600" height="300" fill="#fff"/>
+<circle cx="190" cy="200" r="34" fill="#cbd5e1" stroke="#475569" stroke-width="3.5"/>
+<circle cx="190" cy="200" r="5" fill="#475569" stroke="#475569" stroke-width="1"/>
+<line x1="190" y1="234" x2="190" y2="274" stroke="#475569" stroke-width="3" stroke-linecap="round"/>
+<circle cx="410" cy="200" r="34" fill="#cbd5e1" stroke="#475569" stroke-width="3.5"/>
+<circle cx="410" cy="200" r="5" fill="#475569" stroke="#475569" stroke-width="1"/>
+<line x1="410" y1="234" x2="410" y2="274" stroke="#475569" stroke-width="3" stroke-linecap="round"/>
+<line x1="120" y1="274" x2="480" y2="274" stroke="#78350f" stroke-width="4.5" stroke-linecap="round"/>
+<line x1="124" y1="274" x2="136" y2="286" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="138" y1="274" x2="150" y2="286" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="152" y1="274" x2="164" y2="286" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="166" y1="274" x2="178" y2="286" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="180" y1="274" x2="192" y2="286" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="194" y1="274" x2="206" y2="286" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="208" y1="274" x2="220" y2="286" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="222" y1="274" x2="234" y2="286" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="236" y1="274" x2="248" y2="286" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="250" y1="274" x2="262" y2="286" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="264" y1="274" x2="276" y2="286" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="278" y1="274" x2="290" y2="286" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="292" y1="274" x2="304" y2="286" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="306" y1="274" x2="318" y2="286" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="320" y1="274" x2="332" y2="286" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="334" y1="274" x2="346" y2="286" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="348" y1="274" x2="360" y2="286" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="362" y1="274" x2="374" y2="286" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="376" y1="274" x2="388" y2="286" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="390" y1="274" x2="402" y2="286" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="404" y1="274" x2="416" y2="286" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="418" y1="274" x2="430" y2="286" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="432" y1="274" x2="444" y2="286" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="446" y1="274" x2="458" y2="286" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="460" y1="274" x2="472" y2="286" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="474" y1="274" x2="486" y2="286" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="165" y1="274" x2="190" y2="274" stroke="#475569" stroke-width="3" stroke-linecap="round"/>
+<line x1="215" y1="274" x2="190" y2="274" stroke="#475569" stroke-width="3" stroke-linecap="round"/>
+<line x1="385" y1="274" x2="410" y2="274" stroke="#475569" stroke-width="3" stroke-linecap="round"/>
+<line x1="435" y1="274" x2="410" y2="274" stroke="#475569" stroke-width="3" stroke-linecap="round"/>
+<rect x="90" y="148" width="380" height="18" rx="3" fill="#fde68a" stroke="#a16207" stroke-width="3.5"/>
+<path d="M168,184 A27,27 0 0 1 212,184" stroke="#dc2626" stroke-width="3.5" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="216,190 203,184 216,176" fill="#dc2626" stroke="#dc2626" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M432,184 A27,27 0 0 0 388,184" stroke="#dc2626" stroke-width="3.5" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="384,190 397,184 384,176" fill="#dc2626" stroke="#dc2626" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="300" y1="90" x2="300" y2="268" stroke="#7c3aed" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="8 6"/>
+<text x="312" y="104" font-size="20" fill="#7c3aed" text-anchor="start"><tspan font-style="italic">C</tspan></text>
+<text x="312" y="262" font-size="20" fill="#7c3aed" text-anchor="start"><tspan font-style="italic">C</tspan>′</text>
+<circle cx="280" cy="157" r="5" fill="#dc2626" stroke="#dc2626" stroke-width="1"/>
+<line x1="300" y1="120" x2="200" y2="120" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="190,120 200,125 200,115" fill="#1e293b" stroke="#1e293b" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="300" y1="120" x2="400" y2="120" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="410,120 400,115 400,125" fill="#1e293b" stroke="#1e293b" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="245" y="110" font-size="19" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">l</tspan> = 30 sm</text>
+<line x1="190" y1="112" x2="190" y2="145" stroke="#1e293b" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="4 4"/>
+<line x1="410" y1="112" x2="410" y2="145" stroke="#1e293b" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="4 4"/>
+<text x="520" y="60" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">μ</tspan> = 0,15</text>
+<text x="110" y="60" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">g</tspan> = 10 m/s²</text>
+</svg>

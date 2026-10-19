@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 220" width="600" height="220" font-family="Arial, Helvetica, sans-serif"><title>Ikki prujina orasida spitsaga kiydirilgan sharcha</title>
+<rect width="600" height="220" fill="#fff"/>
+<line x1="40" y1="50" x2="40" y2="180" stroke="#78350f" stroke-width="4.5" stroke-linecap="round"/>
+<line x1="40" y1="54" x2="28" y2="66" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="40" y1="68" x2="28" y2="80" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="40" y1="82" x2="28" y2="94" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="40" y1="96" x2="28" y2="108" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="40" y1="110" x2="28" y2="122" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="40" y1="124" x2="28" y2="136" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="40" y1="138" x2="28" y2="150" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="40" y1="152" x2="28" y2="164" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="40" y1="166" x2="28" y2="178" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="560" y1="50" x2="560" y2="180" stroke="#78350f" stroke-width="4.5" stroke-linecap="round"/>
+<line x1="560" y1="54" x2="572" y2="66" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="560" y1="68" x2="572" y2="80" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="560" y1="82" x2="572" y2="94" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="560" y1="96" x2="572" y2="108" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="560" y1="110" x2="572" y2="122" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="560" y1="124" x2="572" y2="136" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="560" y1="138" x2="572" y2="150" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="560" y1="152" x2="572" y2="164" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="560" y1="166" x2="572" y2="178" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="40" y1="115" x2="560" y2="115" stroke="#475569" stroke-width="2.5" stroke-linecap="round"/>
+<polyline points="40,115 52,115 60.8,128 78.5,102 96.2,128 113.8,102 131.5,128 149.2,102 166.8,128 184.5,102 202.2,128 219.8,102 237.5,128 255.2,102 264,115 276,115" fill="none" stroke="#1e3a8a" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="324,115 336,115 344.8,128 362.5,102 380.2,128 397.8,102 415.5,128 433.2,102 450.8,128 468.5,102 486.2,128 503.8,102 521.5,128 539.2,102 548,115 560,115" fill="none" stroke="#16a34a" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="300" cy="115" r="24" fill="#fbbf24" stroke="#92400e" stroke-width="3.5"/>
+<text x="300" y="122" font-size="20" fill="#7c2d12" text-anchor="middle" font-weight="bold"><tspan font-style="italic">m</tspan></text>
+<text x="158" y="160" font-size="22" fill="#1e3a8a" text-anchor="middle"><tspan font-style="italic">k</tspan><tspan font-size="0.72em" baseline-shift="sub">1</tspan></text>
+<text x="442" y="160" font-size="22" fill="#16a34a" text-anchor="middle"><tspan font-style="italic">k</tspan><tspan font-size="0.72em" baseline-shift="sub">2</tspan></text>
+<text x="300" y="205" font-size="18" fill="#111827" text-anchor="middle"><tspan font-style="italic">h</tspan><tspan font-size="0.72em" baseline-shift="sub">1</tspan> = 3 sm,  <tspan font-style="italic">h</tspan><tspan font-size="0.72em" baseline-shift="sub">2</tspan> = 9 sm,  <tspan font-style="italic">g</tspan> = 10 m/s²</text>
+</svg>

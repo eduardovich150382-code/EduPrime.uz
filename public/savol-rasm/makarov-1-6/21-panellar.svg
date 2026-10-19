@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 260" width="600" height="260" font-family="Arial, Helvetica, sans-serif"><title>Silliq va g'adir-budur panellardan iborat stol sirti (ustdan ko'rinish)</title>
+<rect width="600" height="260" fill="#fff"/>
+<defs><linearGradient id="g21" x1="0" x2="1"><stop offset="0" stop-color="#fef3c7"/><stop offset="1" stop-color="#b45309"/></linearGradient></defs>
+<rect x="40" y="50" width="250" height="160" rx="0" fill="#e0f2fe" stroke="#0369a1" stroke-width="3.5"/>
+<rect x="290" y="50" width="270" height="160" rx="0" fill="url(#g21)" stroke="#78350f" stroke-width="3.5"/>
+<circle cx="300" cy="62" r="1.2" fill="#78350f" opacity="0.6"/>
+<circle cx="300" cy="102" r="1.2" fill="#78350f" opacity="0.6"/>
+<circle cx="300" cy="142" r="1.2" fill="#78350f" opacity="0.6"/>
+<circle cx="300" cy="182" r="1.2" fill="#78350f" opacity="0.6"/>
+<circle cx="319" cy="82" r="1.4" fill="#78350f" opacity="0.6"/>
+<circle cx="319" cy="122" r="1.4" fill="#78350f" opacity="0.6"/>
+<circle cx="319" cy="162" r="1.4" fill="#78350f" opacity="0.6"/>
+<circle cx="319" cy="202" r="1.4" fill="#78350f" opacity="0.6"/>
+<circle cx="338" cy="62" r="1.6" fill="#78350f" opacity="0.6"/>
+<circle cx="338" cy="102" r="1.6" fill="#78350f" opacity="0.6"/>
+<circle cx="338" cy="142" r="1.6" fill="#78350f" opacity="0.6"/>
+<circle cx="338" cy="182" r="1.6" fill="#78350f" opacity="0.6"/>
+<circle cx="357" cy="82" r="1.7" fill="#78350f" opacity="0.6"/>
+<circle cx="357" cy="122" r="1.7" fill="#78350f" opacity="0.6"/>
+<circle cx="357" cy="162" r="1.7" fill="#78350f" opacity="0.6"/>
+<circle cx="357" cy="202" r="1.7" fill="#78350f" opacity="0.6"/>
+<circle cx="376" cy="62" r="1.9" fill="#78350f" opacity="0.6"/>
+<circle cx="376" cy="102" r="1.9" fill="#78350f" opacity="0.6"/>
+<circle cx="376" cy="142" r="1.9" fill="#78350f" opacity="0.6"/>
+<circle cx="376" cy="182" r="1.9" fill="#78350f" opacity="0.6"/>
+<circle cx="395" cy="82" r="2.1" fill="#78350f" opacity="0.6"/>
+<circle cx="395" cy="122" r="2.1" fill="#78350f" opacity="0.6"/>
+<circle cx="395" cy="162" r="2.1" fill="#78350f" opacity="0.6"/>
+<circle cx="395" cy="202" r="2.1" fill="#78350f" opacity="0.6"/>
+<circle cx="414" cy="62" r="2.3" fill="#78350f" opacity="0.6"/>
+<circle cx="414" cy="102" r="2.3" fill="#78350f" opacity="0.6"/>
+<circle cx="414" cy="142" r="2.3" fill="#78350f" opacity="0.6"/>
+<circle cx="414" cy="182" r="2.3" fill="#78350f" opacity="0.6"/>
+<circle cx="433" cy="82" r="2.5" fill="#78350f" opacity="0.6"/>
+<circle cx="433" cy="122" r="2.5" fill="#78350f" opacity="0.6"/>
+<circle cx="433" cy="162" r="2.5" fill="#78350f" opacity="0.6"/>
+<circle cx="433" cy="202" r="2.5" fill="#78350f" opacity="0.6"/>
+<circle cx="452" cy="62" r="2.6" fill="#78350f" opacity="0.6"/>
+<circle cx="452" cy="102" r="2.6" fill="#78350f" opacity="0.6"/>
+<circle cx="452" cy="142" r="2.6" fill="#78350f" opacity="0.6"/>
+<circle cx="452" cy="182" r="2.6" fill="#78350f" opacity="0.6"/>
+<circle cx="471" cy="82" r="2.8" fill="#78350f" opacity="0.6"/>
+<circle cx="471" cy="122" r="2.8" fill="#78350f" opacity="0.6"/>
+<circle cx="471" cy="162" r="2.8" fill="#78350f" opacity="0.6"/>
+<circle cx="471" cy="202" r="2.8" fill="#78350f" opacity="0.6"/>
+<circle cx="490" cy="62" r="3.0" fill="#78350f" opacity="0.6"/>
+<circle cx="490" cy="102" r="3.0" fill="#78350f" opacity="0.6"/>
+<circle cx="490" cy="142" r="3.0" fill="#78350f" opacity="0.6"/>
+<circle cx="490" cy="182" r="3.0" fill="#78350f" opacity="0.6"/>
+<circle cx="509" cy="82" r="3.2" fill="#78350f" opacity="0.6"/>
+<circle cx="509" cy="122" r="3.2" fill="#78350f" opacity="0.6"/>
+<circle cx="509" cy="162" r="3.2" fill="#78350f" opacity="0.6"/>
+<circle cx="509" cy="202" r="3.2" fill="#78350f" opacity="0.6"/>
+<circle cx="528" cy="62" r="3.4" fill="#78350f" opacity="0.6"/>
+<circle cx="528" cy="102" r="3.4" fill="#78350f" opacity="0.6"/>
+<circle cx="528" cy="142" r="3.4" fill="#78350f" opacity="0.6"/>
+<circle cx="528" cy="182" r="3.4" fill="#78350f" opacity="0.6"/>
+<circle cx="547" cy="82" r="3.5" fill="#78350f" opacity="0.6"/>
+<circle cx="547" cy="122" r="3.5" fill="#78350f" opacity="0.6"/>
+<circle cx="547" cy="162" r="3.5" fill="#78350f" opacity="0.6"/>
+<circle cx="547" cy="202" r="3.5" fill="#78350f" opacity="0.6"/>
+<line x1="290" y1="130" x2="561" y2="130" stroke="#1e293b" stroke-width="3" stroke-linecap="round"/>
+<polygon points="575,130 561,123 561,137" fill="#1e293b" stroke="#1e293b" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="570" y="120" font-size="22" fill="#111827" text-anchor="middle"><tspan font-style="italic">x</tspan></text>
+<text x="282" y="150" font-size="20" fill="#1e293b" text-anchor="end"><tspan font-style="italic">O</tspan></text>
+<circle cx="150" cy="130" r="16" fill="#94a3b8" stroke="#1e293b" stroke-width="3.5"/>
+<line x1="170" y1="130" x2="226" y2="130" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/>
+<polygon points="240,130 226,123 226,137" fill="#dc2626" stroke="#dc2626" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="205" y="120" font-size="20" fill="#dc2626" text-anchor="middle"><tspan font-style="italic">v</tspan><tspan font-size="0.72em" baseline-shift="sub">0</tspan></text>
+<text x="165" y="238" font-size="20" fill="#0369a1" text-anchor="middle">silliq: <tspan font-style="italic">μ</tspan> = 0</text>
+<text x="425" y="238" font-size="20" fill="#78350f" text-anchor="middle">g'adir-budur: <tspan font-style="italic">μ</tspan> = <tspan font-style="italic">αx</tspan></text>
+</svg>

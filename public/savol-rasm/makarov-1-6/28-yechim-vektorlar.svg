@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 380" width="520" height="380" font-family="Arial, Helvetica, sans-serif"><title>Vagon sanoq sistemasida mayatnikning muvozanat holati va tebranishi</title>
+<rect width="520" height="380" fill="#fff"/>
+<line x1="180" y1="40" x2="340" y2="40" stroke="#78350f" stroke-width="4.5" stroke-linecap="round"/>
+<line x1="184" y1="40" x2="196" y2="28" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="198" y1="40" x2="210" y2="28" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="212" y1="40" x2="224" y2="28" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="226" y1="40" x2="238" y2="28" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="240" y1="40" x2="252" y2="28" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="254" y1="40" x2="266" y2="28" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="268" y1="40" x2="280" y2="28" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="282" y1="40" x2="294" y2="28" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="296" y1="40" x2="308" y2="28" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="310" y1="40" x2="322" y2="28" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="324" y1="40" x2="336" y2="28" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="338" y1="40" x2="350" y2="28" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="250" y1="40" x2="250" y2="300" stroke="#1e293b" stroke-width="3" stroke-linecap="round"/>
+<circle cx="250" cy="300" r="11" fill="#fbbf24" stroke="#92400e" stroke-width="3.5"/>
+<line x1="250" y1="40" x2="136" y2="273.7" stroke="#1e293b" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="6 5"/>
+<line x1="250" y1="40" x2="45.1" y2="200.1" stroke="#1e293b" stroke-width="3" stroke-linecap="round"/>
+<circle cx="45.1" cy="200.1" r="11" fill="#fde68a" stroke="#92400e" stroke-width="3.5"/>
+<path d="M250,110 A70,70 0 0 1 219.3,102.9" stroke="#1e293b" stroke-width="2.2" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="232" y="136" font-size="18" fill="#1e293b" text-anchor="end"><tspan font-style="italic">α</tspan></text>
+<path d="M201.8,138.9 A110,110 0 0 1 163.3,107.7" stroke="#1e293b" stroke-width="2.2" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="174" y="152" font-size="18" fill="#1e293b" text-anchor="end"><tspan font-style="italic">α</tspan></text>
+<line x1="45.1" y1="200.1" x2="310" y2="200.1" stroke="#1e293b" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="4 4"/>
+<line x1="290" y1="300" x2="330" y2="300" stroke="#1e293b" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="4 4"/>
+<line x1="320" y1="250" x2="320" y2="210.1" stroke="#7c3aed" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="320,200.1 315,210.1 325,210.1" fill="#7c3aed" stroke="#7c3aed" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="320" y1="250" x2="320" y2="290" stroke="#7c3aed" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="320,300 325,290 315,290" fill="#7c3aed" stroke="#7c3aed" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="320" y="242" font-size="19" fill="#7c3aed" text-anchor="middle"></text>
+<text x="330" y="256" font-size="22" fill="#7c3aed" text-anchor="start"><tspan font-style="italic">h</tspan></text>
+<line x1="460" y1="120" x2="460" y2="256" stroke="#16a34a" stroke-width="4" stroke-linecap="round"/>
+<polygon points="460,270 467,256 453,256" fill="#16a34a" stroke="#16a34a" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="472" y="230" font-size="21" fill="#16a34a" text-anchor="start"><tspan font-style="italic">g</tspan></text>
+<line x1="460" y1="270" x2="401" y2="270" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/>
+<polygon points="387,270 401,277 401,263" fill="#dc2626" stroke="#dc2626" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="424" y="296" font-size="21" fill="#dc2626" text-anchor="middle">−<tspan font-style="italic">a</tspan></text>
+<line x1="460" y1="120" x2="393.1" y2="257.4" stroke="#1e3a8a" stroke-width="4" stroke-linecap="round"/>
+<polygon points="387,270 399.4,260.5 386.8,254.3" fill="#1e3a8a" stroke="#1e3a8a" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="404" y="180" font-size="21" fill="#1e3a8a" text-anchor="end"><tspan font-style="italic">g</tspan><tspan font-size="0.72em" baseline-shift="sub">1</tspan></text>
+<text x="80" y="360" font-size="15" fill="#1e293b" text-anchor="start">yangi muvozanat chizig'i — punktir</text>
+</svg>

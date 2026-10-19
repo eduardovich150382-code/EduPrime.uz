@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 220" width="600" height="220" font-family="Arial, Helvetica, sans-serif"><title>Ikki prujinaga ulangan bir-biriga tegib turgan sharchalar</title>
+<rect width="600" height="220" fill="#fff"/>
+<line x1="40" y1="50" x2="40" y2="180" stroke="#78350f" stroke-width="4.5" stroke-linecap="round"/>
+<line x1="40" y1="54" x2="28" y2="66" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="40" y1="68" x2="28" y2="80" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="40" y1="82" x2="28" y2="94" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="40" y1="96" x2="28" y2="108" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="40" y1="110" x2="28" y2="122" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="40" y1="124" x2="28" y2="136" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="40" y1="138" x2="28" y2="150" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="40" y1="152" x2="28" y2="164" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="40" y1="166" x2="28" y2="178" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="560" y1="50" x2="560" y2="180" stroke="#78350f" stroke-width="4.5" stroke-linecap="round"/>
+<line x1="560" y1="54" x2="572" y2="66" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="560" y1="68" x2="572" y2="80" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="560" y1="82" x2="572" y2="94" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="560" y1="96" x2="572" y2="108" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="560" y1="110" x2="572" y2="122" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="560" y1="124" x2="572" y2="136" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="560" y1="138" x2="572" y2="150" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="560" y1="152" x2="572" y2="164" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="560" y1="166" x2="572" y2="178" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="40" y1="120" x2="560" y2="120" stroke="#475569" stroke-width="2.5" stroke-linecap="round"/>
+<circle cx="272" cy="120" r="20" fill="#fbbf24" stroke="#92400e" stroke-width="3.5"/>
+<circle cx="320" cy="120" r="28" fill="#fca5a5" stroke="#dc2626" stroke-width="3.5"/>
+<polyline points="40,120 52,120 60.5,132 77.6,108 94.7,132 111.8,108 128.9,132 146,108 163.1,132 180.2,108 197.3,132 214.4,108 231.5,132 240,120 252,120" fill="none" stroke="#1e3a8a" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="348,120 360,120 368.5,132 385.6,108 402.7,132 419.8,108 436.9,132 454,108 471.1,132 488.2,108 505.3,132 522.4,108 539.5,132 548,120 560,120" fill="none" stroke="#16a34a" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="145" y="90" font-size="22" fill="#1e3a8a" text-anchor="middle"><tspan font-style="italic">k</tspan></text>
+<text x="455" y="90" font-size="22" fill="#16a34a" text-anchor="middle">8<tspan font-style="italic">k</tspan></text>
+<text x="272" y="175" font-size="21" fill="#111827" text-anchor="middle"><tspan font-style="italic">m</tspan></text>
+<text x="322" y="175" font-size="21" fill="#111827" text-anchor="middle">2<tspan font-style="italic">m</tspan></text>
+</svg>
