@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 240" width="620" height="240" font-family="Arial, Helvetica, sans-serif"><title>Ikki porshen prujinalar bilan devorlarga ulangan silindr</title>
+<rect width="620" height="240" fill="#fff"/>
+<line x1="30" y1="50" x2="30" y2="200" stroke="#334155" stroke-width="4.5" stroke-linecap="round"/>
+<line x1="30" y1="54" x2="19" y2="65" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="30" y1="67" x2="19" y2="78" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="30" y1="80" x2="19" y2="91" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="30" y1="93" x2="19" y2="104" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="30" y1="106" x2="19" y2="117" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="30" y1="119" x2="19" y2="130" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="30" y1="132" x2="19" y2="143" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="30" y1="145" x2="19" y2="156" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="30" y1="158" x2="19" y2="169" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="30" y1="171" x2="19" y2="182" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="30" y1="184" x2="19" y2="195" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="30" y1="197" x2="19" y2="208" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="590" y1="50" x2="590" y2="200" stroke="#334155" stroke-width="4.5" stroke-linecap="round"/>
+<line x1="590" y1="54" x2="601" y2="65" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="590" y1="67" x2="601" y2="78" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="590" y1="80" x2="601" y2="91" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="590" y1="93" x2="601" y2="104" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="590" y1="106" x2="601" y2="117" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="590" y1="119" x2="601" y2="130" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="590" y1="132" x2="601" y2="143" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="590" y1="145" x2="601" y2="156" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="590" y1="158" x2="601" y2="169" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="590" y1="171" x2="601" y2="182" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="590" y1="184" x2="601" y2="195" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="590" y1="197" x2="601" y2="208" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="30" y1="70" x2="590" y2="70" stroke="#334155" stroke-width="4.5" stroke-linecap="round"/>
+<line x1="30" y1="180" x2="590" y2="180" stroke="#334155" stroke-width="4.5" stroke-linecap="round"/>
+<rect x="256" y="72" width="124" height="106" fill="#dbeafe"/><path d="M351 155h0M316 103h0M262 140h0M315 149h0M304 150h0M293 153h0M344 117h0M322 142h0M284 130h0M352 103h0M352 142h0M357 110h0M272 153h0M352 120h0M273 97h0M333 105h0M369 133h0M284 140h0M302 166h0M364 126h0M334 144h0M352 170h0M265 112h0M329 107h0M328 86h0M361 127h0M275 140h0M297 96h0M316 91h0M286 159h0M340 79h0M349 80h0M299 163h0M331 107h0M304 115h0M276 172h0M268 118h0M346 115h0M372 101h0M372 162h0M337 162h0M312 156h0M351 127h0M315 144h0M308 86h0M346 103h0M317 152h0M281 80h0M276 133h0M302 102h0M313 165h0M291 117h0M360 136h0M292 123h0M316 91h0" stroke="#3b82f6" stroke-width="4.6" stroke-linecap="round"/>
+<rect x="240" y="72" width="16" height="106" rx="2" fill="#94a3b8" stroke="#334155" stroke-width="3"/>
+<rect x="380" y="72" width="16" height="106" rx="2" fill="#94a3b8" stroke="#334155" stroke-width="3"/>
+<polyline points="30,125 40,125 46.8,139 60.4,111 73.9,139 87.5,111 101.1,139 114.6,111 128.2,139 141.8,111 155.4,139 168.9,111 182.5,139 196.1,111 209.6,139 223.2,111 230,125 240,125" fill="none" stroke="#475569" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="396,125 406,125 412.2,139 424.6,111 437.1,139 449.5,111 461.9,139 474.4,111 486.8,139 499.2,111 511.6,139 524.1,111 536.5,139 548.9,111 561.4,139 573.8,111 580,125 590,125" fill="none" stroke="#475569" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="135" y="100" font-size="21" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">k</tspan><tspan font-size="14" dy="5">1</tspan><tspan dy="-5"> </tspan></text>
+<text x="485" y="100" font-size="21" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">k</tspan><tspan font-size="14" dy="5">2</tspan><tspan dy="-5"> </tspan></text>
+<rect x="270" y="108" width="92" height="34" rx="6" fill="#fff" stroke="#cbd5e1" stroke-width="1.5"/>
+<text x="318" y="132" font-size="20" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">p</tspan><tspan font-size="13" dy="5">0</tspan><tspan dy="-5"> </tspan><tspan>, </tspan><tspan font-style="italic">T</tspan><tspan font-size="13" dy="5">0</tspan><tspan dy="-5"> </tspan></text>
+<text x="135" y="166" font-size="15" fill="#64748b" text-anchor="middle">vakuum</text>
+<text x="485" y="166" font-size="15" fill="#64748b" text-anchor="middle">vakuum</text>
+<line x1="256" y1="210" x2="370" y2="210" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="380,210 370,205 370,215" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="380" y1="210" x2="266" y2="210" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="256,210 266,215 266,205" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="318" y="232" font-size="18" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">l</tspan></text>
+<text x="40" y="40" font-size="20" fill="#1e293b" text-anchor="start"><tspan font-style="italic">S</tspan></text>
+</svg>

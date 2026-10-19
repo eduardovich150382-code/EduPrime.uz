@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 370" width="420" height="370" font-family="Arial, Helvetica, sans-serif"><title>Porshen ustiga jism qo'yilgan va gaz isitilgan vertikal idish</title>
+<rect width="420" height="370" fill="#fff"/>
+<rect x="122" y="158" width="176" height="160" fill="#dbeafe"/><path d="M239 280h0M213 240h0M193 312h0M175 186h0M171 203h0M182 204h0M146 212h0M179 248h0M161 174h0M161 244h0M192 273h0M260 225h0M144 272h0M252 223h0M236 208h0M278 287h0M258 305h0M166 245h0M248 283h0M192 185h0M231 179h0M244 165h0M203 235h0M148 235h0M210 219h0M275 292h0M274 200h0M132 220h0M147 268h0M171 183h0M175 224h0M249 232h0M177 264h0M135 195h0M241 275h0M145 174h0M211 261h0M131 229h0M173 177h0M156 206h0M205 181h0M230 294h0M240 174h0M234 258h0M129 221h0M235 305h0M280 248h0M225 306h0M163 239h0M138 279h0M235 195h0M160 242h0M251 184h0M181 240h0M171 295h0M247 305h0M233 265h0M175 239h0M198 235h0" stroke="#3b82f6" stroke-width="4.6" stroke-linecap="round"/>
+<line x1="120" y1="50" x2="120" y2="320" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<line x1="300" y1="50" x2="300" y2="320" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<line x1="118" y1="320" x2="302" y2="320" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<rect x="122" y="140" width="176" height="20" rx="2" fill="#64748b" stroke="#334155" stroke-width="3"/>
+<text x="330" y="156" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">M</tspan></text>
+<rect x="188" y="110" width="44" height="30" rx="4" fill="#f59e0b" stroke="#92400e" stroke-width="3"/>
+<text x="210" y="132" font-size="20" fill="#fff" text-anchor="middle" font-weight="bold"><tspan font-style="italic">m</tspan></text>
+<rect x="163" y="229.1" width="94.1" height="31.9" rx="6" fill="#fff" fill-opacity="0.92" stroke="#cbd5e1" stroke-width="1.2"/><text x="210" y="250" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">T</tspan><tspan font-size="14" dy="6">1</tspan><tspan dy="-6"> </tspan><tspan> </tspan><tspan font-style="italic">→ </tspan><tspan font-style="italic">T</tspan><tspan font-size="14" dy="6">2</tspan><tspan dy="-6"> </tspan></text>
+<path d="M150,360 q-11,-14 0,-30 q11,16 0,30 z" fill="#fb923c" stroke="#ea580c" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M190,360 q-11,-14 0,-30 q11,16 0,30 z" fill="#fb923c" stroke="#ea580c" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M230,360 q-11,-14 0,-30 q11,16 0,30 z" fill="#fb923c" stroke="#ea580c" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M270,360 q-11,-14 0,-30 q11,16 0,30 z" fill="#fb923c" stroke="#ea580c" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+</svg>

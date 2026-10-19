@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 340" width="460" height="340" font-family="Arial, Helvetica, sans-serif"><title>Jarayonda hajmning haroratga bog'liqligi V(T)</title>
+<rect width="460" height="340" fill="#fff"/>
+<line x1="70" y1="300" x2="416" y2="300" stroke="#1e293b" stroke-width="3" stroke-linecap="round"/>
+<polygon points="430,300 416,293 416,307" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="70" y1="300" x2="70" y2="54" stroke="#1e293b" stroke-width="3" stroke-linecap="round"/>
+<polygon points="70,40 63,54 77,54" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="426" y="326" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">T</tspan></text>
+<text x="54" y="50" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">V</tspan></text>
+<text x="56" y="322" font-size="18" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">O</tspan></text>
+<line x1="70" y1="230" x2="290" y2="153" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="7 6"/>
+<line x1="70" y1="114.5" x2="400" y2="114.5" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 5"/>
+<line x1="400" y1="300" x2="400" y2="114.5" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 5"/>
+<line x1="70" y1="153" x2="290" y2="153" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 5"/>
+<line x1="290" y1="300" x2="290" y2="153" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 5"/>
+<line x1="290" y1="153" x2="400" y2="114.5" stroke="#2563eb" stroke-width="4.5" stroke-linecap="round"/>
+<line x1="370" y1="125" x2="334.2" y2="137.5" stroke="#2563eb" stroke-width="4" stroke-linecap="round"/>
+<polygon points="320,142.5 336.6,144.6 331.7,130.5" fill="#2563eb" stroke="#2563eb" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="400" cy="114.5" r="6" fill="#dc2626"/>
+<circle cx="290" cy="153" r="6" fill="#dc2626"/>
+<text x="414" y="106.5" font-size="20" fill="#dc2626" text-anchor="middle" font-weight="bold"><tspan>1</tspan></text>
+<text x="284" y="139" font-size="20" fill="#dc2626" text-anchor="middle" font-weight="bold"><tspan>2</tspan></text>
+<text x="42" y="121.5" font-size="20" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">V</tspan><tspan font-size="13" dy="5">1</tspan><tspan dy="-5"> </tspan></text>
+<text x="42" y="165" font-size="20" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">V</tspan><tspan font-size="13" dy="5">2</tspan><tspan dy="-5"> </tspan></text>
+<text x="290" y="326" font-size="20" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">T</tspan><tspan font-size="13" dy="5">2</tspan><tspan dy="-5"> </tspan></text>
+<text x="400" y="326" font-size="20" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">T</tspan><tspan font-size="13" dy="5">1</tspan><tspan dy="-5"> </tspan></text>
+<text x="84" y="222" font-size="20" fill="#475569" text-anchor="start"><tspan font-style="italic">a</tspan></text>
+<text x="250" y="60" font-size="18" fill="#16a34a" text-anchor="middle">V = a + bT, V₁ &gt; V₂</text>
+</svg>

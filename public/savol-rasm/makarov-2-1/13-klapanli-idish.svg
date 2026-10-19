@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 320" width="520" height="320" font-family="Arial, Helvetica, sans-serif"><title>Saqlovchi klapanli yopiq idish isitilmoqda</title>
+<rect width="520" height="320" fill="#fff"/>
+<rect x="120" y="90" width="300" height="170" fill="#dbeafe"/><path d="M157 207h0M314 245h0M204 136h0M337 200h0M213 204h0M240 219h0M160 131h0M386 153h0M201 223h0M308 120h0M285 201h0M174 199h0M161 149h0M150 128h0M408 160h0M411 165h0M301 234h0M324 114h0M296 196h0M178 111h0M378 177h0M182 168h0M189 222h0M270 112h0M362 110h0M207 100h0M339 114h0M277 111h0M264 204h0M280 168h0M266 165h0M297 111h0M263 133h0M375 244h0M145 119h0M329 186h0M132 207h0M398 163h0M226 186h0M396 138h0M213 126h0M307 170h0M200 157h0M136 145h0M409 189h0M207 244h0M229 136h0M136 119h0M183 132h0M377 138h0M198 191h0M390 142h0M345 154h0M288 190h0M397 216h0M272 229h0M232 157h0M402 182h0M349 146h0M390 193h0M197 244h0M261 150h0M202 112h0M184 205h0M167 137h0M255 182h0M236 220h0M200 154h0M248 116h0M190 119h0M335 119h0M318 131h0M312 200h0M228 243h0M315 184h0M139 160h0M203 170h0M395 233h0M144 203h0M395 182h0M154 233h0M249 251h0M378 227h0M394 107h0M355 144h0M165 156h0M296 97h0M255 220h0M269 179h0M211 249h0M197 204h0M312 96h0M413 133h0M411 243h0M385 231h0M241 166h0M226 244h0M134 118h0M401 223h0M329 249h0M277 228h0M254 238h0M146 165h0M292 222h0M248 204h0M405 162h0M183 101h0" stroke="#3b82f6" stroke-width="4.6" stroke-linecap="round"/>
+<rect x="120" y="90" width="300" height="170" rx="10" fill="none" stroke="#334155" stroke-width="5"/>
+<rect x="255" y="50" width="30" height="42" rx="3" fill="#e2e8f0" stroke="#334155" stroke-width="3.5"/>
+<polyline points="270,18 270,28 262,29.5 278,32.5 262,35.5 278,38.5 262,41.5 278,44.5 262,47.5 278,50.5 270,52 270,62" fill="none" stroke="#475569" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="258" y="62" width="24" height="10" rx="2" fill="#ef4444" stroke="#7f1d1d" stroke-width="2"/>
+<line x1="250" y1="14" x2="290" y2="14" stroke="#334155" stroke-width="4" stroke-linecap="round"/>
+<line x1="292" y1="72" x2="328" y2="72" stroke="#64748b" stroke-width="3" stroke-linecap="round"/>
+<polygon points="340,72 328,66 328,78" fill="#64748b" stroke="#64748b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="355" y="60" font-size="20" fill="#1e293b" text-anchor="start"><tspan font-style="italic">m</tspan></text>
+<text x="240" y="40" font-size="20" fill="#1e293b" text-anchor="end"><tspan font-style="italic">p</tspan><tspan font-size="13" dy="5">m</tspan><tspan dy="-5"> </tspan></text>
+<rect x="210" y="150" width="120" height="40" rx="6" fill="#fff" stroke="#cbd5e1" stroke-width="1.5"/>
+<text x="270" y="177" font-size="21" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">p</tspan><tspan font-size="14" dy="5">0</tspan><tspan dy="-5"> </tspan><tspan>, </tspan><tspan font-style="italic">T</tspan><tspan font-size="14" dy="5">0</tspan><tspan dy="-5"> </tspan></text>
+<path d="M160,304 q-14,-18 0,-38 q14,20 0,38 z" fill="#fb923c" stroke="#ea580c" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M215,304 q-14,-18 0,-38 q14,20 0,38 z" fill="#fb923c" stroke="#ea580c" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M270,304 q-14,-18 0,-38 q14,20 0,38 z" fill="#fb923c" stroke="#ea580c" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M325,304 q-14,-18 0,-38 q14,20 0,38 z" fill="#fb923c" stroke="#ea580c" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M380,304 q-14,-18 0,-38 q14,20 0,38 z" fill="#fb923c" stroke="#ea580c" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="450" y="250" font-size="22" fill="#dc2626" text-anchor="middle"><tspan font-style="italic">T</tspan><tspan font-size="14" dy="6">1</tspan><tspan dy="-6"> </tspan></text>
+</svg>

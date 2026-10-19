@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 320" width="400" height="320" font-family="Arial, Helvetica, sans-serif"><title>Sfera tarozida havoda tortilmoqda</title>
+<rect width="400" height="320" fill="#fff"/>
+<polygon points="150,300 250,300 215,260 185,260" fill="#cbd5e1" stroke="#334155" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="200" y1="260" x2="200" y2="120" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<line x1="80" y1="120" x2="320" y2="120" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<polygon points="200,105 190,122 210,122" fill="#334155" stroke="#334155" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="80" y1="120" x2="40" y2="200" stroke="#475569" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="80" y1="120" x2="120" y2="200" stroke="#475569" stroke-width="2.5" stroke-linecap="round"/>
+<path d="M30,200 Q80,225 130,200 Z" fill="#e2e8f0" stroke="#334155" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="320" y1="120" x2="280" y2="200" stroke="#475569" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="320" y1="120" x2="360" y2="200" stroke="#475569" stroke-width="2.5" stroke-linecap="round"/>
+<path d="M270,200 Q320,225 370,200 Z" fill="#e2e8f0" stroke="#334155" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="80" cy="166" r="32" fill="#a5b4fc" stroke="#3730a3" stroke-width="4"/>
+<text x="80" y="174" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">m</tspan></text>
+<rect x="300" y="178" width="40" height="26" rx="3" fill="#f59e0b" stroke="#92400e" stroke-width="3"/>
+<text x="270" y="60" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">t</tspan><tspan>, </tspan><tspan font-style="italic">p</tspan></text>
+</svg>

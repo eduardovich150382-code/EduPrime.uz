@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 360" width="460" height="360" font-family="Arial, Helvetica, sans-serif"><title>Isitilgan havo bilan to'ldirilgan havo shari yuk ko'tarmoqda</title>
+<rect width="460" height="360" fill="#fff"/>
+<path d="M200,250 C110,200 80,150 80,110 C80,40 140,10 200,10 C260,10 320,40 320,110 C320,150 290,200 220,250 Z" fill="#fecaca" stroke="#334155" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M200,10 C110,90 140,170 188.0,250" fill="none" stroke="#b91c1c" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M200,10 C200,90 200,170 200.0,250" fill="none" stroke="#b91c1c" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M200,10 C290,90 260,170 212.0,250" fill="none" stroke="#b91c1c" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="200" y1="250" x2="220" y2="250" stroke="#334155" stroke-width="4" stroke-linecap="round"/>
+<path d="M210,262 q-9,-12 0,-22 q9,10 0,22 z" fill="#fb923c" stroke="#ea580c" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="186" y1="252" x2="176" y2="300" stroke="#78350f" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="234" y1="252" x2="244" y2="300" stroke="#78350f" stroke-width="2.5" stroke-linecap="round"/>
+<rect x="170" y="300" width="80" height="40" rx="4" fill="#d97706" stroke="#78350f" stroke-width="3.5"/>
+<text x="210" y="327" font-size="20" fill="#fff" text-anchor="middle" font-weight="bold"><tspan font-style="italic">m</tspan></text>
+<rect x="180.5" y="97.2" width="39" height="34.8" rx="6" fill="#fff" fill-opacity="0.92" stroke="#cbd5e1" stroke-width="1.2"/><text x="200" y="120" font-size="24" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">T</tspan><tspan font-size="16" dy="6">1</tspan><tspan dy="-6"> </tspan></text>
+<rect x="187.3" y="137.1" width="25.4" height="31.9" rx="6" fill="#fff" fill-opacity="0.92" stroke="#cbd5e1" stroke-width="1.2"/><text x="200" y="158" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">V</tspan></text>
+<text x="380" y="120" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">T</tspan><tspan font-size="14" dy="6">0</tspan><tspan dy="-6"> </tspan><tspan>, </tspan><tspan font-style="italic">p</tspan><tspan font-size="14" dy="6">0</tspan><tspan dy="-6"> </tspan></text>
+</svg>

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 230" width="600" height="230" font-family="Arial, Helvetica, sans-serif"><title>Issiqlik o'tkazmaydigan porshen bilan teng ikkiga bo'lingan silindr</title>
+<rect width="600" height="230" fill="#fff"/>
+<rect x="40" y="60" width="252" height="110" fill="#fee2e2"/><path d="M160 130h0M206 80h0M49 103h0M112 145h0M212 125h0M180 131h0M81 109h0M85 155h0M60 146h0M64 133h0M127 106h0M248 68h0M61 156h0M168 75h0M283 159h0M73 107h0M78 97h0M195 82h0M213 71h0M87 146h0M142 107h0M189 113h0M138 69h0M220 161h0M280 131h0M132 102h0M212 132h0M73 89h0M133 116h0M240 115h0M53 147h0M149 117h0M99 108h0M139 142h0M71 120h0M89 134h0M55 93h0M129 128h0M58 111h0M96 94h0M160 160h0M161 160h0M86 157h0M133 85h0M226 155h0M48 92h0M231 99h0M104 67h0M56 127h0M282 164h0M167 68h0M123 143h0M246 129h0M101 118h0M161 127h0M109 159h0M261 82h0M116 152h0M113 159h0M170 134h0M215 87h0M114 91h0M210 134h0M78 153h0M147 90h0M150 162h0M180 127h0M267 160h0M229 107h0M187 154h0M235 123h0M129 102h0M223 121h0M50 136h0M263 144h0M261 155h0M174 143h0" stroke="#ef4444" stroke-width="4.6" stroke-linecap="round"/>
+<rect x="308" y="60" width="252" height="110" fill="#dbeafe"/><path d="M376 133h0M478 149h0M359 89h0M349 88h0M490 79h0M442 87h0M385 108h0M515 126h0M317 93h0M349 151h0M508 145h0M512 139h0M542 144h0M376 149h0M431 140h0M449 108h0M401 108h0M389 78h0M511 144h0M551 134h0M447 139h0M346 132h0M420 83h0M363 117h0M375 111h0M459 105h0M345 114h0M371 89h0M361 102h0M332 130h0M543 104h0M487 157h0M324 80h0M507 148h0M467 82h0M413 151h0M527 145h0M363 150h0M404 136h0M347 161h0M459 137h0M365 126h0M453 124h0M400 137h0M396 95h0M353 133h0M341 88h0M331 129h0M447 119h0M323 109h0M396 75h0M315 164h0M343 96h0M379 125h0M333 112h0M402 148h0M315 99h0M433 161h0M438 112h0M475 95h0M322 115h0M532 138h0M376 133h0M518 91h0M455 101h0M373 94h0M363 100h0M323 105h0M335 140h0M458 66h0M500 85h0M429 120h0M394 94h0M418 79h0M521 77h0M512 87h0M387 104h0" stroke="#3b82f6" stroke-width="4.6" stroke-linecap="round"/>
+<rect x="40" y="60" width="520" height="110" rx="6" fill="none" stroke="#334155" stroke-width="5"/>
+<rect x="292" y="62" width="16" height="106" rx="2" fill="#94a3b8" stroke="#334155" stroke-width="3"/>
+<rect x="396" y="62" width="16" height="106" rx="2" fill="none" stroke="#64748b" stroke-width="2.5" stroke-dasharray="6 5"/>
+<line x1="314" y1="115" x2="379" y2="115" stroke="#dc2626" stroke-width="3.5" stroke-linecap="round"/>
+<polygon points="392,115 379,108.5 379,121.5" fill="#dc2626" stroke="#dc2626" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="337.3" y="124.1" width="25.4" height="31.9" rx="6" fill="#fff" fill-opacity="0.92" stroke="#cbd5e1" stroke-width="1.2"/><text x="350" y="145" font-size="22" fill="#dc2626" text-anchor="middle"><tspan font-style="italic">l</tspan></text>
+<line x1="40" y1="198" x2="290" y2="198" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="300,198 290,193 290,203" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="300" y1="198" x2="50" y2="198" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="40,198 50,203 50,193" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="170" y="220" font-size="18" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">L</tspan></text>
+<line x1="300" y1="198" x2="550" y2="198" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="560,198 550,193 550,203" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="560" y1="198" x2="310" y2="198" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="300,198 310,203 310,193" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="430" y="220" font-size="18" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">L</tspan></text>
+<text x="170" y="44" font-size="17" fill="#dc2626" text-anchor="middle">isitiladi: T → T + ΔT</text>
+<text x="440" y="44" font-size="17" fill="#2563eb" text-anchor="middle">T = const</text>
+<path d="M100,176 q10,-10 20,0 q10,10 20,0 q10,-10 20,0 q10,10 20,0 q10,-10 20,0 q10,10 20,0" fill="none" stroke="#ea580c" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+</svg>

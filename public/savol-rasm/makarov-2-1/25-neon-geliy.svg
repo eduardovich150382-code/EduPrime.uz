@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 380" width="420" height="380" font-family="Arial, Helvetica, sans-serif"><title>Yuqorida neon, pastda geliy bo'lgan vertikal kavsharlangan trubka</title>
+<rect width="420" height="380" fill="#fff"/>
+<rect x="172" y="32" width="96" height="150" fill="#fce7f3"/><path d="M232 135h0M258 65h0M183 152h0M206 89h0M246 63h0M254 106h0M184 165h0M226 49h0M248 145h0M240 129h0M261 40h0M260 127h0M199 123h0M206 128h0M237 110h0M186 92h0M203 141h0M256 145h0M223 61h0M237 75h0M262 62h0M259 40h0M243 86h0M226 95h0M204 98h0M247 87h0M208 146h0M193 87h0M221 109h0M192 143h0M219 51h0M206 46h0M207 54h0M199 115h0M236 79h0M217 109h0M227 163h0M196 145h0M225 161h0M236 39h0" stroke="#db2777" stroke-width="4.6" stroke-linecap="round"/>
+<rect x="172" y="196" width="96" height="152" fill="#ecfccb"/><path d="M187 220h0M228 227h0M189 267h0M213 232h0M211 320h0M189 228h0M180 236h0M186 340h0M204 340h0M189 329h0M221 299h0M234 240h0M198 297h0M189 204h0M243 291h0M200 275h0M254 241h0M188 260h0M192 254h0M181 309h0M246 254h0M210 238h0M258 325h0M234 226h0M192 309h0M194 298h0M213 206h0M195 330h0M205 296h0M242 258h0M220 322h0M239 275h0M224 265h0M214 296h0M198 323h0M203 234h0M259 204h0M212 279h0M215 318h0M235 273h0" stroke="#65a30d" stroke-width="4.6" stroke-linecap="round"/>
+<line x1="170" y1="30" x2="170" y2="350" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<line x1="270" y1="30" x2="270" y2="350" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<line x1="168" y1="350" x2="272" y2="350" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<line x1="168" y1="30" x2="272" y2="30" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<rect x="172" y="184" width="96" height="12" rx="2" fill="#64748b" stroke="#334155" stroke-width="3"/>
+<rect x="200.5" y="87.2" width="39" height="34.8" rx="6" fill="#fff" fill-opacity="0.92" stroke="#cbd5e1" stroke-width="1.2"/><text x="220" y="110" font-size="24" fill="#9d174d" text-anchor="middle" font-weight="bold"><tspan>Ne</tspan></text>
+<rect x="200.5" y="257.2" width="39" height="34.8" rx="6" fill="#fff" fill-opacity="0.92" stroke="#cbd5e1" stroke-width="1.2"/><text x="220" y="280" font-size="24" fill="#3f6212" text-anchor="middle" font-weight="bold"><tspan>He</tspan></text>
+<line x1="295" y1="30" x2="295" y2="180" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="295,190 300,180 290,180" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="295" y1="190" x2="295" y2="40" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="295,30 290,40 300,40" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="330" y="110" font-size="18" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">H/2</tspan></text>
+<line x1="295" y1="190" x2="295" y2="340" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="295,350 300,340 290,340" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="295" y1="350" x2="295" y2="200" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="295,190 290,200 300,200" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="330" y="280" font-size="18" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">H/2</tspan></text>
+</svg>

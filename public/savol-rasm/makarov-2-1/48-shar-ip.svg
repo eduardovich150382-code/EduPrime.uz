@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 360" width="400" height="360" font-family="Arial, Helvetica, sans-serif"><title>Geliy bilan to'ldirilgan va ip bilan ushlab turilgan shar</title>
+<rect width="400" height="360" fill="#fff"/>
+<ellipse cx="200" cy="120" rx="80" ry="95" fill="#c4b5fd" stroke="#5b21b6" stroke-width="4.5"/>
+<path d="M170,70 Q185,55 205,58" fill="none" stroke="#fff" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="192,213 208,213 200,225" fill="#a78bfa" stroke="#5b21b6" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M200,225 C185,260 215,290 200,330" fill="none" stroke="#475569" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="140" y1="332" x2="260" y2="332" stroke="#334155" stroke-width="4.5" stroke-linecap="round"/>
+<line x1="144" y1="332" x2="133" y2="343" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="157" y1="332" x2="146" y2="343" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="170" y1="332" x2="159" y2="343" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="183" y1="332" x2="172" y2="343" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="196" y1="332" x2="185" y2="343" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="209" y1="332" x2="198" y2="343" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="222" y1="332" x2="211" y2="343" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="235" y1="332" x2="224" y2="343" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="248" y1="332" x2="237" y2="343" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<text x="200" y="128" font-size="26" fill="#3b0764" text-anchor="middle" font-weight="bold">He</text>
+<text x="200" y="160" font-size="20" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">V</tspan><tspan>, </tspan><tspan font-style="italic">p</tspan><tspan>, </tspan><tspan font-style="italic">t</tspan></text>
+<line x1="240" y1="300" x2="240" y2="333" stroke="#dc2626" stroke-width="3.5" stroke-linecap="round"/>
+<polygon points="240,345 246,333 234,333" fill="#dc2626" stroke="#dc2626" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="258" y="330" font-size="22" fill="#dc2626" text-anchor="middle"><tspan font-style="italic">F</tspan></text>
+<text x="330" y="60" font-size="20" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">ρ</tspan><tspan font-size="13" dy="5">havo</tspan><tspan dy="-5"> </tspan></text>
+</svg>

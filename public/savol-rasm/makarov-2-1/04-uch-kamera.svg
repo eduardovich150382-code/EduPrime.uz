@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 260" width="620" height="260" font-family="Arial, Helvetica, sans-serif"><title>Uch kameraga bo'lingan gorizontal silindr</title>
+<rect width="620" height="260" fill="#fff"/>
+<rect x="30" y="60" width="172" height="120" fill="#dbeafe"/><path d="M74 125h0M95 131h0M136 73h0M38 156h0M77 91h0M195 117h0M170 117h0M138 82h0M138 160h0M120 146h0M143 73h0M157 130h0M84 69h0M174 117h0M151 161h0M150 165h0M99 152h0M107 167h0M177 77h0M58 89h0M190 113h0M136 99h0M117 108h0M92 129h0M129 164h0M145 166h0M173 173h0M143 84h0" stroke="#3b82f6" stroke-width="4.6" stroke-linecap="round"/>
+<rect x="218" y="60" width="154" height="120" fill="#dcfce7"/><path d="M258 77h0M280 83h0M233 109h0M354 152h0M333 90h0M300 96h0M249 77h0M254 166h0M342 153h0M338 87h0M268 134h0M328 158h0M349 75h0M310 139h0M296 85h0M291 76h0M357 159h0M302 98h0M353 128h0M349 158h0M296 111h0M309 113h0M247 99h0M339 71h0M231 134h0" stroke="#16a34a" stroke-width="4.6" stroke-linecap="round"/>
+<rect x="388" y="60" width="202" height="120" fill="#fef3c7"/><path d="M512 146h0M545 168h0M535 166h0M400 116h0M573 136h0M565 78h0M483 93h0M497 128h0M396 89h0M447 165h0M539 83h0M545 81h0M511 80h0M394 160h0M434 89h0M581 160h0M449 170h0M496 139h0M433 168h0M525 170h0M564 98h0M463 84h0M422 73h0M451 131h0M395 139h0M458 99h0M550 118h0M454 118h0M528 72h0M579 68h0M536 157h0M397 151h0M464 128h0" stroke="#d97706" stroke-width="4.6" stroke-linecap="round"/>
+<rect x="30" y="60" width="560" height="120" rx="6" fill="none" stroke="#334155" stroke-width="5"/>
+<rect x="202" y="62" width="16" height="116" rx="2" fill="#94a3b8" stroke="#334155" stroke-width="3"/>
+<rect x="206" y="42" width="8" height="22" rx="2" fill="#ef4444" stroke="#7f1d1d" stroke-width="2"/>
+<rect x="206" y="176" width="8" height="22" rx="2" fill="#ef4444" stroke="#7f1d1d" stroke-width="2"/>
+<rect x="372" y="62" width="16" height="116" rx="2" fill="#94a3b8" stroke="#334155" stroke-width="3"/>
+<rect x="376" y="42" width="8" height="22" rx="2" fill="#ef4444" stroke="#7f1d1d" stroke-width="2"/>
+<rect x="376" y="176" width="8" height="22" rx="2" fill="#ef4444" stroke="#7f1d1d" stroke-width="2"/>
+<rect x="68" y="100" width="104" height="40" rx="6" fill="#fff" stroke="#cbd5e1" stroke-width="1.5"/>
+<text x="120" y="127" font-size="20" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">p</tspan><tspan font-size="13" dy="5">1</tspan><tspan dy="-5"> </tspan><tspan>, </tspan><tspan font-style="italic">V</tspan><tspan font-size="13" dy="5">1</tspan><tspan dy="-5"> </tspan></text>
+<text x="120" y="220" font-size="17" fill="#1e293b" text-anchor="middle">1-kamera</text>
+<rect x="243" y="100" width="104" height="40" rx="6" fill="#fff" stroke="#cbd5e1" stroke-width="1.5"/>
+<text x="295" y="127" font-size="20" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">p</tspan><tspan font-size="13" dy="5">2</tspan><tspan dy="-5"> </tspan><tspan>, </tspan><tspan font-style="italic">V</tspan><tspan font-size="13" dy="5">2</tspan><tspan dy="-5"> </tspan></text>
+<text x="295" y="220" font-size="17" fill="#1e293b" text-anchor="middle">2-kamera</text>
+<rect x="433" y="100" width="104" height="40" rx="6" fill="#fff" stroke="#cbd5e1" stroke-width="1.5"/>
+<text x="485" y="127" font-size="20" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">p</tspan><tspan font-size="13" dy="5">3</tspan><tspan dy="-5"> </tspan><tspan>, </tspan><tspan font-style="italic">V</tspan><tspan font-size="13" dy="5">3</tspan><tspan dy="-5"> </tspan></text>
+<text x="485" y="220" font-size="17" fill="#1e293b" text-anchor="middle">3-kamera</text>
+<text x="300" y="40" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">T</tspan><tspan font-size="14" dy="6">0</tspan><tspan dy="-6"> </tspan></text>
+<text x="300" y="245" font-size="15" fill="#64748b" text-anchor="middle">Porshenlar qizil tirgaklar bilan mahkamlangan</text>
+</svg>

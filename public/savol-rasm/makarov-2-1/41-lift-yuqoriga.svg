@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 430 370" width="430" height="370" font-family="Arial, Helvetica, sans-serif"><title>Yuqoriga tezlanuvchi liftdagi porshenli silindr</title>
+<rect width="430" height="370" fill="#fff"/>
+<rect x="60" y="40" width="280" height="320" rx="6" fill="#f8fafc" stroke="#475569" stroke-width="5"/>
+<line x1="200" y1="0" x2="200" y2="40" stroke="#475569" stroke-width="4" stroke-linecap="round"/>
+<rect x="142" y="188" width="116" height="150" fill="#dbeafe"/><path d="M188 226h0M165 320h0M208 289h0M206 247h0M224 274h0M229 285h0M235 255h0M164 215h0M223 217h0M216 280h0M154 302h0M151 314h0M235 224h0M224 295h0M161 286h0M161 320h0M220 329h0M154 238h0M212 278h0M167 317h0M236 236h0M163 286h0M190 286h0M199 248h0M150 213h0M196 294h0M192 297h0M204 315h0M216 238h0M162 203h0M152 313h0M239 298h0M159 285h0M161 317h0M216 297h0M211 252h0M236 327h0M173 254h0M224 288h0M191 256h0M249 232h0M170 289h0M177 318h0M182 322h0M188 316h0M226 295h0M170 217h0M151 219h0" stroke="#3b82f6" stroke-width="4.6" stroke-linecap="round"/>
+<line x1="140" y1="110" x2="140" y2="340" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<line x1="260" y1="110" x2="260" y2="340" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<line x1="138" y1="340" x2="262" y2="340" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<rect x="142" y="170" width="116" height="18" rx="2" fill="#64748b" stroke="#334155" stroke-width="3"/>
+<line x1="290" y1="179" x2="290" y2="330" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="290,340 295,330 285,330" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="290" y1="340" x2="290" y2="189" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="290,179 285,189 295,189" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="312" y="270" font-size="18" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">x</tspan></text>
+<line x1="380" y1="260" x2="380" y2="156" stroke="#dc2626" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="380,140 372,156 388,156" fill="#dc2626" stroke="#dc2626" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="400" y="205" font-size="24" fill="#dc2626" text-anchor="middle"><tspan font-style="italic">a</tspan></text>
+<text x="200" y="80" font-size="16" fill="#64748b" text-anchor="middle">lift</text>
+</svg>

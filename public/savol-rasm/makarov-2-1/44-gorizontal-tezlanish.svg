@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 260" width="520" height="260" font-family="Arial, Helvetica, sans-serif"><title>Gorizontal silindr a tezlanish bilan o'ngga harakatlantiriladi</title>
+<rect width="520" height="260" fill="#fff"/>
+<rect x="62" y="62" width="298" height="106" fill="#dbeafe"/><path d="M185 119h0M315 85h0M132 71h0M101 69h0M113 116h0M351 133h0M176 106h0M266 99h0M89 147h0M245 79h0M88 77h0M342 78h0M247 159h0M78 104h0M205 154h0M122 92h0M139 73h0M261 145h0M193 72h0M272 137h0M255 99h0M306 127h0M237 119h0M135 111h0M295 132h0M167 145h0M308 72h0M113 89h0M72 139h0M253 119h0M352 102h0M125 78h0M165 147h0M242 74h0M192 73h0M246 80h0M119 128h0M307 126h0M152 129h0M146 69h0M146 133h0M247 86h0M308 146h0M148 158h0M143 74h0M214 149h0M240 119h0M207 95h0M154 106h0M224 157h0M89 92h0M338 130h0M89 110h0M254 154h0M92 153h0M288 94h0M221 146h0M138 134h0M228 75h0M146 107h0M108 157h0M140 90h0M239 118h0M159 99h0M210 153h0M91 154h0M336 132h0M298 104h0M343 138h0M264 110h0M131 133h0M278 68h0M157 118h0M129 80h0M122 69h0M102 105h0M211 128h0M156 80h0M331 127h0M262 133h0M160 124h0M159 129h0M302 70h0M296 79h0M73 75h0M229 149h0M333 83h0M191 157h0" stroke="#3b82f6" stroke-width="4.6" stroke-linecap="round"/>
+<polyline points="440,60 60,60 60,170 440,170" fill="none" stroke="#334155" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="360" y="62" width="22" height="106" rx="2" fill="#94a3b8" stroke="#334155" stroke-width="3"/>
+<text x="371" y="26" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">M</tspan></text>
+<text x="480" y="123" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">p</tspan><tspan font-size="14" dy="6">0</tspan><tspan dy="-6"> </tspan></text>
+<line x1="260" y1="210" x2="344" y2="210" stroke="#dc2626" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="360,210 344,202 344,218" fill="#dc2626" stroke="#dc2626" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="310" y="240" font-size="24" fill="#dc2626" text-anchor="middle"><tspan font-style="italic">a</tspan></text>
+<line x1="60" y1="40" x2="350" y2="40" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="360,40 350,35 350,45" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="360" y1="40" x2="70" y2="40" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="60,40 70,45 70,35" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="210" y="32" font-size="18" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">l</tspan></text>
+<rect x="197.3" y="102.1" width="25.4" height="31.9" rx="6" fill="#fff" fill-opacity="0.92" stroke="#cbd5e1" stroke-width="1.2"/><text x="210" y="123" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">S</tspan></text>
+</svg>

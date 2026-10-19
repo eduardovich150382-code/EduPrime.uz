@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 370" width="420" height="370" font-family="Arial, Helvetica, sans-serif"><title>Porshen bilan ikkiga bo'lingan vertikal yopiq silindr</title>
+<rect width="420" height="370" fill="#fff"/>
+<rect x="142" y="42" width="166" height="176" fill="#fef3c7"/><path d="M287 161h0M266 196h0M188 152h0M287 191h0M236 76h0M211 211h0M164 100h0M294 122h0M180 100h0M288 103h0M214 151h0M272 129h0M161 142h0M153 64h0M177 162h0M192 161h0M173 67h0M152 164h0M280 84h0M185 50h0M247 97h0M169 154h0M240 121h0M172 153h0M234 119h0M173 200h0M281 161h0M301 143h0M201 67h0M242 133h0M215 211h0M277 67h0M284 48h0M248 100h0M260 204h0M230 173h0M156 157h0M166 123h0M199 60h0M263 63h0M188 62h0M250 97h0M155 52h0M182 131h0M150 52h0M251 134h0M169 99h0M167 93h0M208 84h0M178 85h0M194 139h0" stroke="#d97706" stroke-width="4.6" stroke-linecap="round"/>
+<rect x="142" y="234" width="166" height="104" fill="#dbeafe"/><path d="M173 303h0M246 284h0M181 313h0M272 287h0M226 262h0M148 274h0M238 246h0M270 261h0M184 244h0M302 308h0M283 297h0M153 270h0M225 251h0M295 274h0M172 315h0M167 325h0M218 291h0M201 285h0M177 243h0M281 262h0M268 259h0M297 322h0M264 310h0M237 307h0M167 284h0M275 258h0M290 322h0M211 274h0M218 275h0M301 276h0M152 249h0M259 331h0M224 285h0M233 309h0M182 296h0M234 297h0M176 256h0M202 325h0M201 295h0M195 250h0M158 315h0M268 274h0M253 302h0M286 328h0M211 331h0M296 294h0M284 285h0M206 263h0" stroke="#3b82f6" stroke-width="4.6" stroke-linecap="round"/>
+<line x1="140" y1="40" x2="140" y2="340" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<line x1="310" y1="40" x2="310" y2="340" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<line x1="138" y1="340" x2="312" y2="340" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<line x1="138" y1="40" x2="312" y2="40" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<rect x="142" y="220" width="166" height="14" rx="2" fill="#64748b" stroke="#334155" stroke-width="3"/>
+<rect x="211.8" y="107.2" width="26.5" height="34.8" rx="6" fill="#fff" fill-opacity="0.92" stroke="#cbd5e1" stroke-width="1.2"/><text x="225" y="130" font-size="24" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">ν</tspan></text>
+<rect x="211.8" y="272.2" width="26.5" height="34.8" rx="6" fill="#fff" fill-opacity="0.92" stroke="#cbd5e1" stroke-width="1.2"/><text x="225" y="295" font-size="24" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">ν</tspan></text>
+<text x="110" y="232" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">P</tspan></text>
+<line x1="340" y1="40" x2="340" y2="330" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="340,340 345,330 335,330" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="340" y1="340" x2="340" y2="50" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="340,40 335,50 345,50" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="365" y="150" font-size="18" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">H</tspan></text>
+<line x1="80" y1="227" x2="80" y2="330" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="80,340 85,330 75,330" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="80" y1="340" x2="80" y2="237" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="80,227 75,237 85,237" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="58" y="285" font-size="18" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">h</tspan></text>
+</svg>

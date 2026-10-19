@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 340" width="520" height="340" font-family="Arial, Helvetica, sans-serif"><title>Ideal gaz ustidagi siklik jarayonning p–V grafigi</title>
+<rect width="520" height="340" fill="#fff"/>
+<line x1="70" y1="300" x2="386" y2="300" stroke="#1e293b" stroke-width="3" stroke-linecap="round"/>
+<polygon points="400,300 386,293 386,307" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="70" y1="300" x2="70" y2="44" stroke="#1e293b" stroke-width="3" stroke-linecap="round"/>
+<polygon points="70,30 63,44 77,44" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="396" y="326" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">V</tspan></text>
+<text x="54" y="40" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">p</tspan></text>
+<text x="56" y="322" font-size="18" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">O</tspan></text>
+<line x1="70" y1="300" x2="310" y2="120" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="7 6"/>
+<line x1="70" y1="180" x2="230" y2="180" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 5"/>
+<line x1="70" y1="120" x2="230" y2="120" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 5"/>
+<line x1="230" y1="300" x2="230" y2="180" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 5"/>
+<polygon points="230,180 230,120 310,120" fill="none" stroke="#2563eb" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="40" y="187" font-size="20" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">p</tspan><tspan font-size="13" dy="5">1</tspan><tspan dy="-5"> </tspan></text>
+<text x="32" y="127" font-size="20" fill="#1e293b" text-anchor="middle"><tspan>1,5</tspan><tspan font-style="italic">p</tspan><tspan font-size="13" dy="5">1</tspan><tspan dy="-5"> </tspan></text>
+<text x="230" y="326" font-size="20" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">V</tspan><tspan font-size="13" dy="5">1</tspan><tspan dy="-5"> </tspan></text>
+<line x1="310" y1="300" x2="310" y2="120" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 5"/>
+<text x="310" y="326" font-size="20" fill="#1e293b" text-anchor="middle"><tspan>1,5</tspan><tspan font-style="italic">V</tspan><tspan font-size="13" dy="5">1</tspan><tspan dy="-5"> </tspan></text>
+<circle cx="230" cy="180" r="6" fill="#dc2626"/>
+<text x="246" y="196" font-size="20" fill="#dc2626" text-anchor="middle" font-weight="bold"><tspan>1</tspan></text>
+<circle cx="230" cy="120" r="6" fill="#dc2626"/>
+<text x="214" y="112" font-size="20" fill="#dc2626" text-anchor="middle" font-weight="bold"><tspan>2</tspan></text>
+<circle cx="310" cy="120" r="6" fill="#dc2626"/>
+<text x="324" y="112" font-size="20" fill="#dc2626" text-anchor="middle" font-weight="bold"><tspan>3</tspan></text>
+<text x="330" y="120" font-size="17" fill="#16a34a" text-anchor="start">ρ₁ = ρ₂ (eng katta)</text>
+<text x="330" y="145" font-size="17" fill="#ea580c" text-anchor="start">ρ₃ (eng kichik)</text>
+</svg>

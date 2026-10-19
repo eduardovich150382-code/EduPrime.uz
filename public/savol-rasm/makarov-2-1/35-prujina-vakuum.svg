@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 370" width="420" height="370" font-family="Arial, Helvetica, sans-serif"><title>Gaz ustidagi porshen vakuumda prujina bilan qopqoqqa tirab qo'yilgan</title>
+<rect width="420" height="370" fill="#fff"/>
+<rect x="142" y="214" width="146" height="124" fill="#dbeafe"/><path d="M222 304h0M248 317h0M186 328h0M224 304h0M249 324h0M185 261h0M244 286h0M249 261h0M276 221h0M245 262h0M151 296h0M155 246h0M192 238h0M170 228h0M261 229h0M170 229h0M270 281h0M258 329h0M214 264h0M200 250h0M228 328h0M215 305h0M267 313h0M238 281h0M161 262h0M262 270h0M239 249h0M226 245h0M253 311h0M150 295h0M161 326h0M172 234h0M268 289h0M149 272h0M259 239h0M249 253h0M207 264h0M155 264h0M218 289h0M220 239h0M229 252h0M269 231h0M252 230h0M223 259h0M210 297h0M255 220h0M266 293h0M162 298h0M257 262h0M266 238h0" stroke="#3b82f6" stroke-width="4.6" stroke-linecap="round"/>
+<line x1="140" y1="40" x2="140" y2="340" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<line x1="290" y1="40" x2="290" y2="340" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<line x1="138" y1="340" x2="292" y2="340" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<line x1="138" y1="40" x2="292" y2="40" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<rect x="142" y="200" width="146" height="14" rx="2" fill="#94a3b8" stroke="#334155" stroke-width="3"/>
+<polyline points="215,42 215,52 197,55.8 233,63.5 197,71.2 233,78.8 197,86.5 233,94.2 197,101.8 233,109.5 197,117.2 233,124.8 197,132.5 233,140.2 197,147.8 233,155.5 197,163.2 233,170.8 197,178.5 233,186.2 215,190 215,200" fill="none" stroke="#475569" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="310" y="110" font-size="16" fill="#64748b" text-anchor="start">vakuum</text>
+<rect x="185.1" y="269.1" width="59.8" height="31.9" rx="6" fill="#fff" fill-opacity="0.92" stroke="#cbd5e1" stroke-width="1.2"/><text x="215" y="290" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">V</tspan><tspan>, </tspan><tspan font-style="italic">T</tspan></text>
+</svg>

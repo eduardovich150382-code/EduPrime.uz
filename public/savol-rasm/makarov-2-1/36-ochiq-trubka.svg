@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 250" width="640" height="250" font-family="Arial, Helvetica, sans-serif"><title>Ikki uchi ochiq trubkada ikki porshen, biri prujina bilan devorga ulangan</title>
+<rect width="640" height="250" fill="#fff"/>
+<line x1="30" y1="50" x2="30" y2="200" stroke="#334155" stroke-width="4.5" stroke-linecap="round"/>
+<line x1="30" y1="54" x2="19" y2="65" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="30" y1="67" x2="19" y2="78" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="30" y1="80" x2="19" y2="91" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="30" y1="93" x2="19" y2="104" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="30" y1="106" x2="19" y2="117" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="30" y1="119" x2="19" y2="130" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="30" y1="132" x2="19" y2="143" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="30" y1="145" x2="19" y2="156" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="30" y1="158" x2="19" y2="169" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="30" y1="171" x2="19" y2="182" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="30" y1="184" x2="19" y2="195" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="30" y1="197" x2="19" y2="208" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<line x1="130" y1="80" x2="580" y2="80" stroke="#334155" stroke-width="4.5" stroke-linecap="round"/>
+<line x1="130" y1="170" x2="580" y2="170" stroke="#334155" stroke-width="4.5" stroke-linecap="round"/>
+<rect x="246" y="82" width="134" height="86" fill="#dbeafe"/><path d="M292 161h0M369 156h0M348 153h0M252 134h0M282 142h0M305 129h0M318 131h0M353 161h0M294 148h0M360 117h0M267 125h0M345 127h0M275 140h0M292 154h0M273 132h0M299 161h0M269 153h0M303 116h0M277 125h0M365 162h0M367 133h0M281 126h0M331 110h0M372 94h0M281 103h0M272 93h0M281 116h0M367 128h0M328 114h0M273 130h0M341 94h0M331 104h0M336 114h0M270 98h0M349 128h0M262 155h0M286 109h0M252 110h0M320 154h0M288 125h0M262 139h0M289 116h0M285 149h0M372 98h0M307 96h0M344 155h0M267 139h0M289 121h0" stroke="#3b82f6" stroke-width="4.6" stroke-linecap="round"/>
+<rect x="230" y="82" width="16" height="86" rx="2" fill="#94a3b8" stroke="#334155" stroke-width="3"/>
+<rect x="380" y="82" width="16" height="86" rx="2" fill="#94a3b8" stroke="#334155" stroke-width="3"/>
+<polyline points="30,125 40,125 46.4,138 59.3,112 72.1,138 85,112 97.9,138 110.7,112 123.6,138 136.4,112 149.3,138 162.1,112 175,138 187.9,112 200.7,138 213.6,112 220,125 230,125" fill="none" stroke="#475569" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="160" y="68" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">k</tspan></text>
+<rect x="294.6" y="112.1" width="36.9" height="31.9" rx="6" fill="#fff" fill-opacity="0.92" stroke="#cbd5e1" stroke-width="1.2"/><text x="313" y="133" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">p</tspan><tspan font-size="14" dy="6">0</tspan><tspan dy="-6"> </tspan></text>
+<text x="500" y="133" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">p</tspan><tspan font-size="14" dy="6">0</tspan><tspan dy="-6"> </tspan></text>
+<text x="160" y="204" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">p</tspan><tspan font-size="14" dy="6">0</tspan><tspan dy="-6"> </tspan></text>
+<line x1="246" y1="200" x2="370" y2="200" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="380,200 370,195 370,205" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="380" y1="200" x2="256" y2="200" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="246,200 256,205 256,195" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="313" y="224" font-size="18" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">l</tspan></text>
+<text x="600" y="90" font-size="20" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">S</tspan></text>
+</svg>

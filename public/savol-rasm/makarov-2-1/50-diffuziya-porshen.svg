@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 360" width="440" height="360" font-family="Arial, Helvetica, sans-serif"><title>Vakuumli silindrda vodorod-geliy aralashmasi ustidagi porshen</title>
+<rect width="440" height="360" fill="#fff"/>
+<rect x="142" y="192" width="146" height="136" fill="#ecfccb"/><path d="M215 231h0M233 228h0M211 318h0M159 237h0M239 209h0M169 300h0M279 238h0M173 319h0M192 273h0M229 277h0M271 317h0M241 300h0M254 278h0M206 226h0M184 313h0M242 211h0M270 232h0M241 255h0M184 224h0M226 249h0M232 284h0M258 304h0M232 318h0M214 308h0M257 299h0M165 269h0M217 210h0M197 262h0M149 199h0M227 249h0M279 303h0M259 298h0M178 288h0M161 215h0M198 228h0M152 262h0M277 208h0M180 313h0M219 256h0M204 300h0M211 248h0M197 294h0M151 253h0M234 199h0M190 241h0M234 262h0M215 235h0M206 313h0M163 209h0M169 204h0M167 237h0M247 317h0M150 260h0M180 310h0M281 284h0" stroke="#65a30d" stroke-width="4.6" stroke-linecap="round"/>
+<line x1="140" y1="30" x2="140" y2="330" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<line x1="290" y1="30" x2="290" y2="330" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<line x1="138" y1="330" x2="292" y2="330" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<line x1="138" y1="30" x2="292" y2="30" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+<rect x="142" y="180" width="146" height="12" rx="2" fill="#64748b" stroke="#334155" stroke-width="3"/>
+<line x1="130" y1="210" x2="300" y2="210" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="7 6"/>
+<text x="215" y="100" font-size="16" fill="#64748b" text-anchor="middle">vakuum</text>
+<rect x="168" y="254.1" width="94.1" height="31.9" rx="6" fill="#fff" fill-opacity="0.92" stroke="#cbd5e1" stroke-width="1.2"/><text x="215" y="275" font-size="22" fill="#3f6212" text-anchor="middle" font-weight="bold"><tspan>H₂ + He</tspan></text>
+<line x1="315" y1="186" x2="315" y2="320" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="315,330 320,320 310,320" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="315" y1="330" x2="315" y2="196" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="315,186 310,196 320,196" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="350" y="240" font-size="18" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">H/2</tspan></text>
+<line x1="115" y1="210" x2="115" y2="320" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="115,330 120,320 110,320" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="115" y1="330" x2="115" y2="220" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="115,210 110,220 120,220" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="78" y="280" font-size="18" fill="#1e293b" text-anchor="middle"><tspan>2</tspan><tspan font-style="italic">H/5</tspan></text>
+<rect x="167.4" y="219.7" width="95.1" height="18.8" rx="6" fill="#fff" fill-opacity="0.92" stroke="#cbd5e1" stroke-width="1.2"/><text x="215" y="232" font-size="13" fill="#475569" text-anchor="middle"><tspan>oxirgi holat</tspan></text>
+</svg>
