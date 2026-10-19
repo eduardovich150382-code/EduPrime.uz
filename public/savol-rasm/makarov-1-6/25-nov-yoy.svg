@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 340" width="480" height="340" font-family="Arial, Helvetica, sans-serif"><title>Aylana yoyi shaklidagi silliq nov</title>
+<rect width="480" height="340" fill="#fff"/>
+<path d="M96.9,259 A270,270 0 0 0 383.1,259" stroke="#1e293b" stroke-width="5" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="240" y1="30" x2="240" y2="300" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
+<line x1="240" y1="30" x2="138.9" y2="280.3" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
+<path d="M240,100 A70,70 0 0 1 213.8,94.9" stroke="#1e293b" stroke-width="2.4" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="226" y="126" font-size="19" fill="#1e293b" text-anchor="end"><tspan font-style="italic">α</tspan><tspan font-size="0.72em" baseline-shift="sub">0</tspan></text>
+<circle cx="240" cy="30" r="4" fill="#1e293b" stroke="#1e293b" stroke-width="1"/>
+<text x="252" y="36" font-size="20" fill="#1e293b" text-anchor="start"><tspan font-style="italic">O</tspan></text>
+<rect x="127.9" y="258.3" width="22" height="16" rx="2" fill="#60a5fa" stroke="#1e3a8a" stroke-width="3"/>
+<text x="120.9" y="302.3" font-size="21" fill="#1e293b" text-anchor="end"><tspan font-style="italic">A</tspan></text>
+<text x="240" y="330" font-size="21" fill="#111827" text-anchor="middle"><tspan font-style="italic">B</tspan></text>
+<text x="380" y="120" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">α</tspan><tspan font-size="0.72em" baseline-shift="sub">0</tspan> ≪ 1</text>
+</svg>

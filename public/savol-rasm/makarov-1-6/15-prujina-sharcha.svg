@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 380" width="420" height="380" font-family="Arial, Helvetica, sans-serif"><title>Prujinaga osilgan brusokka pastdan uchib kelgan plastilin sharcha</title>
+<rect width="420" height="380" fill="#fff"/>
+<line x1="110" y1="30" x2="290" y2="30" stroke="#78350f" stroke-width="4.5" stroke-linecap="round"/>
+<line x1="114" y1="30" x2="126" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="128" y1="30" x2="140" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="142" y1="30" x2="154" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="156" y1="30" x2="168" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="170" y1="30" x2="182" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="184" y1="30" x2="196" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="198" y1="30" x2="210" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="212" y1="30" x2="224" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="226" y1="30" x2="238" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="240" y1="30" x2="252" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="254" y1="30" x2="266" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="268" y1="30" x2="280" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="282" y1="30" x2="294" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<polyline points="200,30 200,42 185,47.3 215,57.8 185,68.4 215,78.9 185,89.5 215,100 185,110.5 215,121.1 185,131.6 215,142.2 185,152.7 200,158 200,170" fill="none" stroke="#475569" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="160" y="170" width="80" height="56" rx="3" fill="#60a5fa" stroke="#1e3a8a" stroke-width="3.5"/>
+<text x="200" y="205" font-size="22" fill="#fff" text-anchor="middle" font-weight="bold"><tspan font-style="italic">M</tspan></text>
+<circle cx="200" cy="320" r="13" fill="#fbbf24" stroke="#92400e" stroke-width="3.5"/>
+<text x="225" y="326" font-size="20" fill="#1e293b" text-anchor="start"><tspan font-style="italic">m</tspan></text>
+<line x1="200" y1="300" x2="200" y2="259" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/>
+<polygon points="200,245 193,259 207,259" fill="#dc2626" stroke="#dc2626" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="215" y="275" font-size="21" fill="#dc2626" text-anchor="start"><tspan font-style="italic">v</tspan><tspan font-size="0.72em" baseline-shift="sub">0</tspan></text>
+<text x="330" y="70" font-size="19" fill="#111827" text-anchor="middle"><tspan font-style="italic">M</tspan> = 200 g</text>
+<text x="330" y="98" font-size="19" fill="#111827" text-anchor="middle"><tspan font-style="italic">k</tspan> = 2 N/m</text>
+<text x="330" y="126" font-size="19" fill="#111827" text-anchor="middle"><tspan font-style="italic">m</tspan> = 2 g</text>
+<text x="330" y="154" font-size="19" fill="#111827" text-anchor="middle"><tspan font-style="italic">v</tspan><tspan font-size="0.72em" baseline-shift="sub">0</tspan> = 3 m/s</text>
+<text x="330" y="182" font-size="19" fill="#111827" text-anchor="middle"><tspan font-style="italic">g</tspan> = 10 m/s²</text>
+<text x="172" y="105" font-size="22" fill="#111827" text-anchor="middle"><tspan font-style="italic">k</tspan></text>
+</svg>

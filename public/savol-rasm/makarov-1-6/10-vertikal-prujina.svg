@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 340" width="600" height="340" font-family="Arial, Helvetica, sans-serif"><title>Prujinaga osilgan vertikal tebranayotgan tosh</title>
+<rect width="600" height="340" fill="#fff"/>
+<line x1="200" y1="30" x2="400" y2="30" stroke="#78350f" stroke-width="4.5" stroke-linecap="round"/>
+<line x1="204" y1="30" x2="216" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="218" y1="30" x2="230" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="232" y1="30" x2="244" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="246" y1="30" x2="258" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="260" y1="30" x2="272" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="274" y1="30" x2="286" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="288" y1="30" x2="300" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="302" y1="30" x2="314" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="316" y1="30" x2="328" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="330" y1="30" x2="342" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="344" y1="30" x2="356" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="358" y1="30" x2="370" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="372" y1="30" x2="384" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="386" y1="30" x2="398" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<polyline points="300,30 300,42 284,47.2 316,57.8 284,68.2 316,78.8 284,89.2 316,99.8 284,110.2 316,120.8 284,131.2 316,141.8 284,152.2 316,162.8 300,168 300,180" fill="none" stroke="#475569" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="220" y1="150" x2="380" y2="150" stroke="#0ea5e9" stroke-width="2" stroke-linecap="round" stroke-dasharray="7 5"/>
+<line x1="220" y1="207" x2="380" y2="207" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-dasharray="7 5"/>
+<line x1="220" y1="264" x2="380" y2="264" stroke="#0ea5e9" stroke-width="2" stroke-linecap="round" stroke-dasharray="7 5"/>
+<rect x="268" y="180" width="64" height="54" rx="3" fill="#94a3b8" stroke="#1e293b" stroke-width="3.5"/>
+<text x="300" y="214" font-size="22" fill="#fff" text-anchor="middle" font-weight="bold"><tspan font-style="italic">m</tspan></text>
+<text x="210" y="155" font-size="16" fill="#0ea5e9" text-anchor="end">yuqori chekka</text>
+<text x="210" y="212" font-size="17" fill="#7c3aed" text-anchor="end">muvozanat</text>
+<text x="210" y="270" font-size="16" fill="#0ea5e9" text-anchor="end">pastki chekka</text>
+<line x1="395" y1="235.5" x2="395" y2="217" stroke="#0ea5e9" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="395,207 390,217 400,217" fill="#0ea5e9" stroke="#0ea5e9" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="395" y1="235.5" x2="395" y2="254" stroke="#0ea5e9" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="395,264 400,254 390,254" fill="#0ea5e9" stroke="#0ea5e9" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="395" y="227.5" font-size="19" fill="#0ea5e9" text-anchor="middle"></text>
+<text x="405" y="242" font-size="20" fill="#0ea5e9" text-anchor="start"><tspan font-style="italic">A</tspan></text>
+<text x="480" y="120" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">m</tspan> = 0,5 kg</text>
+<text x="480" y="150" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">A</tspan> = 0,1 m</text>
+<text x="480" y="180" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">T</tspan> = 1 s</text>
+<text x="480" y="210" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">g</tspan> = 9,8 m/s²</text>
+<text x="300" y="320" font-size="19" fill="#dc2626" text-anchor="middle">eng pastki nuqtada <tspan font-style="italic">F</tspan> — ?</text>
+</svg>

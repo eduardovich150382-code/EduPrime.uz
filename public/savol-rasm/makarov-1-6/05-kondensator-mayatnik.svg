@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 320" width="600" height="320" font-family="Arial, Helvetica, sans-serif"><title>Yassi kondensator maydonidagi matematik mayatnik</title>
+<rect width="600" height="320" fill="#fff"/>
+<rect x="130" y="40" width="340" height="14" rx="2" fill="#94a3b8" stroke="#1e293b" stroke-width="3"/>
+<rect x="130" y="266" width="340" height="14" rx="2" fill="#94a3b8" stroke="#1e293b" stroke-width="3"/>
+<line x1="300" y1="54" x2="300" y2="54" stroke="#1e293b" stroke-width="3.5" stroke-linecap="round"/>
+<line x1="300" y1="54" x2="300" y2="224" stroke="#1e293b" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="6 5"/>
+<line x1="300" y1="54" x2="346.4" y2="196.7" stroke="#1e293b" stroke-width="3" stroke-linecap="round"/>
+<circle cx="346.4" cy="196.7" r="16" fill="#fbbf24" stroke="#92400e" stroke-width="3.5"/>
+<text x="346.4" y="202.7" font-size="15" fill="#7c2d12" text-anchor="middle" font-weight="bold">+<tspan font-style="italic">q</tspan></text>
+<text x="326" y="126" font-size="22" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">l</tspan></text>
+<text x="374.4" y="204.7" font-size="21" fill="#1e293b" text-anchor="start"><tspan font-style="italic">m</tspan></text>
+<line x1="505" y1="160" x2="505" y2="64" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="505,54 500,64 510,64" fill="#1e293b" stroke="#1e293b" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="505" y1="160" x2="505" y2="256" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="505,266 510,256 500,256" fill="#1e293b" stroke="#1e293b" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="505" y="152" font-size="19" fill="#1e293b" text-anchor="middle"></text>
+<text x="515" y="166" font-size="22" fill="#1e293b" text-anchor="start"><tspan font-style="italic">d</tspan></text>
+<line x1="470" y1="47" x2="530" y2="47" stroke="#1e293b" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="470" y1="273" x2="530" y2="273" stroke="#1e293b" stroke-width="2.5" stroke-linecap="round"/>
+<text x="80" y="166" font-size="24" fill="#7c3aed" text-anchor="middle"><tspan font-style="italic">U</tspan></text>
+<line x1="100" y1="47" x2="130" y2="47" stroke="#7c3aed" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="100" y1="273" x2="130" y2="273" stroke="#7c3aed" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="100" y1="47" x2="100" y2="140" stroke="#7c3aed" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="100" y1="192" x2="100" y2="273" stroke="#7c3aed" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="84" y1="140" x2="116" y2="140" stroke="#7c3aed" stroke-width="3.5" stroke-linecap="round"/>
+<line x1="92" y1="192" x2="108" y2="192" stroke="#7c3aed" stroke-width="3.5" stroke-linecap="round"/>
+<line x1="560" y1="120" x2="560" y2="186" stroke="#16a34a" stroke-width="4" stroke-linecap="round"/>
+<polygon points="560,200 567,186 553,186" fill="#16a34a" stroke="#16a34a" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="575" y="170" font-size="22" fill="#16a34a" text-anchor="start"><tspan font-style="italic">g</tspan></text>
+</svg>

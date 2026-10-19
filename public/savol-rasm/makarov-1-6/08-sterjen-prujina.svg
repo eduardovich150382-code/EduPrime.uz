@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 220" width="600" height="220" font-family="Arial, Helvetica, sans-serif"><title>Gorizontal sterjenda prujina ta'sirida tebranayotgan jism</title>
+<rect width="600" height="220" fill="#fff"/>
+<line x1="50" y1="50" x2="50" y2="180" stroke="#78350f" stroke-width="4.5" stroke-linecap="round"/>
+<line x1="50" y1="54" x2="38" y2="66" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="50" y1="68" x2="38" y2="80" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="50" y1="82" x2="38" y2="94" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="50" y1="96" x2="38" y2="108" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="50" y1="110" x2="38" y2="122" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="50" y1="124" x2="38" y2="136" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="50" y1="138" x2="38" y2="150" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="50" y1="152" x2="38" y2="164" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="50" y1="166" x2="38" y2="178" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="50" y1="130" x2="570" y2="130" stroke="#475569" stroke-width="2.5" stroke-linecap="round"/>
+<polyline points="50,130 62,130 71.4,142 90.2,118 109.1,142 127.9,118 146.8,142 165.6,118 184.4,142 203.2,118 222.1,142 240.9,118 259.8,142 278.6,118 288,130 300,130" fill="none" stroke="#475569" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="300" y="100" width="80" height="60" rx="3" fill="#60a5fa" stroke="#1e3a8a" stroke-width="3.5"/>
+<text x="340" y="138" font-size="22" fill="#fff" text-anchor="middle" font-weight="bold"><tspan font-style="italic">m</tspan></text>
+<line x1="340" y1="165" x2="340" y2="196" stroke="#1e293b" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="4 4"/>
+<line x1="395" y1="190" x2="350" y2="190" stroke="#0ea5e9" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="340,190 350,195 350,185" fill="#0ea5e9" stroke="#0ea5e9" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="395" y1="190" x2="440" y2="190" stroke="#0ea5e9" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="450,190 440,185 440,195" fill="#0ea5e9" stroke="#0ea5e9" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="395" y="182" font-size="19" fill="#0ea5e9" text-anchor="middle"></text>
+<line x1="285" y1="190" x2="330" y2="190" stroke="#0ea5e9" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="340,190 330,185 330,195" fill="#0ea5e9" stroke="#0ea5e9" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="285" y1="190" x2="240" y2="190" stroke="#0ea5e9" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="230,190 240,195 240,185" fill="#0ea5e9" stroke="#0ea5e9" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="285" y="182" font-size="19" fill="#0ea5e9" text-anchor="middle"></text>
+<text x="395" y="182" font-size="20" fill="#0ea5e9" text-anchor="middle"><tspan font-style="italic">A</tspan></text>
+<text x="285" y="182" font-size="20" fill="#0ea5e9" text-anchor="middle"><tspan font-style="italic">A</tspan></text>
+<text x="470" y="50" font-size="20" fill="#1e293b" text-anchor="start"><tspan font-style="italic">m</tspan> = 2 kg</text>
+<text x="470" y="78" font-size="20" fill="#1e293b" text-anchor="start"><tspan font-style="italic">A</tspan> = 0,15 m</text>
+<text x="470" y="106" font-size="20" fill="#1e293b" text-anchor="start"><tspan font-style="italic">a</tspan><tspan font-size="0.72em" baseline-shift="sub">max</tspan> = 4 m/s²</text>
+</svg>

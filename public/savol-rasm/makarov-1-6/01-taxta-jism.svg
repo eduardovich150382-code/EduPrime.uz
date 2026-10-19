@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300" width="600" height="300" font-family="Arial, Helvetica, sans-serif"><title>Gorizontal tebranayotgan taxta ustidagi jism</title>
+<rect width="600" height="300" fill="#fff"/>
+<rect x="20" y="238" width="560" height="14" rx="0" fill="#e7d3a8" stroke="#78350f" stroke-width="3"/>
+<circle cx="150" cy="226" r="11" fill="#cbd5e1" stroke="#475569" stroke-width="3"/>
+<circle cx="450" cy="226" r="11" fill="#cbd5e1" stroke="#475569" stroke-width="3"/>
+<rect x="90" y="196" width="420" height="20" rx="3" fill="#fde68a" stroke="#a16207" stroke-width="3.5"/>
+<rect x="255" y="140" width="90" height="56" rx="3" fill="#60a5fa" stroke="#1e3a8a" stroke-width="3.5"/>
+<text x="300" y="176" font-size="22" fill="#fff" text-anchor="middle" font-weight="bold"><tspan font-style="italic">m</tspan></text>
+<line x1="300" y1="110" x2="234" y2="110" stroke="#0ea5e9" stroke-width="4" stroke-linecap="round"/>
+<polygon points="220,110 234,117 234,103" fill="#0ea5e9" stroke="#0ea5e9" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="300" y1="110" x2="366" y2="110" stroke="#0ea5e9" stroke-width="4" stroke-linecap="round"/>
+<polygon points="380,110 366,103 366,117" fill="#0ea5e9" stroke="#0ea5e9" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="300" y="98" font-size="20" fill="#0ea5e9" text-anchor="middle"><tspan font-style="italic">A</tspan> — ?</text>
+<text x="470" y="60" font-size="21" fill="#111827" text-anchor="middle"><tspan font-style="italic">T</tspan> = 1,5 s</text>
+<text x="470" y="88" font-size="21" fill="#111827" text-anchor="middle"><tspan font-style="italic">μ</tspan> = 0,3</text>
+<text x="150" y="60" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">g</tspan> = 10 m/s²</text>
+</svg>

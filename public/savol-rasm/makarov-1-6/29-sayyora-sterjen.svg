@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 340" width="480" height="340" font-family="Arial, Helvetica, sans-serif"><title>Sayyora sirti ustidagi ikki yukli sterjen</title>
+<rect width="480" height="340" fill="#fff"/>
+<path d="M20,300 Q240,250 460,300 L460,340 L20,340 Z" stroke="#166534" stroke-width="3.5" fill="#86efac" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="380" y="326" font-size="18" fill="#14532d" text-anchor="middle">sayyora</text>
+<line x1="240" y1="30" x2="240" y2="230" stroke="#1e293b" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="6 5"/>
+<line x1="257.7" y1="46.9" x2="222.3" y2="213.1" stroke="#475569" stroke-width="5" stroke-linecap="round"/>
+<circle cx="257.7" cy="46.9" r="14" fill="#fbbf24" stroke="#92400e" stroke-width="3.5"/>
+<circle cx="222.3" cy="213.1" r="14" fill="#fbbf24" stroke="#92400e" stroke-width="3.5"/>
+<circle cx="240" cy="130" r="7" fill="#fff" stroke="#1e293b" stroke-width="3"/>
+<text x="279.7" y="52.9" font-size="19" fill="#1e293b" text-anchor="start">1</text>
+<text x="200.3" y="219.1" font-size="19" fill="#1e293b" text-anchor="end">2</text>
+<text x="256" y="136" font-size="17" fill="#1e293b" text-anchor="start">o'q</text>
+<text x="235.7" y="52.9" font-size="20" fill="#1e293b" text-anchor="end"><tspan font-style="italic">m</tspan></text>
+<text x="182.3" y="219.1" font-size="20" fill="#1e293b" text-anchor="end"><tspan font-style="italic">m</tspan></text>
+</svg>

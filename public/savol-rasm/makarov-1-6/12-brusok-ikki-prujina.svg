@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 250" width="600" height="250" font-family="Arial, Helvetica, sans-serif"><title>Ikki prujina orasida harakatlanadigan brusok</title>
+<rect width="600" height="250" fill="#fff"/>
+<line x1="30" y1="170" x2="570" y2="170" stroke="#78350f" stroke-width="4.5" stroke-linecap="round"/>
+<line x1="40" y1="60" x2="40" y2="170" stroke="#78350f" stroke-width="4.5" stroke-linecap="round"/>
+<line x1="40" y1="64" x2="28" y2="76" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="40" y1="78" x2="28" y2="90" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="40" y1="92" x2="28" y2="104" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="40" y1="106" x2="28" y2="118" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="40" y1="120" x2="28" y2="132" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="40" y1="134" x2="28" y2="146" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="40" y1="148" x2="28" y2="160" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="40" y1="162" x2="28" y2="174" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="560" y1="60" x2="560" y2="170" stroke="#78350f" stroke-width="4.5" stroke-linecap="round"/>
+<line x1="560" y1="64" x2="572" y2="76" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="560" y1="78" x2="572" y2="90" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="560" y1="92" x2="572" y2="104" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="560" y1="106" x2="572" y2="118" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="560" y1="120" x2="572" y2="132" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="560" y1="134" x2="572" y2="146" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="560" y1="148" x2="572" y2="160" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="560" y1="162" x2="572" y2="174" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<polyline points="40,135 52,135 57.9,147 69.7,123 81.4,147 93.2,123 105,147 116.8,123 128.6,147 140.3,123 152.1,147 158,135 170,135" fill="none" stroke="#1e3a8a" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="190" y1="95" x2="190" y2="168" stroke="#1e3a8a" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="4 4"/>
+<rect x="170" y="112" width="50" height="46" rx="3" fill="#fbbf24" stroke="#92400e" stroke-width="3.5"/>
+<text x="195" y="142" font-size="20" fill="#7c2d12" text-anchor="middle" font-weight="bold"><tspan font-style="italic">m</tspan></text>
+<polyline points="410,135 422,135 429,147 443,123 457,147 471,123 485,147 499,123 513,147 527,123 541,147 548,135 560,135" fill="none" stroke="#16a34a" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="410" y1="95" x2="410" y2="168" stroke="#16a34a" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="4 4"/>
+<text x="100" y="105" font-size="22" fill="#1e3a8a" text-anchor="middle"><tspan font-style="italic">k</tspan><tspan font-size="0.72em" baseline-shift="sub">1</tspan></text>
+<text x="485" y="105" font-size="22" fill="#16a34a" text-anchor="middle"><tspan font-style="italic">k</tspan><tspan font-size="0.72em" baseline-shift="sub">2</tspan></text>
+<line x1="300" y1="80" x2="200" y2="80" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="190,80 200,85 200,75" fill="#1e293b" stroke="#1e293b" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="300" y1="80" x2="400" y2="80" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="410,80 400,75 400,85" fill="#1e293b" stroke="#1e293b" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="300" y="70" font-size="19" fill="#1e293b" text-anchor="middle"><tspan font-style="italic">L</tspan> = 30 sm</text>
+<line x1="180" y1="195" x2="180" y2="195" stroke="#dc2626" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="170,195 180,200 180,190" fill="#dc2626" stroke="#dc2626" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="180" y1="195" x2="180" y2="195" stroke="#dc2626" stroke-width="2.2" stroke-linecap="round"/>
+<polygon points="190,195 180,190 180,200" fill="#dc2626" stroke="#dc2626" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="180" y="187" font-size="19" fill="#dc2626" text-anchor="middle"></text>
+<text x="180" y="225" font-size="19" fill="#dc2626" text-anchor="middle">Δ<tspan font-style="italic">l</tspan></text>
+<text x="300" y="30" font-size="17" fill="#111827" text-anchor="middle"><tspan font-style="italic">m</tspan> = 16 g,  <tspan font-style="italic">k</tspan><tspan font-size="0.72em" baseline-shift="sub">1</tspan> = 0,64 N/m,  <tspan font-style="italic">k</tspan><tspan font-size="0.72em" baseline-shift="sub">2</tspan> = 0,25 N/m,  Δ<tspan font-style="italic">l</tspan> = 2 sm</text>
+</svg>

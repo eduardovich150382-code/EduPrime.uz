@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 340" width="420" height="340" font-family="Arial, Helvetica, sans-serif"><title>Og'dirilgan mayatnik sharchasiga ta'sir etuvchi kuchlar</title>
+<rect width="420" height="340" fill="#fff"/>
+<line x1="120" y1="30" x2="260" y2="30" stroke="#78350f" stroke-width="4.5" stroke-linecap="round"/>
+<line x1="124" y1="30" x2="136" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="138" y1="30" x2="150" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="152" y1="30" x2="164" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="166" y1="30" x2="178" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="180" y1="30" x2="192" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="194" y1="30" x2="206" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="208" y1="30" x2="220" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="222" y1="30" x2="234" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="236" y1="30" x2="248" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="250" y1="30" x2="262" y2="18" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="190" y1="30" x2="190" y2="280" stroke="#1e293b" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="6 5"/>
+<line x1="190" y1="30" x2="293.3" y2="224.2" stroke="#1e293b" stroke-width="3" stroke-linecap="round"/>
+<path d="M190,90 A60,60 0 0 0 218.2,83" stroke="#1e293b" stroke-width="2.5" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="204" y="112" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">α</tspan></text>
+<line x1="293.3" y1="224.2" x2="267" y2="174.8" stroke="#1e3a8a" stroke-width="4" stroke-linecap="round"/>
+<polygon points="260.4,162.4 260.8,178.1 273.2,171.5" fill="#1e3a8a" stroke="#1e3a8a" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="242.4" y="166.4" font-size="21" fill="#1e3a8a" text-anchor="end"><tspan font-style="italic">T</tspan></text>
+<line x1="293.3" y1="224.2" x2="293.3" y2="300.2" stroke="#16a34a" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="293.3,314.2 300.3,300.2 286.3,300.2" fill="#16a34a" stroke="#16a34a" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="307.3" y="314.2" font-size="21" fill="#16a34a" text-anchor="start"><tspan font-style="italic">m</tspan><tspan font-style="italic">g</tspan></text>
+<line x1="293.3" y1="224.2" x2="239.4" y2="252.9" stroke="#dc2626" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="227.1,259.5 242.7,259.1 236.1,246.7" fill="#dc2626" stroke="#dc2626" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="219.1" y="285.5" font-size="21" fill="#dc2626" text-anchor="middle"><tspan font-style="italic">a</tspan><tspan font-size="0.72em" baseline-shift="sub">1</tspan></text>
+<circle cx="293.3" cy="224.2" r="13" fill="#fbbf24" stroke="#92400e" stroke-width="3.5"/>
+<path d="M293.3,258.2 A34,34 0 0 1 277.3,254.3" stroke="#1e293b" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="271.3" y="278.2" font-size="18" fill="#111827" text-anchor="middle"><tspan font-style="italic">α</tspan></text>
+</svg>
