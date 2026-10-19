@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 400" width="420" height="400" font-family="Arial, Helvetica, sans-serif"><title>Tubida teshigi bor suvli bak; tushayotgan oqim torayadi</title>
+<rect width="420" height="400" fill="#fff"/>
+<rect x="90" y="32" width="240" height="178" fill="#bfdbfe" stroke="none" stroke-width="0"/>
+<line x1="92" y1="32" x2="328" y2="32" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round"/>
+<polyline points="90,30 90,210 330,210 330,30" fill="none" stroke="#1f2937" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M200,210 L200,214 C202,260 204,300 205,370 L215,370 C216,300 218,260 220,214 L220,210 Z" fill="#bfdbfe" stroke="#2563eb" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="60" y1="32" x2="60" y2="210" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<polygon points="60,32 55,40 65,40" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="60,210 55,202 65,202" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="44" y="128" font-size="20" fill="#111827" text-anchor="end"><tspan font-style="italic">H</tspan></text>
+<line x1="200" y1="210" x2="360" y2="210" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="5 5"/>
+<line x1="205" y1="330" x2="360" y2="330" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="5 5"/>
+<line x1="350" y1="210" x2="350" y2="330" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<polygon points="350,210 345,218 355,218" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="350,330 345,322 355,322" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="366" y="277" font-size="20" fill="#111827" text-anchor="start"><tspan font-style="italic">h</tspan></text>
+<text x="240" y="236" font-size="20" fill="#111827" text-anchor="start"><tspan font-style="italic">s</tspan><tspan font-size="70%" dy="6">1</tspan><tspan dy="-6">​</tspan></text>
+<text x="228" y="355" font-size="20" fill="#111827" text-anchor="start"><tspan font-style="italic">s</tspan><tspan font-size="70%" dy="6">2</tspan><tspan dy="-6">​</tspan></text>
+</svg>

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 360" width="460" height="360" font-family="Arial, Helvetica, sans-serif"><title>U-simon trubkada suv, chap tirsakda yog'och bo'lagi suzmoqda</title>
+<rect width="460" height="360" fill="#fff"/>
+<path d="M120,120 L120,230 A110.0,110.0 0 0 0 340,230 L340,120 L280,120 L280,230 A50.0,50.0 0 0 1 180,230 L180,120 Z" fill="#bfdbfe" stroke="none"/>
+<line x1="122" y1="120" x2="178" y2="120" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="282" y1="120" x2="338" y2="120" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round"/>
+<path d="M120,40 L120,230 A110.0,110.0 0 0 0 340,230 L340,40" fill="none" stroke="#1f2937" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M180,40 L180,230 A50.0,50.0 0 0 0 280,230 L280,40" fill="none" stroke="#1f2937" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="90" y1="150" x2="370" y2="150" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="7 6"/>
+<rect x="132" y="104" width="36" height="26" rx="3" fill="#d6a467" stroke="#7c4a1e" stroke-width="3"/>
+<text x="150" y="92" font-size="22" fill="#111827" text-anchor="middle"><tspan font-style="italic">m</tspan></text>
+<line x1="370" y1="120" x2="370" y2="150" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<polygon points="370,120 365,128 375,128" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="370,150 365,142 375,142" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="386" y="142" font-size="20" fill="#111827" text-anchor="start">Δ<tspan font-style="italic">h</tspan></text>
+<text x="80" y="156" font-size="16" fill="#475569" text-anchor="end">dastlabki</text>
+<text x="80" y="174" font-size="16" fill="#475569" text-anchor="end">sath</text>
+<text x="310" y="200" font-size="22" fill="#111827" text-anchor="middle"><tspan font-style="italic">S</tspan></text>
+</svg>

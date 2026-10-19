@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 360" width="500" height="360" font-family="Arial, Helvetica, sans-serif"><title>Bo'shliqli sharga suyuqlikda ta'sir qiluvchi kuchlar</title>
+<rect width="500" height="360" fill="#fff"/>
+<circle cx="250" cy="200" r="110" fill="#93c5fd" stroke="#1e3a8a" stroke-width="4"/>
+<circle cx="305" cy="200" r="55" fill="#fff" stroke="#1e3a8a" stroke-width="3"/>
+<line x1="140" y1="200" x2="360" y2="200" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
+<circle cx="250" cy="200" r="4.5" fill="#111827" stroke="#111827" stroke-width="1"/>
+<circle cx="305" cy="200" r="4" fill="#111827" stroke="#111827" stroke-width="1"/>
+<line x1="140" y1="200" x2="140" y2="112" stroke="#7c3aed" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="140,100 147,113.2 133,113.2" fill="#7c3aed" stroke="#7c3aed" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="112" y="110" font-size="22" fill="#7c3aed" text-anchor="middle"><tspan font-style="italic">T</tspan>′<tspan font-size="70%" dy="6">1</tspan><tspan dy="-6">​</tspan></text>
+<line x1="99" y1="91.3" x2="113" y2="91.3" stroke="#7c3aed" stroke-width="1.8" stroke-linecap="round"/>
+<polygon points="115,91.3 110,87.8 110,94.8" fill="#7c3aed" stroke="#7c3aed" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="360" y1="200" x2="360" y2="112" stroke="#7c3aed" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="360,100 367,113.2 353,113.2" fill="#7c3aed" stroke="#7c3aed" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="390" y="110" font-size="22" fill="#7c3aed" text-anchor="middle"><tspan font-style="italic">T</tspan>′<tspan font-size="70%" dy="6">2</tspan><tspan dy="-6">​</tspan></text>
+<line x1="377" y1="91.3" x2="391" y2="91.3" stroke="#7c3aed" stroke-width="1.8" stroke-linecap="round"/>
+<polygon points="393,91.3 388,87.8 388,94.8" fill="#7c3aed" stroke="#7c3aed" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="242" y1="200" x2="242" y2="127" stroke="#1d4ed8" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="242,115 249,128.2 235,128.2" fill="#1d4ed8" stroke="#1d4ed8" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="214" y="129" font-size="22" fill="#1d4ed8" text-anchor="middle"><tspan font-style="italic">F</tspan><tspan font-size="70%" dy="6">A</tspan><tspan dy="-6">​</tspan></text>
+<line x1="202" y1="110.3" x2="216" y2="110.3" stroke="#1d4ed8" stroke-width="1.8" stroke-linecap="round"/>
+<polygon points="218,110.3 213,106.8 213,113.8" fill="#1d4ed8" stroke="#1d4ed8" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="250" y1="200" x2="250" y2="323" stroke="#dc2626" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="250,335 243,321.8 257,321.8" fill="#dc2626" stroke="#dc2626" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="284" y="331" font-size="22" fill="#dc2626" text-anchor="middle"><tspan font-style="italic">Mg</tspan></text>
+<line x1="277" y1="312.3" x2="291" y2="312.3" stroke="#dc2626" stroke-width="1.8" stroke-linecap="round"/>
+<polygon points="293,312.3 288,308.8 288,315.8" fill="#dc2626" stroke="#dc2626" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="305" y1="200" x2="305" y2="157" stroke="#16a34a" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="305,145 312,158.2 298,158.2" fill="#16a34a" stroke="#16a34a" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="281" y="149" font-size="22" fill="#16a34a" text-anchor="middle"><tspan font-style="italic">mg</tspan></text>
+<line x1="274" y1="130.3" x2="288" y2="130.3" stroke="#16a34a" stroke-width="1.8" stroke-linecap="round"/>
+<polygon points="290,130.3 285,126.8 285,133.8" fill="#16a34a" stroke="#16a34a" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="236" y="224" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">O</tspan></text>
+</svg>

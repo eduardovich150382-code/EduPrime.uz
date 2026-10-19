@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 340" width="480" height="340" font-family="Arial, Helvetica, sans-serif"><title>Yon devorlarga ta'sir qiluvchi bosim kuchlari va ularning tashkil etuvchilari</title>
+<rect width="480" height="340" fill="#fff"/>
+<polygon points="80,300 400,300 307.6,140 172.4,140" fill="#bfdbfe" stroke="none" stroke-width="0" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="172.4" y1="140" x2="307.6" y2="140" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round"/>
+<polygon points="80,300 240,23 400,300" fill="none" stroke="#1f2937" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="120.4" y1="230" x2="359.6" y2="230" stroke="#475569" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="5 4"/>
+<line x1="120.4" y1="230" x2="61.5" y2="196" stroke="#dc2626" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="51.2,190 66.1,190.5 59.1,202.7" fill="#dc2626" stroke="#dc2626" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="25.2" y="186" font-size="20" fill="#dc2626" text-anchor="middle">Δ<tspan font-style="italic">F</tspan><tspan font-size="70%" dy="6">1</tspan><tspan dy="-6">​</tspan></text>
+<line x1="359.6" y1="230" x2="418.5" y2="196" stroke="#dc2626" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="428.8,190 420.9,202.7 413.9,190.5" fill="#dc2626" stroke="#dc2626" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="458.8" y="186" font-size="20" fill="#dc2626" text-anchor="middle">Δ<tspan font-style="italic">F</tspan><tspan font-size="70%" dy="6">2</tspan><tspan dy="-6">​</tspan></text>
+<line x1="120.4" y1="230" x2="120.4" y2="202" stroke="#1d4ed8" stroke-width="3.5" stroke-linecap="round"/>
+<polygon points="120.4,190 127.5,203.2 113.4,203.2" fill="#1d4ed8" stroke="#1d4ed8" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="156.4" y="198" font-size="18" fill="#1d4ed8" text-anchor="middle">Δ<tspan font-style="italic">F</tspan><tspan font-size="70%" dy="6">1y</tspan><tspan dy="-6">​</tspan></text>
+<line x1="359.6" y1="230" x2="359.6" y2="202" stroke="#1d4ed8" stroke-width="3.5" stroke-linecap="round"/>
+<polygon points="359.6,190 366.6,203.2 352.5,203.2" fill="#1d4ed8" stroke="#1d4ed8" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="321.6" y="198" font-size="18" fill="#1d4ed8" text-anchor="middle">Δ<tspan font-style="italic">F</tspan><tspan font-size="70%" dy="6">2y</tspan><tspan dy="-6">​</tspan></text>
+<line x1="240" y1="140" x2="240" y2="230" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<polygon points="240,140 235,148 245,148" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="240,230 235,222 245,222" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="256" y="192" font-size="20" fill="#111827" text-anchor="start"><tspan font-style="italic">y</tspan></text>
+<path d="M375,256.7 A50,50 0 0 0 350,300" fill="none" stroke="#1e293b" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="338" y="286" font-size="18" fill="#111827" text-anchor="middle">60°</text>
+</svg>

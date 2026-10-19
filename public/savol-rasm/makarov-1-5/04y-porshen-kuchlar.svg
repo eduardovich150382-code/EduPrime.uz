@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 380" width="560" height="380" font-family="Arial, Helvetica, sans-serif"><title>Porshenlarga ta'sir qiluvchi kuchlar</title>
+<rect width="560" height="380" fill="#fff"/>
+<polygon points="152,112 368,112 368,195 303,195 303,285 217,285 217,195 152,195" fill="#bfdbfe" stroke="none" stroke-width="0" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="150,60 150,195 215,195 215,335" fill="none" stroke="#1f2937" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="370,60 370,195 305,195 305,335" fill="none" stroke="#1f2937" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="152" y="98" width="216" height="14" fill="#f59e0b" stroke="#92400e" stroke-width="3"/>
+<rect x="217" y="285" width="86" height="14" fill="#f59e0b" stroke="#92400e" stroke-width="3"/>
+<line x1="260" y1="112" x2="260" y2="285" stroke="#111827" stroke-width="3" stroke-linecap="round" stroke-dasharray="9 6"/>
+<line x1="190" y1="30" x2="190" y2="83" stroke="#dc2626" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="190,95 183,81.8 197,81.8" fill="#dc2626" stroke="#dc2626" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="142" y="45" font-size="19" fill="#dc2626" text-anchor="middle"><tspan font-style="italic">p</tspan><tspan font-size="70%" dy="6">0</tspan><tspan dy="-6">​</tspan><tspan font-style="italic">S</tspan><tspan font-size="70%" dy="6">1</tspan><tspan dy="-6">​</tspan></text>
+<line x1="250" y1="112" x2="250" y2="148" stroke="#7c3aed" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="250,160 243,146.8 257,146.8" fill="#7c3aed" stroke="#7c3aed" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="234" y="164" font-size="20" fill="#7c3aed" text-anchor="middle"><tspan font-style="italic">T</tspan></text>
+<line x1="330" y1="185" x2="330" y2="128" stroke="#1d4ed8" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="330,116 337,129.2 323,129.2" fill="#1d4ed8" stroke="#1d4ed8" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="330" y="211" font-size="19" fill="#1d4ed8" text-anchor="middle"><tspan font-style="italic">pS</tspan><tspan font-size="70%" dy="6">1</tspan><tspan dy="-6">​</tspan></text>
+<line x1="285" y1="230" x2="285" y2="270" stroke="#dc2626" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="285,282 278,268.8 292,268.8" fill="#dc2626" stroke="#dc2626" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="395" y="246" font-size="19" fill="#dc2626" text-anchor="middle">(<tspan font-style="italic">p</tspan>+<tspan font-style="italic">ρgl</tspan>)<tspan font-style="italic">S</tspan><tspan font-size="70%" dy="6">2</tspan><tspan dy="-6">​</tspan></text>
+<line x1="262" y1="352" x2="262" y2="314" stroke="#1d4ed8" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="262,302 269,315.2 255,315.2" fill="#1d4ed8" stroke="#1d4ed8" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="214" y="342" font-size="19" fill="#1d4ed8" text-anchor="middle"><tspan font-style="italic">p</tspan><tspan font-size="70%" dy="6">0</tspan><tspan dy="-6">​</tspan><tspan font-style="italic">S</tspan><tspan font-size="70%" dy="6">2</tspan><tspan dy="-6">​</tspan></text>
+<line x1="240" y1="285" x2="240" y2="252" stroke="#7c3aed" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="240,240 247,253.2 233,253.2" fill="#7c3aed" stroke="#7c3aed" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="224" y="250" font-size="20" fill="#7c3aed" text-anchor="middle"><tspan font-style="italic">T</tspan></text>
+</svg>

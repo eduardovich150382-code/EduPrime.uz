@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 530 240" width="530" height="240" font-family="Arial, Helvetica, sans-serif"><title>Gorizontal truba: keng qismida v1, p1; tor qismida v2, p2</title>
+<rect width="530" height="240" fill="#fff"/>
+<polygon points="30,50 210,50 290,88 500,88 500,152 290,152 210,190 30,190" fill="#bfdbfe" stroke="none" stroke-width="0" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="30,50 210,50 290,88 500,88" fill="none" stroke="#1f2937" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="500,152 290,152 210,190 30,190" fill="none" stroke="#1f2937" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="60" y1="120" x2="138" y2="120" stroke="#ea580c" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="150,120 136.8,127 136.8,113" fill="#ea580c" stroke="#ea580c" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="105" y="106" font-size="22" fill="#ea580c" text-anchor="middle"><tspan font-style="italic">v</tspan><tspan font-size="70%" dy="6">1</tspan><tspan dy="-6">​</tspan></text>
+<line x1="330" y1="120" x2="448" y2="120" stroke="#ea580c" stroke-width="4.5" stroke-linecap="round"/>
+<polygon points="460,120 446.8,127 446.8,113" fill="#ea580c" stroke="#ea580c" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="400" y="108" font-size="22" fill="#ea580c" text-anchor="middle"><tspan font-style="italic">v</tspan><tspan font-size="70%" dy="6">2</tspan><tspan dy="-6">​</tspan></text>
+<text x="110" y="168" font-size="24" fill="#111827" text-anchor="middle"><tspan font-style="italic">p</tspan><tspan font-size="70%" dy="6">1</tspan><tspan dy="-6">​</tspan></text>
+<text x="400" y="147" font-size="22" fill="#111827" text-anchor="middle"><tspan font-style="italic">p</tspan><tspan font-size="70%" dy="6">2</tspan><tspan dy="-6">​</tspan></text>
+</svg>

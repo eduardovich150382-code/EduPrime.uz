@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 330" width="440" height="330" font-family="Arial, Helvetica, sans-serif"><title>Ag'darilgan bochka suvda suzib turibdi</title>
+<rect width="440" height="330" fill="#fff"/>
+<rect x="20" y="110" width="400" height="200" fill="#bfdbfe" stroke="none" stroke-width="0"/>
+<line x1="20" y1="110" x2="420" y2="110" stroke="#2563eb" stroke-width="3" stroke-linecap="round"/>
+<rect x="140" y="40" width="160" height="160" fill="#fef3c7" stroke="none" stroke-width="0"/>
+<rect x="140" y="200" width="160" height="50" fill="#bfdbfe" stroke="none" stroke-width="0"/>
+<line x1="142" y1="200" x2="298" y2="200" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round"/>
+<path d="M140,250 L140,40 L300,40 L300,250" fill="none" stroke="#1f2937" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="137" y1="40" x2="303" y2="40" stroke="#334155" stroke-width="7" stroke-linecap="round"/>
+<line x1="330" y1="40" x2="330" y2="250" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<polygon points="330,40 325,48 335,48" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="330,250 325,242 335,242" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="346" y="152" font-size="20" fill="#111827" text-anchor="start"><tspan font-style="italic">H</tspan></text>
+<line x1="110" y1="110" x2="110" y2="250" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<polygon points="110,110 105,118 115,118" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="110,250 105,242 115,242" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="94" y="187" font-size="20" fill="#111827" text-anchor="end"><tspan font-style="italic">d</tspan></text>
+<text x="220" y="120" font-size="16" fill="#92400e" text-anchor="middle">havo</text>
+</svg>

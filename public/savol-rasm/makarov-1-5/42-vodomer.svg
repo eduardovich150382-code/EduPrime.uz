@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 530 300" width="530" height="300" font-family="Arial, Helvetica, sans-serif"><title>Vodomer: keng va tor qismlarga vertikal naychalar o'rnatilgan gorizontal truba</title>
+<rect width="530" height="300" fill="#fff"/>
+<polygon points="30,165 210,165 290,192 500,192 500,248 290,248 210,275 30,275" fill="#bfdbfe" stroke="none" stroke-width="0" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="30,165 210,165 290,192 500,192" fill="none" stroke="#1f2937" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="500,248 290,248 210,275 30,275" fill="none" stroke="#1f2937" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="111" y="60" width="18" height="107" fill="#bfdbfe" stroke="none" stroke-width="0"/>
+<line x1="109" y1="30" x2="109" y2="165" stroke="#1f2937" stroke-width="4" stroke-linecap="round"/>
+<line x1="131" y1="30" x2="131" y2="165" stroke="#1f2937" stroke-width="4" stroke-linecap="round"/>
+<line x1="111" y1="60" x2="129" y2="60" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round"/>
+<rect x="381" y="120" width="18" height="74" fill="#bfdbfe" stroke="none" stroke-width="0"/>
+<line x1="379" y1="30" x2="379" y2="192" stroke="#1f2937" stroke-width="4" stroke-linecap="round"/>
+<line x1="401" y1="30" x2="401" y2="192" stroke="#1f2937" stroke-width="4" stroke-linecap="round"/>
+<line x1="381" y1="120" x2="399" y2="120" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="131" y1="60" x2="460" y2="60" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="5 5"/>
+<line x1="450" y1="60" x2="450" y2="120" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<polygon points="450,60 445,68 455,68" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="450,120 445,112 455,112" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="466" y="97" font-size="20" fill="#111827" text-anchor="start">Δ<tspan font-style="italic">h</tspan></text>
+<text x="70" y="210" font-size="22" fill="#111827" text-anchor="middle"><tspan font-style="italic">S</tspan><tspan font-size="70%" dy="6">1</tspan><tspan dy="-6">​</tspan></text>
+<text x="470" y="228" font-size="22" fill="#111827" text-anchor="middle"><tspan font-style="italic">S</tspan><tspan font-size="70%" dy="6">2</tspan><tspan dy="-6">​</tspan></text>
+<line x1="40" y1="260" x2="88" y2="260" stroke="#ea580c" stroke-width="3.5" stroke-linecap="round"/>
+<polygon points="100,260 86.8,267 86.8,253" fill="#ea580c" stroke="#ea580c" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+</svg>

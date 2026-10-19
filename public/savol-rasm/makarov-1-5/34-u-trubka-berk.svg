@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 380" width="440" height="380" font-family="Arial, Helvetica, sans-serif"><title>U-trubkaning o'ng tirsagi berk; chap tirsakda brusok suzmoqda</title>
+<rect width="440" height="380" fill="#fff"/>
+<path d="M120,150 L120,270 A100.0,100.0 0 0 0 320,270 L320,160 L260,160 L260,270 A40.0,40.0 0 0 1 180,270 L180,150 Z" fill="#bfdbfe" stroke="none"/>
+<line x1="122" y1="150" x2="178" y2="150" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="262" y1="160" x2="318" y2="160" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round"/>
+<rect x="260" y="60" width="60" height="100" fill="#fef3c7" stroke="none" stroke-width="0"/>
+<path d="M120,40 L120,270 A100.0,100.0 0 0 0 320,270 L320,60" fill="none" stroke="#1f2937" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M180,40 L180,270 A40.0,40.0 0 0 0 260,270 L260,60" fill="none" stroke="#1f2937" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="257" y1="60" x2="323" y2="60" stroke="#1f2937" stroke-width="6" stroke-linecap="round"/>
+<line x1="100" y1="200" x2="370" y2="200" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-dasharray="7 6"/>
+<rect x="130" y="132" width="40" height="26" rx="3" fill="#d6a467" stroke="#7c4a1e" stroke-width="3"/>
+<text x="150" y="124" font-size="20" fill="#111827" text-anchor="middle"><tspan font-style="italic">m</tspan></text>
+<line x1="360" y1="60" x2="360" y2="200" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<polygon points="360,60 355,68 365,68" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="360,200 355,192 365,192" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="376" y="137" font-size="20" fill="#111827" text-anchor="start"><tspan font-style="italic">l</tspan></text>
+<line x1="242" y1="160" x2="242" y2="200" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+<polygon points="242,160 237,168 247,168" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="242,200 237,192 247,192" fill="#334155" stroke="#334155" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="226" y="187" font-size="20" fill="#111827" text-anchor="end"><tspan font-style="italic">h</tspan></text>
+<text x="98" y="206" font-size="15" fill="#475569" text-anchor="end">dastlabki</text>
+<text x="98" y="222" font-size="15" fill="#475569" text-anchor="end">sath</text>
+</svg>
