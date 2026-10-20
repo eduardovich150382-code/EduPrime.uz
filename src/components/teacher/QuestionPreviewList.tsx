@@ -88,7 +88,7 @@ export default function QuestionPreviewList<T extends QuestionCoreFields>({
               {q.explanation && (
                 <div className="mt-3 p-3 rounded-lg bg-blue-50 border border-blue-100">
                   <p className="text-xs text-blue-600 font-medium mb-1">Yechim:</p>
-                  <div className="text-xs text-text-primary">
+                  <div className="text-xs text-text-primary whitespace-pre-line">
                     <LatexRenderer content={q.explanation} />
                   </div>
                 </div>

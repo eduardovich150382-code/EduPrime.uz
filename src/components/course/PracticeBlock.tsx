@@ -160,7 +160,7 @@ export default function PracticeBlock({ blockId, itemCount }: Props) {
               {checked.isCorrect ? t('practiceCorrect') : t('practiceIncorrect')}
             </p>
             {(checked.explanation || checked.distractorWhy) && (
-              <div className="mt-1 text-text-secondary">
+              <div className="mt-1 text-text-secondary whitespace-pre-line">
                 <LatexRenderer content={checked.explanation || checked.distractorWhy || ''} />
               </div>
             )}
