@@ -1184,7 +1184,7 @@ export default function ResultPage() {
                       <h4 className="text-sm font-semibold text-blue-800 mb-2 flex items-center gap-2">
                         <FileText size={14} /> Yozma yechim
                       </h4>
-                      <div className="text-sm text-text-primary leading-relaxed">
+                      <div className="text-sm text-text-primary leading-relaxed whitespace-pre-line">
                         <LatexRenderer content={question.explanation} />
                       </div>
                       {question.explanationImages && question.explanationImages.length > 0 && (
