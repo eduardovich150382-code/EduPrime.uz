@@ -170,6 +170,16 @@
   from { stroke-dashoffset: var(--result-circumference); }
 }
 
+@keyframes result-orbit {
+  to { transform: rotate(360deg); }
+}
+
+.result-orbit {
+  transform-box: view-box;
+  transform-origin: center;
+  animation: result-orbit 18s linear infinite;
+}
+
 @keyframes result-reveal {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
@@ -193,5 +203,5 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .result-progress, .result-score-value, .result-stat { animation: none; }
+  .result-progress, .result-score-value, .result-stat, .result-orbit { animation: none; }
 }

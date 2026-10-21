@@ -5,6 +5,13 @@ import { Check, Clock, Minus, X } from 'lucide-react';
 import type { CSSProperties } from 'react';
 import { formatTime } from '@/lib/utils';
 
+const orbitRows = [
+  { radius: 114, count: 84, size: 3.8 },
+  { radius: 122, count: 90, size: 4.6 },
+  { radius: 130, count: 96, size: 3.8 },
+];
+const orbitColors = ['fill-primary-300', 'fill-primary-400', 'fill-primary-500', 'fill-primary-400'];
+
 export default function ResultScore({ score, maxScore, percentage, correct, incorrect, skipped, timeSpent }: {
   score: number; maxScore: number; percentage: number; correct: number; incorrect: number; skipped: number; timeSpent: number;
 }) {
@@ -12,12 +19,27 @@ export default function ResultScore({ score, maxScore, percentage, correct, inco
   const circumference = 2 * Math.PI * 96;
   const progress = Math.max(0, Math.min(100, percentage)) / 100;
   return <div className="my-6 flex flex-col items-center gap-8 sm:my-8">
-    <div className="relative flex h-64 w-64 max-w-full items-center justify-center sm:h-72 sm:w-72" aria-label={`${score} / ${maxScore}`}>
-      <div className="absolute inset-6 rounded-full bg-primary-100/70 blur-2xl" aria-hidden="true" />
-      <svg viewBox="0 0 240 240" className="absolute inset-0 h-full w-full" fill="none" aria-hidden="true">
-        <circle cx="120" cy="120" r="108" className="stroke-primary-100" strokeWidth="1" strokeDasharray="2 10" />
-        <circle cx="120" cy="120" r="96" className="stroke-primary-100" strokeWidth="10" />
-        <circle cx="120" cy="120" r="96" className="result-progress stroke-primary-600" strokeWidth="10" strokeLinecap={progress > 0 ? 'round' : 'butt'} strokeDasharray={circumference} strokeDashoffset={circumference * (1 - progress)} transform="rotate(-90 120 120)" style={{ '--result-circumference': circumference } as CSSProperties} />
+    <div className="relative flex aspect-square w-full max-w-72 items-center justify-center sm:max-w-80" aria-label={`${score} / ${maxScore}`}>
+      <div className="absolute inset-4 rounded-full bg-primary-200/50 blur-2xl" aria-hidden="true" />
+      <svg viewBox="0 0 280 280" className="absolute inset-0 h-full w-full" fill="none" aria-hidden="true">
+        <g className="result-orbit">
+          <g transform="translate(140 140)">
+            {orbitRows.map((row, rowIndex) => <g key={row.radius}>
+              {Array.from({ length: row.count }, (_, index) => <rect
+                key={index}
+                x={row.radius - row.size / 2}
+                y={-row.size / 2}
+                width={row.size}
+                height={row.size}
+                rx="1"
+                transform={`rotate(${index * 360 / row.count + rowIndex * 2})`}
+                className={orbitColors[Math.floor(index / row.count * 12 + rowIndex) % orbitColors.length]}
+              />)}
+            </g>)}
+          </g>
+        </g>
+        <circle cx="140" cy="140" r="96" className="stroke-primary-100" strokeWidth="12" />
+        <circle cx="140" cy="140" r="96" className="result-progress stroke-primary-600" strokeWidth="12" strokeLinecap={progress > 0 ? 'round' : 'butt'} strokeDasharray={circumference} strokeDashoffset={circumference * (1 - progress)} transform="rotate(-90 140 140)" style={{ '--result-circumference': circumference } as CSSProperties} />
       </svg>
       <div className="result-score-value relative min-w-0 max-w-[75%] px-4 text-center"><span className="block break-words text-5xl font-bold tracking-tight text-text-primary sm:text-6xl">{score}</span><span className="mt-2 block text-sm text-text-secondary sm:text-base">{t('scoreOf', { max: maxScore })}</span><span className="mt-3 inline-block rounded-full bg-primary-100 px-3 py-1 text-sm font-semibold text-primary-800">{t('percentage', { value: percentage })}</span></div>
     </div>
