@@ -1,0 +1,228 @@
+[
+  {
+    "id": "vip-tyt-madde-t04-01",
+    "text": "Bir-biriga aralashmaydigan X, Y, Z suyuqliklarning massa–hajm grafigi rasmda berilgan. Har biridan teng massa olinib darajalangan idishga quyiladi. Suyuqliklar qaysi variantdagidek joylashishi mumkin?",
+    "options": [
+      {
+        "label": "A",
+        "text": "Pastdan X, Y, Z; chegara sathlari 10, 30, 60 sm³",
+        "image": "/savol-rasm/vip-tyt-madde/t04-01-A.webp"
+      },
+      {
+        "label": "B",
+        "text": "Pastdan X, Y, Z; chegara sathlari 10, 30, 75 sm³",
+        "image": "/savol-rasm/vip-tyt-madde/t04-01-B.webp"
+      },
+      {
+        "label": "C",
+        "text": "Pastdan Z, Y, X; chegara sathlari 45, 65, 75 sm³",
+        "image": "/savol-rasm/vip-tyt-madde/t04-01-C.webp"
+      },
+      {
+        "label": "D",
+        "text": "Pastdan X, Y, Z; chegara sathlari 10, 20, 45 sm³",
+        "image": "/savol-rasm/vip-tyt-madde/t04-01-D.webp"
+      },
+      {
+        "label": "E",
+        "text": "Pastdan Z, Y, X; chegara sathlari 15, 35, 60 sm³",
+        "image": "/savol-rasm/vip-tyt-madde/t04-01-E.webp"
+      }
+    ],
+    "answer": "B",
+    "correctAnswer": "B",
+    "explanation": "Berilgan:\nGrafik koordinata boshidan chiqadi. Bir xil hajmda X, Y, Z massalari 9:4,5:2 nisbatda, ya'ni zichliklar 9:4,5:2. Massalar teng.\n\nTopish kerak:\nQatlamlar tartibi va har bir qatlam hajmiga mos chizmani tanlash.\n\nYechilishi:\n1-qadam. Massa–hajm grafigida qiyalik zichlikka teng. X chizig'i eng tik, Z eng yotiq: $\\rho_X>\\rho_Y>\\rho_Z$. Shuning uchun pastdan yuqoriga X, Y, Z joylashadi.\n2-qadam. Grafik kataklaridan teng massa uchun hajmlar nisbati $V_X:V_Y:V_Z=2:4:9$, ya'ni $1:2:4{,}5$. Bu $V=m/\\rho$ ga ham mos.\n3-qadam. B variantidagi shkala yig'indi hajmni ko'rsatadi: X hajmi 10; Y hajmi $30-10=20$; Z hajmi $75-30=45\\,\\text{sm}^3$. Nisbat $10:20:45=2:4:9$.\n4-qadam. Qatlamlar tartibi ham, alohida hajmlar nisbati ham mos kelgan yagona chizma B. Shkala belgisini har bir suyuqlik hajmi deb bevosita olish xato bo'ladi.\n\nJavob:\nB chizma (B).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 3,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 24,
+      "test": 4,
+      "question": 1,
+      "printedAnswer": "B"
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t04-01.webp"
+    ],
+    "explanationImages": [
+      "/savol-rasm/vip-tyt-madde/t04-01y.svg"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t04-02",
+    "text": "Sof K, L va M gazlar uchun quyidagi ma'lumotlar berilgan:\nK: massa 10 g, hajm 20 sm³, harorat 60 °F;\nL: massa 10 g, hajm 10 sm³, harorat 50 °F;\nM: massa 20 g, hajm 50 sm³, harorat 70 °F.\nBosimlar berilmagan. Qaysilari bir xil modda bo'lishi mumkin?",
+    "options": [
+      "K va L",
+      "L va M",
+      "K va M",
+      "K, L va M",
+      "Hammasi albatta boshqa-boshqa modda"
+    ],
+    "answer": "D",
+    "correctAnswer": "D",
+    "explanation": "Berilgan:\nGazlarning massasi, hajmi va turli haroratlari berilgan; bosimlari noma'lum.\n\nTopish kerak:\nUch namuna bir xil gaz bo'lishi mumkinligini baholash.\n\nYechilishi:\n1-qadam. Kuzatilgan zichliklar: $\\rho_K=10/20=0{,}5$, $\\rho_L=10/10=1$, $\\rho_M=20/50=0{,}4\\,\\text{g/sm}^3$.\n2-qadam. Zichlik faqat bir xil harorat va bosimda moddani farqlovchi xossa sifatida taqqoslanadi. Gaz uchun $\\rho=pM/(RT)$: bir xil gaz ham turli p va T da turli zichlikka ega bo'ladi.\n3-qadam. Bu yerda haroratlar bir xil emas va bosimlar umuman berilmagan. Shuning uchun zichlik farqi gazlar albatta boshqa-boshqa ekanini isbotlamaydi. Mos bosimlar tanlanganda har uchalasi bir xil gaz bo'lishi mumkin.\n4-qadam. «Bo'lishi mumkin» bilan «aniq bir xil»ni farqlaymiz: jadval bir xil ekanini isbotlamaydi, lekin uni inkor ham qilmaydi.\n\nJavob:\nK, L va M bir xil modda bo'lishi mumkin (D).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 24,
+      "test": 4,
+      "question": 2,
+      "printedAnswer": "D"
+    }
+  },
+  {
+    "id": "vip-tyt-madde-t04-03",
+    "text": "Rasmda X, Y, Z suyuqliklar hamda ularni aralashtirib olingan A va B aralashmalarning massa–hajm chiziqlari berilgan. Hajmlar qo'shiladi, kimyoviy reaksiya yo'q. Zichliklar tartibi $\\rho_X>\\rho_A>\\rho_Y>\\rho_B>\\rho_Z$. Qaysi xulosa albatta to'g'ri?",
+    "options": [
+      "B faqat X va Z dan tayyorlangan",
+      "A faqat X va Z dan tayyorlangan",
+      "A hamda B ni tayyorlashda Y albatta ishlatilgan",
+      "B ni tayyorlashda Z ishlatilgan",
+      "A va B ni aralashtirib, zichligi Z nikiga teng aralashma olish mumkin"
+    ],
+    "answer": "D",
+    "correctAnswer": "D",
+    "explanation": "Berilgan:\n$\\rho_X>\\rho_A>\\rho_Y>\\rho_B>\\rho_Z$. Aralashma zichligi hajmlar bo'yicha o'rtacha qiymatdir.\n\nTopish kerak:\nQaysi tarkibiy suyuqlik B uchun majburiy ekanini aniqlash.\n\nYechilishi:\n1-qadam. $\\rho_{ar}=\\frac{\\rho_1V_1+\\rho_2V_2+\\cdots}{V_1+V_2+\\cdots}$. Bu qiymat ishlatilgan suyuqliklarning eng kichik va eng katta zichliklari orasida bo'ladi.\n2-qadam. Agar B faqat X va Y dan tayyorlansa, uning zichligi Y nikidan kichik bo'lolmaydi. Lekin grafikda $\\rho_B<\\rho_Y$. Demak zichligi Y dan kichik bo'lgan Z albatta kerak. D to'g'ri.\n3-qadam. Z bilan X yoki Z bilan Y ni turli ulushda aralashtirib B olish mumkin; shuning uchun X yoki Y dan aynan qaysi biri ishlatilgani majburiy emas.\n4-qadam. A va B ning ikkalasi ham Z dan zichroq. Ularning o'rtacha qiymati ham Z zichligidan katta bo'ladi. E mumkin emas.\n\nJavob:\nB aralashmada Z albatta bor (D).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 3,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 24,
+      "test": 4,
+      "question": 3,
+      "printedAnswer": "D"
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t04-03.webp"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t04-04",
+    "text": "Bir xil moddadan, bir xil haroratda yasalgan ichi to'liq, bir jinsli tik prizma P va tik silindr S ning o'z og'irligiga nisbiy bardoshliliklari teng. Qaysi kattaliklari albatta teng?\nI. Massa.\nII. Zichlik.\nIII. Balandlik.\nIV. Ko'ndalang kesim yuzi.",
+    "options": [
+      "Faqat II",
+      "II va III",
+      "I va IV",
+      "II va IV",
+      "I, II va III"
+    ],
+    "answer": "B",
+    "correctAnswer": "B",
+    "explanation": "Berilgan:\nMaterial va harorat bir xil. Tik prizma hamda tik silindrda $V=Sh$.\n\nTopish kerak:\nBardoshlilik tengligidan keladigan majburiy tengliklarni topish.\n\nYechilishi:\n1-qadam. Bir xil modda bir xil sharoitda bir xil zichlikka ega. II albatta teng.\n2-qadam. Materialning mustahkamlik koeffitsiyenti bir xil bo'lganda nisbiy bardoshlilik $D\\sim S/V=1/h$. $D_P=D_S$ dan $h_P=h_S$. III ham teng.\n3-qadam. Kesim yuzlari turlicha bo'lishi mumkin: masalan, ikkinchi jismning asos yuzi ikki marta katta bo'lsa ham balandlik bir xil qoladi va S/V o'zgarmaydi. IV kafolatlanmaydi.\n4-qadam. $m=\\rho Sh$ bo'lgani uchun S turlicha bo'lsa, massa ham turlicha. I ham shart emas.\n\nJavob:\nII va III (B).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 24,
+      "test": 4,
+      "question": 4,
+      "printedAnswer": "B"
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t04-04.webp"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t04-05",
+    "text": "Ko'ndalang kesim yuzlari teng K, L, M ustunchalar rasmda berilgan. K — pastroq plastilin; L — K bilan bir xil balandlikdagi qattiq plastik; M — K dan balandroq plastilin.\n1-xulosa: o'z og'irligiga bardoshlilik material turiga bog'liq.\n2-xulosa: o'z og'irligiga bardoshlilik balandlikka bog'liq.\nHar bir xulosani tekshirish uchun qaysi jismlar taqqoslanadi? Tartib: 1-xulosa; 2-xulosa.",
+    "options": [
+      "K–L; L–M",
+      "K–L; K–M",
+      "K–M; L–M",
+      "L–M; K–M",
+      "L–M; K–L"
+    ],
+    "answer": "B",
+    "correctAnswer": "B",
+    "explanation": "Berilgan:\nK va L ning balandligi teng, materiali boshqa; K va M materiali bir xil, balandligi boshqa. Kesimlar teng.\n\nTopish kerak:\nBoshqa omillarni o'zgartirmay, tekshirilayotgan bitta omilni farqlaydigan juftlarni tanlash.\n\nYechilishi:\n1-qadam. Material ta'sirini o'rganish uchun shakl o'lchamlarini teng tutish kerak. K va L bir xil balandlik hamda kesimga ega, faqat materiali farq qiladi. Demak 1-xulosa uchun K–L.\n2-qadam. Balandlik ta'sirini o'rganish uchun material va kesimni teng tutamiz. K va M ikkalasi plastilin, kesimlari teng, balandliklari esa boshqa. Demak 2-xulosa uchun K–M.\n3-qadam. L–M ni taqqoslashda material ham, balandlik ham bir vaqtda o'zgaradi. Natija qaysi omil sababli o'zgarganini alohida bilib bo'lmaydi.\n\nJavob:\n1-xulosa: K–L; 2-xulosa: K–M (B).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 25,
+      "test": 4,
+      "question": 5,
+      "printedAnswer": "B"
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t04-05.webp"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t04-06",
+    "text": "2023-yil 6-fevraldagi Qahramonmarash zilzilasidan keyin ayrim binolar ustunlarini mustahkamlash ishlari rejalashtirildi. Maktabdagi mustahkamlik modeli bo'yicha qaysi chora ustunlarning yuk ko'tarish qobiliyatini oshirishga xizmat qiladi?\nI. Ustunlarning ko'ndalang kesim yuzini kamaytirish.\nII. Ustunlarga armatura qo'shish.\nIII. Binoning hajmini va yukini oshirish.",
+    "options": [
+      "Faqat II",
+      "I va II",
+      "I va III",
+      "II va III",
+      "I, II va III"
+    ],
+    "answer": "A",
+    "correctAnswer": "A",
+    "explanation": "Berilgan:\nMaqsad — mavjud tayanchlarning berilgan yukni ko'tarish qobiliyatini oshirish.\n\nTopish kerak:\nSanab o'tilgan choralardan maqsadga mosini tanlash.\n\nYechilishi:\n1-qadam. Kesim yuzini kamaytirish bir xil kuchda $\\sigma=F/S$ kuchlanishni oshiradi. Demak I odatda mustahkamlashga emas, tayanchni zaiflashtirishga olib keladi.\n2-qadam. Mos loyihalangan armatura qo'shish temirbeton ustunning kuchlarni qabul qilish qobiliyatini oshirishi mumkin. Shuning uchun II maqsadga mos.\n3-qadam. Binoning hajmi va yukini oshirish tayanchlarga qo'shimcha og'irlik yuklaydi; bu o'z-o'zidan mustahkamlash emas. III mos emas. Bu savol materiallar mustahkamligining sodda modeliga tegishli; real bino uchun hisoblangan muhandislik loyihasi kerak.\n\nJavob:\nFaqat II (A).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 1,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 25,
+      "test": 4,
+      "question": 6,
+      "printedAnswer": "A"
+    }
+  },
+  {
+    "id": "vip-tyt-madde-t04-07",
+    "text": "O'qituvchi beshta stakanning birinchisi, uchinchisi va beshinchisiga ko'k, sariq va qizil rangli suv solib, ularni qog'oz sochiqlar orqali tutashtirdi. Biroz vaqt o'tgach, bo'sh stakanlarga ham rangli suv o'tdi. «Yuruvchi ranglar» tajribasining asosiy fizik hodisasi qaysi?",
+    "options": [
+      "Sirt tarangligi",
+      "Zichlik",
+      "Kapillyarlik",
+      "Bosim",
+      "Qovushoqlik"
+    ],
+    "answer": "C",
+    "correctAnswer": "C",
+    "explanation": "Berilgan:\nQog'oz tolalari orasida suyuqlikni o'tkazadigan ingichka g'ovak yo'llar mavjud.\n\nTopish kerak:\nSuvni sochiq bo'ylab ko'tarib va ko'chirib o'tkazadigan hodisani aniqlash.\n\nYechilishi:\n1-qadam. Suv qog'oz tolalarini adgeziya tufayli ho'llaydi. Molekulalar orasidagi kogeziya keyingi suvni ham ergashtiradi.\n2-qadam. Shu ta'sirlar ingichka g'ovaklarda suvning ko'tarilishi va tarqalishini yuzaga keltiradi. Bunday hodisa kapillyarlik deyiladi.\n3-qadam. Qo'shni bo'sh stakanga ikki xil rangdagi suv yetib borganda ranglar qo'shiladi. Ranglarning aralashishi kuzatiladigan natija, suvning qog'oz bo'ylab yurish mexanizmi esa kapillyarlikdir.\n\nJavob:\nKapillyarlik (C).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 1,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 25,
+      "test": 4,
+      "question": 7,
+      "printedAnswer": "C"
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t04-07a.webp",
+      "/savol-rasm/vip-tyt-madde/t04-07b.webp"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t04-08",
+    "text": "I rasmda suyuqlik kapillyar nayda tashqi sathdan yuqoriga ko'tarilgan. I holatdan bitta omilni o'zgartirib II holat (kamroq ko'tarilish), boshqa tajribada esa III holat (sathdan pastga tushish) olinadi. Qaysi juft o'zgarish buni tushuntira olmaydi? Tartib: II holat; III holat.",
+    "options": [
+      "Nay materiali; suyuqlik turi",
+      "Suyuqlik turi; nayning kesim yuzi",
+      "Nayning kesim yuzi; suyuqlik turi",
+      "Suyuqlik turi; nay materiali",
+      "Nayning kesim yuzi; nay materiali"
+    ],
+    "answer": "B",
+    "correctAnswer": "B",
+    "explanation": "Berilgan:\nI va II da kapillyar balandlik musbat, III da manfiy. Har tajriba I holatdan boshlanadi.\n\nTopish kerak:\nKapillyar balandlik ishorasini o'zgartira olmaydigan omilni ajratish.\n\nYechilishi:\n1-qadam. $h=2\\sigma\\cos\\theta/(\\rho gr)$. Nay radiusi r musbat son. Uni o'zgartirish h ning modulini o'zgartiradi, ammo ishorasini o'zgartirmaydi.\n2-qadam. II holat uchun r ni kattalashtirish yoki sirt xossalarini o'zgartirish ko'tarilishni kamaytirishi mumkin.\n3-qadam. III holatda h manfiy bo'lishi kerak. Buning uchun kontakt burchagi $90^\\circ$ dan oshib, ho'llanish xususiyati almashishi lozim. Suyuqlik turini yoki nay materialini almashtirish bunga olib kelishi mumkin.\n4-qadam. B variantida III holatni faqat kesim yuzini o'zgartirish bilan olish taklif qilingan. Bu musbat balandlikni manfiy qilolmaydi. Shu sababli B imkonsiz.\n\nJavob:\nB juftlik (B).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 3,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 25,
+      "test": 4,
+      "question": 8,
+      "printedAnswer": "B"
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t04-08.webp"
+    ]
+  }
+]

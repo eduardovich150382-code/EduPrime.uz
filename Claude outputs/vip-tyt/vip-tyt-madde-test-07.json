@@ -1,0 +1,200 @@
+[
+  {
+    "id": "vip-tyt-madde-t07-01",
+    "text": "P, R va S moddalarining zichlik–hajm grafiklari rasmda berilgan: $\\rho_P=3d$, $\\rho_R=d$, $\\rho_S=2d$.\nI. Teng massali P va R namunalaridan P ning hajmi kattaroq.\nII. Teng hajmli R va S namunalaridan S ning massasi kichikroq.\nIII. Teng massali P va S namunalaridan P ning hajmi kichikroq.\nQaysi tasdiqlar to'g'ri?",
+    "options": [
+      "Faqat I",
+      "Faqat II",
+      "Faqat III",
+      "I va II",
+      "I va III"
+    ],
+    "answer": "C",
+    "correctAnswer": "C",
+    "explanation": "Berilgan:\n$\\rho_P=3d$, $\\rho_R=d$, $\\rho_S=2d$; $d>0$.\n\nTopish kerak:\nTeng massa va teng hajm shartlarini farqlab, tasdiqlarni tekshirish.\n\nYechilishi:\n1-qadam. Teng massa uchun $V=m/\\rho$. P va R da $V_P/V_R=d/(3d)=1/3$. P hajmi kichikroq, shuning uchun I noto'g'ri.\n2-qadam. Teng hajm uchun $m=\\rho V$. S va R da $m_S/m_R=2d/d=2$. S massasi kattaroq, II noto'g'ri.\n3-qadam. Teng massali P va S uchun $V_P/V_S=2d/(3d)=2/3<1$. P hajmi kichikroq. III to'g'ri.\n4-qadam. Grafikdagi chiziqlarning gorizontal bo'lishi zichlikning namuna hajmiga bog'liq emasligini bildiradi, u hajmning o'zini ko'rsatmaydi.\n\nJavob:\nFaqat III (C).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 30,
+      "test": 7,
+      "question": 1,
+      "printedAnswer": "C"
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t07-01.webp"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t07-02",
+    "text": "Elif, Ruya va Janberk bardoshlilik haqida gaplashmoqda.\nElif: «Zilzilaga chidamli bino ustunlarida faqat temir ishlatishning o'zi yetarli».\nRuya: «Nega Yer yuzidagi eng yirik hayvon suvda yashaydi, quruqlikda emas?»\nJanberk: «Suvda ko'taruvchi kuch hayvon tanasining og'irligini qisman yoki deyarli to'liq muvozanatlaydi. Quruqlikka chiqqanda esa tayanch qismlari tananing katta og'irligini ko'tarishga majbur bo'ladi».\nKimning gapida mazkur bardoshlilik hodisasi aniq va to'g'ri tushuntirilgan?",
+    "options": [
+      "Faqat Elif",
+      "Faqat Ruya",
+      "Faqat Janberk",
+      "Elif va Janberk",
+      "Ruya va Janberk"
+    ],
+    "answer": "C",
+    "correctAnswer": "C",
+    "explanation": "Berilgan:\nUch suhbatdan bittasi suvdagi ko'taruvchi kuch va tayanch yukini bevosita bog'laydi.\n\nTopish kerak:\nTo'g'ri fizik tushuntirish bergan o'quvchini tanlash.\n\nYechilishi:\n1-qadam. Elifning «faqat temir yetarli» degan fikri noto'g'ri. Bino mustahkamligi material, kesim, ulanishlar, loyiha va boshqa omillarga bog'liq.\n2-qadam. Ruya savol bergan, lekin fizik sababni izohlamagan. Savol berishning o'zi mavzuni to'g'ri tushuntirganini isbotlamaydi.\n3-qadam. Janberk suvdagi Arximed kuchini ajratgan: tanani pastga tortadigan $mg$ saqlanadi, lekin tayanch yoki to'qimalar ko'tarishi kerak bo'lgan samarali yuk $mg-F_A$ gacha kamayadi.\n4-qadam. Quruqlikda suvning ko'taruvchi yordami deyarli yo'qoladi va tana o'z og'irligiga dosh berishi kerak. Shu sabab Janberkning izohi savolga to'g'ri javob beradi.\n\nJavob:\nFaqat Janberk (C).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 30,
+      "test": 7,
+      "question": 2,
+      "printedAnswer": "C",
+      "correction": "Asldagi «suvda o'z og'irligini sezmaydi» jumlasi og'irlik yo'qoladi degan xato tasavvur bermasligi uchun ko'taruvchi kuch va samarali yuk bilan aniqlandi; «eng yirik tirik organizm» o'rniga misolga mos «eng yirik hayvon» olindi."
+    }
+  },
+  {
+    "id": "vip-tyt-madde-t07-03",
+    "text": "Moddalar zichligi ($\\text{g/sm}^3$): suv — 1; olmos — 3,5; kumush — 10,5; spirt — 0,7; temir — 7. Quyidagi ma'lumotlar berilgan:\n• Teng massali olmosdan 5 marta ko'p joy egallaydi.\n• Teng hajmli spirtdan massasi 10 marta katta.\n• Teng massali olmosdan kamroq joy egallaydi.\n• 3 sm³ hajmining massasi 10,5 g.\nQaysi modda haqida bu ro'yxatda ma'lumot berilmagan?",
+    "options": [
+      "Suv",
+      "Olmos",
+      "Kumush",
+      "Spirt",
+      "Temir"
+    ],
+    "answer": "A",
+    "correctAnswer": "A",
+    "explanation": "Berilgan:\nBesh modda zichligi va to'rtta tavsif berilgan.\n\nTopish kerak:\nHar tavsifga modda moslab, ortib qolganini topish.\n\nYechilishi:\n1-qadam. Teng massa uchun zichlik hajmga teskari proporsional. Olmosdan 5 marta katta hajm: $\\rho=3{,}5/5=0{,}7$ — spirt.\n2-qadam. Teng hajmda massa zichlikka proporsional. Spirtdan 10 marta og'ir: $\\rho=10\\cdot0{,}7=7$ — temir.\n3-qadam. Teng massali olmosdan kam joy egallaydigan modda zichligi $3{,}5$ dan katta. Jadvalda temir va kumush ikkalasi ham bu umumiy tavsifga mos, lekin temir avvalgi aniq tavsif bilan topilgan; kumush ham shu tavsif doirasida albatta tilga olingan.\n4-qadam. $\\rho=10{,}5/3=3{,}5$ — olmos. Suvning zichligi 1 bo'lib, yuqoridagi to'rtta tavsifning hech biriga mos kelmaydi. Shuning uchun yagona tilga olinmagan modda suv.\n\nJavob:\nSuv (A).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 30,
+      "test": 7,
+      "question": 3,
+      "printedAnswer": "A"
+    }
+  },
+  {
+    "id": "vip-tyt-madde-t07-04",
+    "text": "Bir xil materialdan yasalgan radiusi r va 2r arqonlar rasmda ko'rsatilgan. Birinchi yuk bitta r radiusli arqonda, ikkinchisi yuk teng taqsimlangan ikkita r radiusli arqonda, uchinchisi bitta 2r radiusli arqonda osilgan. Birinchi arqon ko'taradigan eng katta og'irlik $G_1=G$. Ikkinchi va uchinchi tizimlarning eng katta yuklari qancha? Tartib: $G_2$; $G_3$.",
+    "options": [
+      "$2G;\\ 2G$",
+      "$2G;\\ 4G$",
+      "$4G;\\ 4G$",
+      "$4G;\\ 8G$",
+      "$8G;\\ 8G$"
+    ],
+    "answer": "B",
+    "correctAnswer": "B",
+    "explanation": "Berilgan:\nMaterialning ruxsat etilgan cho'zilish kuchlanishi bir xil. Arqonlarning o'z og'irligi hisobga olinmaydi.\n\nTopish kerak:\n$G_2/G$ va $G_3/G$ ni topish.\n\nYechilishi:\n1-qadam. Arqon ko'tara oladigan eng katta kuch $F_{max}=\\sigma_{max}S$. Bir xil material uchun u kesim yuziga proporsional.\n2-qadam. r radiusli bitta arqon G ni ko'taradi. Ikki shunday arqon yukni teng bo'lishib ko'tarsa, har biriga $G_2/2$ tushadi. Chegarada $G_2/2=G$, demak $G_2=2G$.\n3-qadam. Radius 2r bo'lganda kesim $S_3=\\pi(2r)^2=4\\pi r^2=4S_1$. Demak $G_3=4G$.\n4-qadam. Radiusni ikki marta oshirish kuchni ikki emas, to'rt marta oshiradi. Bu savol o'z og'irligiga nisbiy bardoshlilik haqida emas, uzilishgacha ko'tariladigan mutlaq yuk haqida.\n\nJavob:\n$G_2=2G$, $G_3=4G$ (B).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 30,
+      "test": 7,
+      "question": 4,
+      "printedAnswer": "B"
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t07-04.webp"
+    ],
+    "explanationImages": [
+      "/savol-rasm/vip-tyt-madde/t07-04y.svg"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t07-05",
+    "text": "Bir xil tangalar ustiga teng hajmli tomchilar sekin tomiziladi. Jadval: T haroratdagi K suyuqlikdan n tomchi; 2T haroratdagi K+X aralashmadan n tomchi; T haroratdagi L suyuqlikdan n−2 tomchi sig'adi. Maktabning bir xil kontakt sharoitli modelida qaysi xulosa to'g'ri?\nI. T haroratda K ning sirt tarangligi L nikidan katta.\nII. X qo'shilishi K ning sirt tarangligini kamaytirgan.\nIII. L qizdirilsa, tangaga n ta tomchi sig'ishi mumkin.",
+    "options": [
+      "Faqat I",
+      "Faqat II",
+      "I va II",
+      "I va III",
+      "II va III"
+    ],
+    "answer": "A",
+    "correctAnswer": "A",
+    "explanation": "Berilgan:\nTomchi hajmi va tangalar bir xil. Isitish K va L ning sirt tarangligini kamaytiradigan harorat oralig'i qaraladi.\n\nTopish kerak:\nTomchi soni, harorat va qo'shimcha moddaning ta'sirini ajratish.\n\nYechilishi:\n1-qadam. Bir xil T da K dan n, L dan n−2 tomchi sig'adi. Sodda modelda K ko'proq tomchini tutib turadi: $\\sigma_K(T)>\\sigma_L(T)$. I to'g'ri.\n2-qadam. K ning harorati oshirilsa, qo'shimchasiz sirt tarangligi kamayishi kerak edi. Ammo X qo'shilgan issiq namunada yana n tomchi sig'di. Demak X ning ta'siri kamayishni kompensatsiyalagan, uni yana kamaytirgan deb bo'lmaydi. II noto'g'ri.\n3-qadam. L ni isitish sirt tarangligini oshirmaydi, balki kamaytiradi. n−2 dan kattaroq n tomchiga yetishini shu bilan tushuntirib bo'lmaydi. III noto'g'ri.\n4-qadam. Harorat va qo'shimcha modda ta'sirlarini bir-biridan ajratish savolning asosiy nuqtasidir.\n\nJavob:\nFaqat I (A).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 3,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 31,
+      "test": 7,
+      "question": 5,
+      "printedAnswer": "A"
+    }
+  },
+  {
+    "id": "vip-tyt-madde-t07-06",
+    "text": "Qon sentrifugada aylantirilgach yuqorida plazma, undan pastda leykotsitlar, eng pastda eritrotsitlar qatlami hosil bo'ladi (rasm). Soddalashtirilgan ajralish modeli bo'yicha:\nI. Ajratilmagan qonning zichligi plazmanikidan katta.\nII. Teng hajmdagi eritrotsit va leykotsitlardan eritrotsit massasi kattaroq.\nIII. Boshqa odamdan olingan teng hajmli qon massasi kattaroq bo'lsa, unda eritrotsitlar miqdori albatta ko'proq.\nQaysilar albatta to'g'ri?",
+    "options": [
+      "Faqat I",
+      "Faqat II",
+      "I va II",
+      "I va III",
+      "II va III"
+    ],
+    "answer": "C",
+    "correctAnswer": "C",
+    "explanation": "Berilgan:\nRasmdagi uch komponentli modelda $\\rho_{erit}>\\rho_{leyk}>\\rho_{plazma}$. Qon tarkibiy ulushlari turlicha bo'lishi mumkin.\n\nTopish kerak:\nZichliklar tartibidan majburiy kelib chiqadigan tasdiqlarni topish.\n\nYechilishi:\n1-qadam. Qonda plazmadan zichroq hujayraviy komponentlar mavjud. Hajmlar qo'shiladigan modelda qonning o'rtacha zichligi ularning hajmiy o'rtachasi bo'lib, plazma zichligidan kattaroq. I to'g'ri.\n2-qadam. Teng hajm uchun $m=\\rho V$. Rasmdagi tartibga ko'ra eritrotsitlar zichroq, demak ularning teng hajmdagi massasi ko'proq. II to'g'ri.\n3-qadam. Qonning umumiy zichligi eritrotsitlardan tashqari plazma tarkibi, boshqa hujayralar va komponentlar ulushiga ham bog'liq. Faqat bitta umumiy massa o'lchovidan eritrotsit miqdori albatta ortgan deyish mumkin emas. III kafolatlanmagan. Bu tibbiy tashxis emas, rasmga asoslangan fizik modeldir.\n\nJavob:\nI va II (C).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 31,
+      "test": 7,
+      "question": 6,
+      "printedAnswer": "C"
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t07-06.webp"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t07-07",
+    "text": "O'qituvchi aralashma zichligini ranglar bilan modellashtiradi: qora — zichligi katta suyuqlik, oq — zichligi kichik suyuqlik. Bir xil sharoitda hajmlar qo'shiladi, rangning qorayishi katta zichlikli komponent ulushi ortishini anglatadi.\nI. Rang o'rtacha kulrang bo'lsa, suyuqliklar teng hajmda qo'shilgan.\nII. Zichroq suyuqlikdan ko'proq qo'shilsa, model rangi och kulrangga o'tadi.\nIII. Odatdagidek issiqlikdan kengayadigan aralashma isitilsa, zichlik shkalasida uning rangi qorayadi.\nQaysi tasdiqlar to'g'ri?",
+    "options": [
+      "Faqat I",
+      "Faqat II",
+      "Faqat III",
+      "I va II",
+      "II va III"
+    ],
+    "answer": "A",
+    "correctAnswer": "A",
+    "explanation": "Berilgan:\nQora va oq ikki chekka qiymatni, kulrang esa hajmiy ulush bo'yicha oraliq qiymatni bildiradigan shartli model ishlatilmoqda.\n\nTopish kerak:\nRang modelining ma'nosini to'g'ri qo'llash.\n\nYechilishi:\n1-qadam. Teng hajmlar uchun $\\rho_{ar}=(\\rho_{qora}+\\rho_{oq})/2$. Shartli rang shkalasida bu o'rtacha kulrangga mos. I to'g'ri.\n2-qadam. Qora bilan ifodalangan zichroq suyuqlik ulushi ortsa, o'rtacha zichlik kattalashadi va rang to'qroq bo'ladi. Ochroq bo'ladi degan II noto'g'ri.\n3-qadam. Oddiy issiqlik kengayishida massa saqlanib, hajm ortadi: $\\rho=m/V$ kamayadi. Zichlik shkalasida bu ochroq tomonga siljishdir, qorayish emas. III noto'g'ri.\n4-qadam. Bu bo'yoqning haqiqiy kimyoviy rangi isitilganda almashadi degani emas: rang bu yerda faqat sonli zichlikning shartli belgisi.\n\nJavob:\nFaqat I (A).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 31,
+      "test": 7,
+      "question": 7,
+      "printedAnswer": "A"
+    }
+  },
+  {
+    "id": "vip-tyt-madde-t07-08",
+    "text": "Ebru — quyuqlashtirilgan suv sirtiga bo'yoq tomizib naqsh hosil qilish san'ati. Masalaning hajmlar qo'shiladigan modelida kitre suvga qo'shilganda aralashmaning zichligi ortadi. Bo'yoqqa qo'shiladigan qoramol o'ti esa sirt-faol modda kabi uning sirt tarangligini kamaytirib, boshqariladigan yoyilishiga yordam beradi.\nI. Mazkur modelda kitrening zichligi suvnikidan katta.\nII. Qoramol o'ti bo'yoqning sirt tarangligini oshiradi.\nIII. Qoramol o'ti bo'yoqning sirt tarangligini kamaytiradi.\nQaysi tasdiqlar to'g'ri?",
+    "options": [
+      "Faqat I",
+      "Faqat II",
+      "Faqat III",
+      "I va II",
+      "I va III"
+    ],
+    "answer": "E",
+    "correctAnswer": "E",
+    "explanation": "Berilgan:\nKitre qo'shilganda zichlik oshishi masala sharti sifatida olingan. Qoramol o'ti bo'yoqqa qo'shiladigan sirt-faol modda deb berilgan.\n\nTopish kerak:\nAralashma zichligi va sirt-faol modda haqidagi to'g'ri tasdiqlarni topish.\n\nYechilishi:\n1-qadam. Hajmlar qo'shilsa $\\rho_{ar}=(\\rho_sV_s+\\rho_kV_k)/(V_s+V_k)$. Agar $\\rho_k\\le\\rho_s$ bo'lsa, aralashma zichligi suvnikidan katta bo'lolmaydi. Shartda u ortgan, demak ushbu modelda $\\rho_k>\\rho_s$. I to'g'ri.\n2-qadam. Qoramol o'tidagi sirt-faol moddalar bo'yoq sirt tarangligini kamaytiradi. Shu orqali tomchining quyuqlashtirilgan suv sirtida yoyilishini boshqarish mumkin. III to'g'ri, II noto'g'ri.\n3-qadam. Bo'yoqlarning bir-biriga aralashib ketmasligini faqat adgeziya kamayishi bilan izohlash yetarli emas: taglik qovushoqligi va bo'yoqlar orasidagi sirt tarangligi farqi ham ahamiyatli. Shartda berilgan ikki mexanizmni ajratib ko'rish kifoya.\n\nJavob:\nI va III (E).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 31,
+      "test": 7,
+      "question": 8,
+      "printedAnswer": "E",
+      "correction": "Aslda qoramol o'ti suvga qo'shiladi va adgeziyani kamaytiradi deb izohlangan. Amaliy jarayonga mos ravishda bo'yoqqa qo'shilishi va sirt tarangligini kamaytirishi bilan tuzatildi; II va III qayta ifodalandi, E harfi saqlandi."
+    }
+  }
+]

@@ -1,0 +1,15 @@
+{
+  "questions": 65,
+  "tests": 8,
+  "sourcePdfPages": [
+    18,
+    34
+  ],
+  "importProblems": 0,
+  "importWarnings": 0,
+  "katexFormulasParsed": 423,
+  "referencedImages": 85,
+  "uniqueIds": 65,
+  "splitFilesMatchCombined": true,
+  "numericalChecks": 9
+}

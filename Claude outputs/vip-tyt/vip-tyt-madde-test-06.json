@@ -1,0 +1,229 @@
+[
+  {
+    "id": "vip-tyt-madde-t06-01",
+    "text": "Tashqi o'lchamlari 10 sm, 1 sm va 4 sm bo'lgan temir parallelepiped ichida 8 sm³ bo'shliq bor. Jism eritilib, radiusi 2 sm bo'lgan bo'shliqsiz sharlar quyiladi. Temir isrof bo'lmaydi, zichlik o'zgarmaydi. Nechta shar olinadi? $(\\pi=3)$",
+    "options": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "answer": "A",
+    "correctAnswer": "A",
+    "explanation": "Berilgan:\n$V_{tashqi}=10\\cdot1\\cdot4\\,\\text{sm}^3$, $V_{bo\\text{sh}}=8\\,\\text{sm}^3$, $r=2\\,\\text{sm}$, $\\pi=3$.\n\nTopish kerak:\nTemirning haqiqiy hajmidan olinadigan sharlar sonini topish.\n\nYechilishi:\n1-qadam. Tashqi hajm $V_{tashqi}=10\\cdot1\\cdot4=40\\,\\text{sm}^3$.\n2-qadam. Bo'shliq temir emas. Shu sabab eritiladigan temir hajmi $V_{Fe}=40-8=32\\,\\text{sm}^3$.\n3-qadam. Bitta shar hajmi $V_{shar}=\\frac43\\pi r^3=\\frac43\\cdot3\\cdot2^3=32\\,\\text{sm}^3$.\n4-qadam. Eritib quyilgani uchun shakllar orasidagi kesish chiqindisini emas, modda hajmi saqlanishini ishlatamiz: $N=V_{Fe}/V_{shar}=32/32=1$.\nNatijani tekshiramiz: bitta shar butun 32 sm³ temirni ishlatadi, ikkinchisi uchun temir qolmaydi.\n\nJavob:\n1 ta shar (A).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 28,
+      "test": 6,
+      "question": 1,
+      "printedAnswer": "A"
+    }
+  },
+  {
+    "id": "vip-tyt-madde-t06-02",
+    "text": "Kulol ichi bo'sh bo'lmagan tik silindrsimon loyni balandligini o'zgartirmasdan tik konusga aylantirdi. Loy yo'qolmadi va siqilmadi. Dastlabki holatga nisbatan qaysi kattaliklar ortadi?\nI. Asos yuzi/hajm bilan ifodalanuvchi o'z og'irligiga nisbiy bardoshlilik ko'rsatkichi.\nII. Asos yuzi.\nIII. Hajm.",
+    "options": [
+      "Faqat I",
+      "Faqat II",
+      "I va II",
+      "I va III",
+      "II va III"
+    ],
+    "answer": "C",
+    "correctAnswer": "C",
+    "explanation": "Berilgan:\n$h_1=h_2=h$, $V_1=V_2$. Silindr uchun $V=S_1h$, konus uchun $V=S_2h/3$.\n\nTopish kerak:\nAsos yuzi, hajm va savolda ta'riflangan nisbiy ko'rsatkich o'zgarishini aniqlash.\n\nYechilishi:\n1-qadam. Loyning massasi va zichligi o'zgarmagan: hajm saqlanadi. Demak III ortmaydi.\n2-qadam. Hajmlarni tenglaymiz: $S_1h=S_2h/3$. Balandlik qisqargach $S_2=3S_1$. Konus asosining yuzi uch marta ortadi. II to'g'ri.\n3-qadam. Savolda ko'rsatkich $D\\sim S_{asos}/V$ deb belgilangan. Hajm saqlanib, asos yuzi uch marta ortgani uchun $D_2/D_1=3$. I ham to'g'ri.\n4-qadam. Bu maktabdagi geometrik taqqoslash ko'rsatkichi; konusning har nuqtasidagi real mexanik kuchlanish taqsimotini alohida hisoblash talab etilmaydi.\n\nJavob:\nI va II (C).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 28,
+      "test": 6,
+      "question": 2,
+      "printedAnswer": "C"
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t06-02.webp"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t06-03",
+    "text": "Bir-biriga aralashmaydigan turli zichlikli K, L, M suyuqliklar bir xil kesimli X, Y, Z idishlarda rasmdek turibdi. X da: K balandligi 2h, M balandligi 2h; Y da: L balandligi 3h, M balandligi h; Z da: K — h, L — h, M — 2h.\nI. X dagi suyuqlik massasi Y dagidan katta.\nII. X dagi suyuqlik massasi Z dagidan katta.\nIII. Y dagi suyuqlik massasi Z dagidan katta.\nQaysilar albatta to'g'ri?",
+    "options": [
+      "Faqat I",
+      "Faqat II",
+      "Faqat III",
+      "I va II",
+      "I va III"
+    ],
+    "answer": "B",
+    "correctAnswer": "B",
+    "explanation": "Berilgan:\nQatlamlardan $\\rho_K>\\rho_L>\\rho_M$. Barcha idishlar kesimi S ga teng.\n\nTopish kerak:\nZichlik qiymatlari berilmasdan isbotlanadigan massa tengsizligini topish.\n\nYechilishi:\n1-qadam. Har qatlam massasi $m=\\rho Sh$. Shuning uchun $m_X=Sh(2\\rho_K+2\\rho_M)$, $m_Y=Sh(3\\rho_L+\\rho_M)$, $m_Z=Sh(\\rho_K+\\rho_L+2\\rho_M)$.\n2-qadam. $m_X-m_Z=Sh(\\rho_K-\\rho_L)>0$. II albatta to'g'ri.\n3-qadam. $m_X-m_Y=Sh(2\\rho_K+\\rho_M-3\\rho_L)$. Faqat tartib ma'lum bo'lganda bu ifoda musbat ham, manfiy ham bo'lishi mumkin. Masalan, $\\rho_K=4$, $\\rho_L=2$, $\\rho_M=1$ bo'lsa musbat; $\\rho_K=3$, $\\rho_L=2{,}5$, $\\rho_M=1$ bo'lsa manfiy.\n4-qadam. $m_Y-m_Z=Sh(2\\rho_L-\\rho_K-\\rho_M)$ ham aniq ishorali emas: birinchi misolda manfiy, ikkinchisida musbat. Demak I va III kafolatlanmaydi.\n\nJavob:\nFaqat II (B).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 3,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 28,
+      "test": 6,
+      "question": 3,
+      "printedAnswer": "B"
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t06-03.webp"
+    ],
+    "explanationImages": [
+      "/savol-rasm/vip-tyt-madde/t06-03y.svg"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t06-04",
+    "text": "A suyuqlikning 60 g massasi egallagan hajm B suyuqlikning 100 g massasi egallagan hajmiga teng. Massa–hajm grafiklaridan qaysi biri mos keladi?",
+    "options": [
+      {
+        "label": "A",
+        "text": "Bir xil 40 g da A:10 sm³, B:20 sm³",
+        "image": "/savol-rasm/vip-tyt-madde/t06-04-A.webp"
+      },
+      {
+        "label": "B",
+        "text": "Bir xil 100 g da A:30 sm³, B:50 sm³",
+        "image": "/savol-rasm/vip-tyt-madde/t06-04-B.webp"
+      },
+      {
+        "label": "C",
+        "text": "Bir xil 60 g da A:30 sm³, B:50 sm³",
+        "image": "/savol-rasm/vip-tyt-madde/t06-04-C.webp"
+      },
+      {
+        "label": "D",
+        "text": "Bir xil 150 g da B:30 sm³, A:50 sm³",
+        "image": "/savol-rasm/vip-tyt-madde/t06-04-D.webp"
+      },
+      {
+        "label": "E",
+        "text": "Bir xil 150 g da A:30 sm³, B:50 sm³",
+        "image": "/savol-rasm/vip-tyt-madde/t06-04-E.webp"
+      }
+    ],
+    "answer": "D",
+    "correctAnswer": "D",
+    "explanation": "Berilgan:\n$V_A(60\\,\\text{g})=V_B(100\\,\\text{g})=V_0$.\n\nTopish kerak:\nZichliklar nisbatiga mos grafikni topish.\n\nYechilishi:\n1-qadam. Teng hajm uchun $\\rho_A=60/V_0$, $\\rho_B=100/V_0$, bundan $\\rho_A/\\rho_B=60/100=3/5$. B chizig'i A nikidan tikroq bo'lishi kerak.\n2-qadam. D variantida bir xil 150 g massa uchun $V_A=50\\,\\text{sm}^3$, $V_B=30\\,\\text{sm}^3$. Demak $\\rho_A=150/50=3$, $\\rho_B=150/30=5\\,\\text{g/sm}^3$. Nisbat 3/5 — to'g'ri.\n3-qadam. Bevosita tekshirish: A ning 60 g hajmi $60/3=20\\,\\text{sm}^3$, B ning 100 g hajmi $100/5=20\\,\\text{sm}^3$.\n4-qadam. Qolgan grafiklarda A chizig'i B dan tikroq; bu $\\rho_A<\\rho_B$ shartiga zid.\n\nJavob:\nD grafik (D).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 28,
+      "test": 6,
+      "question": 4,
+      "printedAnswer": "D"
+    }
+  },
+  {
+    "id": "vip-tyt-madde-t06-05",
+    "text": "Rasmda suv sirtida cho'kmay turgan hasharot va suv molekulalarining soddalashtirilgan modeli berilgan. A — sirt yaqinidagi, B — suyuqlik ichkarisidagi molekula. Bu savolda faqat qo'shni suyuqlik molekulalarining tortishish kuchlari, gaz ta'siri e'tiborsiz modelda qaraladi.\nI. Hasharot albatta zichligi suvnikidan kichik bo'lgani uchun turibdi.\nII. A ga ta'sir qiluvchi ushbu molekulyar tortishish kuchlarining vektor yig'indisi nol.\nIII. B ga ta'sir qiluvchi ushbu kuchlarning o'rtacha vektor yig'indisi nol.\nQaysilar to'g'ri?",
+    "options": [
+      "Faqat III",
+      "I va II",
+      "I va III",
+      "II va III",
+      "I, II va III"
+    ],
+    "answer": "A",
+    "correctAnswer": "A",
+    "explanation": "Berilgan:\nSirt molekulasining yuqori tomonida suyuqlik molekulalari yetishmaydi. Ichkaridagi molekula atrofida qo'shnilar barcha yo'nalishlarda bor.\n\nTopish kerak:\nMolekulyar kuchlar simmetriyasini baholash.\n\nYechilishi:\n1-qadam. Suv sirtida turish faqat zichlik kichikligini isbotlamaydi: sirt tarangligi metall igna yoki zichroq jismni ham ushlab turishi mumkin. I albatta to'g'ri emas.\n2-qadam. A ning yon va past tomonida suv molekulalari bor, yuqorisida esa gaz ta'siri e'tiborsiz. Tortishishlar simmetrik emas: soddalashtirilgan modelda natijaviy molekulyar tortishish suyuqlik ichiga yo'naladi. II noto'g'ri.\n3-qadam. B atrofida o'rtacha bir xil muhit bor. Qarama-qarshi yo'nalishdagi molekulyar tortishishlar o'rtacha kompensatsiyalanadi. III to'g'ri.\n4-qadam. Molekulyar tortishishning yig'indisi bilan barcha kuchlarni o'z ichiga olgan mexanik muvozanatni aralashtirmaymiz. Savolda aynan birinchi tushuncha so'ralgan.\n\nJavob:\nFaqat III (A).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 3,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 29,
+      "test": 6,
+      "question": 5,
+      "printedAnswer": "D",
+      "correction": "Aslda «net kuch» deganda molekulyar tortishishmi yoki barcha kuchlarmi ekani noaniq; D kaliti rasm modeli bilan mos emas. Model aniqlandi, A varianti «Faqat I»dan «Faqat III»ga, kalit D dan A ga tuzatildi."
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t06-05.webp"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t06-06",
+    "text": "Bir xil halqa suyuqlik sirtidan juda sekin tortib ajratiladi. Og'irlik va bir xil geometrik tuzatmalar hisobdan chiqarilgach, sirt tarangligiga mos uzilish kuchlari $F_1,F_2,F_3$ o'lchandi. I tajriba — 20 °C toza suv; II — 40 °C toza suv; III — 40 °C yuvish vositali suv. Kuchlar orasidagi munosabat qanday?",
+    "options": [
+      "$F_1=F_2=F_3$",
+      "$F_3>F_2>F_1$",
+      "$F_1>F_2>F_3$",
+      "$F_1>F_3>F_2$",
+      "$F_2=F_3>F_1$"
+    ],
+    "answer": "C",
+    "correctAnswer": "C",
+    "explanation": "Berilgan:\nHalqa bir xil; I va II da faqat harorat, II va III da yuvish vositasi farq qiladi.\n\nTopish kerak:\nSirt tarangligi va uzilish kuchlarini taqqoslash.\n\nYechilishi:\n1-qadam. Bir xil halqa uchun sirt taranglik kuchi $F_\\sigma=\\sigma L_{eff}$; samarali kontakt uzunligi barcha tajribalarda bir xil. Shuning uchun kuchlar tartibi $\\sigma$ lar tartibiga teng.\n2-qadam. Toza suvni 20 °C dan 40 °C gacha isitish sirt tarangligini kamaytiradi. Demak $F_1>F_2$.\n3-qadam. 40 °C dagi suvga yuvish vositasi qo'shish sirt tarangligini yanada kamaytiradi. Demak $F_2>F_3$.\n4-qadam. Ikkala natijani birlashtiramiz: $F_1>F_2>F_3$. Halqa og'irligini sirt kuchi bilan aralashtirmaslik uchun shartda taraning chiqarilgani aytilgan.\n\nJavob:\n$F_1>F_2>F_3$ (C).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 29,
+      "test": 6,
+      "question": 6,
+      "printedAnswer": "C"
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t06-06.webp"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t06-07",
+    "text": "Plastilindan yasalgan kubning uch o'lchami — eni, uzunligi va balandligi rasmda ko'rsatilgan. Uni ichi to'liq tik parallelepiped sifatida qarab, qaysi o'lchamlar alohida kamaytirilsa, o'z og'irligiga nisbiy bardoshlilik $S_{asos}/V$ o'zgarmaydi?",
+    "options": [
+      "Faqat eni",
+      "Faqat uzunligi",
+      "Eni va uzunligi",
+      "Eni va balandligi",
+      "Eni, uzunligi va balandligi"
+    ],
+    "answer": "C",
+    "correctAnswer": "C",
+    "explanation": "Berilgan:\nAsos o'lchamlari a va b, balandlik h. $S_{asos}=ab$, $V=abh$.\n\nTopish kerak:\nNisbiy ko'rsatkich qaysi o'lchamlarga bog'liq emasligini aniqlash.\n\nYechilishi:\n1-qadam. $D\\sim S_{asos}/V=ab/(abh)=1/h$.\n2-qadam. Faqat eni a kamayganda asos yuzi ham, hajm ham bir xil nisbatda kamayadi. Ularning nisbati saqlanadi.\n3-qadam. Faqat uzunligi b kamayganda ham ayni holat yuz beradi.\n4-qadam. Balandlik h kamayganda esa $1/h$ ortadi. Demak balandlikni kamaytirish nisbiy bardoshlilikni oshiradi, o'zgarmas qoldirmaydi. Natijada eni va uzunligi javobi tanlanadi.\n\nJavob:\nEni va uzunligi (C).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 29,
+      "test": 6,
+      "question": 7,
+      "printedAnswer": "C"
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t06-07.webp"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t06-08",
+    "text": "Yopiq shisha idishda suv, uning sirtida to'g'nog'ich va suvga botirilgan, yuqori uchi idish havosiga ochiq kapillyar bor. Idishga nasos bilan havoni sekin yuborib, umumiy havo bosimi oshiriladi. Havo oqimi ignaga tegmaydi; harorat, ho'llanish va sirt tarangligi o'zgarmaydi. To'g'nog'ich hamda kapillyardagi suvning holati qanday bo'ladi?",
+    "options": [
+      "To'g'nog'ich suv sirtida qoladi; kapillyar balandlik kamayadi",
+      "To'g'nog'ich cho'kadi; kapillyar balandlik ortadi",
+      "To'g'nog'ich suv ichida muallaq qoladi; kapillyar balandlik o'zgarmaydi",
+      "To'g'nog'ich suv sirtida qoladi; kapillyar balandlik ortadi",
+      "To'g'nog'ich suv sirtida qoladi; kapillyar balandlik o'zgarmaydi"
+    ],
+    "answer": "E",
+    "correctAnswer": "E",
+    "explanation": "Berilgan:\nSuvning tashqi sirti va kapillyardagi sirt ustida bitta havo bo'shlig'i bor. Nasos ikkala joydagi bosimni bir xil oshiradi.\n\nTopish kerak:\nUmumiy bosimning o'zgarishi muvozanatga ta'sir qiladimi, aniqlash.\n\nYechilishi:\n1-qadam. Kapillyar muvozanatda $\\rho gh=2\\sigma\\cos\\theta/r$. Umumiy havo bosimi idish sirtida ham, nay yuqorisida ham bir xil bo'lgani uchun tenglamadan qisqaradi.\n2-qadam. Harorat, $\\sigma$, $\\theta$, r va zichlik o'zgarmasa, h ham o'zgarmaydi. Suvga faqat tashqaridan qo'shimcha bosim berilishi «nayni pastga bosadi» degan xulosa noto'g'ri.\n3-qadam. To'g'nog'ichga gaz bosimi barcha ochiq yo'nalishlardan ta'sir qiladi. Sirt tarangligi va og'irlik oldingidek qolgan, mexanik bezovtalik esa chiqarib tashlangan. Shuning uchun u sirtida qoladi.\n4-qadam. Natija E. Agar kuchli havo oqimi sirtni buzsa yoki nay uchi boshqa bosimga ulangan bo'lsa, boshqa masala bo'lar edi.\n\nJavob:\nTo'g'nog'ich sirtida qoladi, kapillyar balandlik o'zgarmaydi (E).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 3,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 29,
+      "test": 6,
+      "question": 8,
+      "printedAnswer": "E",
+      "correction": "Asl E variantidagi «igna cho'kadi» xulosasi umumiy bosimning o'zidan kelib chiqmaydi. E ning birinchi qismi «sirtida qoladi» deb tuzatildi; bosim, harorat va oqim shartlari aniqlandi."
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t06-08.webp"
+    ]
+  }
+]
