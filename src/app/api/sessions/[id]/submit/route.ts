@@ -8,6 +8,7 @@ import { extractItemPoints, loadSessionItems, sessionPreserveOrder } from '@/lib
 import { refundBuiltTest } from '@/lib/quota';
 import { resolveAttemptCandidates, toAttemptCreateInput } from '@/lib/attempts';
 import { logger } from '@/lib/logger';
+import { orderResultsBySubmission } from '@/lib/exam-presentation';
 
 // POST /api/sessions/[id]/submit — sessiya javoblarini baholaydi va
 // TestResult yaratadi. Baholash mantig'i /api/tests/[id]/submit bilan
@@ -67,12 +68,13 @@ export async function POST(
     // shu sababli ikkalasi bitta yordamchidan (`sessionPreserveOrder`)
     // oladi, aks holda bo'lim-asosidagi (DTM Online) sessiyalarda savol
     // pozitsiyasi mos kelmay, baholash jimgina buziladi.
-    const { answerResults, score, maxScore, percentage } = await gradeSubmission({
+    const { answerResults: gradedAnswers, score, maxScore, percentage } = await gradeSubmission({
       questions: items,
       answers: sanitizedAnswers,
       baseSeed: testSession.seed,
       preserveOrder: sessionPreserveOrder(testSession.spec),
     });
+    const answerResults = orderResultsBySubmission(gradedAnswers, sanitizedAnswers.map(answer => answer.questionId));
 
     // S27 — Item topilgan javoblarni Attempt sifatida yozish uchun oldindan
     // hisoblanadi (sof o'qish, tranzaksiyadan TASHQARIDA) — sessiya

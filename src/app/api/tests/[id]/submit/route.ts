@@ -8,6 +8,7 @@ import { gradeSubmission } from '@/lib/grading';
 import { creditQuizLessonProgress } from '@/lib/course-progress';
 import { resolveAttemptCandidates, toAttemptCreateInput } from '@/lib/attempts';
 import { logger } from '@/lib/logger';
+import { orderResultsBySubmission } from '@/lib/exam-presentation';
 
 // POST /api/tests/[id]/submit — test javoblarini yuborish va natija olish
 export async function POST(
@@ -76,12 +77,13 @@ export async function POST(
     const baseSeed = generateSeed(userId, id);
     const preserveOrder = test.questions.some((q) => q.subjectId);
 
-    const { answerResults, score, maxScore, percentage } = await gradeSubmission({
+    const { answerResults: gradedAnswers, score, maxScore, percentage } = await gradeSubmission({
       questions: test.questions,
       answers: sanitizedAnswers,
       baseSeed,
       preserveOrder,
     });
+    const answerResults = orderResultsBySubmission(gradedAnswers, sanitizedAnswers.map(answer => answer.questionId));
 
     // S27 — Item topilgan javoblarni Attempt sifatida yozish uchun oldindan
     // hisoblanadi (sof o'qish, tranzaksiyadan TASHQARIDA) — TestResult.create

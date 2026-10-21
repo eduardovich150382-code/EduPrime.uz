@@ -21,6 +21,7 @@ interface QuestionDisplayProps {
   isReview?: boolean;
   correctAnswer?: string;
   questionType?: string;
+  hideNumber?: boolean;
 }
 
 export default function QuestionDisplay({
@@ -34,6 +35,7 @@ export default function QuestionDisplay({
   isReview = false,
   correctAnswer,
   questionType,
+  hideNumber = false,
 }: QuestionDisplayProps) {
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
 
@@ -42,9 +44,9 @@ export default function QuestionDisplay({
       {/* Question text */}
       <div className="space-y-4">
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-sm font-medium text-primary-600 bg-primary-50 px-3 py-1 rounded-full">
+          {!hideNumber && <span className="text-sm font-medium text-primary-600 bg-primary-50 px-3 py-1 rounded-full">
             {questionNumber}-savol ({totalQuestions} dan)
-          </span>
+          </span>}
           {questionType === 'OPEN_ENDED' && (
             <span className="text-xs font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">
               Ochiq savol

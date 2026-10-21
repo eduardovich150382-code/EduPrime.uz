@@ -354,4 +354,18 @@ describe("POST /api/sessions/[id]/submit", () => {
     expect(status).toBe(400);
     expect(findUniqueSessionMock).not.toHaveBeenCalled();
   });
+
+  it('natija javoblarini urinishdagi tartib bilan saqlaydi', async () => {
+    const testSession = buildSession({ itemIds: ['item1', 'item2'] });
+    findUniqueSessionMock.mockResolvedValue(testSession);
+    const items = [buildItem(), buildItem({ id: 'item2' })];
+    findManyItemMock.mockResolvedValue(items);
+    createResultMock.mockImplementation(({ data }: { data: Record<string, unknown> }) => Promise.resolve({ id: 'result1', ...data }));
+    const order = shuffleArray(items, testSession.seed).reverse();
+    const { status, data } = await callSubmit({ answers: order.map(question => ({ questionId: question.id, answer: '', timeSpent: 0 })), timeSpent: 10 });
+    expect(status).toBe(200);
+    const expected = order.map(question => question.id);
+    expect(data.result.answers.map((answer: { questionId: string }) => answer.questionId)).toEqual(expected);
+    expect(createResultMock.mock.calls[0][0].data.answers.map((answer: { questionId: string }) => answer.questionId)).toEqual(expected);
+  });
 });

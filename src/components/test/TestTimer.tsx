@@ -1,74 +1,42 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
-import { Clock, AlertTriangle } from 'lucide-react';
-import { formatTime } from '@/lib/utils';
+import { useEffect, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface TestTimerProps {
   totalSeconds: number;
   onTimeUp: () => void;
+  remainingSeconds?: number;
+  expiresAt?: string;
 }
 
-export default function TestTimer({ totalSeconds, onTimeUp }: TestTimerProps) {
+export default function TestTimer({ totalSeconds, onTimeUp, remainingSeconds, expiresAt }: TestTimerProps) {
+  const t = useTranslations('exam');
   const [remaining, setRemaining] = useState(totalSeconds);
-  const [showAlert, setShowAlert] = useState<string | null>(null);
-  const alertedRef = useRef({ fiveMin: false, oneMin: false });
-
+  const fired = useRef(false);
+  const callback = useRef(onTimeUp);
+  useEffect(() => { callback.current = onTimeUp; }, [onTimeUp]);
+  const controlled = remainingSeconds !== undefined;
   useEffect(() => {
-    if (remaining <= 0) {
-      onTimeUp();
-      return;
-    }
-
-    const interval = setInterval(() => {
-      setRemaining((prev) => {
-        if (prev <= 1) {
-          onTimeUp();
-          return 0;
-        }
-
-        // Alert at 5 minutes
-        if (prev <= 301 && prev > 299 && !alertedRef.current.fiveMin) {
-          alertedRef.current.fiveMin = true;
-          setShowAlert('5 daqiqa qoldi!');
-          setTimeout(() => setShowAlert(null), 3000);
-        }
-        // Alert at 1 minute
-        if (prev <= 61 && prev > 59 && !alertedRef.current.oneMin) {
-          alertedRef.current.oneMin = true;
-          setShowAlert('1 daqiqa qoldi!');
-          setTimeout(() => setShowAlert(null), 3000);
-        }
-
-        return prev - 1;
-      });
-    }, 1000);
-
+    fired.current = false;
+    if (controlled) return;
+    // Fon tabidagi interval sekinlashsa ham soat real muddatdan hisoblanadi.
+    const deadline = expiresAt ? new Date(expiresAt).getTime() : Date.now() + totalSeconds * 1000;
+    const tick = () => setRemaining(Math.max(0, Math.ceil((deadline - Date.now()) / 1000)));
+    tick();
+    const interval = setInterval(tick, 250);
     return () => clearInterval(interval);
-  }, [remaining, onTimeUp]);
-
-  const isLow = remaining < 300; // Less than 5 minutes
-  const isCritical = remaining < 60; // Less than 1 minute
-
-  return (
-    <>
-      <div className={cn(
-        'flex items-center gap-2 px-4 py-2 rounded-xl font-mono text-sm font-semibold transition-colors',
-        isCritical ? 'bg-red-100 text-red-700 animate-pulse' :
-        isLow ? 'bg-yellow-100 text-yellow-700' :
-        'bg-primary-50 text-primary-700'
-      )}>
-        {isCritical ? <AlertTriangle size={16} /> : <Clock size={16} />}
-        <span>{formatTime(remaining)}</span>
-      </div>
-      {/* Time alert toast */}
-      {showAlert && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-yellow-500 text-white px-5 py-2.5 rounded-xl shadow-lg text-sm font-semibold flex items-center gap-2 animate-bounce">
-          <AlertTriangle size={16} />
-          {showAlert}
-        </div>
-      )}
-    </>
-  );
+  }, [totalSeconds, expiresAt, controlled]);
+  const value = Math.max(0, remainingSeconds ?? remaining);
+  useEffect(() => {
+    if (value <= 0 && !fired.current) { fired.current = true; callback.current(); }
+  }, [value]);
+  const hours = Math.floor(value / 3600), minutes = Math.floor((value % 3600) / 60), seconds = value % 60;
+  return <div role="timer" aria-label={t('timeLeft')} className={cn('flex shrink-0 flex-col items-end', value < 60 ? 'text-red-700' : value < 300 ? 'text-amber-700' : 'text-text-primary')}>
+    <span className="mb-1 flex items-center gap-1.5 text-xs text-text-secondary"><Clock size={14} aria-hidden="true" />{t('timeLeft')}</span>
+    <span className="font-mono text-[clamp(1.5rem,3vw,2rem)] font-semibold leading-none tracking-tight tabular-nums">{[hours, minutes, seconds].map(part => String(part).padStart(2, '0')).join(':')}</span>
+    {value > 0 && value < 300 && <span className="sr-only" role="status">{t('minutesLeft', { minutes: Math.ceil(value / 60) })}</span>}
+  </div>;
 }

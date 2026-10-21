@@ -42,7 +42,7 @@ export async function GET(
         expiresAt: testSession.expiresAt,
         submittedAt: testSession.submittedAt,
         questionCount: questions.length,
-        questions,
+        questions: questions.map(question => ({ ...question, subject: items.find(item => item.id === question.id)?.subject })),
         // Bo'lim-asosidagi (DTM Online) sessiyada navigatorni fanlar bo'yicha
         // guruhlash uchun — bo'limsiz (konstruktor) sessiyada undefined,
         // QuestionNav shunda avvalgidek tekis ro'yxat ko'rsatadi.

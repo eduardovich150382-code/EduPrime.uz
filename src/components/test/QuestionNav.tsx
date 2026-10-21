@@ -1,123 +1,49 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { Bookmark, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-interface QuestionSection {
-  label: string;
-  count: number;
-}
+import { hasExamAnswer } from '@/lib/exam-presentation';
 
 interface QuestionNavProps {
-  totalQuestions: number;
-  currentQuestion: number;
-  answers: Record<number, string>;
-  onNavigate: (index: number) => void;
-  flaggedQuestions?: Set<number>;
-  /** Ixtiyoriy — berilsa savollar bo'limlarga guruhlanib, sarlavha bilan ko'rsatiladi (masalan DTM Online). */
-  sections?: QuestionSection[];
+  totalQuestions: number; currentQuestion: number; answers: Record<number, string>;
+  onNavigate: (index: number) => void; flaggedQuestions?: Set<number>;
+  sections?: { label: string; count: number }[];
 }
 
-function QuestionButton({
-  index, isActive, isAnswered, isFlagged, onNavigate,
-}: {
-  index: number; isActive: boolean; isAnswered: boolean; isFlagged: boolean; onNavigate: (i: number) => void;
-}) {
-  return (
-    <button
-      onClick={() => onNavigate(index)}
-      className={cn(
-        'w-9 h-9 rounded-lg text-xs font-semibold transition-all duration-200 relative',
-        isActive && 'bg-primary-600 text-white shadow-md shadow-primary-500/30 scale-110',
-        !isActive && isAnswered && 'bg-green-100 text-green-700 border border-green-200',
-        !isActive && !isAnswered && 'bg-gray-100 text-text-secondary hover:bg-primary-50 hover:text-primary-600'
-      )}
-    >
-      {index + 1}
-      {isFlagged && (
-        <span className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full border border-white" />
-      )}
+export default function QuestionNav({ totalQuestions, currentQuestion, answers, onNavigate, flaggedQuestions = new Set(), sections }: QuestionNavProps) {
+  const t = useTranslations('exam');
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const media = window.matchMedia('(min-width: 1024px)');
+    setOpen(media.matches);
+    const update = () => setOpen(media.matches);
+    media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
+  }, []);
+  const button = (index: number) => {
+    const active = index === currentQuestion, answered = hasExamAnswer(answers[index]), flagged = flaggedQuestions.has(index);
+    return <button key={index} type="button" onClick={() => { onNavigate(index); if (!window.matchMedia('(min-width: 1024px)').matches) setOpen(false); }} aria-current={active ? 'step' : undefined}
+      aria-label={`${t('questionNumber', { current: index + 1, total: totalQuestions })}: ${t(answered ? 'answered' : 'unanswered')}${flagged ? `, ${t('flagged')}` : ''}`}
+      className={cn('relative flex min-h-11 min-w-0 items-center justify-center rounded-xl border text-sm font-medium tabular-nums transition-colors', active ? 'border-primary-600 bg-primary-600 text-white' : answered ? 'border-transparent bg-primary-50 text-primary-700 hover:border-primary-300' : 'border-border bg-gray-50 text-text-secondary hover:border-primary-300')}>
+      {index + 1}{flagged && <Bookmark size={12} aria-hidden="true" fill="currentColor" className={`absolute -top-1 right-0.5 ${active ? 'text-yellow-300' : 'text-amber-600'}`} />}
+    </button>;
+  };
+  let offset = 0;
+  const groups = sections?.length ? sections : [{ label: '', count: totalQuestions }];
+  return <div className="rounded-[18px] border border-border bg-white p-4">
+    <button type="button" aria-expanded={open} aria-controls="exam-question-map" onClick={() => setOpen(value => !value)} className="flex min-h-11 w-full items-center justify-between gap-2 text-left text-sm font-semibold">
+      <span>{t('questionMap')}</span><span className="ml-auto text-xs font-normal text-text-secondary">{Object.values(answers).filter(hasExamAnswer).length} / {totalQuestions}</span><ChevronDown size={16} className={open ? 'rotate-180' : ''} />
     </button>
-  );
-}
-
-export default function QuestionNav({
-  totalQuestions,
-  currentQuestion,
-  answers,
-  onNavigate,
-  flaggedQuestions = new Set(),
-  sections,
-}: QuestionNavProps) {
-  const showSections = sections && sections.length > 1;
-
-  return (
-    <div className="card p-4">
-      <h3 className="text-sm font-semibold text-text-primary mb-3">Savollar</h3>
-
-      {showSections ? (
-        <div className="space-y-4">
-          {(() => {
-            let offset = 0;
-            return sections!.map((section, sIdx) => {
-              const start = offset;
-              offset += section.count;
-              return (
-                <div key={sIdx}>
-                  <p className="text-xs font-medium text-text-secondary mb-2">{section.label}</p>
-                  <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-5 gap-2">
-                    {Array.from({ length: section.count }).map((_, j) => {
-                      const i = start + j;
-                      return (
-                        <QuestionButton
-                          key={i}
-                          index={i}
-                          isActive={i === currentQuestion}
-                          isAnswered={answers[i] !== undefined && answers[i] !== ''}
-                          isFlagged={flaggedQuestions.has(i)}
-                          onNavigate={onNavigate}
-                        />
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            });
-          })()}
-        </div>
-      ) : (
-        <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-5 gap-2">
-          {Array.from({ length: totalQuestions }).map((_, i) => (
-            <QuestionButton
-              key={i}
-              index={i}
-              isActive={i === currentQuestion}
-              isAnswered={answers[i] !== undefined && answers[i] !== ''}
-              isFlagged={flaggedQuestions.has(i)}
-              onNavigate={onNavigate}
-            />
-          ))}
-        </div>
-      )}
-      <div className="flex items-center gap-4 mt-4 text-xs text-text-secondary flex-wrap">
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded bg-green-100 border border-green-200" />
-          <span>Javob berilgan</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded bg-primary-600" />
-          <span>Hozirgi</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded bg-gray-100" />
-          <span>Javobsiz</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded bg-white border border-gray-200 relative">
-            <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-yellow-400 rounded-full" />
-          </div>
-          <span>Belgilangan</span>
-        </div>
+    <div id="exam-question-map" hidden={!open}>
+      {groups.map((group, groupIndex) => {
+        const start = offset; offset += group.count;
+        return <div key={groupIndex} className="mt-3">{group.label && <h3 className="mb-2 text-xs font-medium text-text-secondary">{group.label}</h3>}<div className="grid grid-cols-5 gap-2">{Array.from({ length: Math.min(group.count, totalQuestions - start) }, (_, j) => button(start + j))}</div></div>;
+      })}
+      <div className="mt-4 flex flex-wrap gap-x-3 gap-y-2 text-[11px] text-text-secondary">
+        {(['answered', 'current', 'unanswered'] as const).map((label, index) => <span key={label} className="flex items-center gap-1.5"><span className={cn('h-2.5 w-2.5 rounded-sm', index === 0 ? 'bg-primary-100' : index === 1 ? 'bg-primary-600' : 'border border-border bg-gray-50')} />{t(label)}</span>)}<span className="flex items-center gap-1"><Bookmark size={12} className="text-amber-600" />{t('flagged')}</span>
       </div>
     </div>
-  );
+  </div>;
 }

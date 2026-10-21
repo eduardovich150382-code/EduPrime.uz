@@ -98,3 +98,48 @@
     background-position: 0% 50%;
   }
 }
+
+@layer components {
+  .exam-control {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-white px-3 py-2 text-sm font-medium text-text-primary transition-colors hover:border-primary-300 hover:bg-primary-50 disabled:cursor-not-allowed disabled:opacity-40;
+  }
+}
+
+.exam-question .katex-display {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.exam-question { overflow-wrap: anywhere; }
+
+.exam-question .katex {
+  display: inline-block;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  vertical-align: middle;
+}
+
+.exam-question button > .flex-1 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+@keyframes result-orbit {
+  to { transform: rotate(360deg); }
+}
+
+.result-orbit {
+  transform-origin: 120px 120px;
+  animation: result-orbit 16s linear infinite;
+}
+
+.result-orbit-reverse {
+  animation-duration: 22s;
+  animation-direction: reverse;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .result-orbit { animation: none; }
+}

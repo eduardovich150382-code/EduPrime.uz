@@ -1,15 +1,16 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { useTranslations } from 'next-intl';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
-import QuestionDisplay from '@/components/test/QuestionDisplay';
-import HintPanel from '@/components/test/HintPanel';
-import TestTimer from '@/components/test/TestTimer';
-import QuestionNav from '@/components/test/QuestionNav';
+import ExamWorkspace from '@/components/test/ExamWorkspace';
+import { useAutoAdvance } from '@/components/test/useAutoAdvance';
+import { usePracticeClock } from '@/components/test/usePracticeClock';
+import { isPhysicsSubject, shufflePresentedQuestions } from '@/lib/exam-presentation';
+import { restoreTestDraft } from '@/lib/test-draft';
 import BackButton from '@/components/ui/BackButton';
 import { withReturnTo, sanitizeReturnPath } from '@/lib/safe-return-path';
-import { ChevronLeft, ChevronRight, Flag, AlertCircle, Loader2, Keyboard, Maximize, Bookmark } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
 
 interface QuestionData {
   id: string;
@@ -33,6 +34,7 @@ interface TestData {
 }
 
 export default function TestSolvePage() {
+  const exam = useTranslations('exam');
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
@@ -49,61 +51,45 @@ export default function TestSolvePage() {
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [showFinishDialog, setShowFinishDialog] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [startTime] = useState(Date.now());
   const [tabSwitchCount, setTabSwitchCount] = useState(0);
   const [showTabWarning, setShowTabWarning] = useState(false);
   const [flaggedQuestions, setFlaggedQuestions] = useState<Set<number>>(new Set());
-  const [autoNext, setAutoNext] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showShortcuts, setShowShortcuts] = useState(false);
+  const [autoNext, setAutoNext] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
   const [questionTimeSpent, setQuestionTimeSpent] = useState<Record<number, number>>({});
   const questionStartTimeRef = useRef<number>(Date.now());
   const [sections, setSections] = useState<{ label: string; count: number }[] | undefined>(undefined);
 
-  // Auto-save to localStorage
-  useEffect(() => {
-    if (!test) return;
-    const key = `test_progress_${testId}`;
-    const saved = localStorage.getItem(key);
-    if (saved && Object.keys(answers).length === 0) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (parsed.answers) setAnswers(parsed.answers);
-        if (parsed.currentQuestion !== undefined) setCurrentQuestion(parsed.currentQuestion);
-        if (parsed.flagged) setFlaggedQuestions(new Set(parsed.flagged));
-      } catch {}
-    }
-  }, [test, testId]);
+  const clock = usePracticeClock(testId, (test?.duration ?? 0) * 60);
+  const submitLock = useRef(false);
 
   useEffect(() => {
-    if (!test) return;
-    const key = `test_progress_${testId}`;
-    const data = {
-      answers,
-      currentQuestion,
-      flagged: Array.from(flaggedQuestions),
-      timestamp: Date.now(),
-    };
-    localStorage.setItem(key, JSON.stringify(data));
-  }, [answers, currentQuestion, flaggedQuestions, testId, test]);
+    if (!test || submitLock.current) return;
+    try {
+      localStorage.setItem(`test_progress_${testId}`, JSON.stringify({
+        questionIds: test.questions.map(question => question.id), answers, currentQuestion,
+        flagged: Array.from(flaggedQuestions), questionTimeSpent, autoNext, timestamp: Date.now(),
+      }));
+    } catch { /* Storage to'lsa ham javob tanlash ishlashi kerak. */ }
+  }, [answers, currentQuestion, flaggedQuestions, questionTimeSpent, autoNext, testId, test]);
 
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!test) return;
+      if (!test || clock.paused || showFinishDialog || submitting || document.querySelector('[role="dialog"]')) return;
       // Ignore if typing in input
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) return;
       
       const totalQ = test.questions.length;
+      if (/^[a-e]$/i.test(e.key) && !['MULTIPLE_CHOICE', 'TRUE_FALSE'].includes(test.questions[currentQuestion]?.type)) return;
       switch (e.key) {
         case 'ArrowRight':
           e.preventDefault();
-          if (currentQuestion < totalQ - 1) setCurrentQuestion(currentQuestion + 1);
+          if (currentQuestion < totalQ - 1) navigate(currentQuestion + 1);
           break;
         case 'ArrowLeft':
           e.preventDefault();
-          if (currentQuestion > 0) setCurrentQuestion(currentQuestion - 1);
+          if (currentQuestion > 0) navigate(currentQuestion - 1);
           break;
         case 'a': case 'A':
           e.preventDefault();
@@ -129,33 +115,23 @@ export default function TestSolvePage() {
           e.preventDefault();
           toggleFlag(currentQuestion);
           break;
-        case '?':
-          setShowShortcuts(prev => !prev);
-          break;
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [test, currentQuestion]);
+  });
 
   // Fullscreen
   const toggleFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {
       containerRef.current?.requestFullscreen?.();
-      setIsFullscreen(true);
     } else {
       document.exitFullscreen?.();
-      setIsFullscreen(false);
     }
   }, []);
 
-  useEffect(() => {
-    const handler = () => setIsFullscreen(!!document.fullscreenElement);
-    document.addEventListener('fullscreenchange', handler);
-    return () => document.removeEventListener('fullscreenchange', handler);
-  }, []);
-
   const toggleFlag = (index: number) => {
+    advance.cancel();
     setFlaggedQuestions(prev => {
       const next = new Set(prev);
       if (next.has(index)) next.delete(index);
@@ -167,7 +143,7 @@ export default function TestSolvePage() {
   // Anti-cheating: detect tab/window switch
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.hidden && test) {
+      if (document.hidden && test && !clock.paused) {
         setTabSwitchCount((prev) => {
           const newCount = prev + 1;
           if (newCount >= 3) {
@@ -184,7 +160,7 @@ export default function TestSolvePage() {
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [test]);
+  }, [test, clock.paused]);
 
   // Fetch test
   useEffect(() => {
@@ -208,14 +184,23 @@ export default function TestSolvePage() {
         const res = await fetch(`/api/tests/${testId}`);
         const data = await res.json();
         if (data.test) {
-          setTest(data.test);
+          const rawQuestions: QuestionData[] = data.test.questions;
+          let questions = shufflePresentedQuestions(rawQuestions, crypto.getRandomValues(new Uint32Array(1))[0]);
+          try {
+            const draft = restoreTestDraft(rawQuestions, localStorage.getItem(`test_progress_${testId}`));
+            if (draft) {
+              questions = draft.questions; setAnswers(draft.answers); setCurrentQuestion(draft.current);
+              setFlaggedQuestions(new Set(draft.flagged)); setQuestionTimeSpent(draft.questionTimeSpent); setAutoNext(draft.autoNext);
+            }
+          } catch { /* Yopiq storage mashqni ochishga to'sqinlik qilmasin. */ }
+          setTest({ ...data.test, questions });
           // Reset question timer when test loads
           questionStartTimeRef.current = Date.now();
 
           // Generatsiya qilingan (masalan DTM Online) testlarda savollar
           // subjectId bilan bo'limlarga bo'lingan — nav panelida guruhlab
           // ko'rsatish uchun fan nomlarini olib, ketma-ket guruhlarga ajratamiz.
-          const qs: QuestionData[] = data.test.questions || [];
+          const qs = questions;
           if (qs.some((q) => q.subjectId)) {
             try {
               const subjRes = await fetch('/api/subjects');
@@ -246,43 +231,32 @@ export default function TestSolvePage() {
     fetchTest();
   }, [testId]);
 
+  const trackQuestionTime = () => {
+    const elapsed = Math.max(0, Math.floor((Date.now() - questionStartTimeRef.current) / 1000));
+    setQuestionTimeSpent(prev => ({ ...prev, [currentQuestion]: (prev[currentQuestion] || 0) + elapsed }));
+    questionStartTimeRef.current = Date.now();
+  };
+  const navigate = (index: number) => {
+    advance.cancel();
+    if (!test || clock.paused || submitting || index < 0 || index >= test.questions.length) return;
+    trackQuestionTime(); setCurrentQuestion(index);
+  };
+  const advance = useAutoAdvance(autoNext, clock.paused || showFinishDialog || submitting, currentQuestion, test?.questions.length ?? 0, navigate);
   const handleAnswer = (answer: string) => {
-    setAnswers((prev) => ({ ...prev, [currentQuestion]: answer }));
-    // Auto-next: go to next question after selecting answer
-    if (autoNext && test && currentQuestion < test.questions.length - 1) {
-      // Track time before auto-navigating
-      const elapsed = Math.floor((Date.now() - questionStartTimeRef.current) / 1000);
-      setQuestionTimeSpent(prev => ({ ...prev, [currentQuestion]: (prev[currentQuestion] || 0) + elapsed }));
-      questionStartTimeRef.current = Date.now();
-      setTimeout(() => setCurrentQuestion(currentQuestion + 1), 300);
-    }
-  };
-
-  const handleNext = () => {
-    if (test && currentQuestion < test.questions.length - 1) {
-      // Track time spent on current question
-      const elapsed = Math.floor((Date.now() - questionStartTimeRef.current) / 1000);
-      setQuestionTimeSpent(prev => ({ ...prev, [currentQuestion]: (prev[currentQuestion] || 0) + elapsed }));
-      questionStartTimeRef.current = Date.now();
-      setCurrentQuestion(currentQuestion + 1);
-    }
-  };
-
-  const handlePrev = () => {
-    if (currentQuestion > 0) {
-      // Track time spent on current question
-      const elapsed = Math.floor((Date.now() - questionStartTimeRef.current) / 1000);
-      setQuestionTimeSpent(prev => ({ ...prev, [currentQuestion]: (prev[currentQuestion] || 0) + elapsed }));
-      questionStartTimeRef.current = Date.now();
-      setCurrentQuestion(currentQuestion - 1);
-    }
+    const question = test?.questions[currentQuestion];
+    if (!question || clock.paused || submitting) return;
+    if (['MULTIPLE_CHOICE', 'TRUE_FALSE'].includes(question.type) && (!Array.isArray(question.options) || !question.options.some(option => option.label === answer))) return;
+    setAnswers(prev => ({ ...prev, [currentQuestion]: answer }));
+    advance.schedule(question.type, answer);
   };
 
   const handleFinish = useCallback(async () => {
-    if (!test || submitting) return;
+    if (!test || submitLock.current) return;
+    advance.cancel();
+    submitLock.current = true;
     setSubmitting(true);
 
-    const timeSpent = Math.floor((Date.now() - startTime) / 1000);
+    const timeSpent = clock.elapsed;
 
     // Capture time for current question before submit
     const elapsed = Math.floor((Date.now() - questionStartTimeRef.current) / 1000);
@@ -306,17 +280,20 @@ export default function TestSolvePage() {
 
       if (res.ok && data.result) {
         // Clear saved progress
-        localStorage.removeItem(`test_progress_${testId}`);
+        try { localStorage.removeItem(`test_progress_${testId}`); } catch {}
+        clock.clear();
         router.push(withReturnTo(`/results/${data.result.id}`, returnTo));
       } else {
         alert(data.error || 'Xatolik yuz berdi');
+        submitLock.current = false;
         setSubmitting(false);
       }
     } catch (error) {
       alert('Server xatolik');
+      submitLock.current = false;
       setSubmitting(false);
     }
-  }, [test, answers, testId, startTime, submitting, router, returnTo]);
+  }, [test, answers, testId, clock, advance, router, returnTo, currentQuestion, questionTimeSpent]);
 
   if (loading) {
     return (
@@ -374,240 +351,17 @@ export default function TestSolvePage() {
     );
   }
 
-  const question = test.questions[currentQuestion];
-  const totalQuestions = test.questions.length;
-  const answeredCount = Object.keys(answers).length;
-
-  // Joriy savol qaysi bo'limga tegishli ekanini aniqlaydi (faqat sections mavjud bo'lsa, masalan DTM Online)
-  let currentSectionLabel: string | null = null;
-  if (sections && sections.length > 1) {
-    let acc = 0;
-    for (const s of sections) {
-      if (currentQuestion < acc + s.count) { currentSectionLabel = s.label; break; }
-      acc += s.count;
-    }
-  }
-
   return (
-    <div className="max-w-7xl mx-auto" ref={containerRef}>
-      <BackButton className="mb-4" />
-      {/* Top bar — sticky with progress */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="sticky top-16 z-30 card p-0 mb-4 sm:mb-6 overflow-hidden"
-      >
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 gap-3 sm:gap-0">
-          <div>
-            <h1 className="font-semibold text-text-primary text-sm sm:text-base">{test.titleUz}</h1>
-            <p className="text-xs text-text-secondary">
-              {answeredCount}/{totalQuestions} javob berilgan
-            </p>
-          </div>
-          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end">
-            <TestTimer totalSeconds={test.duration * 60} onTimeUp={handleFinish} />
-            <button
-              onClick={toggleFullscreen}
-              className="p-2 rounded-lg hover:bg-primary-50 text-text-secondary hover:text-primary-600 transition-colors hidden sm:flex"
-              title="Fullscreen (F11)"
-            >
-              <Maximize size={16} />
-            </button>
-            <button
-              onClick={() => setShowShortcuts(!showShortcuts)}
-              className="p-2 rounded-lg hover:bg-primary-50 text-text-secondary hover:text-primary-600 transition-colors hidden sm:flex"
-              title="Klaviatura yorliqlari (?)"
-            >
-              <Keyboard size={16} />
-            </button>
-            <button
-              onClick={() => setShowFinishDialog(true)}
-              disabled={submitting}
-              className="btn-primary !py-2 !px-3 sm:!px-4 text-sm flex items-center gap-2"
-            >
-              <Flag size={14} />
-              Tugatish
-            </button>
-          </div>
-        </div>
-        {/* Progress bar inside sticky header */}
-        <div className="w-full h-1.5 bg-gray-100">
-          <motion.div
-            className="h-full bg-gradient-to-r from-primary-500 to-primary-600"
-            initial={{ width: 0 }}
-            animate={{ width: `${(answeredCount / totalQuestions) * 100}%` }}
-            transition={{ duration: 0.3 }}
-          />
-        </div>
-      </motion.div>
-
-      {/* Keyboard shortcuts modal */}
-      {showShortcuts && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="card p-4 mb-4 text-sm"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <h4 className="font-semibold text-text-primary">Klaviatura yorliqlari</h4>
-            <button onClick={() => setShowShortcuts(false)} className="text-text-secondary hover:text-text-primary">&times;</button>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs text-text-secondary">
-            <span><kbd className="px-1.5 py-0.5 bg-gray-100 rounded font-mono">A-E</kbd> Javob tanlash</span>
-            <span><kbd className="px-1.5 py-0.5 bg-gray-100 rounded font-mono">&larr; &rarr;</kbd> Navigatsiya</span>
-            <span><kbd className="px-1.5 py-0.5 bg-gray-100 rounded font-mono">F</kbd> Belgilash</span>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Auto-next toggle */}
-      <div className="flex items-center justify-end gap-3 mb-4">
-        <label className="flex items-center gap-2 text-xs text-text-secondary cursor-pointer select-none">
-          <input
-            type="checkbox"
-            checked={autoNext}
-            onChange={(e) => setAutoNext(e.target.checked)}
-            className="w-3.5 h-3.5 rounded border-border text-primary-600 focus:ring-primary-500"
-          />
-          Javobdan keyin keyingiga o&apos;tish
-        </label>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
-        {/* Main content */}
-        <div className="lg:col-span-3 order-2 lg:order-1">
-          <motion.div
-            key={currentQuestion}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3 }}
-            className="card p-4 sm:p-6"
-          >
-            {currentSectionLabel && (
-              <span className="inline-block text-xs font-medium text-primary-700 bg-primary-50 px-2.5 py-1 rounded-full mb-3">
-                {currentSectionLabel}
-              </span>
-            )}
-            <QuestionDisplay
-              questionNumber={currentQuestion + 1}
-              totalQuestions={totalQuestions}
-              text={question.text}
-              images={question.images}
-              options={question.options}
-              selectedAnswer={answers[currentQuestion] || null}
-              onAnswer={handleAnswer}
-              questionType={question.type}
-            />
-
-            <HintPanel hints={question.hints ?? []} />
-
-            {/* Navigation */}
-            <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
-              <button
-                onClick={handlePrev}
-                disabled={currentQuestion === 0}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-text-secondary hover:text-primary-600 hover:bg-primary-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-              >
-                <ChevronLeft size={18} /> Oldingi
-              </button>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => toggleFlag(currentQuestion)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                    flaggedQuestions.has(currentQuestion)
-                      ? 'bg-yellow-100 text-yellow-700 border border-yellow-200'
-                      : 'text-text-secondary hover:bg-yellow-50 hover:text-yellow-600'
-                  }`}
-                  title="Belgilash (F)"
-                >
-                  <Bookmark size={14} fill={flaggedQuestions.has(currentQuestion) ? 'currentColor' : 'none'} />
-                  {flaggedQuestions.has(currentQuestion) ? 'Belgilangan' : 'Belgilash'}
-                </button>
-                <span className="text-sm text-text-secondary">{currentQuestion + 1} / {totalQuestions}</span>
-              </div>
-              <button
-                onClick={handleNext}
-                disabled={currentQuestion === totalQuestions - 1}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-primary-600 hover:bg-primary-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-              >
-                Keyingi <ChevronRight size={18} />
-              </button>
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Sidebar */}
-        <div className="lg:col-span-1 order-1 lg:order-2">
-          <QuestionNav
-            totalQuestions={totalQuestions}
-            currentQuestion={currentQuestion}
-            answers={answers}
-            onNavigate={(index) => {
-              // Track time on current question before navigating
-              const elapsed = Math.floor((Date.now() - questionStartTimeRef.current) / 1000);
-              setQuestionTimeSpent(prev => ({ ...prev, [currentQuestion]: (prev[currentQuestion] || 0) + elapsed }));
-              questionStartTimeRef.current = Date.now();
-              setCurrentQuestion(index);
-            }}
-            flaggedQuestions={flaggedQuestions}
-            sections={sections}
-          />
-        </div>
-      </div>
-
-      {/* Tab switch warning */}
-      {showTabWarning && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-yellow-500 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-3 max-w-sm"
-        >
-          <AlertCircle size={20} className="flex-shrink-0" />
-          <div>
-            <p className="text-sm font-semibold">Ogohlantirish!</p>
-            <p className="text-xs opacity-90">
-              Boshqa tab/ilovaga o&apos;tish aniqlandi ({tabSwitchCount} marta). Test davomida sahifani tark etmang.
-            </p>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Finish dialog */}
-      {showFinishDialog && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl"
-          >
-            <div className="text-center">
-              <AlertCircle size={48} className="text-yellow-500 mx-auto mb-4" />
-              <h3 className="text-lg font-bold text-text-primary mb-2">Testni tugatishni xohlaysizmi?</h3>
-              <p className="text-sm text-text-secondary mb-6">
-                {answeredCount}/{totalQuestions} savolga javob berdingiz.
-                {answeredCount < totalQuestions && (
-                  <span className="block text-yellow-600 mt-1">
-                    {totalQuestions - answeredCount} ta savol javobsiz qoladi
-                  </span>
-                )}
-              </p>
-              <div className="flex gap-3">
-                <button onClick={() => setShowFinishDialog(false)} className="flex-1 btn-secondary !py-2.5">
-                  Davom etish
-                </button>
-                <button
-                  onClick={() => { setShowFinishDialog(false); handleFinish(); }}
-                  disabled={submitting}
-                  className="flex-1 btn-primary !py-2.5 flex items-center justify-center gap-2"
-                >
-                  {submitting ? <Loader2 size={14} className="animate-spin" /> : null}
-                  Tugatish
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      )}
+    <div className="mx-auto max-w-7xl" ref={containerRef}>
+      <ExamWorkspace title={test.titleUz} questions={test.questions} current={currentQuestion} answers={answers}
+        flagged={flaggedQuestions} sections={sections} totalSeconds={test.duration * 60} remainingSeconds={clock.remaining}
+        paused={clock.paused} submitting={submitting} autoNext={autoNext}
+        onAutoNext={value => { advance.cancel(); setAutoNext(value); }} onAnswer={handleAnswer} onNavigate={navigate} onFlag={toggleFlag}
+        onPause={() => { advance.cancel(); trackQuestionTime(); clock.pause(); }}
+        onResume={() => { questionStartTimeRef.current = Date.now(); clock.resume(); }}
+        onFinish={handleFinish} showFinish={showFinishDialog} onShowFinish={value => { advance.cancel(); setShowFinishDialog(value); }}
+        physics={isPhysicsSubject(test.subject)} onFullscreen={toggleFullscreen} before={<BackButton className="mb-4" />} />
+      {showTabWarning && !clock.paused && <div role="status" className="fixed bottom-4 left-1/2 z-50 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 rounded-[18px] bg-amber-50 p-4 text-sm text-amber-800 shadow-lg">{tabSwitchCount} · {exam('stayOnPage')}</div>}
     </div>
   );
 }
