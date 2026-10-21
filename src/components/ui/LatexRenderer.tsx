@@ -34,10 +34,10 @@ export default function LatexRenderer({ content, className = '' }: LatexRenderer
       // Replace $...$ (inline math)
       html = html.replace(/\$([^\$\n]+?)\$/g, (_, formula) => {
         try {
-          return katex.renderToString(formula.trim(), {
+          return `<span class="latex-inline">${katex.renderToString(formula.trim(), {
             displayMode: false,
             throwOnError: false,
-          });
+          })}</span>`;
         } catch {
           return `<span class="text-red-500">[${formula}]</span>`;
         }
@@ -46,10 +46,10 @@ export default function LatexRenderer({ content, className = '' }: LatexRenderer
       // Replace \( ... \) inline math (alternative syntax)
       html = html.replace(/\\\((.+?)\\\)/g, (_, formula) => {
         try {
-          return katex.renderToString(formula.trim(), {
+          return `<span class="latex-inline">${katex.renderToString(formula.trim(), {
             displayMode: false,
             throwOnError: false,
-          });
+          })}</span>`;
         } catch {
           return formula;
         }
@@ -76,7 +76,7 @@ export default function LatexRenderer({ content, className = '' }: LatexRenderer
   return (
     <span
       // Preview va testda muallif kiritgan yangi qatorlar va abzas bo'shliqlari saqlansin.
-      className={`whitespace-pre-wrap ${className}`}
+      className={`latex-content whitespace-pre-wrap ${className}`}
       dangerouslySetInnerHTML={{ __html: renderedHtml }}
     />
   );

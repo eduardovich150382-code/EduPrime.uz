@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import { Bookmark, Calculator, Check, ChevronLeft, ChevronRight, Flag, Keyboard, Maximize, Pause, Shuffle } from 'lucide-react';
 import QuestionDisplay from './QuestionDisplay';
@@ -35,17 +35,29 @@ export default function ExamWorkspace(props: ExamWorkspaceProps) {
   const t = useTranslations('exam');
   const [calculator, setCalculator] = useState(false);
   const [shortcuts, setShortcuts] = useState(false);
+  const workspaceRef = useRef<HTMLDivElement>(null);
+  const toolbarRef = useRef<HTMLElement>(null);
   const { questions, current, answers, flagged, paused, submitting, sections } = props;
   const question = questions[current];
   const count = questions.reduce((sum, _, i) => sum + Number(hasExamAnswer(answers[i])), 0);
   let offset = 0;
   const section = sections?.find(item => { offset += item.count; return current < offset; });
+  useEffect(() => {
+    const toolbar = toolbarRef.current;
+    if (!toolbar) return;
+    // Sarlavha tugmalari qatorga sig'maganda ham xarita uning ostida qolsin.
+    const updateHeight = () => workspaceRef.current?.style.setProperty('--exam-toolbar-height', `${toolbar.getBoundingClientRect().height}px`);
+    updateHeight();
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(toolbar);
+    return () => observer.disconnect();
+  }, []);
   if (!question) return null;
   const navigate = (index: number) => { if (!paused && !submitting && index >= 0 && index < questions.length) props.onNavigate(index); };
   return <>
-    <div inert={paused || props.showFinish || undefined} aria-hidden={paused || props.showFinish || undefined}>
+    <div ref={workspaceRef} className="exam-workspace" inert={paused || props.showFinish || undefined} aria-hidden={paused || props.showFinish || undefined}>
       {props.before}
-      <header className="sticky top-16 z-30 mb-4 overflow-hidden rounded-[18px] border border-border bg-white shadow-sm sm:mb-6">
+      <header ref={toolbarRef} className="exam-toolbar sticky z-30 mb-4 overflow-hidden rounded-[18px] border border-border bg-white shadow-sm sm:mb-6">
         <div className="flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5">
           <div className="min-w-0 flex-1 basis-[45%] sm:basis-auto"><p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-text-secondary">{t(props.timed ? 'timedMode' : 'practiceMode')}</p><h1 className="text-base font-semibold text-text-primary sm:text-xl">{props.title}</h1><p className="mt-1 text-xs text-text-secondary">{t('answeredCount', { answered: count, total: questions.length })}</p></div>
           <TestTimer totalSeconds={props.totalSeconds} remainingSeconds={props.remainingSeconds} expiresAt={props.expiresAt} onTimeUp={props.onFinish} />
@@ -72,11 +84,20 @@ export default function ExamWorkspace(props: ExamWorkspaceProps) {
             <button type="button" onClick={() => navigate(current + 1)} disabled={current === questions.length - 1 || submitting} aria-label={t(['MULTIPLE_CHOICE', 'TRUE_FALSE'].includes(question.type) ? 'next' : 'confirmNext')} className="exam-control !text-primary-700">{t('next')}<ChevronRight size={17} /></button>
           </div>
         </div>
-        <aside className="order-first min-w-0 lg:order-none"><QuestionNav totalQuestions={questions.length} currentQuestion={current} answers={answers} onNavigate={navigate} flaggedQuestions={flagged} sections={sections} /><p className="mt-3 flex items-start justify-center gap-2 px-2 text-xs text-text-secondary"><Shuffle size={15} className="mt-0.5 shrink-0" /><span>{t('shuffleNote')}<br /><span className="text-[11px]">{t('stableOrder')}</span></span></p></aside>
+        <aside className="exam-map order-first min-w-0 lg:order-none"><QuestionNav totalQuestions={questions.length} currentQuestion={current} answers={answers} onNavigate={navigate} flaggedQuestions={flagged} sections={sections} /><p className="mt-3 flex items-start justify-center gap-2 px-2 text-xs text-text-secondary"><Shuffle size={15} className="mt-0.5 shrink-0" /><span>{t('shuffleNote')}<br /><span className="text-[11px]">{t('stableOrder')}</span></span></p></aside>
       </div>
       <p className="my-4 flex items-center justify-center gap-1.5 text-xs text-text-secondary"><Check size={14} />{t('saved')}</p>
     </div>
     {paused && <ExamDialog title={t('pausedTitle')} onClose={props.onResume}><p className="mb-6 text-sm leading-relaxed text-text-secondary">{t(props.timed ? 'pausedTimed' : 'pausedPractice')}</p><button type="button" className="exam-control w-full !border-primary-600 !bg-primary-600 !text-white" onClick={props.onResume}>{t('resume')}</button></ExamDialog>}
-    {props.showFinish && !paused && <ExamDialog title={t('finishTitle')} onClose={() => props.onShowFinish(false)}><p className="mb-3 text-sm leading-relaxed">{t('finishSummary', { answered: count, unanswered: questions.length - count, flagged: flagged.size })}</p><p className="mb-6 text-sm text-text-secondary">{t('finishNote')}</p><div className="flex flex-wrap justify-end gap-3"><button type="button" className="exam-control" onClick={() => props.onShowFinish(false)}>{t('resume')}</button><button type="button" disabled={submitting} className="exam-control !border-primary-600 !bg-primary-600 !text-white" onClick={() => { props.onShowFinish(false); props.onFinish(); }}>{t('finish')}</button></div></ExamDialog>}
+    {props.showFinish && !paused && <ExamDialog title={t('finishTitle')} onClose={() => props.onShowFinish(false)}>
+      <dl className="mb-5 grid grid-cols-3 gap-2 sm:gap-3">
+        {[
+          { label: 'answered', value: count, color: 'border-emerald-200 bg-emerald-50 text-emerald-800' },
+          { label: 'unanswered', value: questions.length - count, color: 'border-rose-200 bg-rose-50 text-rose-800' },
+          { label: 'flagged', value: flagged.size, color: 'border-amber-200 bg-amber-50 text-amber-800' },
+        ].map(stat => <div key={stat.label} className={`min-w-0 rounded-xl border px-2 py-4 text-center ${stat.color}`}><dt className="text-[11px] font-medium sm:text-xs">{t(stat.label)}</dt><dd className="mt-2 text-3xl font-bold tabular-nums">{stat.value}</dd></div>)}
+      </dl>
+      <p className="mb-6 text-sm text-text-secondary">{t('finishNote')}</p><div className="flex flex-wrap justify-end gap-3"><button type="button" className="exam-control" onClick={() => props.onShowFinish(false)}>{t('resume')}</button><button type="button" disabled={submitting} className="exam-control !border-primary-600 !bg-primary-600 !text-white" onClick={() => { props.onShowFinish(false); props.onFinish(); }}>{t('finish')}</button></div>
+    </ExamDialog>}
   </>;
 }

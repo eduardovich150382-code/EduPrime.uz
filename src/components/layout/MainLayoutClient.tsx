@@ -37,7 +37,7 @@ export default function MainLayoutClient({ role, children }: MainLayoutClientPro
         />
       )}
       <main
-        className={`flex-1 min-h-[calc(100vh-4rem)] p-4 sm:p-6 ${
+        className={`min-w-0 flex-1 min-h-[calc(100vh-4rem)] p-4 sm:p-6 ${
           isTestSolving ? 'ml-0' : 'md:ml-64 ml-0'
         } ${!isTestSolving ? 'pb-20 md:pb-6' : ''}`}
       >

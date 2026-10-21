@@ -105,20 +105,60 @@
   }
 }
 
-.exam-question .katex-display {
+.latex-content .katex-display {
   max-width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
+  padding-block: 0.2em;
 }
 
 .exam-question { overflow-wrap: anywhere; }
 
-.exam-question .katex {
-  display: inline-block;
+/* Inline-grid formulaning bazaviy chizig'ini saqlaydi; overflow'li
+   inline-block esa matnni konteynerning pastki chetiga tekislaydi. */
+.latex-inline {
+  display: inline-grid;
+  align-items: baseline;
   max-width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
-  vertical-align: middle;
+  vertical-align: baseline;
+  padding-block: 0.2em;
+  margin-block: -0.2em;
+  padding-inline: 0.12em;
+  margin-inline: -0.12em;
+  white-space: normal;
+  scrollbar-width: none;
+}
+
+.latex-inline::-webkit-scrollbar { display: none; }
+
+.latex-inline > .katex { white-space: nowrap; }
+
+.latex-content .katex-display > .katex {
+  width: max-content;
+  min-width: 100%;
+}
+
+.exam-workspace {
+  --exam-top: 4rem;
+  --exam-toolbar-height: 10rem;
+}
+
+.exam-toolbar { top: var(--exam-top); }
+
+:fullscreen .exam-workspace { --exam-top: 0px; }
+
+@media (min-width: 1024px) {
+  .exam-map {
+    position: sticky;
+    top: calc(var(--exam-top) + var(--exam-toolbar-height) + 1rem);
+    max-height: calc(100dvh - var(--exam-top) - var(--exam-toolbar-height) - 2rem);
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-primary-200) transparent;
+  }
 }
 
 .exam-question button > .flex-1 {
@@ -126,20 +166,42 @@
   overflow-wrap: anywhere;
 }
 
+@keyframes result-progress {
+  from { stroke-dashoffset: var(--result-circumference); }
+}
+
 @keyframes result-orbit {
   to { transform: rotate(360deg); }
 }
 
 .result-orbit {
-  transform-origin: 120px 120px;
-  animation: result-orbit 16s linear infinite;
+  transform-box: view-box;
+  transform-origin: center;
+  animation: result-orbit 18s linear infinite;
 }
 
-.result-orbit-reverse {
-  animation-duration: 22s;
-  animation-direction: reverse;
+@keyframes result-reveal {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.result-progress { animation: result-progress 1.2s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.result-score-value { animation: result-reveal 0.6s ease-out both; }
+.result-stat { animation: result-reveal 0.5s ease-out both; }
+
+.result-review {
+  overflow-wrap: anywhere;
+}
+
+.result-review .review-copy {
+  font-size: 1rem;
+  line-height: 1.8;
+}
+
+@media (min-width: 640px) {
+  .result-review .review-copy { font-size: 1.125rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .result-orbit { animation: none; }
+  .result-progress, .result-score-value, .result-stat, .result-orbit { animation: none; }
 }

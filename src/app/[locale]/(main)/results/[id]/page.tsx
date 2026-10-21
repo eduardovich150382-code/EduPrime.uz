@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import LatexRenderer from '@/components/ui/LatexRenderer';
 import SecureYouTubePlayer from '@/components/ui/SecureYouTubePlayer';
@@ -92,6 +92,7 @@ export default function ResultPage() {
   const resultId = params.id as string;
   const t = useTranslations('results');
   const exam = useTranslations('exam');
+  const reduceMotion = useReducedMotion();
   // Kurs darsidagi testdan kelingan bo'lsa (qarang `tests/[id]/solve`),
   // "ortga" tugmasi aynan shu darsga qaytsin — tekshirilgan holda.
   const returnTo = sanitizeReturnPath(searchParams.get('returnTo'));
@@ -414,7 +415,7 @@ export default function ResultPage() {
   const backLabel = returnTo ? t('backToLesson') : (result.sessionId ? (isDtmResult ? t('backToDtm') : t('backToBuild')) : t('backToTests'));
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="mx-auto w-full min-w-0 max-w-7xl space-y-6">
       {/* Back button — sessiyadan kelgan natija DTM Online bo'lsa
           /dashboard/dtm-online ga, oddiy konstruktor bo'lsa /build ga,
           aks holda odatiy /tests ga qaytadi. */}
@@ -428,19 +429,19 @@ export default function ResultPage() {
 
       {/* Score card */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={reduceMotion ? false : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="rounded-[18px] border border-border bg-white p-4 sm:p-6"
+        className="rounded-[24px] border border-primary-100 bg-gradient-to-b from-primary-50/70 via-white to-white p-4 sm:p-8"
       >
-        <p className="mb-1 text-xs font-medium text-text-secondary">{result.test.titleUz}</p>
-        <h1 className="text-xl font-semibold text-text-primary">{exam('completed')}</h1>
+        <p className="mb-2 text-center text-sm font-medium text-text-secondary">{result.test.titleUz}</p>
+        <h1 className="text-center text-2xl font-semibold text-text-primary sm:text-3xl">{exam('completed')}</h1>
 
         <ResultScore score={result.score} maxScore={result.maxScore} percentage={result.percentage}
           correct={correctCount} incorrect={incorrectCount} skipped={skippedCount} timeSpent={result.timeSpent} />
 
         {/* Actions */}
-        <div className="flex items-center justify-center gap-3 mt-8">
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           {result.testId && (
             <Link
               href={`/tests/${result.testId}/solve`}
@@ -567,13 +568,13 @@ export default function ResultPage() {
 
       {/* Questions review */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={reduceMotion ? false : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="card p-6"
+        className="result-review card min-w-0 p-4 sm:p-6 lg:p-8"
       >
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-text-primary">Savollar tahlili</h2>
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-xl font-bold text-text-primary sm:text-2xl">Savollar tahlili</h2>
           <button
             onClick={() => setShowTimeAnalysis(!showTimeAnalysis)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
@@ -751,7 +752,7 @@ export default function ResultPage() {
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-text-primary">
+                    <p className="review-copy font-medium text-text-primary">
                       {i + 1}. <LatexRenderer content={question.text} />
                     </p>
                     <div className="flex items-center gap-3 mt-1 text-xs">
@@ -825,7 +826,7 @@ export default function ResultPage() {
                         const acceptedPerBlank = parseFillBlankCorrectAnswer(question.correctAnswer);
                         return (
                           <div className="space-y-3">
-                            <div className="text-sm text-text-primary leading-relaxed flex flex-wrap items-center gap-x-1 gap-y-2 p-3 rounded-xl bg-white border border-border">
+                            <div className="review-copy text-text-primary flex flex-wrap items-center gap-x-1 gap-y-2 p-3 rounded-xl bg-white border border-border">
                               {segments.map((seg, si) => (
                                 <span key={si} className="inline-flex items-center flex-wrap">
                                   {seg && <LatexRenderer content={seg} />}
@@ -850,7 +851,7 @@ export default function ResultPage() {
                                 <CheckCircle size={16} className="text-green-600 flex-shrink-0 mt-0.5" />
                                 <div className="flex-1 min-w-0">
                                   <p className="text-xs text-text-secondary mb-1">To&apos;g&apos;ri javob(lar):</p>
-                                  <p className="text-sm font-medium text-green-700">
+                                  <p className="review-copy font-medium text-green-700">
                                     {acceptedPerBlank.map((accepted) => accepted[0] || '').join(', ')}
                                   </p>
                                 </div>
@@ -880,7 +881,7 @@ export default function ResultPage() {
                           </div>
                           <div className="flex-1 min-w-0 pt-0.5">
                             <p className="text-xs text-text-secondary mb-1">Sizning javobingiz:</p>
-                            <p className={`text-sm font-medium ${
+                            <p className={`review-copy font-medium ${
                               isCorrect ? 'text-green-700' : isSkipped ? 'text-gray-500' : 'text-red-700'
                             }`}>
                               {isSkipped ? 'Javob berilmagan' : userAnswer}
@@ -896,7 +897,7 @@ export default function ResultPage() {
                             </div>
                             <div className="flex-1 min-w-0 pt-0.5">
                               <p className="text-xs text-text-secondary mb-1">To&apos;g&apos;ri javob:</p>
-                              <p className="text-sm font-medium text-green-700">{question.correctAnswer}</p>
+                              <p className="review-copy font-medium text-green-700">{question.correctAnswer}</p>
                             </div>
                           </div>
                         )}
@@ -917,7 +918,7 @@ export default function ResultPage() {
                               return (
                                 <div
                                   key={i}
-                                  className={`flex items-center gap-3 p-3 rounded-xl border-2 ${
+                                  className={`flex flex-wrap items-center gap-3 p-3 rounded-xl border-2 ${
                                     rowCorrect ? 'border-green-400 bg-green-50' : isSkipped ? 'border-gray-200 bg-gray-50' : 'border-red-400 bg-red-50'
                                   }`}
                                 >
@@ -930,15 +931,15 @@ export default function ResultPage() {
                                   }`}>
                                     {rowCorrect ? <CheckCircle size={14} /> : isSkipped ? '?' : <XCircle size={14} />}
                                   </div>
-                                  <div className="flex-1 min-w-0 text-sm text-text-primary">
+                                  <div className="review-copy flex-1 min-w-0 text-text-primary">
                                     <LatexRenderer content={left} />
                                   </div>
-                                  <div className="text-sm text-right flex-shrink-0">
+                                  <div className="review-copy min-w-0 basis-full text-right sm:basis-auto sm:max-w-[50%]">
                                     <p className={`font-medium ${rowCorrect ? 'text-green-700' : chosenText ? 'text-red-700' : 'text-gray-500'}`}>
                                       {chosenText || 'Tanlanmagan'}
                                     </p>
                                     {!rowCorrect && (
-                                      <p className="text-xs text-green-600 mt-0.5">To&apos;g&apos;ri: {pairs.right[i]}</p>
+                                      <p className="review-copy text-green-600 mt-0.5">To&apos;g&apos;ri: {pairs.right[i]}</p>
                                     )}
                                   </div>
                                 </div>
@@ -988,7 +989,7 @@ export default function ResultPage() {
                             )}
                           </div>
                           <div className="flex-1 min-w-0 pt-0.5">
-                            <LatexRenderer content={option.text} className="text-sm text-text-primary" />
+                            <LatexRenderer content={option.text} className="review-copy text-text-primary" />
                             {option.image && (
                               <img
                                 src={option.image}
@@ -1118,7 +1119,7 @@ export default function ResultPage() {
                       <h4 className="text-sm font-semibold text-blue-800 mb-2 flex items-center gap-2">
                         <FileText size={14} /> Yozma yechim
                       </h4>
-                      <div className="text-sm text-text-primary leading-relaxed whitespace-pre-line">
+                      <div className="review-copy text-text-primary whitespace-pre-line">
                         <LatexRenderer content={question.explanation} />
                       </div>
                       {question.explanationImages && question.explanationImages.length > 0 && (
@@ -1171,7 +1172,7 @@ export default function ResultPage() {
                         <p className="text-sm text-red-600">{aiExplain[question.id]?.error}</p>
                       )}
                       {aiExplain[question.id]?.text && (
-                        <div className="text-sm text-text-primary leading-relaxed">
+                        <div className="review-copy text-text-primary">
                           <LatexRenderer content={aiExplain[question.id]!.text!} />
                         </div>
                       )}
