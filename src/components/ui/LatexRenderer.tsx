@@ -75,7 +75,8 @@ export default function LatexRenderer({ content, className = '' }: LatexRenderer
 
   return (
     <span
-      className={className}
+      // Preview va testda muallif kiritgan yangi qatorlar va abzas bo'shliqlari saqlansin.
+      className={`whitespace-pre-wrap ${className}`}
       dangerouslySetInnerHTML={{ __html: renderedHtml }}
     />
   );
