@@ -26,7 +26,7 @@ export default function QuestionNav({ totalQuestions, currentQuestion, answers, 
     const active = index === currentQuestion, answered = hasExamAnswer(answers[index]), flagged = flaggedQuestions.has(index);
     return <button key={index} type="button" onClick={() => { onNavigate(index); if (!window.matchMedia('(min-width: 1024px)').matches) setOpen(false); }} aria-current={active ? 'step' : undefined}
       aria-label={`${t('questionNumber', { current: index + 1, total: totalQuestions })}: ${t(answered ? 'answered' : 'unanswered')}${flagged ? `, ${t('flagged')}` : ''}`}
-      className={cn('relative flex min-h-11 min-w-0 items-center justify-center rounded-xl border text-sm font-medium tabular-nums transition-colors', active ? 'border-primary-600 bg-primary-600 text-white' : answered ? 'border-transparent bg-primary-50 text-primary-700 hover:border-primary-300' : 'border-border bg-gray-50 text-text-secondary hover:border-primary-300')}>
+      className={cn('relative flex min-h-11 min-w-0 items-center justify-center rounded-xl border text-sm font-medium tabular-nums transition-colors', active ? 'border-primary-600 bg-primary-600 text-white' : answered ? 'border-emerald-700 bg-emerald-700 font-bold text-white hover:border-emerald-800 hover:bg-emerald-800' : 'border-border bg-gray-50 text-text-secondary hover:border-primary-300')}>
       {index + 1}{flagged && <Bookmark size={12} aria-hidden="true" fill="currentColor" className={`absolute -top-1 right-0.5 ${active ? 'text-yellow-300' : 'text-amber-600'}`} />}
     </button>;
   };
@@ -42,7 +42,7 @@ export default function QuestionNav({ totalQuestions, currentQuestion, answers, 
         return <div key={groupIndex} className="mt-3">{group.label && <h3 className="mb-2 text-xs font-medium text-text-secondary">{group.label}</h3>}<div className="grid grid-cols-5 gap-2">{Array.from({ length: Math.min(group.count, totalQuestions - start) }, (_, j) => button(start + j))}</div></div>;
       })}
       <div className="mt-4 flex flex-wrap gap-x-3 gap-y-2 text-[11px] text-text-secondary">
-        {(['answered', 'current', 'unanswered'] as const).map((label, index) => <span key={label} className="flex items-center gap-1.5"><span className={cn('h-2.5 w-2.5 rounded-sm', index === 0 ? 'bg-primary-100' : index === 1 ? 'bg-primary-600' : 'border border-border bg-gray-50')} />{t(label)}</span>)}<span className="flex items-center gap-1"><Bookmark size={12} className="text-amber-600" />{t('flagged')}</span>
+        {(['answered', 'current', 'unanswered'] as const).map((label, index) => <span key={label} className="flex items-center gap-1.5"><span className={cn('h-2.5 w-2.5 rounded-sm', index === 0 ? 'bg-emerald-700' : index === 1 ? 'bg-primary-600' : 'border border-border bg-gray-50')} />{t(label)}</span>)}<span className="flex items-center gap-1"><Bookmark size={12} className="text-amber-600" />{t('flagged')}</span>
       </div>
     </div>
   </div>;

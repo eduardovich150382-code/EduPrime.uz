@@ -10,7 +10,11 @@ const orbitRows = [
   { radius: 122, count: 90, size: 4.6 },
   { radius: 130, count: 96, size: 3.8 },
 ];
-const orbitColors = ['fill-primary-300', 'fill-primary-400', 'fill-primary-500', 'fill-primary-400'];
+const orbitColors = [
+  'fill-violet-500', 'fill-indigo-500', 'fill-sky-500',
+  'fill-cyan-500', 'fill-emerald-500', 'fill-amber-500',
+  'fill-orange-500', 'fill-rose-500', 'fill-fuchsia-500',
+];
 
 export default function ResultScore({ score, maxScore, percentage, correct, incorrect, skipped, timeSpent }: {
   score: number; maxScore: number; percentage: number; correct: number; incorrect: number; skipped: number; timeSpent: number;
@@ -20,7 +24,7 @@ export default function ResultScore({ score, maxScore, percentage, correct, inco
   const progress = Math.max(0, Math.min(100, percentage)) / 100;
   return <div className="my-6 flex flex-col items-center gap-8 sm:my-8">
     <div className="relative flex aspect-square w-full max-w-72 items-center justify-center sm:max-w-80" aria-label={`${score} / ${maxScore}`}>
-      <div className="absolute inset-4 rounded-full bg-primary-200/50 blur-2xl" aria-hidden="true" />
+      <div className="absolute inset-4 rounded-full bg-gradient-to-br from-sky-100/80 via-violet-100/70 to-rose-100/80 blur-2xl" aria-hidden="true" />
       <svg viewBox="0 0 280 280" className="absolute inset-0 h-full w-full" fill="none" aria-hidden="true">
         <g className="result-orbit">
           <g transform="translate(140 140)">
@@ -33,7 +37,7 @@ export default function ResultScore({ score, maxScore, percentage, correct, inco
                 height={row.size}
                 rx="1"
                 transform={`rotate(${index * 360 / row.count + rowIndex * 2})`}
-                className={orbitColors[Math.floor(index / row.count * 12 + rowIndex) % orbitColors.length]}
+                className={orbitColors[Math.floor(index / row.count * orbitColors.length + rowIndex / 3) % orbitColors.length]}
               />)}
             </g>)}
           </g>
