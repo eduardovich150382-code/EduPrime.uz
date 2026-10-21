@@ -5,13 +5,11 @@ import { motion } from 'framer-motion';
 import { useRouter, useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Link, useRouter as useLocaleRouter } from '@/i18n/routing';
-import QuestionDisplay from '@/components/test/QuestionDisplay';
-import HintPanel from '@/components/test/HintPanel';
-import TestTimer from '@/components/test/TestTimer';
-import QuestionNav from '@/components/test/QuestionNav';
-import { ChevronLeft, ChevronRight, Flag, AlertCircle, Loader2, LogOut } from 'lucide-react';
+import ExamWorkspace from '@/components/test/ExamWorkspace';
+import { useAutoAdvance } from '@/components/test/useAutoAdvance';
+import { isPhysicsSubject } from '@/lib/exam-presentation';
+import { AlertCircle, Loader2, LogOut } from 'lucide-react';
 import { DTM_TITLE_PREFIX } from '@/lib/dtm-online-shared';
-import { remainingSeconds } from './lib/remainingSeconds';
 import { resolveDraftStartTime } from './lib/sessionDraft';
 
 // Sahifa yangilansa (Android'da brauzer tabni tashlab yuborishi odatiy
@@ -48,6 +46,7 @@ interface SessionQuestion {
   // S20a — bo'sh massiv: oddiy savol YOKI bo'lim-asosidagi (DTM Online)
   // sessiya (qarang lib/sessions.ts — `toPresentedQuestions`).
   hints: string[];
+  subject?: { nameUz: string; nameRu: string; nameEn: string };
 }
 
 interface SessionData {
@@ -60,14 +59,6 @@ interface SessionData {
   questions: SessionQuestion[];
   sections?: { label: string; count: number }[];
 }
-
-// Bitta-javobli savol turlari — javob tanlangach avtomatik keyingi savolga
-// o'tish faqat shularda xavfsiz. MULTI_SELECT/FILL_BLANK/MATCHING/OPEN_ENDED
-// da foydalanuvchi hali javobini tugatmagan bo'lishi mumkin (masalan
-// MULTI_SELECT'da yana bir variant belgilamoqchi), shuning uchun bu
-// turlarda avtomatik o'tish BO'LMAYDI (qarang `tests/[id]/solve/page.tsx`
-// dagi asosiy autoNext naqshi — bu yerda turga qarab cheklov qo'shilgan).
-const AUTO_NEXT_TYPES = new Set(['MULTIPLE_CHOICE', 'TRUE_FALSE']);
 
 export default function SessionSolvePage() {
   const router = useRouter();
@@ -86,7 +77,9 @@ export default function SessionSolvePage() {
   const [submitting, setSubmitting] = useState(false);
   const [startTime, setStartTime] = useState(Date.now());
   const [flaggedQuestions, setFlaggedQuestions] = useState<Set<number>>(new Set());
-  const [autoNext, setAutoNext] = useState(false);
+  const [autoNext, setAutoNext] = useState(true);
+  const [paused, setPaused] = useState(false);
+  const submitLock = useRef(false);
   const questionTimeSpentRef = useRef<Record<number, number>>({});
   const questionStartTimeRef = useRef<number>(Date.now());
 
@@ -176,25 +169,23 @@ export default function SessionSolvePage() {
   }, [session, sessionId, answers, flaggedQuestions, currentQuestion, startTime]);
 
   const trackTimeAndGo = (index: number) => {
+    advance.cancel();
+    if (!session || paused || submitting || index < 0 || index >= session.questions.length) return;
     const elapsed = Math.floor((Date.now() - questionStartTimeRef.current) / 1000);
     questionTimeSpentRef.current[currentQuestion] = (questionTimeSpentRef.current[currentQuestion] || 0) + elapsed;
     questionStartTimeRef.current = Date.now();
     setCurrentQuestion(index);
   };
 
+  const advance = useAutoAdvance(autoNext, paused || showFinishDialog || showExitDialog || submitting, currentQuestion, session?.questions.length ?? 0, trackTimeAndGo);
   const handleAnswer = (answer: string) => {
-    setAnswers((prev) => ({ ...prev, [currentQuestion]: answer }));
-
-    // Avtomatik keyingi savolga o'tish (`tests/[id]/solve/page.tsx`dagi
-    // autoNext naqshi) — faqat bitta-javobli turlarda (AUTO_NEXT_TYPES) va
-    // oxirgi savol bo'lmasa.
-    const currentType = session?.questions[currentQuestion]?.type;
-    if (autoNext && session && currentType && AUTO_NEXT_TYPES.has(currentType) && currentQuestion < session.questions.length - 1) {
-      setTimeout(() => trackTimeAndGo(currentQuestion + 1), 300);
-    }
+    if (paused || submitting) return;
+    setAnswers(prev => ({ ...prev, [currentQuestion]: answer }));
+    advance.schedule(session?.questions[currentQuestion]?.type ?? '', answer);
   };
 
   const toggleFlag = (index: number) => {
+    advance.cancel();
     setFlaggedQuestions((prev) => {
       const next = new Set(prev);
       if (next.has(index)) next.delete(index);
@@ -204,7 +195,10 @@ export default function SessionSolvePage() {
   };
 
   const handleFinish = useCallback(async () => {
-    if (!session || submitting) return;
+    if (!session || submitLock.current) return;
+    submitLock.current = true;
+    advance.cancel();
+    setPaused(false);
     setSubmitting(true);
 
     const timeSpent = Math.floor((Date.now() - startTime) / 1000);
@@ -232,13 +226,15 @@ export default function SessionSolvePage() {
         router.push(`/results/${data.result.id}`);
       } else {
         alert(data.error || 'Xatolik yuz berdi');
+        submitLock.current = false;
         setSubmitting(false);
       }
     } catch {
       alert('Server xatolik');
+      submitLock.current = false;
       setSubmitting(false);
     }
-  }, [session, answers, sessionId, startTime, submitting, router, currentQuestion]);
+  }, [session, answers, sessionId, startTime, router, currentQuestion, advance]);
 
   // Sessiya DTM Online orqali yaratilganmi — sarlavha `DTM_TITLE_PREFIX`
   // bilan boshlanishidan bilinadi (generateDtmOnlineExam shu prefiks bilan
@@ -283,22 +279,6 @@ export default function SessionSolvePage() {
     );
   }
 
-  const question = session.questions[currentQuestion];
-  const totalQuestions = session.questions.length;
-  const answeredCount = Object.keys(answers).length;
-
-  // Joriy savol qaysi bo'limga tegishli ekanini aniqlaydi (faqat sections
-  // mavjud bo'lsa, masalan DTM Online) — `tests/[id]/solve/page.tsx`dagi
-  // bilan bir xil naqsh.
-  let currentSectionLabel: string | null = null;
-  if (session.sections && session.sections.length > 1) {
-    let acc = 0;
-    for (const s of session.sections) {
-      if (currentQuestion < acc + s.count) { currentSectionLabel = s.label; break; }
-      acc += s.count;
-    }
-  }
-
   return (
     <div className="max-w-7xl mx-auto">
       <button
@@ -308,156 +288,19 @@ export default function SessionSolvePage() {
         <LogOut size={16} />
         <span>{t('exitButton')}</span>
       </button>
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="sticky top-16 z-30 card p-0 mb-4 sm:mb-6 overflow-hidden"
-      >
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 gap-3 sm:gap-0">
-          <div>
-            <h1 className="font-semibold text-text-primary text-sm sm:text-base">{session.title}</h1>
-            <p className="text-xs text-text-secondary">{answeredCount}/{totalQuestions} javob berilgan</p>
-          </div>
-          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end">
-            <TestTimer totalSeconds={remainingSeconds(session.expiresAt)} onTimeUp={handleFinish} />
-            <button
-              onClick={() => setShowFinishDialog(true)}
-              disabled={submitting}
-              className="btn-primary !py-2 !px-3 sm:!px-4 text-sm flex items-center gap-2"
-            >
-              <Flag size={14} />
-              Tugatish
-            </button>
-          </div>
-        </div>
-        <div className="w-full h-1.5 bg-gray-100">
-          <motion.div
-            className="h-full bg-gradient-to-r from-primary-500 to-primary-600"
-            initial={{ width: 0 }}
-            animate={{ width: `${(answeredCount / totalQuestions) * 100}%` }}
-            transition={{ duration: 0.3 }}
-          />
-        </div>
-      </motion.div>
-
-      <div className="flex items-center justify-end gap-3 mb-4">
-        <label className="flex items-center gap-2 text-xs text-text-secondary cursor-pointer select-none">
-          <input
-            type="checkbox"
-            checked={autoNext}
-            onChange={(e) => setAutoNext(e.target.checked)}
-            className="w-3.5 h-3.5 rounded border-border text-primary-600 focus:ring-primary-500"
-          />
-          Javobdan keyin keyingiga o&apos;tish
-        </label>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
-        <div className="lg:col-span-3 order-2 lg:order-1">
-          <motion.div
-            key={currentQuestion}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3 }}
-            className="card p-4 sm:p-6"
-          >
-            {currentSectionLabel && (
-              <span className="inline-block text-xs font-medium text-primary-700 bg-primary-50 px-2.5 py-1 rounded-full mb-3">
-                {currentSectionLabel}
-              </span>
-            )}
-            <QuestionDisplay
-              questionNumber={currentQuestion + 1}
-              totalQuestions={totalQuestions}
-              text={question.text}
-              images={question.images}
-              options={question.options}
-              selectedAnswer={answers[currentQuestion] || null}
-              onAnswer={handleAnswer}
-              questionType={question.type}
-            />
-
-            <HintPanel hints={question.hints} />
-
-            <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
-              <button
-                onClick={() => trackTimeAndGo(currentQuestion - 1)}
-                disabled={currentQuestion === 0}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-text-secondary hover:text-primary-600 hover:bg-primary-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-              >
-                <ChevronLeft size={18} /> Oldingi
-              </button>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => toggleFlag(currentQuestion)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                    flaggedQuestions.has(currentQuestion)
-                      ? 'bg-yellow-100 text-yellow-700 border border-yellow-200'
-                      : 'text-text-secondary hover:bg-yellow-50 hover:text-yellow-600'
-                  }`}
-                >
-                  {flaggedQuestions.has(currentQuestion) ? 'Belgilangan' : 'Belgilash'}
-                </button>
-                <span className="text-sm text-text-secondary">{currentQuestion + 1} / {totalQuestions}</span>
-              </div>
-              <button
-                onClick={() => trackTimeAndGo(currentQuestion + 1)}
-                disabled={currentQuestion === totalQuestions - 1}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-primary-600 hover:bg-primary-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-              >
-                Keyingi <ChevronRight size={18} />
-              </button>
-            </div>
-          </motion.div>
-        </div>
-
-        <div className="lg:col-span-1 order-1 lg:order-2">
-          <QuestionNav
-            totalQuestions={totalQuestions}
-            currentQuestion={currentQuestion}
-            answers={answers}
-            onNavigate={trackTimeAndGo}
-            flaggedQuestions={flaggedQuestions}
-            sections={session.sections}
-          />
-        </div>
-      </div>
-
-      {showFinishDialog && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl"
-          >
-            <div className="text-center">
-              <AlertCircle size={48} className="text-yellow-500 mx-auto mb-4" />
-              <h3 className="text-lg font-bold text-text-primary mb-2">Testni tugatishni xohlaysizmi?</h3>
-              <p className="text-sm text-text-secondary mb-6">
-                {answeredCount}/{totalQuestions} savolga javob berdingiz.
-                {answeredCount < totalQuestions && (
-                  <span className="block text-yellow-600 mt-1">
-                    {totalQuestions - answeredCount} ta savol javobsiz qoladi
-                  </span>
-                )}
-              </p>
-              <div className="flex gap-3">
-                <button onClick={() => setShowFinishDialog(false)} className="flex-1 btn-secondary !py-2.5">
-                  Davom etish
-                </button>
-                <button
-                  onClick={() => { setShowFinishDialog(false); handleFinish(); }}
-                  disabled={submitting}
-                  className="flex-1 btn-primary !py-2.5 flex items-center justify-center gap-2"
-                >
-                  {submitting ? <Loader2 size={14} className="animate-spin" /> : null}
-                  Tugatish
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      )}
+      <ExamWorkspace title={session.title} questions={session.questions} current={currentQuestion} answers={answers}
+        flagged={flaggedQuestions} sections={session.sections} totalSeconds={session.durationMin * 60} expiresAt={session.expiresAt}
+        paused={paused} timed submitting={submitting} autoNext={autoNext}
+        onAutoNext={value => { advance.cancel(); setAutoNext(value); }} onAnswer={handleAnswer} onNavigate={trackTimeAndGo} onFlag={toggleFlag}
+        onPause={() => {
+          advance.cancel();
+          const elapsed = Math.floor((Date.now() - questionStartTimeRef.current) / 1000);
+          questionTimeSpentRef.current[currentQuestion] = (questionTimeSpentRef.current[currentQuestion] || 0) + elapsed;
+          questionStartTimeRef.current = Date.now(); setPaused(true);
+        }}
+        onResume={() => { questionStartTimeRef.current = Date.now(); setPaused(false); }}
+        onFinish={handleFinish} showFinish={showFinishDialog} onShowFinish={value => { advance.cancel(); setShowFinishDialog(value); }}
+        physics={isPhysicsSubject(session.questions[currentQuestion]?.subject)} />
 
       {showExitDialog && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">

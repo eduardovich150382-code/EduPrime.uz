@@ -8,6 +8,9 @@ import { Link } from '@/i18n/routing';
 import LatexRenderer from '@/components/ui/LatexRenderer';
 import SecureYouTubePlayer from '@/components/ui/SecureYouTubePlayer';
 import PremiumCTA from '@/components/ui/PremiumCTA';
+import ResultScore from '@/components/test/ResultScore';
+import ResultQuestionMap from '@/components/test/ResultQuestionMap';
+import { hasExamAnswer, restoreQuestionOrder } from '@/lib/exam-presentation';
 import QuotaUpsellDialog from '@/components/premium/QuotaUpsellDialog';
 import {
   splitFillBlankText, parseFillBlankAnswer, parseFillBlankCorrectAnswer, isFillBlankIndexCorrect,
@@ -88,6 +91,7 @@ export default function ResultPage() {
   const searchParams = useSearchParams();
   const resultId = params.id as string;
   const t = useTranslations('results');
+  const exam = useTranslations('exam');
   // Kurs darsidagi testdan kelingan bo'lsa (qarang `tests/[id]/solve`),
   // "ortga" tugmasi aynan shu darsga qaytsin — tekshirilgan holda.
   const returnTo = sanitizeReturnPath(searchParams.get('returnTo'));
@@ -109,7 +113,6 @@ export default function ResultPage() {
   const [shareSuccess, setShareSuccess] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [questionFilter, setQuestionFilter] = useState<'all' | 'incorrect' | 'skipped'>('all');
-  const [showConfetti, setShowConfetti] = useState(false);
   const [showTimeAnalysis, setShowTimeAnalysis] = useState(false);
 
   // S17 — yechim darajalari
@@ -125,13 +128,9 @@ export default function ResultPage() {
         const res = await fetch(`/api/results/${resultId}`);
         const data = await res.json();
         if (res.ok && data.result) {
-          setResult(data.result);
+          const questions = restoreQuestionOrder(data.result.test.questions, data.result.answers.map((answer: { questionId: string }) => answer.questionId)) ?? data.result.test.questions;
+          setResult({ ...data.result, test: { ...data.result.test, questions } });
           if (data.solutionQuota) setSolutionQuota(data.solutionQuota);
-          // Trigger confetti for high scores
-          if (data.result.percentage >= 80) {
-            setShowConfetti(true);
-            setTimeout(() => setShowConfetti(false), 4000);
-          }
         } else {
           setError(data.error || 'Natija topilmadi');
         }
@@ -400,10 +399,8 @@ export default function ResultPage() {
   }
 
   const correctCount = result.answers.filter(a => a.isCorrect).length;
-  const incorrectCount = result.answers.filter(a => !a.isCorrect && a.answer).length;
-  const skippedCount = result.answers.filter(a => !a.answer).length;
-  const hours = Math.floor(result.timeSpent / 3600);
-  const minutes = Math.floor((result.timeSpent % 3600) / 60);
+  const incorrectCount = result.answers.filter(a => !a.isCorrect && hasExamAnswer(a.answer)).length;
+  const skippedCount = result.answers.filter(a => !a.isCorrect && !hasExamAnswer(a.answer)).length;
 
   // Sessiya natijasi (result.sessionId bor) — konstruktordan (/build) yoki
   // DTM Online'dan kelgan bo'lishi mumkin; ikkalasi ham TestSession orqali
@@ -434,59 +431,13 @@ export default function ResultPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="card-elevated p-8 text-center"
+        className="rounded-[18px] border border-border bg-white p-4 sm:p-6"
       >
-        <h1 className="text-xl font-bold text-text-primary mb-6">{result.test.titleUz}</h1>
+        <p className="mb-1 text-xs font-medium text-text-secondary">{result.test.titleUz}</p>
+        <h1 className="text-xl font-semibold text-text-primary">{exam('completed')}</h1>
 
-        {/* Score circle */}
-        <div className="relative inline-flex items-center justify-center w-40 h-40 mb-6">
-          <svg className="w-40 h-40 -rotate-90" viewBox="0 0 160 160">
-            <circle
-              cx="80" cy="80" r="70"
-              fill="none" stroke="#e5e7eb" strokeWidth="12"
-            />
-            <circle
-              cx="80" cy="80" r="70"
-              fill="none"
-              stroke={result.percentage >= 80 ? '#22c55e' : result.percentage >= 60 ? '#eab308' : '#ef4444'}
-              strokeWidth="12"
-              strokeDasharray={`${2 * Math.PI * 70}`}
-              strokeDashoffset={`${2 * Math.PI * 70 * (1 - result.percentage / 100)}`}
-              strokeLinecap="round"
-              className="transition-all duration-1000"
-            />
-          </svg>
-          <div className="absolute text-center">
-            <span className="text-3xl font-bold text-text-primary">{result.percentage}%</span>
-            <p className="text-xs text-text-secondary">{result.score}/{result.maxScore}</p>
-          </div>
-        </div>
-
-        {/* Stats row */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
-          <div className="p-3 rounded-xl bg-green-50">
-            <CheckCircle size={20} className="text-green-600 mx-auto mb-1" />
-            <span className="text-lg font-bold text-green-700">{correctCount}</span>
-            <p className="text-xs text-green-600">To&apos;g&apos;ri</p>
-          </div>
-          <div className="p-3 rounded-xl bg-red-50">
-            <XCircle size={20} className="text-red-600 mx-auto mb-1" />
-            <span className="text-lg font-bold text-red-700">{incorrectCount}</span>
-            <p className="text-xs text-red-600">Noto&apos;g&apos;ri</p>
-          </div>
-          <div className="p-3 rounded-xl bg-gray-50">
-            <SkipForward size={20} className="text-gray-600 mx-auto mb-1" />
-            <span className="text-lg font-bold text-gray-700">{skippedCount}</span>
-            <p className="text-xs text-gray-600">Javobsiz</p>
-          </div>
-          <div className="p-3 rounded-xl bg-blue-50">
-            <Clock size={20} className="text-blue-600 mx-auto mb-1" />
-            <span className="text-lg font-bold text-blue-700">
-              {hours > 0 ? `${hours}:${minutes.toString().padStart(2, '0')}` : `${minutes} daq`}
-            </span>
-            <p className="text-xs text-blue-600">Vaqt</p>
-          </div>
-        </div>
+        <ResultScore score={result.score} maxScore={result.maxScore} percentage={result.percentage}
+          correct={correctCount} incorrect={incorrectCount} skipped={skippedCount} timeSpent={result.timeSpent} />
 
         {/* Actions */}
         <div className="flex items-center justify-center gap-3 mt-8">
@@ -529,33 +480,14 @@ export default function ResultPage() {
         </div>
       </motion.div>
 
-      {/* Confetti effect */}
-      {showConfetti && (
-        <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
-          {Array.from({ length: 50 }).map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-3 h-3 rounded-sm"
-              style={{
-                left: `${Math.random() * 100}%`,
-                backgroundColor: ['#7c3aed', '#22c55e', '#eab308', '#ef4444', '#3b82f6', '#ec4899'][i % 6],
-              }}
-              initial={{ y: -20, opacity: 1, rotate: 0 }}
-              animate={{
-                y: typeof window !== 'undefined' ? window.innerHeight + 20 : 800,
-                opacity: 0,
-                rotate: Math.random() * 720 - 360,
-                x: Math.random() * 200 - 100,
-              }}
-              transition={{
-                duration: 2 + Math.random() * 2,
-                delay: Math.random() * 0.5,
-                ease: 'easeOut',
-              }}
-            />
-          ))}
-        </div>
-      )}
+      <ResultQuestionMap questions={result.test.questions} answers={result.answers} onSelect={id => {
+        setQuestionFilter('all');
+        requestAnimationFrame(() => {
+          const element = document.getElementById(`result-question-${id}`);
+          element?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+          element?.focus({ preventScroll: true });
+        });
+      }} />
 
       {/* Share Modal */}
       {showShareModal && (
@@ -787,20 +719,22 @@ export default function ResultPage() {
               const answerRecord = result.answers.find(a => a.questionId === question.id);
               const userAnswer = answerRecord?.answer || '';
               const isCorrect = answerRecord?.isCorrect || false;
-              if (questionFilter === 'incorrect') return !isCorrect && !!userAnswer;
-              if (questionFilter === 'skipped') return !userAnswer;
+              if (questionFilter === 'incorrect') return !isCorrect && hasExamAnswer(userAnswer);
+              if (questionFilter === 'skipped') return !isCorrect && !hasExamAnswer(userAnswer);
               return true;
             })
             .map(({ question, i }) => {
             const answerRecord = result.answers.find(a => a.questionId === question.id);
             const userAnswer = answerRecord?.answer || '';
             const isCorrect = answerRecord?.isCorrect || false;
-            const isSkipped = !userAnswer;
+            const isSkipped = !isCorrect && !hasExamAnswer(userAnswer);
 
             return (
               <div
                 key={question.id}
-                className={`rounded-xl border-2 overflow-hidden transition-all ${
+                id={`result-question-${question.id}`}
+                tabIndex={-1}
+                className={`scroll-mt-24 rounded-xl border-2 overflow-hidden transition-all ${
                   isCorrect
                     ? 'border-green-200 bg-green-50/30'
                     : isSkipped

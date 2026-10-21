@@ -35,7 +35,8 @@ vi.mock("@/lib/auth", () => ({
 }));
 
 import { POST } from "../route";
-import { generateSeed, shuffleArray } from "@/lib/shuffle";
+import { generateSeed, shuffleArray, shuffleTest } from "@/lib/shuffle";
+import { shufflePresentedQuestions } from "@/lib/exam-presentation";
 
 const LABELS = ["A", "B", "C", "D", "E"];
 // Backfill'da gen_random_uuid()::text bilan yaratilgan Item id'lar aynan
@@ -85,6 +86,21 @@ describe("POST /api/tests/[id]/submit", () => {
     // Standart holat — hech qanday Item topilmaydi (S27 Attempt yozuvi
     // uchun), testlar buni alohida sinamaguncha bo'sh massiv yetarli.
     findManyItemMock.mockResolvedValue([]);
+  });
+
+  it.each([false, true])('yangi taqdimot tartibi baholashni o‘zgartirmaydi (bo‘limlar: %s)', async preserveOrder => {
+    const template = buildTest().questions[0];
+    const questions = Array.from({ length: 20 }, (_, index) => ({ ...template, id: `q${index}`, subjectId: preserveOrder ? `subject${Math.floor(index / 10)}` : null }));
+    findUniqueTestMock.mockResolvedValue(buildTest({ questions }));
+    createResultMock.mockImplementation(({ data }: { data: Record<string, unknown> }) => Promise.resolve({ id: 'result1', ...data }));
+    const presented = shuffleTest(questions, 'user1', 'test1', { preserveOrder }) as typeof questions;
+    const attempt = shufflePresentedQuestions(presented, 726);
+    const { status, data } = await callSubmit({ answers: attempt.map(question => ({ questionId: question.id, answer: question.options.find(option => option.text === '4')!.label, timeSpent: 2 })), timeSpent: 40 });
+    expect(status).toBe(200); expect(data.result.score).toBe(20);
+    expect(data.result.answers.every((answer: { isCorrect: boolean }) => answer.isCorrect)).toBe(true);
+    const expected = attempt.map(question => question.id);
+    expect(data.result.answers.map((answer: { questionId: string }) => answer.questionId)).toEqual(expected);
+    expect(createResultMock.mock.calls[0][0].data.answers.map((answer: { questionId: string }) => answer.questionId)).toEqual(expected);
   });
 
   it("36 belgili UUID questionId kesilmasdan saqlanadi va to'g'ri baholanadi", async () => {
