@@ -1,0 +1,208 @@
+[
+  {
+    "id": "vip-tyt-madde-t01-01",
+    "text": "Qattiq, suyuq va gaz holatidagi moddalar haqida quyidagi tasdiqlar berilgan.\nI. Modda qo'shilmasa yoki undan olib tashlanmasa, massasi o'zgarmaydi.\nII. Modda qo'shilmasa yoki undan olib tashlanmasa, hajmi o'zgarmaydi.\nIII. Ular inertlik xossasiga ega.\nQaysi tasdiqlar albatta to'g'ri?",
+    "options": [
+      "Faqat I",
+      "I va II",
+      "I va III",
+      "II va III",
+      "I, II va III"
+    ],
+    "answer": "C",
+    "correctAnswer": "C",
+    "explanation": "Berilgan:\nQattiq jism, suyuqlik va gazdan modda olib tashlanmaydi va ularga modda qo'shilmaydi.\n\nTopish kerak:\nHar uchala agregat holat uchun o'rinli tasdiqlarni aniqlash.\n\nYechilishi:\n1-qadam. Massaning saqlanishini tekshiramiz. Oddiy fizik o'zgarishlarda yopiq tizimdagi modda miqdori o'zgarmasa, massa ham saqlanadi. I to'g'ri.\n2-qadam. Hajm faqat modda miqdoriga bog'liq emas: harorat va bosim o'zgarsa, ayniqsa gazning hajmi o'zgaradi. Masalan, yopiq porshenli idishdagi gazni siqqanda massasi saqlanib, hajmi kamayadi. II albatta to'g'ri emas.\n3-qadam. Massaga ega barcha jismlar o'z tezligini o'zgartirishga qarshilik ko'rsatadi. Bu inertlik deyiladi va u agregat holatga bog'liq emas. III to'g'ri.\n\nJavob:\nI va III (C).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 1,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 18,
+      "test": 1,
+      "question": 1,
+      "printedAnswer": "C"
+    }
+  },
+  {
+    "id": "vip-tyt-madde-t01-02",
+    "text": "Ekin o'qituvchi «Modda va uning xossalari» mavzusini quyidagi savollar bilan boshladi.\nI. Qaysi jismning massasi 5 kg?\nII. Qaysi suyuqlikning hajmi 3 litr?\nIII. Qaysi suyuqlik 100 °C da qaynaydi?\nIV. Qaysi metallning zichligi $13{,}6\\,\\text{g/sm}^3$?\nBunday kirishdan ko'zlangan asosiy maqsad nima bo'lishi mumkin?",
+    "options": [
+      "Fizik kattaliklar birliklar bilan ifodalanishini ko'rsatish",
+      "Mavzuda uchraydigan tushunchalarni oldindan tanishtirish",
+      "Modda turli agregat holatlarda bo'lishini ko'rsatish",
+      "Modda bilan jism orasidagi munosabatni tushuntirish",
+      "Moddaning umumiy xossalari bilan uni farqlashga yordam beradigan xossalari orasidagi farqni ko'rsatish"
+    ],
+    "answer": "E",
+    "correctAnswer": "E",
+    "explanation": "Berilgan:\nSavollarda massa, hajm, qaynash harorati va zichlik tilga olingan.\n\nTopish kerak:\nSavollarni birlashtiradigan asosiy o'quv maqsadini aniqlash.\n\nYechilishi:\n1-qadam. Massa va hajm barcha moddiy jismlarda mavjud umumiy xossalardir. Bir xil massa yoki hajmga ega bo'lish moddaning turini yakka o'zi aniqlamaydi.\n2-qadam. Qaynash harorati va zichlik esa belgilangan tashqi sharoitlarda moddalarni farqlash uchun ishlatiladi. Qaynash haroratini taqqoslashda bosimni ham bir xil olish kerak.\n3-qadam. Birinchi ikki savol umumiy xossalarni, keyingi ikkitasi farqlovchi xossalarni qarama-qarshi qo'ygan. Shuning uchun eng aniq maqsad shu ikki guruhning farqini ochishdir. Birliklar va yangi tushunchalar ham bor, lekin ular savollar ketma-ketligining asosiy g'oyasini to'liq ifodalamaydi.\n\nJavob:\nUmumiy va farqlovchi xossalar orasidagi farqni ko'rsatish (E).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 1,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 18,
+      "test": 1,
+      "question": 2,
+      "printedAnswer": "E"
+    }
+  },
+  {
+    "id": "vip-tyt-madde-t01-03",
+    "text": "$K$ jism to'g'ri burchakli parallelepiped, $L$ jism shar shaklida. $K$ ning qirralari 10 sm, 5 sm va 4 sm; $L$ sharning radiusi 5 sm. Rasmdagi jismlar hajmlarining $V_K/V_L$ nisbati qancha? $(\\pi=3)$",
+    "options": [
+      "$\\frac25$",
+      "$1$",
+      "$\\frac32$",
+      "$2$",
+      "$\\frac52$"
+    ],
+    "answer": "A",
+    "correctAnswer": "A",
+    "explanation": "Berilgan:\n$a=10\\,\\text{sm}$, $b=5\\,\\text{sm}$, $c=4\\,\\text{sm}$; $r=5\\,\\text{sm}$, $\\pi=3$.\n\nTopish kerak:\n$V_K/V_L$ nisbatini hisoblash.\n\nYechilishi:\n1-qadam. Parallelepiped hajmi uning uch o'lchami ko'paytmasiga teng:\n$V_K=abc=10\\cdot5\\cdot4=200\\,\\text{sm}^3$.\n2-qadam. Rasmda 5 sm kesma sharning markazidan sirtigacha chizilgan, ya'ni bu diametr emas, radius. Shar hajmi:\n$V_L=\\frac43\\pi r^3=\\frac43\\cdot3\\cdot5^3=500\\,\\text{sm}^3$.\n3-qadam. Bir xil hajm birliklari qisqaradi:\n$\\frac{V_K}{V_L}=\\frac{200}{500}=\\frac25=0{,}4$.\n\nJavob:\n$V_K/V_L=\\frac25$ (A).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 1,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 18,
+      "test": 1,
+      "question": 3,
+      "printedAnswer": "A"
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t01-03.webp"
+    ],
+    "explanationImages": [
+      "/savol-rasm/vip-tyt-madde/t01-03y.svg"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t01-04",
+    "text": "Ilgari kichik massali qimmatbaho buyumlarni aniq tortishda karob daraxti urug'laridan foydalanilgan. Bir urug' massasi 1 karat deb olinib, 0,2 grammga teng hisoblangan. Qoshiqchi olmosining massasi 86 karat bo'lsa, uning massasi kilogrammda qancha?",
+    "options": [
+      "$172$",
+      "$1{,}72$",
+      "$0{,}172$",
+      "$0{,}0172$",
+      "$0{,}00172$"
+    ],
+    "answer": "D",
+    "correctAnswer": "D",
+    "explanation": "Berilgan:\n$1\\,\\text{karat}=0{,}2\\,\\text{g}$; $m=86\\,\\text{karat}$.\n\nTopish kerak:\nOlmos massasini kilogrammda ifodalash.\n\nYechilishi:\n1-qadam. Karatdan grammga o'tamiz:\n$m=86\\cdot0{,}2=17{,}2\\,\\text{g}$.\n2-qadam. $1\\,\\text{kg}=1000\\,\\text{g}$ bo'lgani uchun grammdagi qiymatni 1000 ga bo'lamiz:\n$m=17{,}2/1000=0{,}0172\\,\\text{kg}$.\n3-qadam. Tekshirish: $0{,}0172\\cdot1000=17{,}2\\,\\text{g}$ va $17{,}2/0{,}2=86$ karat. Ikkala almashtirish ham mos.\n\nJavob:\n$0{,}0172\\,\\text{kg}$ (D).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 1,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 18,
+      "test": 1,
+      "question": 4,
+      "printedAnswer": "D"
+    }
+  },
+  {
+    "id": "vip-tyt-madde-t01-05",
+    "text": "Masala shartida mineral suvdagi kalsiy uchun eng kam miqdor $0{,}15\\,\\text{g/l}$ deb olingan. To'rt mahsulot uchun shisha hajmi va kalsiy massasi quyidagicha:\nPazar: 200 ml — 45 mg;\nDağ: 250 ml — 40 mg;\nAy: 250 ml — 10 mg;\nMine: 200 ml — 25 mg.\nQaysi mahsulotlarda kalsiy miqdori berilgan me'yordan kam?",
+    "options": [
+      "Faqat Ay",
+      "Faqat Pazar",
+      "Ay va Mine",
+      "Dağ va Mine",
+      "Pazar va Dağ"
+    ],
+    "answer": "C",
+    "correctAnswer": "C",
+    "explanation": "Berilgan:\n$c_{\\min}=0{,}15\\,\\text{g/l}=150\\,\\text{mg/l}$. Har bir shishaning hajmi va undagi kalsiy massasi berilgan.\n\nTopish kerak:\nHar bir suv uchun kalsiyning hajmiy konsentratsiyasini topib, me'yor bilan solishtirish.\n\nYechilishi:\n1-qadam. Hajmlarni litrga o'tkazamiz: 200 ml = 0,2 l; 250 ml = 0,25 l. Konsentratsiya $c=m/V$.\n2-qadam. Pazar: $45/0{,}2=225\\,\\text{mg/l}$, ya'ni $0{,}225\\,\\text{g/l}$ — me'yordan yuqori.\n3-qadam. Dağ: $40/0{,}25=160\\,\\text{mg/l}=0{,}16\\,\\text{g/l}$ — me'yordan yuqori.\n4-qadam. Ay: $10/0{,}25=40\\,\\text{mg/l}=0{,}04\\,\\text{g/l}$ — me'yordan kam.\n5-qadam. Mine: $25/0{,}2=125\\,\\text{mg/l}=0{,}125\\,\\text{g/l}$ — me'yordan kam. Turli hajmdagi shishalardagi milligrammlarni bevosita emas, bir litrga keltirib solishtirish lozim.\n\nJavob:\nAy va Mine (C).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 19,
+      "test": 1,
+      "question": 5,
+      "printedAnswer": "C",
+      "correction": "Manbadagi Yevropa Ittifoqi me'yori haqidagi da'vo amaldagi huquqiy me'yor sifatida berilmadi; 0,15 g/l masalaning shartli mezoni sifatida saqlandi."
+    }
+  },
+  {
+    "id": "vip-tyt-madde-t01-06",
+    "text": "Temirdan kesib olingan to'g'ri burchakli parallelepipedning o'lchamlari $12\\,\\text{sm}\\times12\\,\\text{sm}\\times8\\,\\text{sm}$. Uni eritmasdan kesib ishlash orqali radiusi 2 sm bo'lgan bir xil sharlarni diametrlari bo'yicha qatorlab joylashtirib tayyorlash kerak. Eng ko'p nechta shar olinadi?",
+    "options": [
+      "9",
+      "12",
+      "15",
+      "18",
+      "21"
+    ],
+    "answer": "D",
+    "correctAnswer": "D",
+    "explanation": "Berilgan:\n$a=b=12\\,\\text{sm}$, $h=8\\,\\text{sm}$; shar radiusi $r=2\\,\\text{sm}$. Sharlar odatiy to'g'ri qatorlar bo'yicha kesiladi.\n\nTopish kerak:\nBerilgan qatorlash usulida olinadigan sharlar sonini topish.\n\nYechilishi:\n1-qadam. Har bir shar diametri $d=2r=4\\,\\text{sm}$. Sharni kesib olish uchun har yo'nalishda kamida 4 sm joy ajratiladi.\n2-qadam. Uzunlik bo'ylab $12/4=3$ ta, kenglik bo'ylab ham 3 ta, balandlik bo'ylab $8/4=2$ ta shar joylashadi.\n3-qadam. Qatorlar bo'yicha jami son:\n$N=3\\cdot3\\cdot2=18$.\n4-qadam. Hajmlarni shunchaki bo'lish bu masalani yechmaydi: sharlar orasida kesib tashlanadigan temir qoladi. Eritib qayta quyish boshqa masala bo'lib, unda hajm saqlanishidan foydalanilar edi. Bu yerda manba ko'zlagan usul — diametr bo'yicha qatorlab kesish.\n\nJavob:\n18 ta shar (D).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 19,
+      "test": 1,
+      "question": 6,
+      "printedAnswer": "D",
+      "correction": "Manbadagi «eng ko'p» iborasi umumiy shar joylashtirish masalasiga aylanmasligi uchun manba yechimi ko'zlagan to'g'ri qatorlab, eritmasdan kesish sharti aniqlandi."
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t01-06.webp"
+    ],
+    "explanationImages": [
+      "/savol-rasm/vip-tyt-madde/t01-06y.svg"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t01-07",
+    "text": "Ichida zichligi noma'lum suyuqlik bo'lgan darajalangan idishga bir xil metalldan yasalgan $r$ va $2r$ radiusli $K$ va $L$ sharlar to'liq botirilgan. Dastlab sath 480 ml, idish bilan umumiy massa 700 g. $K$ shar olingach, sath 470 ml, umumiy massa 650 g bo'ldi. Suyuqlik to'kilmagan. Ushbu o'lchashlardan qaysi kattalikni aniqlab bo'lmaydi?",
+    "options": [
+      "K sharning massasini",
+      "L sharning massasini",
+      "Suyuqlikning massasini",
+      "Suyuqlikning hajmini",
+      "L sharning hajmini"
+    ],
+    "answer": "C",
+    "correctAnswer": "C",
+    "explanation": "Berilgan:\n$V_1=480\\,\\text{ml}$, $M_1=700\\,\\text{g}$; $V_2=470\\,\\text{ml}$, $M_2=650\\,\\text{g}$; $r_L=2r_K$. Idishning bo'sh massasi va suyuqlik zichligi noma'lum.\n\nTopish kerak:\nTajriba ma'lumotlari bilan aniqlab bo'lmaydigan kattalikni topish.\n\nYechilishi:\n1-qadam. Olingan shar massasi tarozi ko'rsatishlari farqidir: $m_K=700-650=50\\,\\text{g}$.\n2-qadam. U to'liq botganligi uchun hajmi sathlar farqiga teng: $V_K=480-470=10\\,\\text{sm}^3$.\n3-qadam. Shar hajmi radius kubiga proporsional: $V_L/V_K=(2r/r)^3=8$. Demak $V_L=80\\,\\text{sm}^3$. Bir xil metall uchun zichlik teng, shuning uchun $m_L=8m_K=400\\,\\text{g}$.\n4-qadam. Ikkinchi holatdan suyuqlik hajmi $V_s=470-80=390\\,\\text{sm}^3$.\n5-qadam. Ikkinchi holat massasi $650=m_{idish}+m_s+400$, ya'ni $m_{idish}+m_s=250\\,\\text{g}$. Bo'sh idish massasi ham, suyuqlik zichligi ham berilmagan: bu yig'indidan $m_s$ ni alohida ajratib bo'lmaydi.\n\nJavob:\nSuyuqlik massasini aniqlab bo'lmaydi (C).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 3,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 19,
+      "test": 1,
+      "question": 7,
+      "printedAnswer": "C",
+      "correction": "Aslda avval «su» (suv), keyin «sıvı» deyilgan. Agar suv zichligi 1 g/sm³ deb olinsa, o'lchashlar manfiy idish massasini beradi. C kalitiga mos ravishda «zichligi noma'lum suyuqlik» deb tuzatildi."
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t01-07.webp"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t01-08",
+    "text": "Asos radiusi balandligiga teng bo'lgan silindrsimon $K$ idish suyuqlik bilan og'zigacha to'ldirilgan. Barcha suyuqlik pastki asosi kengroq kesik konus shaklidagi $L$ idishga quyilganda, u yarim balandligigacha to'ladi. Rasm sharti sifatida L ning pastki asos radiusi K ning asos radiusidan katta deb olinadi; rasm masshtabda chizilmagan. So'ng $M$ shar sekin tushiriladi: u tubga cho'kib, to'liq botadi va sath toshish chegarasiga yetadi.\nI. K idish asosining yuzi L idish pastki asosining yuzidan kichik.\nII. M sharning hajmi suyuqlik hajmidan kichik.\nIII. K idish asosining radiusi M sharning radiusidan katta.\nQaysi tasdiqlar to'g'ri?",
+    "options": [
+      "Faqat I",
+      "Faqat II",
+      "I va II",
+      "I va III",
+      "I, II va III"
+    ],
+    "answer": "E",
+    "correctAnswer": "E",
+    "explanation": "Berilgan:\nK silindrda $h_K=r_K=r$, shuning uchun $V_s=\\pi r^3$. L idish yuqoriga tomon torayadi. M shar to'liq botib, idishning bo'sh qismini hajman egallaydi.\n\nTopish kerak:\nAsos yuzlari, hajmlar va radiuslar orasidagi munosabatlarni aniqlash.\n\nYechilishi:\n1-qadam. L idish yuqoriga toraygani uchun pastki yarmining hajmi yuqori yarmining hajmidan katta. Dastlabki suyuqlik pastki yarimda, to'liq botgan shar esa qolgan bo'sh hajmni egallaydi. Shuning uchun $V_s>V_M$. II to'g'ri.\n2-qadam. K uchun $h=r$ bo'lgani sabab $V_s=\\pi r^3$. Shar hajmi $V_M=\\frac43\\pi R_M^3$. II dan $\\frac43\\pi R_M^3<\\pi r^3$, bundan $R_M<\\sqrt[3]{3/4}r<r$. III to'g'ri.\n3-qadam. I ni baholashda masalada aniq berilgan qo'shimcha rasm shartidan foydalanamiz: $R_L>r_K$. Doira yuzi radius kvadratiga proporsional: $S_L=\\pi R_L^2>\\pi r_K^2=S_K$. I ham to'g'ri.\n4-qadam. Chizmadagi tasviriy kattalikni o'lchab dalil qilish o'rniga, radiuslar sharti matnda aniq yozildi. Usiz I ni faqat suyuqlikning yarim balandlikka yetishi bilan qat'iy isbotlab bo'lmaydi.\n\nJavob:\nI, II va III (E).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 3,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 19,
+      "test": 1,
+      "question": 8,
+      "printedAnswer": "E",
+      "correction": "Aslda I tasdiq uchun yetarli o'lcham sharti yozilmagan; tasvir ko'zlagan L pastki asos radiusi K nikidan kattaligi aniq shart sifatida kiritildi. Shar to'liq botishi ham aniqlandi. Rasm o'lchamlarini masshtab deb qabul qilish bekor qilindi."
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t01-08.webp"
+    ]
+  }
+]

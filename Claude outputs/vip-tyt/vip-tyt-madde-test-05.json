@@ -1,0 +1,245 @@
+[
+  {
+    "id": "vip-tyt-madde-t05-01",
+    "text": "Murod ko'ylagidagi dog'larni oddiy suv bilan yuvishda qiynaldi. Yuvish vositasi qo'shish orqali suvning qaysi xususiyatlarini kamaytirish matoni ho'llash va dog'ni ketkazishga yordam beradi?\nI. Matoga adgeziya ta'sirini.\nII. Suv ichidagi kogeziya ta'sirini.\nIII. Sirt tarangligini.",
+    "options": [
+      "Faqat I",
+      "Faqat II",
+      "I va II",
+      "II va III",
+      "I, II va III"
+    ],
+    "answer": "D",
+    "correctAnswer": "D",
+    "explanation": "Berilgan:\nOddiy suv matoga yetarlicha yoyilmaydi. Yuvish vositasi suvning sirt xossalarini o'zgartiradi.\n\nTopish kerak:\nKamayishi yuvishga yordam beradigan xossalarni tanlash.\n\nYechilishi:\n1-qadam. Suvning o'z molekulalari orasidagi tortishish sirtni yig'ishga intiladi. Maktab modelida bu ta'sirni kamaytirish suvning mato tolalari orasiga kirishini osonlashtiradi. II mos.\n2-qadam. Sirt-faol moddalar suvning sirt tarangligini kamaytiradi. Shunda suv ko'proq yoyilib, matoni ho'llaydi. III mos.\n3-qadam. Suvning mato bilan adgeziyasini kamaytirish aksincha ho'llanishni yomonlashtirishi mumkin. Shuning uchun I maqsadga mos emas.\n4-qadam. Haqiqiy yuvishda yog'ni emulsiyalash va mitsellalar ham muhim; savol esa sirt xossalarining sodda maktab izohiga qaratilgan.\n\nJavob:\nII va III (D).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 26,
+      "test": 5,
+      "question": 1,
+      "printedAnswer": "D"
+    }
+  },
+  {
+    "id": "vip-tyt-madde-t05-02",
+    "text": "Quyidagi zichliklar berilgan ($\\text{g/sm}^3$): rux 7,14; qalay 7,30; nikel 8,90; mis 8,96; qo'rg'oshin 11,34.\nQotishmalar: bronza (mis+qalay) — 8,56; latun (rux+mis) — 8,25; kavshar (qalay+qo'rg'oshin) — 8,40; nemis kumushi (mis+nikel+rux) — 10,50.\nHajmlar qo'shiladigan maktab modelida qaysi qotishmada sanalgan tarkibiy metallardan tashqari boshqa metall albatta bo'lishi kerak?",
+    "options": [
+      "Faqat bronzada",
+      "Faqat nemis kumushida",
+      "Bronza va kavsharda",
+      "Kavshar va nemis kumushida",
+      "Latun va kavsharda"
+    ],
+    "answer": "B",
+    "correctAnswer": "B",
+    "explanation": "Berilgan:\nReaksiya va hajm qisqarishi hisobga olinmaydi. Qotishma zichligi tarkibiy metallarning zichliklari orasida bo'lishi kerak.\n\nTopish kerak:\nShu chegaradan tashqarida joylashgan qotishma zichligini topish.\n\nYechilishi:\n1-qadam. Hajmlar qo'shilsa, $\\rho_{q}=\\sum\\rho_iV_i/\\sum V_i$. Musbat hajmlar uchun u eng kichik va eng katta zichlik orasida yotadi.\n2-qadam. Bronza: $7{,}30<8{,}56<8{,}96$ — mumkin. Latun: $7{,}14<8{,}25<8{,}96$ — mumkin.\n3-qadam. Kavshar: $7{,}30<8{,}40<11{,}34$ — mumkin.\n4-qadam. Nemis kumushining sanalgan metallari orasidagi eng katta zichlik misniki, $8{,}96$. Jadvaldagi $10{,}50$ bundan ham katta, shu tarkib bilan mazkur modelda olinmaydi. Demak qo'shimcha zichroq metall yoki jadval xatosi bo'lishi kerak. Savoldagi «boshqa metall ishlatilgan» talqiniga mos javob B. Haqiqiy qotishmalarda hajm o'zgarishi ham mumkinligi uchun model sharti muhim.\n\nJavob:\nFaqat nemis kumushi (B).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 26,
+      "test": 5,
+      "question": 2,
+      "printedAnswer": "B"
+    }
+  },
+  {
+    "id": "vip-tyt-madde-t05-03",
+    "text": "O'zgarmas harorat va bosimda silindrsimon idish suv bilan to'ldirilmoqda. Birinchi grafikda vertikal x bilan gorizontal y orasida koordinata boshidan o'tuvchi o'suvchi to'g'ri chiziq bor. Ikkinchi grafikda gorizontal z o'zgarmas, y esa o'sadi (vertikal chiziq). O'qlar quyidagicha bo'lishi mumkinmi?\nI. x — hajm; y — massa; z — zichlik.\nII. x — massa; y — zichlik; z — hajm.\nIII. x — zichlik; y — massa; z — hajm.\nIV. x — massa; y — hajm; z — zichlik.\nMos qatorlarni toping.",
+    "options": [
+      "Faqat I",
+      "Faqat III",
+      "I va IV",
+      "II va III",
+      "II va IV"
+    ],
+    "answer": "C",
+    "correctAnswer": "C",
+    "explanation": "Berilgan:\nSuv miqdori ortadi: massa va hajm birga ortadi, zichlik o'zgarmas.\n\nTopish kerak:\nIkki grafikni bir vaqtning o'zida qanoatlantiradigan o'q nomlarini topish.\n\nYechilishi:\n1-qadam. $m=\\rho V$, $\\rho=\\mathrm{const}$. Shuning uchun massa–hajm ham, hajm–massa ham koordinata boshidan o'tuvchi to'g'ri chiziq beradi. Demak x va y — massa bilan hajmning ikkita tartibi.\n2-qadam. Ikkinchi grafik vertikal: gorizontal o'qdagi z bitta qiymatda qoladi, vertikal y o'zgaradi. O'zgarmas kattalik zichlik bo'lgani uchun z zichlik bo'lishi kerak.\n3-qadam. I va IV da x, y massa bilan hajm, z esa zichlik. Ikkala shart ham bajariladi. II da y zichlik bo'lib, birinchi grafik o'suvchi chiqmaydi; III da x zichlik bo'lib, birinchi grafik yana mos kelmaydi.\n\nJavob:\nI va IV (C).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 26,
+      "test": 5,
+      "question": 3,
+      "printedAnswer": "C"
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t05-03.webp"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t05-04",
+    "text": "Turli materiallardan yasalgan, balandliklari teng, ichi to'liq tik silindrlar K va L uchun K ning o'z og'irligiga nisbiy bardoshliligi kattaroq. Dastlabki asos yuzlari S va 2S. Shu K va L materiallardan yasalgan qaysi juft jismlarning nisbiy bardoshliliklari teng bo'lishi mumkin? Chizmalardagi teng balandlik belgilarini hisobga oling.",
+    "options": [
+      {
+        "label": "A",
+        "text": "K pastroq yo'g'on silindr, L balandroq ingichka silindr",
+        "image": "/savol-rasm/vip-tyt-madde/t05-04-A.webp"
+      },
+      {
+        "label": "B",
+        "text": "K pastga kengayuvchi, L yuqoriga kengayuvchi kesik konus",
+        "image": "/savol-rasm/vip-tyt-madde/t05-04-B.webp"
+      },
+      {
+        "label": "C",
+        "text": "K pastga torayuvchi kesik konus, L tik silindr",
+        "image": "/savol-rasm/vip-tyt-madde/t05-04-C.webp"
+      },
+      {
+        "label": "D",
+        "text": "K tik silindr, L yuqoriga kengayuvchi kesik konus",
+        "image": "/savol-rasm/vip-tyt-madde/t05-04-D.webp"
+      },
+      {
+        "label": "E",
+        "text": "Balandliklari teng K va L silindrlar",
+        "image": "/savol-rasm/vip-tyt-madde/t05-04-E.webp"
+      }
+    ],
+    "answer": "C",
+    "correctAnswer": "C",
+    "explanation": "Berilgan:\nBir xil balandlikdagi dastlabki silindrlardan material koeffitsiyentlari $C_K>C_L$ ekani kelib chiqadi. Umumiy model: $D=C\\,S_{tayanch}/V$.\n\nTopish kerak:\nK materialining ustunligini geometrik omil bilan kamaytiradigan shaklni tanlash.\n\nYechilishi:\n1-qadam. Silindr uchun $S/V=1/h$, shu sabab dastlabki asos yuzlarining S va 2S bo'lishi nisbiy bardoshlilik tartibini o'zgartirmaydi. $D_K>D_L$ materialning K foydasiga ekanini bildiradi.\n2-qadam. Tenglik olish uchun K jismning $S_{tayanch}/V$ nisbatini L nikidan kichikroq qilish kerak.\n3-qadam. C variantida K ning pastki asosi tor, yuqori qismi keng. Teng balandlikda uning hajmi $S_{tayanch}h$ dan katta, demak $S_{tayanch}/V<1/h$. L esa tik silindr, unda $S/V=1/h$. Shunday qilib K ning material bo'yicha ustunligi shakl bilan kamaytirilishi mumkin.\n4-qadam. E da ikkala nisbat teng qoladi; A da K pastroq bo'lib, ustunligi ortadi. B va D ham K ni nisbatan zaiflashtiradigan kerakli yo'nalishni bermaydi. Tenglik «mumkin», ammo material sonlari berilmagani uchun majburiy emas.\n\nJavob:\nC juftlik (C).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 3,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 26,
+      "test": 5,
+      "question": 4,
+      "printedAnswer": "C"
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t05-04.webp"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t05-05",
+    "text": "Esad kokos yong'og'ini avval tortdi: 1750 g. Kichik teshikdan ichidagi suyuqlikni to'liq chiqarib, hajmini 250 ml deb o'lchadi. Suyuqligi olingan kokos qayta tortilganda 1250 g chiqdi. Ushbu o'lchashlardan qaysi kattalikni hisoblash mumkin?",
+    "options": [
+      "Kokosning tashqi hajmini",
+      "Suyuqlik chiqarilgach qolgan qattiq qismining hajmini",
+      "Kokosning dastlabki o'rtacha zichligini",
+      "Qolgan qattiq qismning zichligini",
+      "Kokos ichidagi suyuqlik zichligini"
+    ],
+    "answer": "E",
+    "correctAnswer": "E",
+    "explanation": "Berilgan:\n$M_1=1750\\,\\text{g}$, $M_2=1250\\,\\text{g}$; chiqarilgan suyuqlik hajmi $V_s=250\\,\\text{ml}$.\n\nTopish kerak:\nQaysi zichlik uchun massa ham, hajm ham ma'lum ekanini aniqlash.\n\nYechilishi:\n1-qadam. Faqat suyuqlik olib tashlangan, shu sabab uning massasi ikki tortish farqiga teng: $m_s=1750-1250=500\\,\\text{g}$.\n2-qadam. $1\\,\\text{ml}=1\\,\\text{sm}^3$. Demak $V_s=250\\,\\text{sm}^3$.\n3-qadam. Suyuqlik zichligi $\\rho_s=m_s/V_s=500/250=2\\,\\text{g/sm}^3$. Bu masaladagi sonlardan chiqadigan qiymat; real kokos suvi uchun tipik qiymat deb olinmaydi.\n4-qadam. Kokosning tashqi hajmi ham, qattiq qism hajmi ham o'lchanmagan. Shuning uchun A va B noma'lum; o'sha hajmlarni talab qiladigan C va D zichliklarni ham hisoblab bo'lmaydi.\n\nJavob:\nKokos suyuqligining zichligi: $2\\,\\text{g/sm}^3$ (E).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 27,
+      "test": 5,
+      "question": 5,
+      "printedAnswer": "E"
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t05-05a.webp",
+      "/savol-rasm/vip-tyt-madde/t05-05b.webp",
+      "/savol-rasm/vip-tyt-madde/t05-05c.webp"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t05-06",
+    "text": "Usta bir xil bir jinsli shishadan ichki berk havo bo'shlig'i bo'lgan qoshiq hamda bo'shliqsiz vilka va likopcha yasadi. Bu savolda buyumning o'rtacha zichligi $\\rho_{o'rt}=m/V_{tashqi}$ bo'lib, tashqi hajmga ichki bo'shliq ham kiritiladi; havoning massasi hisobga olinmaydi. Qaysilar albatta to'g'ri?\nI. Qoshiq massasi vilka massasidan kichik.\nII. Vilkaning o'rtacha zichligi qoshiqnikidan katta.\nIII. Likopcha bilan vilkaning o'rtacha zichligi teng.",
+    "options": [
+      "Faqat I",
+      "Faqat II",
+      "Faqat III",
+      "I va II",
+      "II va III"
+    ],
+    "answer": "E",
+    "correctAnswer": "E",
+    "explanation": "Berilgan:\nShisha materiali zichligi bir xil. Faqat qoshiqda ichki bo'shliq bor; buyumlarning o'lchamlari berilmagan.\n\nTopish kerak:\nMaterial zichligi bilan buyumning tashqi hajm bo'yicha o'rtacha zichligini farqlash.\n\nYechilishi:\n1-qadam. Qoshiqda shisha egallagan hajm tashqi hajmdan kichik: $m_q=\\rho_{shisha}(V_{tashqi}-V_{bo'sh})$. Shuning uchun $\\rho_{q,o'rt}=\\rho_{shisha}(1-V_{bo'sh}/V_{tashqi})<\\rho_{shisha}$.\n2-qadam. Vilka va likopchada bo'shliq yo'q, ularning o'rtacha zichligi shisha zichligiga teng. Demak II va III to'g'ri.\n3-qadam. Qoshiq juda katta, vilka juda kichik bo'lishi mumkin. Hajmlar berilmagani sabab qoshiq massasini vilkanikidan albatta kichik deb bo'lmaydi. I kafolatlanmagan.\n4-qadam. Shisha moddasining o'z zichligi uchala buyumda ham bir xil; faqat bo'shliqni qo'shib olingan buyum zichligi farq qiladi.\n\nJavob:\nII va III (E).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 27,
+      "test": 5,
+      "question": 6,
+      "printedAnswer": "E",
+      "correction": "Manbada «zichlik» noaniq ishlatilgan. E kalitini fizik jihatdan izchil qilish uchun tashqi hajm bo'yicha o'rtacha zichlik ta'rifi ochiq berildi."
+    }
+  },
+  {
+    "id": "vip-tyt-madde-t05-07",
+    "text": "Suyuqlik plastik idishda turganda idish devori yonida sathi botiqlashmaydi, shisha kapillyarda esa suyuqlik ko'tarilib botiq menisk hosil qiladi (rasm). Xuddi shu suyuqlik va haroratda idish shishadan, ingichka nay plastikdan qilinsa, qaysi chizma mos keladi?",
+    "options": [
+      {
+        "label": "A",
+        "text": "Idish devorida ho'llanmaslik, nayda pasayish",
+        "image": "/savol-rasm/vip-tyt-madde/t05-07-A.webp"
+      },
+      {
+        "label": "B",
+        "text": "Idish devorida ho'llanish va nayda qavariq meniskli pasayish",
+        "image": "/savol-rasm/vip-tyt-madde/t05-07-B.webp"
+      },
+      {
+        "label": "C",
+        "text": "Idish devorida ho'llanmaslik, nayda ko'tarilish",
+        "image": "/savol-rasm/vip-tyt-madde/t05-07-C.webp"
+      },
+      {
+        "label": "D",
+        "text": "Idish devorida ho'llanmaslik, nayda botiq menisk",
+        "image": "/savol-rasm/vip-tyt-madde/t05-07-D.webp"
+      },
+      {
+        "label": "E",
+        "text": "Idish devorida ho'llanish, nayda ko'tarilish",
+        "image": "/savol-rasm/vip-tyt-madde/t05-07-E.webp"
+      }
+    ],
+    "answer": "B",
+    "correctAnswer": "B",
+    "explanation": "Berilgan:\nRasmdan suyuqlik shishani ho'llashi, plastikni esa ho'llamasligi aniqlanadi.\n\nTopish kerak:\nMateriallar almashtirilgandan keyingi devor va nay menisklarini aniqlash.\n\nYechilishi:\n1-qadam. Dastlab shisha nayda suyuqlik ko'tarilgan va menisk botiq. Demak suyuqlik–shisha adgeziyasi ho'llanish uchun yetarli.\n2-qadam. Plastik idishdagi sirt devor yonida pastroq, markaz tomonda balandroq: plastik ho'llanmaydi.\n3-qadam. Endi katta idish shishadan bo'lsa, suyuqlik uning devori bo'ylab yuqoriga tortiladi. Plastik nayda esa kontakt burchagi katta bo'lib, qavariq menisk va kapillyar pasayish bo'ladi.\n4-qadam. Bir paytda devorlar yonidagi ko'tarilish va nay ichidagi pasayishni ko'rsatgan variant B. Faqat nay balandligini tekshirib, katta idish devoridagi meniskni e'tiborsiz qoldirish mumkin emas.\n\nJavob:\nB chizma (B).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 3,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 27,
+      "test": 5,
+      "question": 7,
+      "printedAnswer": "B"
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t05-07.webp"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t05-08",
+    "text": "Bir xil qattiq sirtga teng hajmli K, L, M suyuqlik tomchilari qo'yilgan. K ning kontakt burchagi 90° dan kichik, L ning burchagi 90° dan katta; M esa ko'proq yoyilgan (rasm). Qaysilar to'g'ri?\nI. K suyuqlik sirtni ho'llaydi.\nII. Faqat shu tomchilar shakliga qarab L ning suyuqlik–havo sirt tarangligi eng katta deb qat'iy aytib bo'lmaydi.\nIII. Uchala suyuqlik ham sirtni ho'llaydi.",
+    "options": [
+      "Faqat I",
+      "I va II",
+      "I va III",
+      "II va III",
+      "I, II va III"
+    ],
+    "answer": "B",
+    "correctAnswer": "B",
+    "explanation": "Berilgan:\nTomchilar hajmi va qattiq sirt bir xil, ammo suyuqliklar turlicha. Rasmda K va M ho'llaydi, L ho'llamaydi.\n\nTopish kerak:\nKontakt burchagidan qaysi xulosalarni chiqarish mumkinligini aniqlash.\n\nYechilishi:\n1-qadam. Maktab mezoni bo'yicha $\\theta<90^\\circ$ bo'lsa suyuqlik sirtni ho'llaydi. K uchun shu shart bajariladi, I to'g'ri.\n2-qadam. Young tenglamasi $\\gamma_{SG}-\\gamma_{SL}=\\gamma_{LG}\\cos\\theta$. Turli suyuqliklar uchun nafaqat $\\gamma_{LG}$, balki qattiq–suyuqlik sirt energiyasi $\\gamma_{SL}$ ham o'zgaradi. Shuning uchun kattaroq kontakt burchagi yolg'iz o'zi kattaroq $\\gamma_{LG}$ ni isbotlamaydi. II to'g'ri.\n3-qadam. L ning kontakt burchagi 90° dan katta, demak u ho'llamaydigan holatda turibdi. Uchala suyuqlik ho'llaydi degan III noto'g'ri.\n4-qadam. Natija: I va II. Bu yerda tomchi shaklidan zichlik yoki sirt tarangligining aniq tartibini taxmin qilib olinmaydi.\n\nJavob:\nI va II (B).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 3,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 27,
+      "test": 5,
+      "question": 8,
+      "printedAnswer": "B",
+      "correction": "Asl II («L ning sirt tarangligi eng katta») kontakt burchagidan qat'iy kelib chiqmaydi. I ho'llanish mezoni bilan, II esa chiqarish mumkin bo'lmagan xulosa haqidagi to'g'ri tasdiq bilan almashtirildi. B harfi saqlandi."
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t05-08.webp"
+    ]
+  }
+]

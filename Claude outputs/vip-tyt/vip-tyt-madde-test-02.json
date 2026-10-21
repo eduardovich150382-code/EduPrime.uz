@@ -1,0 +1,210 @@
+[
+  {
+    "id": "vip-tyt-madde-t02-01",
+    "text": "Daryo o'zanidan olingan qum, tosh va oltin zarrachalari aralashmasi suv bilan birga oltin yuvish idishiga solinadi. Idish to'g'ri usulda yetarlicha chayqatilganda oltin boshqa zarrachalardan ajraladi. Ajratish oltinning qaysi xossasidan foydalanishga asoslangan?",
+    "options": [
+      "Massasi",
+      "Og'irligi",
+      "Zichligi",
+      "Molekulyar tuzilishi",
+      "Hajmi"
+    ],
+    "answer": "C",
+    "correctAnswer": "C",
+    "explanation": "Berilgan:\nSuvdagi zarrachalar chayqatib ajratiladi; oltin boshqa zarrachalarga nisbatan ancha zich.\n\nTopish kerak:\nAjratish uchun ishlatiladigan fizik xossani aniqlash.\n\nYechilishi:\n1-qadam. Bir xil hajmli zarrachalardan zichligi kattasining massasi kattaroq: $m=\\rho V$.\n2-qadam. Oltin zarrachalari zichroq bo'lgani uchun yuvishda idishning quyi qismida ko'proq qoladi; yengilroq qum va mayda aralashmalar suv bilan osonroq olib ketiladi. Amaliy ajralish tezligiga zarra o'lchami va suv oqimi ham ta'sir qiladi.\n3-qadam. Birgina massa yoki hajm moddaning turini belgilamaydi. Aynan massa/hajm nisbati, ya'ni zichliklar farqi usulning asosini tashkil qiladi.\n\nJavob:\nZichliklar farqi (C).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 1,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 20,
+      "test": 2,
+      "question": 1,
+      "printedAnswer": "C"
+    }
+  },
+  {
+    "id": "vip-tyt-madde-t02-02",
+    "text": "O'qituvchi bir xil moddaning o'zgarmas harorat va bosimdagi massa–hajm grafigini ko'rsatdi: $(V,m)$, $(2V,2m)$ va $(3V,3m)$ nuqtalar koordinata boshidan o'tuvchi bitta to'g'ri chiziqda yotadi.\nSimay: «Zichlik massaga to'g'ri, hajmga teskari proporsional».\nTuna: «Grafik qiyaligi o'zgarmas, demak zichlik modda miqdoriga bog'liq emas».\nHilol: «Harorat yoki bosim o'zgarsa, zichlik o'zgarishi mumkin».\nUshbu tajriba haqidagi qaysi izohlar to'g'ri?",
+    "options": [
+      "Faqat Simay",
+      "Faqat Tuna",
+      "Simay va Hilol",
+      "Tuna va Hilol",
+      "Simay, Tuna va Hilol"
+    ],
+    "answer": "D",
+    "correctAnswer": "D",
+    "explanation": "Berilgan:\nBir xil modda uchun $m/V=2m/(2V)=3m/(3V)=\\rho=\\mathrm{const}$. Harorat va bosim o'zgarmaydi.\n\nTopish kerak:\nIzohlarni grafik va tajriba shartiga ko'ra baholash.\n\nYechilishi:\n1-qadam. Grafikning qiyaligi $\\Delta m/\\Delta V=\\rho$. Modda miqdori ikki marta ko'payganda massa ham, hajm ham ikki marta ortadi, ularning nisbati o'zgarmaydi. Tuna to'g'ri.\n2-qadam. $\\rho=m/V$ formulasi borligi ushbu tajribada zichlik massa ortishi bilan ortadi degani emas. Bunday proporsionallik uchun hajmni o'zgarmas tutish lozim; bu grafikda esa hajm ham ortmoqda. Simayning shartsiz xulosasi noto'g'ri.\n3-qadam. Harorat o'zgarsa issiqlik kengayishi, bosim o'zgarsa siqilish natijasida hajm va zichlik o'zgarishi mumkin. Hilolning «mumkin» degan izohi to'g'ri.\n\nJavob:\nTuna va Hilol (D).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 20,
+      "test": 2,
+      "question": 2,
+      "printedAnswer": "D"
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t02-02.webp"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t02-03",
+    "text": "Muruvvat opa zaytun moyi, sut va uzum shinnisini bo'sh massasi 400 g, hajmi 2 litr bo'lgan bir xil idishlarda tortdi. Idish bilan umumiy massalar mos ravishda 2 kg, 2,8 kg va 4 kg. Mahsulotlarning zichliklari $\\text{g/sm}^3$ da qaysi qatorda to'g'ri berilgan? Tartib: zaytun moyi; sut; shinni.",
+    "options": [
+      "$0{,}6;\\ 1{,}6;\\ 2{,}4$",
+      "$0{,}4;\\ 1{,}8;\\ 2{,}0$",
+      "$0{,}7;\\ 1{,}4;\\ 1{,}9$",
+      "$0{,}9;\\ 1{,}5;\\ 1{,}6$",
+      "$0{,}8;\\ 1{,}2;\\ 1{,}8$"
+    ],
+    "answer": "E",
+    "correctAnswer": "E",
+    "explanation": "Berilgan:\n$m_0=400\\,\\text{g}$, $V=2\\,\\text{l}=2000\\,\\text{sm}^3$; to'liq massalar $2000$, $2800$, $4000\\,\\text{g}$.\n\nTopish kerak:\nIdish massasini hisobdan chiqarib, uch mahsulot zichligini topish.\n\nYechilishi:\n1-qadam. Tarozi idish bilan mahsulotning yig'indi massasini ko'rsatadi. Shuning uchun har bir ko'rsatishdan 400 g ni ayiramiz.\n2-qadam. Moy massasi $2000-400=1600\\,\\text{g}$. Zichligi $\\rho_{moy}=1600/2000=0{,}8\\,\\text{g/sm}^3$.\n3-qadam. Sut massasi $2800-400=2400\\,\\text{g}$. Zichligi $\\rho_{sut}=2400/2000=1{,}2\\,\\text{g/sm}^3$.\n4-qadam. Shinni massasi $4000-400=3600\\,\\text{g}$. Zichligi $\\rho_{shinni}=3600/2000=1{,}8\\,\\text{g/sm}^3$. Bu qiymatlar tajriba uchun berilgan sonlardan hisoblanadi.\n\nJavob:\n$0{,}8;\\ 1{,}2;\\ 1{,}8\\,\\text{g/sm}^3$ (E).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 20,
+      "test": 2,
+      "question": 3,
+      "printedAnswer": "E"
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t02-03.webp"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t02-04",
+    "text": "Asos yuzi o'zgarmaydigan idish bo'sh paytda 80 g. U yarim balandligigacha suv bilan to'ldirilganda umumiy massa 140 g, qolgan yarmi X suyuqlik bilan to'ldirilganda 170 g bo'ldi. Suyuqliklar hajmlari qo'shiladi; $\\rho_{suv}=1\\,\\text{g/sm}^3$. Idish hajmi va X zichligi qaysi javobda berilgan? Tartib: hajm ($\\text{sm}^3$); zichlik ($\\text{g/sm}^3$).",
+    "options": [
+      "$60;\\ 0{,}5$",
+      "$60;\\ 1$",
+      "$120;\\ 2$",
+      "$120;\\ 0{,}5$",
+      "$120;\\ 1$"
+    ],
+    "answer": "D",
+    "correctAnswer": "D",
+    "explanation": "Berilgan:\n$m_0=80\\,\\text{g}$, $M_1=140\\,\\text{g}$, $M_2=170\\,\\text{g}$; suv va X teng hajmli yarim qismlarni egallaydi.\n\nTopish kerak:\n$V_{idish}$ va $\\rho_X$ ni aniqlash.\n\nYechilishi:\n1-qadam. Suv massasi $m_s=140-80=60\\,\\text{g}$.\n2-qadam. Suv hajmi $V_s=m_s/\\rho_s=60/1=60\\,\\text{sm}^3$. Idish kesimi o'zgarmas va suv yarim balandlikkacha, demak bu umumiy hajmning yarmi: $V_{idish}=2\\cdot60=120\\,\\text{sm}^3$.\n3-qadam. Qo'shilgan X massasi $m_X=170-140=30\\,\\text{g}$. Uning hajmi qolgan yarim hajmga teng: $V_X=60\\,\\text{sm}^3$.\n4-qadam. $\\rho_X=m_X/V_X=30/60=0{,}5\\,\\text{g/sm}^3$.\n\nJavob:\n$V_{idish}=120\\,\\text{sm}^3$, $\\rho_X=0{,}5\\,\\text{g/sm}^3$ (D).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 20,
+      "test": 2,
+      "question": 4,
+      "printedAnswer": "D"
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t02-04.webp"
+    ],
+    "explanationImages": [
+      "/savol-rasm/vip-tyt-madde/t02-04y.svg"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t02-05",
+    "text": "Melih filmda ko'rgan ulkan chumolining modelini yasadi. Birinchi model o'z og'irligiga dosh berolmay sinib ketdi. U modelni o'zgartirgach, ikkinchi urinish muvaffaqiyatli bo'ldi. Qaysi o'zgarishlar bunga sabab bo'lishi mumkin?\nI. Barcha o'lchamlarni bir xil nisbatda kichraytirish.\nII. Oyoqlarni yo'g'onlashtirish.\nIII. Mustahkamroq yoki yengilroq material ishlatish.",
+    "options": [
+      "Faqat I",
+      "Faqat II",
+      "Faqat III",
+      "I va II",
+      "I, II va III"
+    ],
+    "answer": "E",
+    "correctAnswer": "E",
+    "explanation": "Berilgan:\nBirinchi modelning tayanch qismlari uning og'irligini ko'tara olmagan.\n\nTopish kerak:\nO'z og'irligiga bardoshlilikni oshirishi mumkin bo'lgan o'zgarishlarni aniqlash.\n\nYechilishi:\n1-qadam. Bir xil materialdan geometrik o'xshash modellar uchun tayanch kesimi $S\\sim l^2$, og'irlik esa $G\\sim V\\sim l^3$. Bardoshlilikning nisbiy ko'rsatkichi $D\\sim S/V\\sim1/l$. Barcha o'lchamlar kamaytirilsa, bu ko'rsatkich ortadi. I mumkin.\n2-qadam. Oyoqlar yo'g'onlashsa, yuk ko'taradigan kesim yuzi ortadi va bir birlik yuzaga tushadigan kuch kamayadi. II ham mumkin.\n3-qadam. Materialning ruxsat etilgan kuchlanishi kattaroq bo'lsa yoki zichligi kichikroq bo'lsa, bir xil shakldagi model yukni yaxshiroq ko'tarishi mumkin. III ham mumkin. Shart «mumkin» deb so'ragani uchun materialni mos tanlash yetarli.\n\nJavob:\nUchala o'zgarish ham yordam berishi mumkin (E).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 21,
+      "test": 2,
+      "question": 5,
+      "printedAnswer": "E"
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t02-05.webp"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t02-06",
+    "text": "Kubilay to'g'ri burchakli parallelepiped shaklidagi plastilinning barchasini ishlatib, silindr yasadi. Har ikki jismda ham ichki bo'shliq yo'q; harorat o'zgarmaydi, modda yo'qolmaydi va siqilmaydi. Qaysi kattaliklar albatta o'zgarmaydi?\nI. O'z og'irligiga bardoshlilik.\nII. Balandlik.\nIII. Hajm.",
+    "options": [
+      "Faqat I",
+      "Faqat II",
+      "Faqat III",
+      "I va II",
+      "II va III"
+    ],
+    "answer": "C",
+    "correctAnswer": "C",
+    "explanation": "Berilgan:\nMaterial bir xil, uning massasi va zichligi saqlanadi. Faqat tashqi shakl o'zgaradi.\n\nTopish kerak:\nShakl o'zgarganda saqlanadigan kattalikni topish.\n\nYechilishi:\n1-qadam. Modda yo'qolmagani uchun $m_1=m_2$. Harorat va siqilish o'zgarmagani uchun $\\rho_1=\\rho_2$.\n2-qadam. $V=m/\\rho$ dan $V_1=V_2$. Demak III albatta to'g'ri.\n3-qadam. Bir xil hajmli silindrni balandroq va ingichkaroq yoki pastroq va yo'g'onroq qilib yasash mumkin. Balandlik majburiy saqlanmaydi. II noto'g'ri.\n4-qadam. Bir xil materialdan tik prizma va silindr uchun nisbiy bardoshlilik $D\\sim S/V=1/h$. Balandlik o'zgarishi mumkinligi sababli bardoshlilik ham albatta bir xil bo'lmaydi. I ham kafolatlanmagan.\n\nJavob:\nFaqat hajm (C).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 21,
+      "test": 2,
+      "question": 6,
+      "printedAnswer": "C"
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t02-06.webp"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t02-07",
+    "text": "Himoya jiletlarida po'lat o'rniga yengilroq va mustahkamroq materiallar ishlatilmoqda. Bir xil vazifani bajaradigan materiallarni taqqoslaganda «yengillik» va «mustahkamlik» qaysi fizik xossalar bilan ifodalanadi? Tartib: yengillik; mustahkamlik.",
+    "options": [
+      "Hajm; bardoshlilik",
+      "Zichlik; bardoshlilik",
+      "Zichlik; sirt tarangligi",
+      "Inertlik; kogeziya",
+      "Hajm; massa"
+    ],
+    "answer": "B",
+    "correctAnswer": "B",
+    "explanation": "Berilgan:\nMaterialning bir xil hajmdagi namunalarini taqqoslash ko'zda tutilgan.\n\nTopish kerak:\nIkki sifatning fizik mazmunini aniqlash.\n\nYechilishi:\n1-qadam. Bir xil hajmda $m=\\rho V$. Zichligi kichik materialning massasi va og'irligi kichik bo'ladi. Shu ma'noda yengillik zichlik bilan bog'liq.\n2-qadam. Tashqi ta'sirga sinmasdan, uzilmasdan yoki haddan tashqari deformatsiyalanmasdan dosh berish mustahkamlik yoki bardoshlilikni ifodalaydi.\n3-qadam. Sirt tarangligi asosan suyuqlik sirti hodisalariga tegishli; inertlik esa tezlikni o'zgartirishga qarshilikdir. Ular mazkur ikki sifatning to'g'ri juftligi emas.\n\nJavob:\nZichlik va bardoshlilik (B).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 1,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 21,
+      "test": 2,
+      "question": 7,
+      "printedAnswer": "B"
+    }
+  },
+  {
+    "id": "vip-tyt-madde-t02-08",
+    "text": "Bir xil moddadan yasalgan ichi to'liq $X$, $Y$, $Z$ silindrlarning balandlik–asos yuzi grafigi rasmda berilgan: $X:(A,2h)$, $Y:(2A,h)$, $Z:(3A,3h)$. Ularning massalari va o'z og'irligiga nisbiy bardoshliliklari orasidagi qaysi munosabat to'g'ri?",
+    "options": [
+      "$m_X=m_Z>m_Y;\\quad D_Z>D_X>D_Y$",
+      "$m_Z>m_Y>m_X;\\quad D_X>D_Y>D_Z$",
+      "$m_Z>m_X=m_Y;\\quad D_Y>D_X>D_Z$",
+      "$m_Y>m_X>m_Z;\\quad D_Y>D_X>D_Z$",
+      "$m_Y>m_X>m_Z;\\quad D_X>D_Z>D_Y$"
+    ],
+    "answer": "C",
+    "correctAnswer": "C",
+    "explanation": "Berilgan:\n$S_X=A$, $h_X=2h$; $S_Y=2A$, $h_Y=h$; $S_Z=3A$, $h_Z=3h$. Zichlik va material mustahkamligi bir xil.\n\nTopish kerak:\nMassalarni va nisbiy bardoshliliklarni tartiblash.\n\nYechilishi:\n1-qadam. Silindr hajmi $V=Sh$. Shuning uchun $V_X=2Ah$, $V_Y=2Ah$, $V_Z=9Ah$.\n2-qadam. Zichlik bir xil bo'lgani uchun massa hajmga proporsional: $m_Z>m_X=m_Y$.\n3-qadam. O'z og'irligiga nisbiy bardoshlilikni $D\\sim S/V=1/h$ bilan taqqoslaymiz. $D_X\\sim1/(2h)$, $D_Y\\sim1/h$, $D_Z\\sim1/(3h)$.\n4-qadam. Balandligi eng kichik Y eng bardoshli, balandligi eng katta Z eng kam bardoshli: $D_Y>D_X>D_Z$. Bu ko'rsatkich yukni uzilishgacha ko'tarishning mutlaq kuchi bilan bir xil tushuncha emas.\n\nJavob:\n$m_Z>m_X=m_Y$ va $D_Y>D_X>D_Z$ (C).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 21,
+      "test": 2,
+      "question": 8,
+      "printedAnswer": "C"
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t02-08.webp"
+    ],
+    "explanationImages": [
+      "/savol-rasm/vip-tyt-madde/t02-08y.svg"
+    ]
+  }
+]

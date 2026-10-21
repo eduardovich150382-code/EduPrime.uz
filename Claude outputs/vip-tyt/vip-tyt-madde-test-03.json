@@ -1,0 +1,228 @@
+[
+  {
+    "id": "vip-tyt-madde-t03-01",
+    "text": "Quyidagi hodisalarda adgeziya ustun bo'lsa A, kogeziya ustun bo'lsa K harfini yozing.\n1. Kontakt linzaning ko'zga yopishishi.\n2. Jo'mrak uchidagi tomchining yumaloq shakl olishi.\n3. Hovuzdagi suvning bir butun holda turishi.\n4. Shakarga botirilgan qo'lga shakar yopishishi.\nTo'g'ri ketma-ketlikni tanlang.",
+    "options": [
+      "A, K, K, A",
+      "A, K, A, A",
+      "A, K, A, K",
+      "K, K, K, A",
+      "K, A, K, K"
+    ],
+    "answer": "A",
+    "correctAnswer": "A",
+    "explanation": "Berilgan:\nAdgeziya — turli moddalar zarrachalari orasidagi, kogeziya — bir xil modda zarrachalari orasidagi tortishish.\n\nTopish kerak:\nTo'rtta hodisani shu ikki turga ajratish.\n\nYechilishi:\n1-qadam. Linza va ko'z sirti turli moddalar: ular orasidagi yopishish adgeziya, ya'ni A.\n2-qadam. Tomchi ichidagi suv molekulalarining o'zaro tortishishi sirtni kamaytirishga intiladi. Yumaloqlashish kogeziya bilan bog'liq: K.\n3-qadam. Suv molekulalarining o'zaro tutashib turishi ham kogeziya: K.\n4-qadam. Qo'l terisi va shakar turli moddalar bo'lgani uchun yopishish adgeziya: A.\nKetma-ketlikni hodisalar berilgan tartibda yozamiz: A, K, K, A.\n\nJavob:\nA, K, K, A (A).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 1,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 22,
+      "test": 3,
+      "question": 1,
+      "printedAnswer": "A"
+    }
+  },
+  {
+    "id": "vip-tyt-madde-t03-02",
+    "text": "Shisha sirtga tomizilgan suv avval I rasmdagidek yumaloqroq turadi. Tajribadagi bitta o'zgarishdan keyin tomchi II rasmdagidek ko'proq yoyiladi. Qaysi izoh albatta noto'g'ri?",
+    "options": [
+      "Suv sirtni ko'proq ho'llaydigan bo'ldi",
+      "Adgeziyaning kogeziyaga nisbiy ta'siri ortdi",
+      "Tomchining ko'proq yoyilishi suv sirt tarangligi albatta ortganini isbotlaydi",
+      "Shisha o'rniga boshqa sirt ishlatilgan bo'lishi mumkin",
+      "Suvga yuvish vositasi qo'shilgan bo'lishi mumkin"
+    ],
+    "answer": "C",
+    "correctAnswer": "C",
+    "explanation": "Berilgan:\nTomchi hajmi bir xil; II holatda tomchi kengroq yoyilgan va kontakt burchagi kichikroq.\n\nTopish kerak:\nMaktabdagi adgeziya–kogeziya modeli doirasida noto'g'ri talqinni topish.\n\nYechilishi:\n1-qadam. Tomchi ko'proq yoyilishi uning sirtni yaxshiroq ho'llayotganini bildiradi. A shu kuzatuvning ifodasidir.\n2-qadam. Maktab modelida ho'llanish kuchayishi suyuqlik–sirt tortishishining suyuqlik ichidagi tortishishga nisbatan kuchayishi bilan tushuntiriladi. B mos.\n3-qadam. Yuvish vositasi odatda suvning sirt tarangligini kamaytirib, yoyilishni osonlashtiradi. E mumkin. Sirt materialini almashtirish ham kontakt burchagini o'zgartirishi mumkin, D ham mumkin.\n4-qadam. Kontakt burchagi qattiq–suyuqlik, qattiq–havo va suyuqlik–havo sirt energiyalarining barchasiga bog'liq. Faqat yoyilish kuzatuvidan suvning sirt tarangligi albatta oshdi deb isbotlab bo'lmaydi. Shu qat'iy xulosani da'vo qilgan C noto'g'ri. Boshqa sirt omillari bir xil bo'lsa, sirt tarangligining kamayishi yoyilishga yordam beradigan odatiy izohdir.\n\nJavob:\nYoyilish sirt tarangligi albatta ortganini isbotlaydi degan xulosa (C).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 22,
+      "test": 3,
+      "question": 2,
+      "printedAnswer": "C",
+      "correction": "Asl C («sirt tarangligi ortdi») o'rniga kuzatuvdan uni qat'iy isbotlash haqidagi da'vo qo'yildi: kontakt burchagining o'zi suyuqlik–havo sirt tarangligini bir qiymatli aniqlamaydi. C kaliti saqlandi."
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t03-02.webp"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t03-03",
+    "text": "Qaysi hodisaning asosiy izohi adgeziya va kogeziyadan boshqa fizik qonunga tayanadi?",
+    "options": [
+      "Suvning nam joydan nisbatan quruq joyga kapillyarlar orqali ko'chishi",
+      "Yomg'ir tomchisining yumaloqlashishi",
+      "Sport buyumlari uchun ho'llanmaydigan mato tayyorlash",
+      "Tuxumning yangiligini suvga solib tekshirish",
+      "Suvdan chiqarilgan mo'yqalam tuklarining bir-biriga yopishishi"
+    ],
+    "answer": "D",
+    "correctAnswer": "D",
+    "explanation": "Berilgan:\nHodisalardan biri asosan zichlik va ko'taruvchi kuch orqali tushuntiriladi.\n\nTopish kerak:\nShu hodisani ajratish.\n\nYechilishi:\n1-qadam. A kapillyarlik: sirtga yopishish va suv molekulalarining bir-birini tortishi bilan bog'liq.\n2-qadam. B sirt tarangligi, C ho'llanish, E esa tuklar orasidagi suyuqlik ko'priklari hodisasidir. Ularning barchasida molekulalararo o'zaro ta'sir muhim.\n3-qadam. Tuxum eskirishi bilan ichidagi havo bo'shlig'i kattalashib, o'rtacha zichligi o'zgaradi. Suvda cho'kish yoki suzish $F_A=\\rho_{suv}gV_{botgan}$ Arximed kuchi bilan og'irlikning taqqoslanishiga bog'liq. Shuning uchun D boshqa asosiy fizik prinsipga tayanadi. Bu usulni iste'mol xavfsizligining to'liq tekshiruvi deb tushunmaslik kerak.\n\nJavob:\nTuxumni suvga solib tekshirish (D).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 1,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 22,
+      "test": 3,
+      "question": 3,
+      "printedAnswer": "D"
+    }
+  },
+  {
+    "id": "vip-tyt-madde-t03-04",
+    "text": "Bir uchi berk bir xil shisha naychalardagi $K$ va $L$ suyuqliklarning menisklari rasmda ko'rsatilgan. K sirti qavariq, L sirti botiq. Shu suyuqliklarga ochiq ingichka shisha naychalar botirilsa, sathlar qaysi variantdagidek bo'ladi?",
+    "options": [
+      {
+        "label": "A",
+        "text": "K ko'tariladi, L ko'tariladi",
+        "image": "/savol-rasm/vip-tyt-madde/t03-04-A.webp"
+      },
+      {
+        "label": "B",
+        "text": "K pasayadi, L pasayadi",
+        "image": "/savol-rasm/vip-tyt-madde/t03-04-B.webp"
+      },
+      {
+        "label": "C",
+        "text": "K pasayadi, L ko'tariladi",
+        "image": "/savol-rasm/vip-tyt-madde/t03-04-C.webp"
+      },
+      {
+        "label": "D",
+        "text": "K ko'tariladi, L pasayadi",
+        "image": "/savol-rasm/vip-tyt-madde/t03-04-D.webp"
+      },
+      {
+        "label": "E",
+        "text": "Ikkalasining sathi o'zgarmaydi",
+        "image": "/savol-rasm/vip-tyt-madde/t03-04-E.webp"
+      }
+    ],
+    "answer": "C",
+    "correctAnswer": "C",
+    "explanation": "Berilgan:\nK shishani ho'llamaydi: qavariq menisk. L shishani ho'llaydi: botiq menisk.\n\nTopish kerak:\nKapillyarda ko'tarilish yoki pasayish yo'nalishini aniqlash.\n\nYechilishi:\n1-qadam. Qavariq meniskda kontakt burchagi $\\theta>90^\\circ$, ya'ni $\\cos\\theta<0$. Kapillyar formula $h=2\\sigma\\cos\\theta/(\\rho gr)$ manfiy balandlik beradi: K nay ichida tashqi sathdan past turadi.\n2-qadam. Botiq meniskda $\\theta<90^\\circ$, $\\cos\\theta>0$. Demak L nay ichida yuqoriga ko'tariladi.\n3-qadam. Variantlarda K uchun pasayish va L uchun ko'tarilish birga ko'rsatilgan chizmani tanlaymiz. Bu C variantidir. Meniskning yo'nalishi suyuqlik nomini bilmasdan ham natijani aniqlashga yetadi.\n\nJavob:\nK pasayadi, L ko'tariladi (C).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 22,
+      "test": 3,
+      "question": 4,
+      "printedAnswer": "C"
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t03-04.webp"
+    ],
+    "explanationImages": [
+      "/savol-rasm/vip-tyt-madde/t03-04y.svg"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t03-05",
+    "text": "To'g'nog'ich suv sirtiga ehtiyotkorlik bilan qo'yilganda cho'kmay turadi. Bir xil haroratdagi suyuqliklarning sirt tarangliklari: suv — 72,9; zaytun moyi — 35,8; aseton — 23,7; simob — 486,5 mN/m. Maktabdagi sirt tarangligi modelida qaysi o'zgarishda to'g'nog'ich albatta cho'kmay turadi?",
+    "options": [
+      "Shu haroratdagi asetonga ehtiyotkorlik bilan qo'yish",
+      "Issiqroq suvga qo'yish",
+      "Shu haroratdagi simobga ehtiyotkorlik bilan qo'yish",
+      "Shu haroratdagi yuvish vositali suvga qo'yish",
+      "Suvdan sovuqroq zaytun moyiga qo'yish"
+    ],
+    "answer": "C",
+    "correctAnswer": "C",
+    "explanation": "Berilgan:\n$\\sigma_{suv}=72{,}9$, $\\sigma_{moy}=35{,}8$, $\\sigma_{aseton}=23{,}7$, $\\sigma_{simob}=486{,}5\\,\\text{mN/m}$.\n\nTopish kerak:\nSirtning ko'tarib turish qobiliyati kamaymaydigan aniq holatni topish.\n\nYechilishi:\n1-qadam. Bir xil to'g'nog'ich va o'xshash kontakt sharoitida sirt taranglik kuchining mumkin bo'lgan qiymati $F_\\sigma\\sim\\sigma l$. Kattaroq $\\sigma$ sirtning ko'tarib turish imkoniyatini oshiradi.\n2-qadam. Simob uchun berilgan qiymat suvnikidan taxminan $486{,}5/72{,}9\\approx6{,}7$ marta katta. Unga ehtiyotkor qo'yilgan to'g'nog'ichni ushlab turish imkoniyati yuqori; simobning katta zichligi ham cho'kmaslikka yordam beradi.\n3-qadam. Asetonning sirt tarangligi kichik; isitish va yuvish vositasi suv sirt tarangligini kamaytiradi. Moyni sovitish uni oshirishi mumkin, ammo berilgan ma'lumot bu qiymat suvnikiga yetishini kafolatlamaydi.\n\nJavob:\nBir xil haroratdagi simob (C).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 23,
+      "test": 3,
+      "question": 5,
+      "printedAnswer": "C"
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t03-05.webp"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t03-06",
+    "text": "Suvga shisha kapillyar naycha botirilganda suv uning ichida bir oz ko'tarildi. Quyidagi amallardan qaysi biri odatiy maktab modelida kapillyar ko'tarilish balandligini o'zgartirmaydi?",
+    "options": [
+      "Ingichkaroq shisha naycha ishlatish",
+      "Suvni bir oz isitish",
+      "Qurilmani dengiz sathidan balandroq joyga olib chiqish",
+      "Suvga bir oz tuz eritish",
+      "Suvga bir oz sovunli suv qo'shish"
+    ],
+    "answer": "C",
+    "correctAnswer": "C",
+    "explanation": "Berilgan:\nKapillyar bir xil suvga botirilgan. C holatda harorat, naycha radiusi va mahalliy g o'zgarishi hisobga olinmaydi.\n\nTopish kerak:\nKapillyar balandlikka ta'sir qilmaydigan tashqi o'zgarishni tanlash.\n\nYechilishi:\n1-qadam. Kapillyar formula: $h=2\\sigma\\cos\\theta/(\\rho gr)$. Unda radius, zichlik, sirt tarangligi, ho'llash burchagi va erkin tushish tezlanishi qatnashadi.\n2-qadam. Nayni ingichkalashtirish $r$ ni kamaytirib, h ni oshiradi. Isitish $\\sigma$ va zichlikni o'zgartiradi. Tuz va sovun eritish ham suyuqlikning sirt xossalarini o'zgartiradi.\n3-qadam. Atmosfera bosimi kapillyarning ichidagi va tashqarisidagi erkin sirtlarga bir xil ta'sir qiladi. Muvozanat tenglamasida shu umumiy bosim qisqaradi. Shuning uchun faqat tashqi atmosfera bosimining kamayishi h ni o'zgartirmaydi. Juda katta balandlikdagi harorat va g o'zgarishlari bu soddalashtirilgan masalada hisobga olinmagan.\n\nJavob:\nQurilmani balandroq joyga olib chiqish (C).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 23,
+      "test": 3,
+      "question": 6,
+      "printedAnswer": "C"
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t03-06.webp"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t03-07",
+    "text": "Bir xil K, L va M tangalar ustiga teng hajmli tomchilar sekin tomiziladi. To'kilmasdan sig'adigan eng katta tomchilar soni mos ravishda 18, 20 va 12 ta. Maktabdagi taqqoslash modelida K, L va M ga qaysi suyuqliklar tomizilgan bo'lishi mumkin?",
+    "options": [
+      "K: 50 °C toza suv; L: 80 °C toza suv; M: 10 °C toza suv",
+      "K: 10 °C toza suv; L: 80 °C toza suv; M: 10 °C tuzli suv",
+      "K: 10 °C tuzli suv; L: 80 °C toza suv; M: 80 °C toza suv",
+      "K: 50 °C yuvish vositali suv; L: 10 °C toza suv; M: 10 °C tuzli suv",
+      "K: 80 °C toza suv; L: 10 °C toza suv; M: 80 °C yuvish vositali suv"
+    ],
+    "answer": "E",
+    "correctAnswer": "E",
+    "explanation": "Berilgan:\n$n_K=18$, $n_L=20$, $n_M=12$; tangalar va har bir tomchining hajmi bir xil.\n\nTopish kerak:\nTomchilar soni tartibiga mos suyuqliklar qatorini topish.\n\nYechilishi:\n1-qadam. Bir xil sharoitdagi sodda tajriba modelida ko'proq tomchi sig'ishi sirt tarangligi ta'sirining kattaroqligini bildiradi. Demak kerakli tartib $\\sigma_L>\\sigma_K>\\sigma_M$.\n2-qadam. Toza suv qizdirilganda sirt tarangligi kamayadi: 10 °C dagi suv 80 °C dagi suvdan ko'proq tomchi ushlay oladi.\n3-qadam. Bir xil haroratda yuvish vositasi qo'shilishi sirt tarangligini yanada pasaytiradi. Shuning uchun 80 °C dagi yuvish vositali suv eng kam tomchi ushlashi mumkin.\n4-qadam. E qatorda L — sovuq toza suv, K — issiq toza suv, M — issiq yuvish vositali suv: aynan $L>K>M$. Qolgan qatorlarda harorat yoki tarkib bergan tartib tomchilar soniga zid.\n\nJavob:\nE qatordagi suyuqliklar (E).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 23,
+      "test": 3,
+      "question": 7,
+      "printedAnswer": "E"
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t03-07.webp"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t03-08",
+    "text": "I stakan suvli, II stakan dastlab bo'sh. Ular orasiga qog'oz sochiq ko'prik qilib qo'yilganda suv I dan II ga o'tdi. Jarayonda qaysilar ishtirok etadi?\nI. Adgeziya kuchlari.\nII. Kogeziya kuchlari.\nIII. Kapillyarlik.",
+    "options": [
+      "Faqat I",
+      "I va II",
+      "I va III",
+      "II va III",
+      "I, II va III"
+    ],
+    "answer": "E",
+    "correctAnswer": "E",
+    "explanation": "Berilgan:\nQog'oz tolalari orasida juda ingichka g'ovak yo'llar bor; ularning uchlari ikki stakanga tushirilgan.\n\nTopish kerak:\nSuvning qog'oz bo'ylab ko'chishidagi omillarni aniqlash.\n\nYechilishi:\n1-qadam. Suv molekulalari qog'oz tolalariga tortiladi va ularni ho'llaydi. Bu adgeziya — I.\n2-qadam. Suv molekulalari bir-birini ham tortadi. Oldinga siljigan molekulalar boshqalarini ergashtiradi: kogeziya — II.\n3-qadam. Tolalar orasidagi ingichka g'ovaklar ko'p sonli kapillyarlar kabi ishlaydi. Suv ularda ko'tarilib, qog'ozning boshqa tomoniga yetadi — III.\n4-qadam. Suv ikkinchi stakan tomonga yetgach, sathlar va og'irlik ta'siri ham keyingi oqishga hissa qo'shadi. Savolda sanalgan uchala omil dastlabki ho'llanish va ko'chishda ishtirok etadi.\n\nJavob:\nI, II va III (E).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 23,
+      "test": 3,
+      "question": 8,
+      "printedAnswer": "E"
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t03-08.webp"
+    ]
+  }
+]

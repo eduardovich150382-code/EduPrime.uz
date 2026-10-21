@@ -1,0 +1,247 @@
+[
+  {
+    "id": "vip-tyt-madde-t08-01",
+    "text": "Mutaxassis metall jismni tarozi ustidagi darajalangan silindrga to'liq botirdi. Avval suv 250 ml, umumiy massa 1000 g edi. Keyin suv 300 ml, umumiy massa 1365 g bo'ldi. Suv to'kilmagan. Metallarning zichliklari ($\\text{g/ml}$): kumush 10,5; alyuminiy 2,7; mis 8,9; temir 7,9; qalay 7,3. Jism qaysi metalldan yasalgan?",
+    "options": [
+      "Kumush",
+      "Alyuminiy",
+      "Mis",
+      "Temir",
+      "Qalay"
+    ],
+    "answer": "E",
+    "correctAnswer": "E",
+    "explanation": "Berilgan:\n$V_1=250\\,\\text{ml}$, $V_2=300\\,\\text{ml}$; $M_1=1000\\,\\text{g}$, $M_2=1365\\,\\text{g}$.\n\nTopish kerak:\nJism massasini va hajmini farqlardan topib, zichligini jadval bilan solishtirish.\n\nYechilishi:\n1-qadam. Tarozi ustiga qo'shilgan yagona jism metall: $m=1365-1000=365\\,\\text{g}$.\n2-qadam. Jism to'liq botganligi sabab siqib chiqargan hajm uning hajmiga teng: $V=300-250=50\\,\\text{ml}$.\n3-qadam. $\\rho=m/V=365/50=7{,}3\\,\\text{g/ml}$.\n4-qadam. Jadvalda 7,3 g/ml zichlik qalayga tegishli. Boshqa qiymatlar mos emas. Idish yoki suvning dastlabki massasini alohida bilish talab qilinmaydi: ular ikki tortishda ham bor va ayirmada qisqaradi.\n\nJavob:\nQalay (E).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 32,
+      "test": 8,
+      "question": 1,
+      "printedAnswer": "E"
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t08-01.webp"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t08-02",
+    "text": "Quyidagi hodisalarning asosiy omillarini toping.\n1-hodisa: shishaga urilgan suv tomchilari shisha bo'ylab pastga sirpanadi.\n2-hodisa: ho'l daftar ustiga qo'yilgan qog'oz salfetka asta-sekin ho'llanadi.\nTartib: 1-hodisa; 2-hodisa.",
+    "options": [
+      "Adgeziya; kogeziya",
+      "Adgeziya; og'irlik",
+      "Og'irlik; kogeziya",
+      "Og'irlik; og'irlik",
+      "Og'irlik; adgeziya"
+    ],
+    "answer": "E",
+    "correctAnswer": "E",
+    "explanation": "Berilgan:\nBirinchi hodisada tomchi pastga siljiydi, ikkinchisida suv qog'oz tolalariga o'tadi.\n\nTopish kerak:\nHar hodisadagi asosiy fizik ta'sirni ajratish.\n\nYechilishi:\n1-qadam. Vertikal shishadagi tomchiga og'irlik kuchi pastga yo'naladi. Tomchini tutib turuvchi sirt ta'sirlari yengilganda u pastga sirpanadi. Pastga harakatning asosiy sababi og'irlik.\n2-qadam. Salfetkaga suv o'tishi qog'oz–suv adgeziyasi va kapillyar g'ovaklar bilan bog'liq. Variantlar orasida buning tegishli molekulyar omili adgeziya.\n3-qadam. Suv molekulalari orasidagi kogeziya ham jarayonda bor, lekin suvni boshqa material — qog'ozga tortib, uni ho'llashga sabab bo'ladigan ajratuvchi belgi adgeziyadir. Demak juftlik og'irlik; adgeziya.\n\nJavob:\nOg'irlik; adgeziya (E).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 1,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 32,
+      "test": 8,
+      "question": 2,
+      "printedAnswer": "E"
+    }
+  },
+  {
+    "id": "vip-tyt-madde-t08-03",
+    "text": "X moddaning massa–hajm grafigi $(5\\,\\text{sm}^3,20\\,\\text{g})$ va $(15\\,\\text{sm}^3,60\\,\\text{g})$ nuqtalardan o'tadi. X dan yasalgan K kubning qirrasi 2 sm, massasi 20 g. L sharning diametri 2 sm, massasi 10 g. Ikkalasida ham ichki bo'shliq bo'lishi mumkin. Bo'shliqlar hajmlari qancha? $(\\pi=3)$. Tartib: K; L ($\\text{sm}^3$).",
+    "options": [
+      "$3;\\ 1{,}5$",
+      "$3;\\ 3$",
+      "$3;\\ 4$",
+      "$5;\\ 3$",
+      "$5;\\ 1{,}5$"
+    ],
+    "answer": "A",
+    "correctAnswer": "A",
+    "explanation": "Berilgan:\n$\\rho_X=20/5=60/15$; $a_K=2\\,\\text{sm}$, $m_K=20\\,\\text{g}$; $d_L=2\\,\\text{sm}$, $m_L=10\\,\\text{g}$.\n\nTopish kerak:\nHar jism tashqi hajmidan material hajmini ayirish.\n\nYechilishi:\n1-qadam. Grafik qiyaligi X moddaning zichligi: $\\rho_X=20/5=4\\,\\text{g/sm}^3$. Ikkinchi nuqta ham $60/15=4$ beradi.\n2-qadam. K kubning tashqi hajmi $V_K=2^3=8\\,\\text{sm}^3$. Undagi material hajmi $V_{mat,K}=20/4=5\\,\\text{sm}^3$. Demak $V_{bo'sh,K}=8-5=3\\,\\text{sm}^3$.\n3-qadam. Rasmda L ning umumiy balandligi 2 sm; bu diametr, shuning uchun radius $r=1\\,\\text{sm}$. Tashqi hajm $V_L=\\frac43\\cdot3\\cdot1^3=4\\,\\text{sm}^3$.\n4-qadam. L dagi material hajmi $V_{mat,L}=10/4=2{,}5\\,\\text{sm}^3$. Bo'shliq $4-2{,}5=1{,}5\\,\\text{sm}^3$.\n5-qadam. Radiusni 2 sm deb olish shar hajmini sakkiz marta oshirib yuboradi; umumiy 2 sm belgisini to'g'ri o'qish muhim.\n\nJavob:\n$3\\,\\text{sm}^3$ va $1{,}5\\,\\text{sm}^3$ (A).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 3,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 32,
+      "test": 8,
+      "question": 3,
+      "printedAnswer": "A"
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t08-03a.webp",
+      "/savol-rasm/vip-tyt-madde/t08-03b.webp"
+    ],
+    "explanationImages": [
+      "/savol-rasm/vip-tyt-madde/t08-03y.svg"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t08-04",
+    "text": "Bir xil tangalarga bir xil balandlikdan teng hajmli suv va aseton tomchilari tomiziladi. Shartli modelda kontakt sharoitlari bir xil; suvning zichligi ham, sirt tarangligi ham asetondan katta, shuningdek $\\sigma_{suv}/\\rho_{suv}>\\sigma_{aseton}/\\rho_{aseton}$.\nI. Tangada to'kilmasdan ushlanadigan suv hajmi kattaroq bo'lishi mumkin.\nII. Asetonni sovitish uning sirt tarangligini oshirib, tangada ko'proq aseton ushlanishiga yordam berishi mumkin.\nIII. Tomizgichdan uzilish oldidagi teng hajmli tomchilardan aseton tomchisi albatta uzunroq bo'lishini faqat berilgan zichlik va sirt tarangligi tartibidan aniqlash mumkin.\nQaysi tasdiqlar to'g'ri?",
+    "options": [
+      "Faqat I",
+      "Faqat II",
+      "I va II",
+      "I va III",
+      "I, II va III"
+    ],
+    "answer": "C",
+    "correctAnswer": "C",
+    "explanation": "Berilgan:\nKontakt omillari bir xil shartli model. Sirt kuchining og'irlikka nisbiy ulushi uchun $\\sigma/\\rho$ taqqoslangan. Tomizgichdagi aniq shakl qo'shimcha ma'lumot talab qiladi.\n\nTopish kerak:\nQaysi fikrlar berilgan shartlardan kelib chiqishini aniqlash.\n\nYechilishi:\n1-qadam. Tangadagi tomchini ushlab turuvchi kuch sirt tarangligi, pastga tortuvchi kuch esa $\\rho Vg$ bilan bog'liq. Boshqa omillar teng bo'lganda $\\sigma/\\rho$ kattaroq bo'lishi kattaroq hajmni ushlab turishga imkon beradi. I shuning uchun mumkin.\n2-qadam. Odatdagi harorat oralig'ida sovitish asetonning sirt tarangligini oshiradi. Bir xil tajriba sharoitida ko'proq tomchi yoki hajm ushlanishiga yordam berishi mumkin. II to'g'ri.\n3-qadam. Uzilish oldidagi tomchi shakli Bond soni, tomizgich diametri, uning ho'llanishi va kontakt chizig'iga bog'liq. Faqat ikkita kattalikning qaysi biri kattaligini bilish bilan aseton tomchisi albatta uzunroq degan qat'iy natija chiqmaydi. III noto'g'ri.\n4-qadam. I va II tanlanadi; III da aytilgan qat'iy natija qo'shimcha o'lchashsiz isbotlanmagan.\n\nJavob:\nI va II (C).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 3,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 33,
+      "test": 8,
+      "question": 4,
+      "printedAnswer": "E",
+      "correction": "Asl III xulosa berilganlardan qat'iy kelib chiqmaydi. I uchun zarur bo'lgan sirt tarangligi/zichlik nisbati va kontakt sharti aniqlandi, II va III ehtimollik/qat'iylik jihatidan aniq yozildi. Kalit E dan C ga tuzatildi."
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t08-04.webp"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t08-05",
+    "text": "Bir xil uzunlikdagi gugurt cho'pi va metall qog'oz qisqichi suv sirtiga ehtiyotkor qo'yilib, cho'kmay turibdi. Ularning orasidagi A sohaga yuvish vositasi tomizildi.\nI. A sohada suvning sirt tarangligi kamayadi.\nII. Gugurt cho'pi bilan qisqich bir-biridan uzoqlashadi.\nIII. Cho'kish ehtimoli kattaroq jism gugurt cho'pidir.\nQaysi tasdiqlar to'g'ri?",
+    "options": [
+      "Faqat I",
+      "Faqat II",
+      "Faqat III",
+      "I va II",
+      "II va III"
+    ],
+    "answer": "D",
+    "correctAnswer": "D",
+    "explanation": "Berilgan:\nYuvish vositasi faqat ikki jism orasidagi A sohaga tushadi. Tashqi tomonlarda dastlabki sirt tarangligi saqlanadi.\n\nTopish kerak:\nSirt tarangligi farqining jismlar harakati va cho'kishiga ta'sirini aniqlash.\n\nYechilishi:\n1-qadam. Yuvish vositasi sirt-faol modda bo'lib, A sohadagi $\\sigma$ ni kamaytiradi. I to'g'ri.\n2-qadam. Har jismning tashqi tomonidagi tozaroq suv katta $\\sigma$ bilan tortadi, ichki — A tomondagi tortish kichikroq. Natijaviy gorizontal kuchlar jismlarni A dan ikki qarama-qarshi tomonga siljitadi. Bu sirt tarangligi gradienti, ya'ni Marangoni ta'siri bilan bog'liq. II to'g'ri.\n3-qadam. Metall qisqich suvdan zichroq bo'lib, sirtning yordami kamayganda cho'kishga moyil. Yog'och gugurt esa odatda zichligi kichikligi tufayli suzishi mumkin. Gugurt ko'proq cho'kadi degan III noto'g'ri.\n\nJavob:\nI va II (D).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 3,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 33,
+      "test": 8,
+      "question": 5,
+      "printedAnswer": "D"
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t08-05.webp"
+    ],
+    "explanationImages": [
+      "/savol-rasm/vip-tyt-madde/t08-05y.svg"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t08-06",
+    "text": "Bir xil mo'yqalamlar K va L suyuqliklarda bir xil sharoitda turibdi. Rasmda L dagi tuklar K dagiga qaraganda ko'proq bir-biriga yig'ilgan. Masalaning soddalashtirilgan modelida bu yig'ilish sirt tarangligi ta'sirini ko'rsatadi va sirt tarangligi pastroq suyuqlik yaxshiroq ho'llab yuvadi. K uchun qaysi kattalik L nikidan kattaroq?\nI. Sirt tarangligi.\nII. Ho'llash orqali yuvishga yordam berish qobiliyati.\nIII. Kogeziyaning sirtni yig'uvchi ta'siri.",
+    "options": [
+      "Faqat I",
+      "Faqat II",
+      "Faqat III",
+      "I va III",
+      "II va III"
+    ],
+    "answer": "B",
+    "correctAnswer": "B",
+    "explanation": "Berilgan:\nRasmda K da tuklar ko'proq yoyilgan, L da ko'proq yig'ilgan. Kontakt va cho'tka xususiyatlari tenglashtirilgan model qaraladi.\n\nTopish kerak:\nK va L ning sirt ta'sirlarini chizmaga mos taqqoslash.\n\nYechilishi:\n1-qadam. Tuklarning kuchliroq yig'ilishi ushbu modelda suyuqlik ko'priklarining kuchliroq tortishini bildiradi. Rasmda bu L da ko'proq, demak $\\sigma_L>\\sigma_K$. I noto'g'ri.\n2-qadam. Shu sodda talqinda sirtni yig'uvchi kogeziya ta'siri ham L da kuchliroq. Shuning uchun III ham K foydasiga emas.\n3-qadam. Shartda pastroq sirt tarangligi ho'llash va yuvishga yordam berishi aytilgan. Shu chegaralangan ma'noda K ning yuvishga yordam berish qobiliyati kattaroq: II to'g'ri.\n4-qadam. Haqiqiy tozalash kuchini faqat mo'yqalam chizmasidan baholab bo'lmaydi; kimyoviy tarkib va dog' turi ham kerak. Masala faqat aniq berilgan maktab modelida yechiladi.\n\nJavob:\nFaqat II (B).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 3,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 33,
+      "test": 8,
+      "question": 6,
+      "printedAnswer": "D",
+      "correction": "Asl D kaliti rasmdagi tartibga teskari: L tuklari ko'proq yig'ilgan. Chizmaga mos ravishda B tanlandi; yuvish xususiyati faqat savolda berilgan sodda model doirasida aniqlandi."
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t08-06.webp"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t08-07",
+    "text": "Toshish chegarasigacha sig'imi 120 sm³ bo'lgan idishda dastlab 116 sm³ suv bor. Ichi to'liq shar tashlanganda hajmining yarmi suvdan tashqarida qolib suzadi va 12 sm³ suv to'kiladi. $\\rho_{suv}=1\\,\\text{g/sm}^3$, $\\rho_{shar}=0{,}5\\,\\text{g/sm}^3$, $\\pi=3$. Shar radiusi va idish+suv+shar tizimining umumiy massa o'zgarishi qanday?",
+    "options": [
+      "2 sm; 4 g kamayadi",
+      "2 sm; 4 g ortadi",
+      "2 sm; o'zgarmaydi",
+      "4 sm; 4 g ortadi",
+      "4 sm; 4 g kamayadi"
+    ],
+    "answer": "B",
+    "correctAnswer": "B",
+    "explanation": "Berilgan:\n$V_{chegara}=120\\,\\text{sm}^3$, $V_{suv,0}=116\\,\\text{sm}^3$, $V_{tosh}=12\\,\\text{sm}^3$; $V_{botgan}=V_{shar}/2$.\n\nTopish kerak:\nSharning to'liq hajmi, radiusi va tizim massasining o'zgarishini topish.\n\nYechilishi:\n1-qadam. Avval sathni toshish chegarasiga yetkazish uchun $120-116=4\\,\\text{sm}^3$ hajm kerak. Shundan keyin yana 12 sm³ suv to'kilgan. Demak botgan hajm $V_{botgan}=4+12=16\\,\\text{sm}^3$.\n2-qadam. Shar yarmi botgan: $V_{shar}=2\\cdot16=32\\,\\text{sm}^3$. $V=\\frac43\\pi r^3=4r^3$ dan $r^3=8$, $r=2\\,\\text{sm}$.\n3-qadam. Shar massasi $m_{shar}=0{,}5\\cdot32=16\\,\\text{g}$. To'kilgan suv massasi $m_{tosh}=1\\cdot12=12\\,\\text{g}$.\n4-qadam. Tizimga 16 g qo'shildi va 12 g chiqdi: $\\Delta M=16-12=+4\\,\\text{g}$. Idishning o'z materiali massasi emas, idishdagi umumiy tizim massasi so'ralgan.\n\nJavob:\nRadius 2 sm, umumiy massa 4 g ortadi (B).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 3,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 34,
+      "test": 8,
+      "question": 7,
+      "printedAnswer": "B"
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t08-07.webp"
+    ],
+    "explanationImages": [
+      "/savol-rasm/vip-tyt-madde/t08-07y.svg"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t08-08",
+    "text": "Bir xil hajmli K, L, M idishlar mos ravishda 3 °C, 4 °C va 60 °C dagi toza suv bilan to'ldirilgan. Rasmda bir xil suv massasi uchun hajmning haroratga bog'liqligi, 4 °C da hajm minimum bo'lishi ko'rsatilgan. Suv massalari qanday tartibda?",
+    "options": [
+      "$m_K<m_L<m_M$",
+      "$m_K=m_L<m_M$",
+      "$m_K<m_L=m_M$",
+      "$m_K<m_M<m_L$",
+      "$m_M<m_K<m_L$"
+    ],
+    "answer": "E",
+    "correctAnswer": "E",
+    "explanation": "Berilgan:\nIdish hajmlari teng. Toza suvning zichligi 4 °C da eng katta; 60 °C dagi zichligi 3 °C dagidan kichik.\n\nTopish kerak:\nBir xil hajmdagi uch suv namunasining massalarini taqqoslash.\n\nYechilishi:\n1-qadam. Grafik bir xil massa uchun chizilgan: hajm kichik bo'lsa, $\\rho=m/V$ katta bo'ladi. 4 °C da hajm minimum, zichlik maksimum. Demak $\\rho_L$ eng katta.\n2-qadam. 3 °C 4 °C ga yaqin: bu suv zichligi maksimumga yaqin. 60 °C da suv ancha kengaygan va zichligi kamaygan. Shuning uchun $\\rho_M<\\rho_K<\\rho_L$.\n3-qadam. Idishlarda esa aynan hajmlar teng. $m=\\rho V$ ga ko'ra massalar zichliklar tartibini takrorlaydi: $m_M<m_K<m_L$.\n4-qadam. Grafikdagi «bir xil massa uchun hajm» bilan idishlardagi «bir xil hajm uchun massa»ni chalkashtirmaslik kerak.\n\nJavob:\n$m_M<m_K<m_L$ (E).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 2,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 34,
+      "test": 8,
+      "question": 8,
+      "printedAnswer": "E"
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t08-08.webp"
+    ]
+  },
+  {
+    "id": "vip-tyt-madde-t08-09",
+    "text": "Gizem notekis shaklli jismning zichligini uch bosqichda topmoqchi.\nI. Teng yelkali tarozi dastlab bo'sh holatda muvozanatlangan. Keyin jism qo'yilganda 40 g va 10 g toshlar bor palla yuqorida, jismli palla pastda qoldi. U jism massasini 50 g deb oldi.\nII. Jism 100 sm³ suvli silindrga solindi. U qisman suzib turib, suv sathi 160 sm³ ga yetdi. U jism hajmini 60 sm³ deb oldi.\nIII. U massani hajmga bo'lish formulasini qo'llab, $50/60=5/6\\,\\text{g/sm}^3$ deb yozdi.\nQaysi bosqichlarda mustaqil o'lchash usuli xatosi qilingan? Oldingi noto'g'ri sonlarni uchinchi bosqichda qayta ishlatish yangi usul xatosi sifatida sanalmaydi.",
+    "options": [
+      "Faqat I",
+      "Faqat II",
+      "I va II",
+      "I va III",
+      "II va III"
+    ],
+    "answer": "C",
+    "correctAnswer": "C",
+    "explanation": "Berilgan:\nTarozi jism qo'yilgach gorizontal emas. Jism suvga to'liq botmagan. Uchinchi bosqichdagi formula $\\rho=m/V$.\n\nTopish kerak:\nMassa va hajmni o'lchashdagi xatolarni formulani qo'llashdan ajratish.\n\nYechilishi:\n1-qadam. Teng yelkali tarozida ikki massa faqat pallalar muvozanatda turganda teng. Jismli palla pastda, demak uning massasi 50 g dan katta; 50 g deb olish xato. I xato.\n2-qadam. Suv sathi farqi $160-100=60\\,\\text{sm}^3$ faqat suvga botgan qism hajmini bildiradi. Jism qisman tashqarida qolgan, shuning uchun to'liq hajmi 60 sm³ dan katta. II ham xato.\n3-qadam. Zichlikni massani hajmga bo'lib topish formulasi to'g'ri. Noto'g'ri o'lchangan sonlardan 5/6 chiqishi yakuniy natijani ishonchsiz qiladi, ammo bo'lish amalining o'zi yangi mustaqil usul xatosi emas.\n4-qadam. To'g'ri tajribada tarozini muvozanatlash va jism hajmini uni to'liq botiradigan yordamchi usul bilan o'lchash lozim. Savolning ajratilgan mezoni bo'yicha I va II tanlanadi.\n\nJavob:\nI va II (C).",
+    "topic": "Modda va uning xossalari",
+    "difficulty": 3,
+    "source": {
+      "book": "VIP Fizik TYT Soru Bankası 2024",
+      "pdfPage": 34,
+      "test": 8,
+      "question": 9,
+      "printedAnswer": "C",
+      "correction": "Manbadagi «qaysi bosqich xato» iborasi III dagi noto'g'ri sonni ham qamrab olishi mumkin edi. C kalitiga mos ravishda mustaqil o'lchash usuli xatolari so'ralishi aniqlandi. Aslda 50+10 g toshlardan og'ir jism suzib 60 sm³ suv siqib chiqargan — Arximed qonuniga zid. 50 g tosh 40 g ga almashtirilib, xato o'lchov da'vosi 50 g va III dagi hisob 5/6 ga moslashtirildi; rasm ham tuzatildi."
+    },
+    "images": [
+      "/savol-rasm/vip-tyt-madde/t08-09a.webp",
+      "/savol-rasm/vip-tyt-madde/t08-09b.webp"
+    ]
+  }
+]
