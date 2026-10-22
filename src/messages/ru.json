@@ -585,6 +585,20 @@
       "PRESIDENT_SCHOOL": "Президентская школа",
       "SAT": "SAT",
       "GRE": "GRE"
+    },
+    "card": {
+      "questions": "{count, plural, one {# вопрос} few {# вопроса} other {# вопросов}}",
+      "minutes": "{count} мин",
+      "notStarted": "Ещё не решён",
+      "solvedResult": "Решён · результат {score} / {max}",
+      "solvedPercent": "Решён · результат {percent}%",
+      "start": "Начать",
+      "viewResult": "Смотреть результат",
+      "retake": "Решить заново",
+      "new": "Новый",
+      "lockPremium": "Premium",
+      "lockTeacher": "Тариф Ustoz",
+      "lockPrice": "{price} сум"
     }
   }
 }

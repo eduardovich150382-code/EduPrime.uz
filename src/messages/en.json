@@ -585,6 +585,20 @@
       "PRESIDENT_SCHOOL": "Presidential School",
       "SAT": "SAT",
       "GRE": "GRE"
+    },
+    "card": {
+      "questions": "{count, plural, one {# question} other {# questions}}",
+      "minutes": "{count} min",
+      "notStarted": "Not attempted yet",
+      "solvedResult": "Completed · score {score} / {max}",
+      "solvedPercent": "Completed · score {percent}%",
+      "start": "Start",
+      "viewResult": "View result",
+      "retake": "Retake",
+      "new": "New",
+      "lockPremium": "Premium",
+      "lockTeacher": "Teacher plan",
+      "lockPrice": "{price} UZS"
     }
   }
 }

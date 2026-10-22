@@ -78,7 +78,20 @@ export async function GET(request: NextRequest) {
 
     const total = await db.test.count({ where });
 
-    return NextResponse.json({ tests, total, page, limit });
+    // Kartadagi maqsad belgisi (Attestatsiya, DTM, ...) uchun. Test'da
+    // category relation yo'q (faqat categoryId) — schema'ga tegmaslik uchun
+    // sahifadagi testlarning kategoriyalari bitta so'rovda olinadi.
+    const categories = await db.testCategory.findMany({
+      where: { id: { in: [...new Set(tests.map((t) => t.categoryId))] } },
+      select: { id: true, type: true },
+    });
+    const typeByCategory = new Map(categories.map((c) => [c.id, c.type]));
+    const testsWithType = tests.map((t) => ({
+      ...t,
+      category: typeByCategory.has(t.categoryId) ? { type: typeByCategory.get(t.categoryId) } : null,
+    }));
+
+    return NextResponse.json({ tests: testsWithType, total, page, limit });
   } catch (error) {
     logger.error('GET /api/tests error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });

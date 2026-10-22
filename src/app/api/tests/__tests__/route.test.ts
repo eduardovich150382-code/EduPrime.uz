@@ -99,7 +99,21 @@ describe("GET /api/tests", () => {
     expect(args.where).toEqual({ isPublished: true, subjectId: "s1" });
     expect(args.orderBy).toEqual({ createdAt: "desc" });
     expect(args.take).toBe(20);
-    expect(findManyCategoryMock).not.toHaveBeenCalled();
+    // type bo'lmasa kategoriya bo'yicha filtr so'rovi yo'q (kartadagi
+    // maqsad belgisi uchun id bo'yicha so'rov — boshqa narsa).
+    expect(findManyCategoryMock).not.toHaveBeenCalledWith(
+      expect.objectContaining({ where: { type: expect.anything() } }),
+    );
+  });
+
+  it("har testga kategoriya turi (maqsad belgisi) biriktiriladi", async () => {
+    findManyCategoryMock.mockResolvedValue([{ id: "cat1", type: "ATTESTATION" }]);
+    const { data } = await callGet("");
+    expect(findManyCategoryMock).toHaveBeenCalledWith({
+      where: { id: { in: ["cat1"] } },
+      select: { id: true, type: true },
+    });
+    expect(data.tests[0].category).toEqual({ type: "ATTESTATION" });
   });
 
   it("mos kategoriyasi yo'q type — bo'sh ro'yxat (avvalgidek)", async () => {

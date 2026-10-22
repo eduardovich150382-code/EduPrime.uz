@@ -585,6 +585,20 @@
       "PRESIDENT_SCHOOL": "Prezident maktabi",
       "SAT": "SAT",
       "GRE": "GRE"
+    },
+    "card": {
+      "questions": "{count} savol",
+      "minutes": "{count} daqiqa",
+      "notStarted": "Hali yechilmagan",
+      "solvedResult": "Yechildi · natija {score} / {max}",
+      "solvedPercent": "Yechildi · natija {percent}%",
+      "start": "Boshlash",
+      "viewResult": "Natijani ko'rish",
+      "retake": "Qayta yechish",
+      "new": "Yangi",
+      "lockPremium": "Premium",
+      "lockTeacher": "Ustoz tarifi",
+      "lockPrice": "{price} so'm"
     }
   }
 }
