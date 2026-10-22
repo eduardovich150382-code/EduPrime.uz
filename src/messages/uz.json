@@ -558,5 +558,33 @@
     "answerSelected": "{answer} javobi tanlangan",
     "answerPending": "Javob tanlanmagan",
     "stayOnPage": "Test davomida sahifani tark etmang."
+  },
+  "tests": {
+    "title": "Testlar",
+    "subtitle": "Attestatsiya, Milliy sertifikat, DTM va olimpiadaga tayyorgarlik testlari",
+    "quickTest": "Tezkor test",
+    "searchPlaceholder": "Test yoki fan nomini qidiring…",
+    "goal": "Maqsad",
+    "subject": "Fan",
+    "all": "Hammasi",
+    "sort": "Tartib",
+    "sortNewest": "Yangilari",
+    "sortPopular": "Ommabop",
+    "count": "{count} ta test",
+    "loadMore": "Ko'proq ko'rsatish",
+    "empty": {
+      "title": "Bu bo'limda hozircha test yo'q",
+      "body": "Yangi testlar tez orada qo'shiladi. Boshqa filtrni tanlab ko'ring.",
+      "clear": "Filtrni tozalash"
+    },
+    "goals": {
+      "ATTESTATION": "Attestatsiya",
+      "CERTIFICATE": "Milliy sertifikat",
+      "DTM": "Abituriyent (DTM)",
+      "SCHOOL": "Maktab darsi",
+      "PRESIDENT_SCHOOL": "Prezident maktabi",
+      "SAT": "SAT",
+      "GRE": "GRE"
+    }
   }
 }

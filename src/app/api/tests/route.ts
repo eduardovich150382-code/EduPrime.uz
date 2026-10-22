@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { notifyViaTelegram } from '@/lib/telegram-notify';
 import { logger } from '@/lib/logger';
+import { MAX_QUERY_LENGTH } from '@/lib/tests-filters';
+
+const MAX_LIMIT = 50;
 
 // GET /api/tests — barcha testlarni olish (published + isFree yoki user ruxsati)
+// type/subject berilmasa barcha kategoriyalardagi nashr etilgan testlar
+// qaytadi (/tests sahifasidagi "Hammasi"). q va sort=popular — qo'shimcha;
+// ular berilmagan eski chaqiruvlar avvalgidek ishlaydi.
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
@@ -12,12 +19,27 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category');
     const subject = searchParams.get('subject');
     const type = searchParams.get('type');
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '20');
+    const q = (searchParams.get('q') ?? '').trim().slice(0, MAX_QUERY_LENGTH);
+    const sort = searchParams.get('sort');
+    // NaN yoki manfiy qiymat skip/take ga tushib Prisma xatosiga (500)
+    // aylanmasin; limit yuqoridan cheklanadi — bitta so'rov butun jadvalni
+    // tortib olmasin.
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1') || 1);
+    const limit = Math.min(MAX_LIMIT, Math.max(1, parseInt(searchParams.get('limit') || '20') || 20));
 
-    const where: any = { isPublished: true };
+    const where: Prisma.TestWhereInput = { isPublished: true };
     if (category) where.categoryId = category;
     if (subject) where.subjectId = subject;
+    if (q) {
+      // Qidiruv hozircha faqat test va fan nomi bo'yicha. Foydalanuvchi
+      // ruscha/inglizcha nomni ham yozishi mumkin, shuning uchun uchala til.
+      where.OR = [
+        { titleUz: { contains: q, mode: 'insensitive' } },
+        { titleRu: { contains: q, mode: 'insensitive' } },
+        { titleEn: { contains: q, mode: 'insensitive' } },
+        { subject: { nameUz: { contains: q, mode: 'insensitive' } } },
+      ];
+    }
 
     // Filter by TestCategory type (DTM, SCHOOL, ATTESTATION, SAT, GRE, CERTIFICATE)
     if (type) {
@@ -34,12 +56,22 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // "Ommabop" — necha marta yechilgani (TestResult soni). Teng bo'lsa
+    // yangisi oldin, aks holda sahifalar orasida tartib sakrab ketadi.
+    const orderBy: Prisma.TestOrderByWithRelationInput | Prisma.TestOrderByWithRelationInput[] =
+      sort === 'popular'
+        ? [{ results: { _count: 'desc' } }, { createdAt: 'desc' }]
+        : { createdAt: 'desc' };
+
     const tests = await db.test.findMany({
       where,
+      // Paywall: yozma va video yechim — pullik mahsulot, ro'yxatda ochiq
+      // ketmasin. Ular natija sahifasida, access tekshiruvidan keyin beriladi.
+      omit: { writtenSolution: true, videoSolution: true },
       include: {
         subject: { select: { nameUz: true, nameRu: true, nameEn: true, icon: true } },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy,
       skip: (page - 1) * limit,
       take: limit,
     });
