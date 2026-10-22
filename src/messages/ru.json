@@ -249,7 +249,13 @@
     "quotaExceededCta": "Получить Premium",
     "quotaExceededClose": "Закрыть",
     "distractorWhyLabel": "Почему этот ответ неверный:",
-    "wasHelpful": "Это было полезно?"
+    "wasHelpful": "Это было полезно?",
+    "retake": "Пройти заново",
+    "retakeTitle": "Хотите улучшить результат?",
+    "retakeSubtitle": "Разберите ошибки и пройдите тест заново.",
+    "attempt": "Попытка {number}",
+    "attemptsHistory": "Попытки",
+    "attemptScore": "{score} / {max}"
   },
   "sessionSolve": {
     "exitButton": "Выйти из теста",
@@ -573,7 +579,10 @@
       "body": "Отвечено на {answered} из {total} вопросов.",
       "restart": "Начать заново",
       "submit": "Отправить мои ответы"
-    }
+    },
+    "legendCorrect": "Верно ({count})",
+    "legendIncorrect": "Неверно ({count})",
+    "legendUnanswered": "Без ответа ({count})"
   },
   "tests": {
     "title": "Тесты",

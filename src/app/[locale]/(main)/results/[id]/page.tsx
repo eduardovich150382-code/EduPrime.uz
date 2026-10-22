@@ -10,6 +10,8 @@ import SecureYouTubePlayer from '@/components/ui/SecureYouTubePlayer';
 import PremiumCTA from '@/components/ui/PremiumCTA';
 import ResultScore from '@/components/test/ResultScore';
 import ResultQuestionMap from '@/components/test/ResultQuestionMap';
+import ResultRetakeFooter, { RETAKE_BUTTON_CLASS, SECONDARY_BUTTON_CLASS } from '@/components/test/ResultRetakeFooter';
+import { buildAttemptHistory, testsHrefForType, type AttemptHistory } from '@/lib/result-attempts';
 import { hasExamAnswer, restoreQuestionOrder } from '@/lib/exam-presentation';
 import QuotaUpsellDialog from '@/components/premium/QuotaUpsellDialog';
 import {
@@ -17,7 +19,7 @@ import {
 } from '@/lib/fill-blank';
 import { parseMatchingPairs, parseMatchingAnswer, isMatchingRowCorrect } from '@/lib/matching';
 import { DTM_TITLE_PREFIX } from '@/lib/dtm-online-shared';
-import { sanitizeReturnPath } from '@/lib/safe-return-path';
+import { sanitizeReturnPath, withReturnTo } from '@/lib/safe-return-path';
 import {
   CheckCircle, XCircle, SkipForward, Clock, Trophy,
   Video, FileText, ArrowLeft, Share2, RotateCcw,
@@ -83,6 +85,8 @@ interface ResultData {
     questionCount: number;
     questions: QuestionData[];
     subject: { nameUz: string; nameRu: string; nameEn: string };
+    // Sessiya natijasida `null` — "Testlarga qaytish" turga filtrlash uchun
+    category?: { type: string } | null;
   };
 }
 
@@ -115,6 +119,7 @@ export default function ResultPage() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [questionFilter, setQuestionFilter] = useState<'all' | 'incorrect' | 'skipped'>('all');
   const [showTimeAnalysis, setShowTimeAnalysis] = useState(false);
+  const [attempts, setAttempts] = useState<AttemptHistory | null>(null);
 
   // S17 — yechim darajalari
   const [solutionQuota, setSolutionQuota] = useState<SolutionQuota | null>(null);
@@ -132,6 +137,7 @@ export default function ResultPage() {
           const questions = restoreQuestionOrder(data.result.test.questions, data.result.answers.map((answer: { questionId: string }) => answer.questionId)) ?? data.result.test.questions;
           setResult({ ...data.result, test: { ...data.result.test, questions } });
           if (data.solutionQuota) setSolutionQuota(data.solutionQuota);
+          setAttempts(data.attempts ? buildAttemptHistory(data.attempts) : null);
         } else {
           setError(data.error || 'Natija topilmadi');
         }
@@ -411,8 +417,11 @@ export default function ResultPage() {
   // Kurs darsidagi testdan kelingan bo'lsa (`returnTo`, har doim tekshirilgan
   // holda) — sessiya/oddiy test farqidan qat'i nazar, ustuvor.
   const isDtmResult = Boolean(result.sessionId) && result.test.titleUz.startsWith(DTM_TITLE_PREFIX);
-  const backHref = returnTo || (result.sessionId ? (isDtmResult ? '/dashboard/dtm-online' : '/build') : '/tests');
+  const testsHref = testsHrefForType(result.test.category?.type);
+  const backHref = returnTo || (result.sessionId ? (isDtmResult ? '/dashboard/dtm-online' : '/build') : testsHref);
   const backLabel = returnTo ? t('backToLesson') : (result.sessionId ? (isDtmResult ? t('backToDtm') : t('backToBuild')) : t('backToTests'));
+  // Darsdan kelingan bo'lsa qayta yechishdan keyin ham natija darsga qaytara olsin
+  const retakeHref = result.testId ? withReturnTo(`/tests/${result.testId}/solve`, returnTo) : null;
 
   return (
     <div className="mx-auto w-full min-w-0 max-w-7xl space-y-6">
@@ -432,32 +441,42 @@ export default function ResultPage() {
         initial={reduceMotion ? false : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="rounded-[24px] border border-primary-100 bg-gradient-to-b from-primary-50/70 via-white to-white p-4 sm:p-8"
+        className="rounded-2xl border border-border bg-white p-5 shadow-sm sm:p-8"
       >
-        <p className="mb-2 text-center text-sm font-medium text-text-secondary">{result.test.titleUz}</p>
-        <h1 className="text-center text-2xl font-semibold text-text-primary sm:text-3xl">{exam('completed')}</h1>
+        <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-center lg:gap-8">
+          <div className="min-w-0">
+            <p className="mb-2 text-center text-sm font-medium text-text-secondary">{result.test.titleUz}</p>
+            <h1 className="text-center text-2xl font-semibold text-text-primary sm:text-3xl">{exam('completed')}</h1>
+            {attempts && attempts.total > 1 && (
+              <p className="mt-2 text-center">
+                <span className="inline-flex rounded-full bg-primary-50 px-3 py-1 text-xs font-semibold text-primary-800">
+                  {t('attempt', { number: attempts.currentNumber })}
+                </span>
+              </p>
+            )}
 
-        <ResultScore score={result.score} maxScore={result.maxScore} percentage={result.percentage}
-          correct={correctCount} incorrect={incorrectCount} skipped={skippedCount} timeSpent={result.timeSpent} />
+            <ResultScore score={result.score} maxScore={result.maxScore} percentage={result.percentage}
+              correct={correctCount} incorrect={incorrectCount} skipped={skippedCount} timeSpent={result.timeSpent} />
+          </div>
 
-        {/* Actions */}
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          {result.testId && (
-            <Link
-              href={`/tests/${result.testId}/solve`}
-              className="btn-secondary flex items-center gap-2"
+          {/* Qayta yechish — sahifadagi asosiy harakat: mobilda to'liq
+              kenglik, desktopda kartaning o'ng ustuni. Ulashish ikkinchi darajali. */}
+          <div className="mt-8 flex flex-col gap-3 lg:mt-0">
+            {retakeHref && (
+              <Link href={retakeHref} className={RETAKE_BUTTON_CLASS}>
+                <RotateCcw size={20} aria-hidden="true" />
+                {t('retake')}
+              </Link>
+            )}
+            <button
+              type="button"
+              onClick={handleShare}
+              className={SECONDARY_BUTTON_CLASS}
             >
-              <RotateCcw size={16} />
-              Qayta yechish
-            </Link>
-          )}
-          <button
-            onClick={handleShare}
-            className="btn-ghost flex items-center gap-2 relative"
-          >
-            <Share2 size={16} />
-            {shareSuccess ? 'Nusxalandi!' : 'Ulashish'}
-          </button>
+              <Share2 size={16} aria-hidden="true" />
+              {shareSuccess ? 'Nusxalandi!' : 'Ulashish'}
+            </button>
+          </div>
         </div>
 
         {/* Motivational message */}
@@ -1212,6 +1231,11 @@ export default function ResultPage() {
           })}
         </div>
       </motion.div>
+
+      {retakeHref && (
+        <ResultRetakeFooter retakeHref={retakeHref} backHref={backHref} backLabel={backLabel}
+          history={attempts} currentId={result.id} returnTo={returnTo} />
+      )}
 
       {/* S17 — kvota tugagan taklif ekrani (umumiy komponent, /build ham
           shu komponentni ishlatadi — qarang QuotaUpsellDialog.tsx). */}

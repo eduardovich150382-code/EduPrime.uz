@@ -14,6 +14,9 @@ const {
   solutionUnlockFindManyMock,
   dailyUsageFindUniqueMock,
   itemFindManyMock,
+  resultCountMock,
+  resultFindManyMock,
+  categoryFindUniqueMock,
 } = vi.hoisted(() => ({
   findUniqueResultMock: vi.fn(),
   authMock: vi.fn(),
@@ -22,11 +25,19 @@ const {
   solutionUnlockFindManyMock: vi.fn(),
   dailyUsageFindUniqueMock: vi.fn(),
   itemFindManyMock: vi.fn(),
+  resultCountMock: vi.fn(),
+  resultFindManyMock: vi.fn(),
+  categoryFindUniqueMock: vi.fn(),
 }));
 
 vi.mock("@/lib/db", () => ({
   db: {
-    testResult: { findUnique: (...args: unknown[]) => findUniqueResultMock(...args) },
+    testResult: {
+      findUnique: (...args: unknown[]) => findUniqueResultMock(...args),
+      count: (...args: unknown[]) => resultCountMock(...args),
+      findMany: (...args: unknown[]) => resultFindManyMock(...args),
+    },
+    testCategory: { findUnique: (...args: unknown[]) => categoryFindUniqueMock(...args) },
     user: { findUnique: (...args: unknown[]) => userFindUniqueMock(...args) },
     subscription: { findMany: (...args: unknown[]) => subscriptionFindManyMock(...args) },
     solutionUnlock: { findMany: (...args: unknown[]) => solutionUnlockFindManyMock(...args) },
@@ -78,6 +89,9 @@ describe("GET /api/results/[id]", () => {
     // tarmog'i testlari buni loadSessionItems uchun o'zining to'liq item
     // ro'yxati bilan qayta belgilaydi.
     itemFindManyMock.mockResolvedValue([]);
+    resultCountMock.mockResolvedValue(1);
+    resultFindManyMock.mockResolvedValue([]);
+    categoryFindUniqueMock.mockResolvedValue(null);
   });
 
   describe("Test tarmog'i (result.test bor)", () => {
@@ -186,6 +200,62 @@ describe("GET /api/results/[id]", () => {
       const { data } = await callGet();
       expect(data.solutionQuota).toEqual({ usedToday: 3, limit: 10 });
     });
+
+    it("urinishlar: jami son, oldingilar soni va faqat oxirgi 5 tasi (o'z natijalari)", async () => {
+      const completedAt = new Date("2026-10-20T10:00:00Z");
+      findUniqueResultMock.mockResolvedValue({
+        id: "result1",
+        userId: "user1",
+        testId: "test1",
+        sessionId: null,
+        completedAt,
+        test: { id: "test1", categoryId: "cat1", questions: [baseQuestion()], subject: {} },
+        session: null,
+      });
+      resultCountMock.mockResolvedValueOnce(11).mockResolvedValueOnce(8);
+      resultFindManyMock.mockResolvedValue([
+        { id: "result1", score: 42, maxScore: 50, completedAt },
+      ]);
+
+      const { data } = await callGet();
+
+      expect(resultCountMock).toHaveBeenNthCalledWith(1, { where: { userId: "user1", testId: "test1" } });
+      expect(resultCountMock).toHaveBeenNthCalledWith(2, {
+        where: {
+          userId: "user1",
+          testId: "test1",
+          OR: [{ completedAt: { lt: completedAt } }, { completedAt, id: { lt: "result1" } }],
+        },
+      });
+      expect(resultFindManyMock).toHaveBeenCalledWith({
+        where: { userId: "user1", testId: "test1" },
+        select: { id: true, score: true, maxScore: true, completedAt: true },
+        orderBy: [{ completedAt: "desc" }, { id: "desc" }],
+        take: 5,
+      });
+      expect(data.attempts.total).toBe(11);
+      expect(data.attempts.olderCount).toBe(8);
+      expect(data.attempts.recent).toEqual([
+        { id: "result1", score: 42, maxScore: 50, completedAt: completedAt.toISOString() },
+      ]);
+    });
+
+    it("test turini (category.type) categoryId bo'yicha qaytaradi", async () => {
+      findUniqueResultMock.mockResolvedValue({
+        id: "result1",
+        userId: "user1",
+        testId: "test1",
+        sessionId: null,
+        completedAt: new Date(),
+        test: { id: "test1", categoryId: "cat1", questions: [baseQuestion()], subject: {} },
+        session: null,
+      });
+      categoryFindUniqueMock.mockResolvedValue({ type: "ATTESTATION" });
+
+      const { data } = await callGet();
+      expect(categoryFindUniqueMock).toHaveBeenCalledWith({ where: { id: "cat1" }, select: { type: true } });
+      expect(data.result.test.category).toEqual({ type: "ATTESTATION" });
+    });
   });
 
   describe("Sessiya tarmog'i (result.session bor, result.test yo'q)", () => {
@@ -247,6 +317,23 @@ describe("GET /api/results/[id]", () => {
       const { data } = await callGet();
       expect(data.result.test.questions[0].explanation).toBe("Chunki 2+2=4");
     });
+
+    it("urinishlar tarixi va test turi yo'q", async () => {
+      findUniqueResultMock.mockResolvedValue({
+        id: "result1",
+        userId: "user1",
+        testId: null,
+        sessionId: "session1",
+        test: null,
+        session: { id: "session1", title: "Konstruktor testi", durationMin: 30, itemIds: [] },
+      });
+
+      const { data } = await callGet();
+      expect(data.attempts).toBeNull();
+      expect(data.result.test.category).toBeNull();
+      expect(resultFindManyMock).not.toHaveBeenCalled();
+      expect(resultCountMock).not.toHaveBeenCalled();
+    });
   });
 
   it("boshqa foydalanuvchining natijasiga 403 qaytaradi", async () => {
@@ -260,5 +347,8 @@ describe("GET /api/results/[id]", () => {
     });
     const { status } = await callGet();
     expect(status).toBe(403);
+    // Boshqaning urinishlar tarixi ham so'ralmaydi
+    expect(resultFindManyMock).not.toHaveBeenCalled();
+    expect(resultCountMock).not.toHaveBeenCalled();
   });
 });

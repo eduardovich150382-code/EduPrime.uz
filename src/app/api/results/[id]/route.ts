@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import type { Prisma } from '@prisma/client';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { extractItemPoints, loadSessionItems } from '@/lib/sessions';
@@ -87,6 +88,14 @@ export async function GET(
     const answers = (result.answers as { questionId: string; answer: string; isCorrect: boolean }[] | null) ?? [];
 
     if (result.test) {
+      const [category, attempts] = await Promise.all([
+        // Test'da category relation yo'q (faqat categoryId) — GET /api/tests
+        // dagi kabi alohida o'qiladi. "Testlarga qaytish" shu tur bo'yicha
+        // filtrlangan ro'yxatga olib boradi.
+        db.testCategory.findUnique({ where: { id: result.test.categoryId }, select: { type: true } }),
+        loadAttempts(result.userId, result.test.id, result.id, result.completedAt),
+      ]);
+
       // `SolutionUnlock.itemId` yozishda `unlock-solution` marshruti
       // `Question.id`ni Item.id'ga normallashtiradi (lib/quota.ts —
       // resolveUnlockKey) — o'qishda ham AYNAN shu normallashtirish
@@ -103,6 +112,7 @@ export async function GET(
           ...result,
           test: {
             ...result.test,
+            category: category ? { type: category.type } : null,
             questions: result.test.questions.map((q) =>
               attachDistractorWhy(
                 applySolutionVisibility(q, {
@@ -115,6 +125,7 @@ export async function GET(
           },
         },
         solutionQuota,
+        attempts,
       });
     }
 
@@ -174,14 +185,45 @@ export async function GET(
             )
           ),
           subject: subject ?? { nameUz: 'Turli fanlar', nameRu: 'Разные предметы', nameEn: 'Various subjects' },
+          category: null,
         },
       },
       solutionQuota,
+      // Sessiya bir martalik (har safar yangi to'plam) — "qayta urinish" yo'q.
+      attempts: null,
     });
   } catch (error) {
     logger.error('GET /api/results/[id] error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
+}
+
+const RECENT_ATTEMPTS = 5;
+
+/**
+ * Shu foydalanuvchining shu testdagi urinishlari — barcha natijalar emas:
+ * jami son, joriy natijadan oldingilar soni (urinish raqami uchun) va oxirgi
+ * 5 tasi. Faqat id/ball/vaqt — savol va javoblar tarixda kerak emas.
+ * Raqamlash `buildAttemptHistory` (lib/result-attempts.ts) da; tie-break
+ * (teng completedAt'da id) uchala so'rovda bir xil bo'lishi shart.
+ */
+async function loadAttempts(userId: string, testId: string, resultId: string, completedAt: Date) {
+  const where: Prisma.TestResultWhereInput = { userId, testId };
+  const olderWhere: Prisma.TestResultWhereInput = {
+    ...where,
+    OR: [{ completedAt: { lt: completedAt } }, { completedAt, id: { lt: resultId } }],
+  };
+  const [total, olderCount, recent] = await Promise.all([
+    db.testResult.count({ where }),
+    db.testResult.count({ where: olderWhere }),
+    db.testResult.findMany({
+      where,
+      select: { id: true, score: true, maxScore: true, completedAt: true },
+      orderBy: [{ completedAt: 'desc' }, { id: 'desc' }],
+      take: RECENT_ATTEMPTS,
+    }),
+  ]);
+  return { total, olderCount, recent };
 }
 
 /** `explanation`/`explanationImages`/`videoUrl`ni qulf holatiga qarab almashtiradi, qolgan maydonlarga tegmaydi. */
