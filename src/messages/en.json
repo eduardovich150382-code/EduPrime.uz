@@ -558,5 +558,33 @@
     "answerSelected": "Answer {answer} selected",
     "answerPending": "No answer selected",
     "stayOnPage": "Stay on this page during the test."
+  },
+  "tests": {
+    "title": "Tests",
+    "subtitle": "Practice tests for attestation, the National Certificate, DTM and olympiads",
+    "quickTest": "Quick test",
+    "searchPlaceholder": "Search tests or subjects…",
+    "goal": "Goal",
+    "subject": "Subject",
+    "all": "All",
+    "sort": "Sort",
+    "sortNewest": "Newest",
+    "sortPopular": "Popular",
+    "count": "{count, plural, one {# test} other {# tests}}",
+    "loadMore": "Show more",
+    "empty": {
+      "title": "No tests in this section yet",
+      "body": "New tests are coming soon. Try a different filter.",
+      "clear": "Clear filters"
+    },
+    "goals": {
+      "ATTESTATION": "Attestation",
+      "CERTIFICATE": "National Certificate",
+      "DTM": "University applicant (DTM)",
+      "SCHOOL": "School lesson",
+      "PRESIDENT_SCHOOL": "Presidential School",
+      "SAT": "SAT",
+      "GRE": "GRE"
+    }
   }
 }
