@@ -567,7 +567,13 @@
     "shortcutsBody": "A–E: javob tanlash · ← →: savollar · F: belgilash",
     "answerSelected": "{answer} javobi tanlangan",
     "answerPending": "Javob tanlanmagan",
-    "stayOnPage": "Test davomida sahifani tark etmang."
+    "stayOnPage": "Test davomida sahifani tark etmang.",
+    "expiredDraft": {
+      "title": "Oldingi urinishingiz vaqti tugagan",
+      "body": "{answered} / {total} savolga javob berilgan.",
+      "restart": "Yangidan boshlash",
+      "submit": "Javoblarimni topshirish"
+    }
   },
   "tests": {
     "title": "Testlar",
