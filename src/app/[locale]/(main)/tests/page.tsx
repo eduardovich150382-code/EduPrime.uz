@@ -16,9 +16,14 @@ import {
   type TestsFilters as Filters,
   type TestsSort,
 } from '@/lib/tests-filters';
+import { latestResultByTest, type BriefResult } from '@/lib/test-card';
 
 // 24 — 2 va 3 ustunli to'rda ham to'liq qatorlar bilan tugaydi.
 const PAGE_SIZE = 24;
+
+// auto-fill + min(280px, 100%): 390px telefonda bitta ustun va gorizontal
+// aylanish yo'q, kengroq ekranda ustunlar o'zi qo'shiladi.
+const CARD_GRID = 'grid gap-[18px] grid-cols-[repeat(auto-fill,minmax(min(280px,100%),1fr))]';
 
 interface TestsResponse {
   tests?: TestItem[];
@@ -43,7 +48,7 @@ function TestsPageContent() {
   const [page, setPage] = useState(1);
   const [loadingTests, setLoadingTests] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [recentResults, setRecentResults] = useState<{ testId: string; percentage: number }[]>([]);
+  const [recentResults, setRecentResults] = useState<BriefResult[]>([]);
 
   // Har filtr o'zgarishi push emas, replace: aks holda har chip bosilishi
   // tarixga yoziladi va "orqaga" sahifadan chiqish o'rniga chiplarni birma-bir
@@ -64,14 +69,13 @@ function TestsPageContent() {
   );
   const clearFilters = () => router.replace(pathname, { scroll: false });
 
-  // Fetch recent results for "solved" badges
+  // Kartadagi "Yechildi" holati va "Natijani ko'rish" havolasi uchun.
+  // Mehmon uchun 401 — kartalar shunchaki "Hali yechilmagan" bo'lib qoladi.
   useEffect(() => {
     fetch('/api/results?limit=100&brief=true')
       .then(r => r.json())
-      .then((data: { results?: { testId: string; percentage: number }[] }) => {
-        if (data.results) {
-          setRecentResults(data.results.map((r) => ({ testId: r.testId, percentage: r.percentage })));
-        }
+      .then((data: { results?: BriefResult[] }) => {
+        if (data.results) setRecentResults(data.results);
       })
       .catch(() => {});
   }, []);
@@ -145,10 +149,7 @@ function TestsPageContent() {
     }
   };
 
-  const resultByTestId = useMemo(
-    () => new Map(recentResults.map((r) => [r.testId, r])),
-    [recentResults],
-  );
+  const resultByTestId = useMemo(() => latestResultByTest(recentResults), [recentResults]);
 
   return (
     <div className="max-w-full overflow-x-hidden">
@@ -179,13 +180,13 @@ function TestsPageContent() {
         />
 
         {loadingTests ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <div className={CARD_GRID}>
             {Array.from({ length: 6 }).map((_, i) => <TestCardSkeleton key={i} />)}
           </div>
         ) : tests.length > 0 ? (
           <div className="space-y-4">
             <p className="text-sm text-text-secondary">{t('count', { count: total })}</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div className={CARD_GRID}>
               {tests.map((test, index) => (
                 <TestCard
                   key={test.id}
@@ -193,7 +194,7 @@ function TestsPageContent() {
                   // Animatsiya kechikishi har "ko'proq" sahifasida noldan
                   // boshlansin — aks holda 48-karta 2.4 s kutib chiqadi.
                   index={index % PAGE_SIZE}
-                  userResult={resultByTestId.get(test.id)}
+                  result={resultByTestId.get(test.id)}
                 />
               ))}
             </div>
