@@ -510,6 +510,16 @@
     "testTopicNote": "Bu maydon saqlanmaydi — u faqat yangi savollarga mavzu qo‘yib beradi."
   },
   "exam": {
+    "locked": {
+      "title": "Test yopiq",
+      "needPremium": "«{title}» testiga kirish uchun Premium tarif kerak.",
+      "needTeacher": "«{title}» testiga kirish uchun Ustoz tarif kerak.",
+      "needPremiumTeacher": "«{title}» testiga kirish uchun Premium yoki Ustoz tarif kerak.",
+      "needPaid": "«{title}» testiga kirish uchun {price} so'm to'lash kerak.",
+      "needGeneric": "«{title}» testiga kirish uchun tarif kerak.",
+      "buy": "Sotib olish — {price} so'm",
+      "pricing": "Tariflar sahifasi"
+    },
     "timeLeft": "Qolgan vaqt",
     "pause": "To‘xtatish",
     "finish": "Yakunlash",

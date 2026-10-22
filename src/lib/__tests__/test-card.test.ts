@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   getCardLinks,
   getCardState,
+  getLockBadge,
   isNewTest,
   latestResultByTest,
   type BriefResult,
@@ -45,6 +46,56 @@ describe('getCardState', () => {
       maxScore: 50,
       percentage: 84,
     });
+  });
+});
+
+describe('getCardState — hasAccess', () => {
+  it('hasAccess true — qulfli turlarda ham start', () => {
+    expect(getCardState({ isFree: false, accessType: 'premium' }, undefined, true)).toEqual({ kind: 'start' });
+    expect(getCardState({ isFree: false, accessType: 'premium_teacher' }, undefined, true)).toEqual({ kind: 'start' });
+    expect(getCardState({ isFree: false, accessType: 'paid', price: 15000 }, undefined, true)).toEqual({ kind: 'start' });
+  });
+
+  it('hasAccess true va natija bor — solved', () => {
+    expect(getCardState({ isFree: false, accessType: 'premium' }, result(), true).kind).toBe('solved');
+  });
+
+  it("hasAccess false yoki noma'lum — eski qulfli holat", () => {
+    for (const access of [false, undefined]) {
+      expect(getCardState({ isFree: false, accessType: 'premium' }, undefined, access)).toEqual({ kind: 'upgrade', plan: 'premium' });
+      expect(getCardState({ isFree: false, accessType: 'paid', price: 15000 }, undefined, access)).toEqual({ kind: 'buy', price: 15000 });
+    }
+  });
+
+  it("bepul test hasAccess false bo'lsa ham start", () => {
+    expect(getCardState({ isFree: true }, undefined, false)).toEqual({ kind: 'start' });
+  });
+});
+
+describe('getLockBadge', () => {
+  const badge = (accessType: string | undefined, hasAccess?: boolean, price?: number) => {
+    const test = { isFree: false, accessType, price };
+    return getLockBadge(test, getCardState(test, undefined, hasAccess));
+  };
+
+  it("tur bo'yicha belgi", () => {
+    expect(badge('premium')).toEqual({ kind: 'premium' });
+    expect(badge('premium_teacher')).toEqual({ kind: 'premium' });
+    expect(badge('teacher')).toEqual({ kind: 'teacher' });
+    expect(badge('paid', undefined, 15000)).toEqual({ kind: 'price', price: 15000 });
+  });
+
+  it("noma'lum accessType — belgi yo'q (faqat qulf ikonkasi)", () => {
+    expect(badge('something_new')).toBeNull();
+    expect(badge(undefined)).toBeNull();
+  });
+
+  it("kirish huquqi bor, bepul yoki yechilgan — belgi yo'q", () => {
+    expect(badge('premium', true)).toBeNull();
+    expect(badge('paid', true, 15000)).toBeNull();
+    expect(getLockBadge({ isFree: true }, { kind: 'start' })).toBeNull();
+    const test = { isFree: false, accessType: 'premium' };
+    expect(getLockBadge(test, getCardState(test, result()))).toBeNull();
   });
 });
 

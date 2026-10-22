@@ -5,8 +5,13 @@ import { auth } from '@/lib/auth';
 import { notifyViaTelegram } from '@/lib/telegram-notify';
 import { logger } from '@/lib/logger';
 import { MAX_QUERY_LENGTH } from '@/lib/tests-filters';
+import { loadTestAccessContext, resolveTestAccess } from '@/lib/access';
 
 const MAX_LIMIT = 50;
+
+// Javob endi foydalanuvchiga bog'liq (hasAccess) — CDN yoki Next keshi bir
+// foydalanuvchining javobini boshqasiga bermasin.
+export const dynamic = 'force-dynamic';
 
 // GET /api/tests — barcha testlarni olish (published + isFree yoki user ruxsati)
 // type/subject berilmasa barcha kategoriyalardagi nashr etilgan testlar
@@ -81,17 +86,28 @@ export async function GET(request: NextRequest) {
     // Kartadagi maqsad belgisi (Attestatsiya, DTM, ...) uchun. Test'da
     // category relation yo'q (faqat categoryId) — schema'ga tegmaslik uchun
     // sahifadagi testlarning kategoriyalari bitta so'rovda olinadi.
-    const categories = await db.testCategory.findMany({
-      where: { id: { in: [...new Set(tests.map((t) => t.categoryId))] } },
-      select: { id: true, type: true },
-    });
+    //
+    // hasAccess — kartada qulf ko'rsatish uchun ishora, haqiqiy himoya
+    // GET /api/tests/[id] da. Kirmagan foydalanuvchida bazaga qo'shimcha
+    // so'rov yo'q: bepul testlar ochiq, qolganlari yopiq.
+    const userId = session?.user?.id;
+    const [categories, accessContext] = await Promise.all([
+      db.testCategory.findMany({
+        where: { id: { in: [...new Set(tests.map((t) => t.categoryId))] } },
+        select: { id: true, type: true },
+      }),
+      userId ? loadTestAccessContext(userId, session.user.role, tests) : null,
+    ]);
     const typeByCategory = new Map(categories.map((c) => [c.id, c.type]));
     const testsWithType = tests.map((t) => ({
       ...t,
       category: typeByCategory.has(t.categoryId) ? { type: typeByCategory.get(t.categoryId) } : null,
+      hasAccess: resolveTestAccess(t, accessContext),
     }));
 
-    return NextResponse.json({ tests: testsWithType, total, page, limit });
+    const response = NextResponse.json({ tests: testsWithType, total, page, limit });
+    if (userId) response.headers.set('Cache-Control', 'private, no-store');
+    return response;
   } catch (error) {
     logger.error('GET /api/tests error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });

@@ -6,7 +6,7 @@ import { Clock, ListChecks, Lock, RotateCcw, Sparkles } from 'lucide-react';
 import type { TestType } from '@prisma/client';
 import { Link } from '@/i18n/routing';
 import { TEST_GOALS, type TestGoal } from '@/lib/tests-filters';
-import { getCardLinks, getCardState, isNewTest, type BriefResult } from '@/lib/test-card';
+import { getCardLinks, getCardState, getLockBadge, isNewTest, type BriefResult } from '@/lib/test-card';
 
 export interface TestItem {
   id: string;
@@ -20,6 +20,7 @@ export interface TestItem {
   questionCount: number;
   createdAt?: string;
   category?: { type: TestType } | null;
+  hasAccess?: boolean;
 }
 
 // Ranglar docs/design/testlar-ui.md jadvalidan — Tailwind palitrasida aynan
@@ -72,20 +73,21 @@ export function TestCard({
 }) {
   const t = useTranslations('tests');
   const locale = useLocale();
-  const state = getCardState(test, result);
+  const state = getCardState(test, result, test.hasAccess);
   const links = getCardLinks(test.id, state);
   const goal = test.category?.type;
   const solveHref = `/tests/${test.id}/solve`;
 
   // Qulflangan testda tugma baribir "Boshlash" — qanday kirish kerakligini
-  // kichik belgi aytadi. premium_teacher kabi aralash turda belgi yo'q,
-  // faqat qulf ikonkasi (aniq tarifni solve sahifasi aytadi).
+  // kichik belgi aytadi. Kirish huquqi bo'lsa state 'start' — belgi ham,
+  // qulf ham yo'q.
+  const badge = getLockBadge(test, state);
   const lockLabel =
-    state.kind === 'buy'
-      ? t('card.lockPrice', { price: state.price.toLocaleString() })
-      : state.kind === 'upgrade' && state.plan === 'premium'
+    badge?.kind === 'price'
+      ? t('card.lockPrice', { price: badge.price.toLocaleString() })
+      : badge?.kind === 'premium'
       ? t('card.lockPremium')
-      : state.kind === 'upgrade' && state.plan === 'teacher'
+      : badge?.kind === 'teacher'
       ? t('card.lockTeacher')
       : null;
 

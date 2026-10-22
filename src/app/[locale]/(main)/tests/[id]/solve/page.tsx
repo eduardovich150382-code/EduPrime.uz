@@ -9,6 +9,7 @@ import { usePracticeClock } from '@/components/test/usePracticeClock';
 import { isPhysicsSubject, shufflePresentedQuestions } from '@/lib/exam-presentation';
 import { restoreTestDraft } from '@/lib/test-draft';
 import BackButton from '@/components/ui/BackButton';
+import { Link } from '@/i18n/routing';
 import { withReturnTo, sanitizeReturnPath } from '@/lib/safe-return-path';
 import { AlertCircle, Loader2 } from 'lucide-react';
 
@@ -309,20 +310,24 @@ export default function TestSolvePage() {
   if (!test || test.questions.length === 0) {
     // Access denied — show lock screen
     if (accessDenied) {
+      // Jumla to'liq holda tarjima qilinadi — ruschada so'z tartibi boshqa,
+      // bo'laklardan yig'ib bo'lmaydi.
+      const title = accessDenied.testTitle ?? '';
+      const price = (accessDenied.price || 0).toLocaleString();
+      const lockedMessage =
+        accessDenied.accessType === 'premium' ? exam('locked.needPremium', { title })
+        : accessDenied.accessType === 'teacher' ? exam('locked.needTeacher', { title })
+        : accessDenied.accessType === 'premium_teacher' ? exam('locked.needPremiumTeacher', { title })
+        : accessDenied.accessType === 'paid' ? exam('locked.needPaid', { title, price })
+        : exam('locked.needGeneric', { title });
       return (
         <div className="max-w-md mx-auto text-center py-16">
           <div className="w-20 h-20 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
             <AlertCircle size={36} className="text-primary-600" />
           </div>
-          <h2 className="text-xl font-bold text-text-primary mb-2">Test yopiq</h2>
+          <h2 className="text-xl font-bold text-text-primary mb-2">{exam('locked.title')}</h2>
           <p className="text-text-secondary mb-6">
-            {accessDenied.testTitle && <span className="font-medium">&ldquo;{accessDenied.testTitle}&rdquo;</span>}
-            {' '}testiga kirish uchun
-            {accessDenied.accessType === 'premium' && ' Premium tarif'}
-            {accessDenied.accessType === 'teacher' && ' Ustoz tarif'}
-            {accessDenied.accessType === 'premium_teacher' && ' Premium yoki Ustoz tarif'}
-            {accessDenied.accessType === 'paid' && ` ${(accessDenied.price || 0).toLocaleString()} so'm to'lash`}
-            {' '}kerak.
+            {lockedMessage}
           </p>
           {accessDenied.accessType === 'paid' ? (
             <a
@@ -331,12 +336,14 @@ export default function TestSolvePage() {
               rel="noopener noreferrer"
               className="btn-primary inline-flex items-center gap-2"
             >
-              Sotib olish — {(accessDenied.price || 0).toLocaleString()} so&apos;m
+              {exam('locked.buy', { price })}
             </a>
           ) : (
-            <a href="/pricing" className="btn-primary inline-flex items-center gap-2">
-              Tariflar sahifasi
-            </a>
+            // Link til prefiksini qo'yadi — oddiy <a href="/pricing"> ruscha
+            // foydalanuvchini o'zbekcha tariflar sahifasiga otardi.
+            <Link href="/pricing" className="btn-primary inline-flex items-center gap-2">
+              {exam('locked.pricing')}
+            </Link>
           )}
         </div>
       );
