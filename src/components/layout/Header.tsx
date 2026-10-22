@@ -7,6 +7,7 @@ import { Menu, X, LogOut, User, Bell, Crown } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 import LanguageSwitcher from './LanguageSwitcher';
 import PremiumCTA from '@/components/ui/PremiumCTA';
+import { ATTESTATION_HREF } from '@/lib/nav-links';
 
 export default function Header() {
   const t = useTranslations();
@@ -100,6 +101,12 @@ export default function Header() {
             </Link>
             <Link href="/tests" className="btn-ghost text-sm">
               {t('nav.tests')}
+            </Link>
+            <Link href={ATTESTATION_HREF} className="btn-ghost text-sm font-semibold !text-[#92400e] inline-flex items-center gap-1.5">
+              {t('nav.attestation')}
+              <span className="rounded-full bg-[#fef3c7] text-[#92400e] text-[10px] font-semibold leading-none px-1.5 py-1">
+                {t('nav.attestationBadge')}
+              </span>
             </Link>
             <Link href="/rating" className="btn-ghost text-sm">
               {t('nav.rating')}
@@ -256,6 +263,12 @@ export default function Header() {
               </Link>
               <Link href="/tests" className="btn-ghost text-sm" onClick={() => setIsMenuOpen(false)}>
                 {t('nav.tests')}
+              </Link>
+              <Link href={ATTESTATION_HREF} className="btn-ghost text-sm font-semibold !text-[#92400e] flex items-center gap-1.5" onClick={() => setIsMenuOpen(false)}>
+                {t('nav.attestation')}
+                <span className="rounded-full bg-[#fef3c7] text-[#92400e] text-[10px] font-semibold leading-none px-1.5 py-1">
+                  {t('nav.attestationBadge')}
+                </span>
               </Link>
               <Link href="/rating" className="btn-ghost text-sm" onClick={() => setIsMenuOpen(false)}>
                 {t('nav.rating')}

@@ -164,6 +164,8 @@
     "home": "Home",
     "tests": "Tests",
     "build": "Build a test",
+    "attestation": "Attestation",
+    "attestationBadge": "2026",
     "dashboard": "Dashboard",
     "rating": "Rating",
     "pricing": "Pricing",

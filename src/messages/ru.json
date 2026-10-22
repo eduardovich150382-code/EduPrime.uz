@@ -164,6 +164,8 @@
     "home": "Главная",
     "tests": "Тесты",
     "build": "Создать тест",
+    "attestation": "Аттестация",
+    "attestationBadge": "2026",
     "dashboard": "Панель",
     "rating": "Рейтинг",
     "pricing": "Тарифы",
