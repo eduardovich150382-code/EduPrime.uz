@@ -48,10 +48,11 @@ export function latestResultByTest(results: BriefResult[]): Map<string, BriefRes
   return latest;
 }
 
-// Eski karta xatti-harakati saqlanadi: natija bo'lsa qulf ko'rsatilmaydi,
-// natijasiz pullik testda esa obuna holatidan qat'i nazar qulf tugmasi
-// chiqadi. Haqiqiy himoya baribir serverda (check-access, lib/access.ts).
-export function getCardState(test: CardAccessInfo, result?: BriefResult): CardState {
+// Natija bo'lsa qulf ko'rsatilmaydi. `hasAccess` — GET /api/tests javobidan:
+// true bo'lsa (obunachi, xaridor, admin) pullik test ham oddiy "Boshlash".
+// Noma'lum (`undefined`, eski javob) bo'lsa eski xatti-harakat — qulf.
+// Haqiqiy himoya baribir serverda (check-access, lib/access.ts).
+export function getCardState(test: CardAccessInfo, result?: BriefResult, hasAccess?: boolean): CardState {
   if (result) {
     return {
       kind: 'solved',
@@ -61,11 +62,25 @@ export function getCardState(test: CardAccessInfo, result?: BriefResult): CardSt
       percentage: result.percentage,
     };
   }
+  if (hasAccess === true) return { kind: 'start' };
   if (test.isFree || test.accessType === 'free') return { kind: 'start' };
   if (test.accessType === 'paid') return { kind: 'buy', price: test.price || 0 };
   if (test.accessType === 'premium') return { kind: 'upgrade', plan: 'premium' };
   if (test.accessType === 'teacher') return { kind: 'upgrade', plan: 'teacher' };
   return { kind: 'upgrade', plan: 'other' };
+}
+
+export type LockBadge = { kind: 'price'; price: number } | { kind: 'premium' } | { kind: 'teacher' } | null;
+
+// Qulf yonidagi kichik belgi. premium_teacher'ga "Premium" — eng ko'p
+// sotiladigan tarif, Ustoz tarifini solve sahifasi qo'shimcha aytadi.
+// Noma'lum accessType'da belgi yo'q, faqat qulf ikonkasi.
+export function getLockBadge(test: CardAccessInfo, state: CardState): LockBadge {
+  if (state.kind === 'buy') return { kind: 'price', price: state.price };
+  if (state.kind !== 'upgrade') return null;
+  if (test.accessType === 'premium' || test.accessType === 'premium_teacher') return { kind: 'premium' };
+  if (test.accessType === 'teacher') return { kind: 'teacher' };
+  return null;
 }
 
 export interface CardLinks {
@@ -75,8 +90,8 @@ export interface CardLinks {
 }
 
 // Qulflangan testda ham asosiy tugma /pricing yoki botga emas, solve'ga
-// olib boradi: karta obuna holatini bilmaydi, solve sahifasi esa
-// check-access orqali biladi — obunachi to'g'ridan-to'g'ri kiradi,
+// olib boradi: kartadagi hasAccess faqat ishora (eskirgan bo'lishi ham
+// mumkin), yakuniy qarorni solve sahifasi check-access orqali qiladi —
 // obunasiz foydalanuvchi o'sha yerda "Test yopiq" ekranini ko'radi.
 export function getCardLinks(testId: string, state: CardState): CardLinks {
   const solve = `/tests/${testId}/solve`;

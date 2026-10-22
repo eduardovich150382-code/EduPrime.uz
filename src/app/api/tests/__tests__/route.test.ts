@@ -1,10 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { findManyTestMock, countTestMock, findManyCategoryMock } = vi.hoisted(() => ({
-  findManyTestMock: vi.fn(),
-  countTestMock: vi.fn(),
-  findManyCategoryMock: vi.fn(),
-}));
+const { findManyTestMock, countTestMock, findManyCategoryMock, subscriptionMock, purchaseMock, paymentMock, authMock } =
+  vi.hoisted(() => ({
+    findManyTestMock: vi.fn(),
+    countTestMock: vi.fn(),
+    findManyCategoryMock: vi.fn(),
+    subscriptionMock: vi.fn(),
+    purchaseMock: vi.fn(),
+    paymentMock: vi.fn(),
+    authMock: vi.fn(),
+  }));
 
 vi.mock("@/lib/db", () => ({
   db: {
@@ -15,10 +20,13 @@ vi.mock("@/lib/db", () => ({
     testCategory: {
       findMany: (...args: unknown[]) => findManyCategoryMock(...args),
     },
+    subscription: { findMany: (...args: unknown[]) => subscriptionMock(...args) },
+    purchase: { findMany: (...args: unknown[]) => purchaseMock(...args) },
+    payment: { findMany: (...args: unknown[]) => paymentMock(...args) },
   },
 }));
 
-vi.mock("@/lib/auth", () => ({ auth: vi.fn().mockResolvedValue(null) }));
+vi.mock("@/lib/auth", () => ({ auth: (...args: unknown[]) => authMock(...args) }));
 vi.mock("@/lib/telegram-notify", () => ({ notifyViaTelegram: vi.fn() }));
 
 import { NextRequest } from "next/server";
@@ -67,7 +75,7 @@ function applyPrismaShape(row: Record<string, unknown>, args: FindManyArgs) {
 async function callGet(query: string) {
   const request = new NextRequest(`http://localhost/api/tests${query}`);
   const response = await GET(request);
-  return { status: response.status, data: await response.json() };
+  return { status: response.status, data: await response.json(), headers: response.headers };
 }
 
 function lastFindManyArgs() {
@@ -80,6 +88,10 @@ describe("GET /api/tests", () => {
     findManyTestMock.mockImplementation(async (args: FindManyArgs) => [applyPrismaShape(fullRow, args)]);
     countTestMock.mockResolvedValue(1);
     findManyCategoryMock.mockResolvedValue([{ id: "cat1" }, { id: "cat2" }]);
+    authMock.mockResolvedValue(null);
+    subscriptionMock.mockResolvedValue([]);
+    purchaseMock.mockResolvedValue([]);
+    paymentMock.mockResolvedValue([]);
   });
 
   it("eski chaqiruv ?type= — where/orderBy/skip/take avvalgidek", async () => {
@@ -175,5 +187,60 @@ describe("GET /api/tests", () => {
     expect(test).not.toHaveProperty("writtenSolution");
     expect(test).not.toHaveProperty("videoSolution");
     expect(JSON.stringify(data)).not.toContain("pullik yechim");
+  });
+
+  describe("hasAccess", () => {
+    const rows = [
+      { ...fullRow, id: "free", isFree: true, accessType: "free" },
+      { ...fullRow, id: "prem", accessType: "premium" },
+      { ...fullRow, id: "paid", accessType: "paid", price: 15000 },
+    ];
+
+    beforeEach(() => {
+      findManyTestMock.mockImplementation(async (args: FindManyArgs) => rows.map((r) => applyPrismaShape(r, args)));
+    });
+
+    it("kirmagan — bepul ochiq, qolgani yopiq, obuna/xarid so'rovi umuman yo'q", async () => {
+      const { data, headers } = await callGet("");
+      expect(data.tests.map((t: { id: string; hasAccess: boolean }) => [t.id, t.hasAccess])).toEqual([
+        ["free", true],
+        ["prem", false],
+        ["paid", false],
+      ]);
+      expect(subscriptionMock).not.toHaveBeenCalled();
+      expect(purchaseMock).not.toHaveBeenCalled();
+      expect(paymentMock).not.toHaveBeenCalled();
+      expect(headers.get("Cache-Control") ?? "").not.toMatch(/public/);
+    });
+
+    it("premium obunachi — premium ochiq, sotib olinmagan paid yopiq; javob shaxsiy va keshlanmaydi", async () => {
+      authMock.mockResolvedValue({ user: { id: "u1", role: "USER" } });
+      subscriptionMock.mockResolvedValue([{ plan: "PREMIUM" }]);
+      const { data, headers } = await callGet("");
+      expect(data.tests.map((t: { id: string; hasAccess: boolean }) => [t.id, t.hasAccess])).toEqual([
+        ["free", true],
+        ["prem", true],
+        ["paid", false],
+      ]);
+      expect(subscriptionMock).toHaveBeenCalledTimes(1);
+      expect(purchaseMock).toHaveBeenCalledWith({
+        where: { userId: "u1", itemType: "test", itemId: { in: ["paid"] } },
+        select: { itemId: true },
+      });
+      expect(headers.get("Cache-Control")).toBe("private, no-store");
+    });
+
+    it("javobda faqat boolean — obuna/xarid tafsilotlari yo'q", async () => {
+      authMock.mockResolvedValue({ user: { id: "u1", role: "USER" } });
+      subscriptionMock.mockResolvedValue([{ plan: "PREMIUM" }]);
+      purchaseMock.mockResolvedValue([{ itemId: "paid" }]);
+      const { data } = await callGet("");
+      for (const t of data.tests) expect(typeof t.hasAccess).toBe("boolean");
+      expect(data.tests.find((t: { id: string }) => t.id === "paid").hasAccess).toBe(true);
+      const json = JSON.stringify(data);
+      for (const leak of ["PREMIUM", "plan", "premium\":true", "purchasedTestIds", "subscription"]) {
+        expect(json).not.toContain(leak);
+      }
+    });
   });
 });

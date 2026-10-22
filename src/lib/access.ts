@@ -38,6 +38,96 @@ export async function checkTestAccess(
 }
 
 /**
+ * Ro'yxat (GET /api/tests) uchun foydalanuvchining kirish ma'lumoti —
+ * sahifadagi har test uchun checkTestAccess chaqirilsa 20 ta test = 40+
+ * so'rov (N+1) bo'lardi. Shuning uchun ma'lumot bir marta yuklanadi va
+ * qaror xotirada, resolveTestAccess bilan chiqariladi.
+ *
+ * UserPermission ataylab yo'q: checkTestAccess uni o'qimaydi. Bu yerda
+ * o'qilsa karta "ochiq" deydi, solve va savollar endpointi esa rad etadi.
+ */
+export interface TestAccessContext {
+  isAdmin: boolean;
+  premium: boolean;
+  teacher: boolean;
+  // Purchase va eski Payment.selectedSubjects xaridlari birlashmasi.
+  purchasedTestIds: ReadonlySet<string>;
+}
+
+export interface TestAccessInfo {
+  id: string;
+  isFree: boolean;
+  accessType: string;
+}
+
+function isFreeTest(test: TestAccessInfo): boolean {
+  return test.isFree || test.accessType === 'free';
+}
+
+/**
+ * checkTestAccess bilan bir xil qaror, faqat sof. Farqi bitta: bepul testga
+ * true — checkTestAccess'da bepul tekshiruv chaqiruvchida (GET /api/tests/[id]).
+ * `ctx === null` — tizimga kirmagan foydalanuvchi.
+ */
+export function resolveTestAccess(test: TestAccessInfo, ctx: TestAccessContext | null): boolean {
+  if (isFreeTest(test)) return true;
+  if (!ctx) return false;
+  if (ctx.isAdmin) return true;
+  if (test.accessType === 'premium' && ctx.premium) return true;
+  if (test.accessType === 'teacher' && ctx.teacher) return true;
+  if (test.accessType === 'premium_teacher' && (ctx.premium || ctx.teacher)) return true;
+  if (test.accessType === 'paid' && ctx.purchasedTestIds.has(test.id)) return true;
+  return false;
+}
+
+const SUBSCRIPTION_ACCESS_TYPES = new Set(['premium', 'teacher', 'premium_teacher']);
+
+/**
+ * Sahifadagi testlar uchun kontekst — testlar sonidan qat'i nazar ko'pi
+ * bilan 3 so'rov. Kerak bo'lmagan so'rov umuman bajarilmaydi: ADMIN'ga
+ * hech biri, obunali test bo'lmasa — obuna, pullik test bo'lmasa — xarid.
+ */
+export async function loadTestAccessContext(
+  userId: string,
+  role: string | undefined,
+  tests: TestAccessInfo[]
+): Promise<TestAccessContext> {
+  const isAdmin = role === 'ADMIN';
+  const locked = isAdmin ? [] : tests.filter((t) => !isFreeTest(t));
+  const needsSubscription = locked.some((t) => SUBSCRIPTION_ACCESS_TYPES.has(t.accessType));
+  const paidIds = locked.filter((t) => t.accessType === 'paid').map((t) => t.id);
+
+  const [subscription, purchases, legacyPayments] = await Promise.all([
+    needsSubscription ? hasActiveSubscription(userId) : { premium: false, teacher: false },
+    paidIds.length > 0
+      ? db.purchase.findMany({
+          where: { userId, itemType: 'test', itemId: { in: paidIds } },
+          select: { itemId: true },
+        })
+      : [],
+    // checkTestAccess'dagi zaxira bilan bir xil sabab — Purchase backfill.
+    paidIds.length > 0
+      ? db.payment.findMany({
+          where: { userId, status: 'CONFIRMED', selectedSubjects: { hasSome: paidIds } },
+          select: { selectedSubjects: true },
+        })
+      : [],
+  ]);
+
+  const purchasedTestIds = new Set(purchases.map((p) => p.itemId));
+  // selectedSubjects'da fan id'lari ham aralashgan — faqat sahifadagi
+  // pullik testlarnikini olamiz.
+  const paidIdSet = new Set(paidIds);
+  for (const payment of legacyPayments) {
+    for (const id of payment.selectedSubjects) {
+      if (paidIdSet.has(id)) purchasedTestIds.add(id);
+    }
+  }
+
+  return { isAdmin, ...subscription, purchasedTestIds };
+}
+
+/**
  * Same shape as checkTestAccess, for Course. Kept as a separate function
  * (rather than a generic helper) because Test and Course are different
  * Prisma models — duplicating this ~10-line check is cheaper than forcing a

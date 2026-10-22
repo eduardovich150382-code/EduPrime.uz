@@ -510,6 +510,16 @@
     "testTopicNote": "This field is not saved — it only pre-fills the topic for new questions."
   },
   "exam": {
+    "locked": {
+      "title": "Test locked",
+      "needPremium": "The “{title}” test requires the Premium plan.",
+      "needTeacher": "The “{title}” test requires the Teacher plan.",
+      "needPremiumTeacher": "The “{title}” test requires the Premium or Teacher plan.",
+      "needPaid": "The “{title}” test requires a payment of {price} UZS.",
+      "needGeneric": "The “{title}” test requires a plan.",
+      "buy": "Buy — {price} UZS",
+      "pricing": "View plans"
+    },
     "timeLeft": "Time remaining",
     "pause": "Pause",
     "finish": "Finish",
