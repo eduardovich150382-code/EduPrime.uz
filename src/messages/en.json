@@ -567,7 +567,13 @@
     "shortcutsBody": "A–E: select answer · ← →: questions · F: flag",
     "answerSelected": "Answer {answer} selected",
     "answerPending": "No answer selected",
-    "stayOnPage": "Stay on this page during the test."
+    "stayOnPage": "Stay on this page during the test.",
+    "expiredDraft": {
+      "title": "Your previous attempt has timed out",
+      "body": "{answered} of {total} questions answered.",
+      "restart": "Start over",
+      "submit": "Submit my answers"
+    }
   },
   "tests": {
     "title": "Tests",

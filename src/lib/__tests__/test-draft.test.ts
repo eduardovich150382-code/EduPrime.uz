@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isClockExpired, pickContinueDrafts, readDraftSummary, restoreTestDraft, type DraftSummary } from '../test-draft';
+import { getDraftResumeMode, isClockExpired, pickContinueDrafts, readDraftSummary, restoreTestDraft, type DraftSummary } from '../test-draft';
 
 const questions = [{ id: 'q1' }, { id: 'q2' }, { id: 'q3' }];
 const base = { questionIds: ['q1', 'q2', 'q3'], answers: { 0: 'A', 2: 'C' }, currentQuestion: 2, flagged: [1], questionTimeSpent: { 0: 5 }, autoNext: true, timestamp: 1_000 };
@@ -58,6 +58,48 @@ describe('isClockExpired', () => {
   it('yozuv yo\'q yoki buzilgan — false', () => {
     expect(isClockExpired(null, now)).toBe(false);
     expect(isClockExpired('{oops', now)).toBe(false);
+  });
+});
+
+describe('getDraftResumeMode', () => {
+  const now = 10_000;
+  const draft = JSON.stringify(base);
+  const clock = (extra: Record<string, unknown>) => JSON.stringify({ deadline: 9_000, remaining: 5, paused: false, total: 60, ...extra });
+
+  it('yurayotgan, deadline o\'tgan — expired', () => {
+    expect(getDraftResumeMode(draft, clock({}), 60, now)).toBe('expired');
+  });
+  it('to\'xtatilgan, vaqt 0 — expired', () => {
+    expect(getDraftResumeMode(draft, clock({ paused: true, remaining: 0 }), 60, now)).toBe('expired');
+  });
+  it('deadline hali kelmagan — resume', () => {
+    expect(getDraftResumeMode(draft, clock({ deadline: 11_000 }), 60, now)).toBe('resume');
+  });
+  it('to\'xtatilgan, vaqt qolgan — deadline o\'tgan bo\'lsa ham resume', () => {
+    expect(getDraftResumeMode(draft, clock({ paused: true, remaining: 30, deadline: 1_000 }), 60, now)).toBe('resume');
+  });
+  it('taymersiz eski qoralama — resume', () => {
+    expect(getDraftResumeMode(draft, null, 60, now)).toBe('resume');
+  });
+  it('nomli va nomsiz qoralama — bir xil natija', () => {
+    const titled = JSON.stringify({ ...base, titleUz: 'Mexanika', titleRu: 'Механика' });
+    expect(getDraftResumeMode(titled, clock({}), 60, now)).toBe('expired');
+    expect(getDraftResumeMode(titled, null, 60, now)).toBe('resume');
+  });
+  it('qoralama yo\'q yoki buzilgan JSON — fresh', () => {
+    expect(getDraftResumeMode(null, clock({}), 60, now)).toBe('fresh');
+    expect(getDraftResumeMode('{oops', clock({}), 60, now)).toBe('fresh');
+    expect(getDraftResumeMode('"str"', clock({}), 60, now)).toBe('fresh');
+  });
+  it('taymer yozuvi buzilgan — resume (soat to\'liq vaqtdan boshlanadi)', () => {
+    expect(getDraftResumeMode(draft, '{oops', 60, now)).toBe('resume');
+    expect(getDraftResumeMode(draft, clock({ paused: 'no' }), 60, now)).toBe('resume');
+  });
+  it('davomiylik o\'zgargan (total mos emas) — resume', () => {
+    expect(getDraftResumeMode(draft, clock({ total: 30 }), 60, now)).toBe('resume');
+  });
+  it('taymersiz test (totalSeconds 0) — resume', () => {
+    expect(getDraftResumeMode(draft, clock({ total: 0 }), 0, now)).toBe('resume');
   });
 });
 

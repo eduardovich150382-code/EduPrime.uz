@@ -7,7 +7,8 @@ import ExamWorkspace from '@/components/test/ExamWorkspace';
 import { useAutoAdvance } from '@/components/test/useAutoAdvance';
 import { usePracticeClock } from '@/components/test/usePracticeClock';
 import { isPhysicsSubject, shufflePresentedQuestions } from '@/lib/exam-presentation';
-import { restoreTestDraft } from '@/lib/test-draft';
+import { CLOCK_KEY_PREFIX, DRAFT_KEY_PREFIX, getDraftResumeMode, restoreTestDraft } from '@/lib/test-draft';
+import ExpiredDraftNotice from '@/components/test/ExpiredDraftNotice';
 import BackButton from '@/components/ui/BackButton';
 import { Link } from '@/i18n/routing';
 import { withReturnTo, sanitizeReturnPath } from '@/lib/safe-return-path';
@@ -62,6 +63,9 @@ export default function TestSolvePage() {
   const [questionTimeSpent, setQuestionTimeSpent] = useState<Record<number, number>>({});
   const questionStartTimeRef = useRef<number>(Date.now());
   const [sections, setSections] = useState<{ label: string; count: number }[] | undefined>(undefined);
+  // Ochilishda vaqti tugagan qoralama — foydalanuvchi tanlamaguncha
+  // ExamWorkspace (va TestTimer) render qilinmaydi.
+  const [expiredDraft, setExpiredDraft] = useState<{ answered: number; total: number } | null>(null);
 
   const clock = usePracticeClock(testId, (test?.duration ?? 0) * 60);
   const submitLock = useRef(false);
@@ -81,7 +85,7 @@ export default function TestSolvePage() {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!test || clock.paused || showFinishDialog || submitting || document.querySelector('[role="dialog"]')) return;
+      if (!test || expiredDraft || clock.paused || showFinishDialog || submitting || document.querySelector('[role="dialog"]')) return;
       // Ignore if typing in input
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) return;
       
@@ -148,7 +152,7 @@ export default function TestSolvePage() {
   // Anti-cheating: detect tab/window switch
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.hidden && test && !clock.paused) {
+      if (document.hidden && test && !expiredDraft && !clock.paused) {
         setTabSwitchCount((prev) => {
           const newCount = prev + 1;
           if (newCount >= 3) {
@@ -165,7 +169,7 @@ export default function TestSolvePage() {
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [test, clock.paused]);
+  }, [test, expiredDraft, clock.paused]);
 
   // Fetch test
   useEffect(() => {
@@ -192,10 +196,18 @@ export default function TestSolvePage() {
           const rawQuestions: QuestionData[] = data.test.questions;
           let questions = shufflePresentedQuestions(rawQuestions, crypto.getRandomValues(new Uint32Array(1))[0]);
           try {
-            const draft = restoreTestDraft(rawQuestions, localStorage.getItem(`test_progress_${testId}`));
+            const rawDraft = localStorage.getItem(`${DRAFT_KEY_PREFIX}${testId}`);
+            const rawClock = localStorage.getItem(`${CLOCK_KEY_PREFIX}${testId}`);
+            const draft = restoreTestDraft(rawQuestions, rawDraft);
+            const mode = draft ? getDraftResumeMode(rawDraft, rawClock, data.test.duration * 60) : 'fresh';
             if (draft) {
               questions = draft.questions; setAnswers(draft.answers); setCurrentQuestion(draft.current);
               setFlaggedQuestions(new Set(draft.flagged)); setQuestionTimeSpent(draft.questionTimeSpent); setAutoNext(draft.autoNext);
+              if (mode === 'expired') setExpiredDraft({ answered: Object.values(draft.answers).filter(answer => answer !== '').length, total: questions.length });
+            } else {
+              // Qoralamasiz qolgan eski soat bo'sh testni qisqargan yoki nol
+              // vaqt bilan ochib, darhol topshirib yuborardi.
+              localStorage.removeItem(`${CLOCK_KEY_PREFIX}${testId}`);
             }
           } catch { /* Yopiq storage mashqni ochishga to'sqinlik qilmasin. */ }
           setTest({ ...data.test, questions });
@@ -360,6 +372,12 @@ export default function TestSolvePage() {
         <p className="text-text-secondary">Bu test mavjud emas yoki savollar hali qo&apos;shilmagan</p>
       </div>
     );
+  }
+
+  if (expiredDraft) {
+    return <ExpiredDraftNotice testId={testId} answered={expiredDraft.answered} total={expiredDraft.total} submitting={submitting}
+      // Tanlov ekranida o'tgan vaqt joriy savolga yozilmasin.
+      onSubmit={() => { questionStartTimeRef.current = Date.now(); handleFinish(); }} />;
   }
 
   return (

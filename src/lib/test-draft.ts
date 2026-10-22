@@ -85,6 +85,34 @@ export function isClockExpired(raw: string | null, now: number = Date.now()): bo
   } catch { return false; }
 }
 
+export type DraftResumeMode = 'resume' | 'expired' | 'fresh';
+
+// Yechish sahifasi ochilganda qoralama bilan nima qilishni hal qiladi.
+// 'expired' da sahifa ExamWorkspace'ni (demak TestTimer'ni) umuman
+// render qilmaydi — aks holda 0 dan boshlangan soat eski, yarim javobli
+// urinishni foydalanuvchi bilmasdan topshirib yuborardi. Taymer yozuvi
+// usePracticeClock bilan aynan bir xil tekshiriladi: hook rad etgan yozuv
+// (masalan, ustoz davomiylikni o'zgartirgan) soatni to'liq vaqtdan
+// boshlaydi, demak muddati o'tmagan deb hisoblanishi kerak.
+export function getDraftResumeMode(draftRaw: string | null, clockRaw: string | null, totalSeconds: number, now: number = Date.now()): DraftResumeMode {
+  if (!draftRaw) return 'fresh';
+  try {
+    const draft: unknown = JSON.parse(draftRaw);
+    if (!draft || typeof draft !== 'object') return 'fresh';
+  } catch { return 'fresh'; }
+  if (!clockRaw || totalSeconds <= 0) return 'resume';
+  try {
+    const data: unknown = JSON.parse(clockRaw);
+    if (!data || typeof data !== 'object') return 'resume';
+    const clock = data as Record<string, unknown>;
+    if (clock.total !== totalSeconds || typeof clock.paused !== 'boolean') return 'resume';
+    if (typeof clock.deadline !== 'number' || !Number.isFinite(clock.deadline)) return 'resume';
+    if (typeof clock.remaining !== 'number' || !Number.isFinite(clock.remaining)) return 'resume';
+    const expired = clock.paused ? clock.remaining <= 0 : clock.deadline <= now;
+    return expired ? 'expired' : 'resume';
+  } catch { return 'resume'; }
+}
+
 // Natija qoralamadan keyin yozilgan bo'lsa test boshqa qurilma yoki tabda
 // topshirilgan — qoralama shunchaki tozalanmay qolgan.
 export function pickContinueDrafts(
