@@ -28,6 +28,8 @@ interface QuestionData {
 interface TestData {
   id: string;
   titleUz: string;
+  titleRu?: string | null;
+  titleEn?: string | null;
   duration: number;
   questionCount: number;
   questions: QuestionData[];
@@ -68,6 +70,8 @@ export default function TestSolvePage() {
     if (!test || submitLock.current) return;
     try {
       localStorage.setItem(`test_progress_${testId}`, JSON.stringify({
+        // Nom faqat /tests "Davom etish" bloki uchun — restoreTestDraft uni o'qimaydi.
+        titleUz: test.titleUz, titleRu: test.titleRu, titleEn: test.titleEn,
         questionIds: test.questions.map(question => question.id), answers, currentQuestion,
         flagged: Array.from(flaggedQuestions), questionTimeSpent, autoNext, timestamp: Date.now(),
       }));

@@ -19,6 +19,8 @@ const PUBLIC_KEYS = [
   'referral_friends_required',
   'referral_reward_days',
   'free_daily_test_limit',
+  // /tests attestatsiya banneridagi "kun qoldi" hisoblagichi (YYYY-MM-DD).
+  'attestation_date',
 ];
 
 const DEFAULTS: Record<string, string> = {
@@ -37,6 +39,8 @@ const DEFAULTS: Record<string, string> = {
   referral_friends_required: '3',
   referral_reward_days: '5',
   free_daily_test_limit: '3',
+  // Bo'sh — hisoblagich yashirin, banner qoladi.
+  attestation_date: '',
 };
 
 // GET /api/settings — public settings (pricing, card info, announcement)

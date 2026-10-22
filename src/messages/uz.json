@@ -609,6 +609,21 @@
       "lockPremium": "Premium",
       "lockTeacher": "Ustoz tarifi",
       "lockPrice": "{price} so'm"
+    },
+    "banner": {
+      "pill": "Attestatsiya mavsumi",
+      "title": "Fizika o'qituvchilari attestatsiyasiga tayyorlaning",
+      "body": "Rasmiy spetsifikatsiya bo'yicha mock testlar: 35 fizika + 5 kasb standarti + 10 pedagogika savoli, batafsil yechimlar bilan.",
+      "daysLeft": "kun qoldi",
+      "cta": "Tayyorlanishni boshlash →"
+    },
+    "continue": {
+      "title": "Davom etish",
+      "progress": "{answered} / {total} savol",
+      "cta": "Davom etish →",
+      "today": "Bugun",
+      "yesterday": "Kecha",
+      "daysAgo": "{count} kun oldin"
     }
   }
 }

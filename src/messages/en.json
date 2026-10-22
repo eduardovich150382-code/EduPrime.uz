@@ -609,6 +609,21 @@
       "lockPremium": "Premium",
       "lockTeacher": "Teacher plan",
       "lockPrice": "{price} UZS"
+    },
+    "banner": {
+      "pill": "Attestation season",
+      "title": "Prepare for the physics teacher attestation",
+      "body": "Mock tests built on the official specification: 35 physics + 5 professional standard + 10 pedagogy questions, with detailed solutions.",
+      "daysLeft": "{count, plural, one {day left} other {days left}}",
+      "cta": "Start preparing →"
+    },
+    "continue": {
+      "title": "Continue",
+      "progress": "{answered} / {total} questions",
+      "cta": "Continue →",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "daysAgo": "{count, plural, one {# day ago} other {# days ago}}"
     }
   }
 }
