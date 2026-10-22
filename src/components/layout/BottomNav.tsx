@@ -3,7 +3,8 @@
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
-import { Menu, LayoutDashboard, User, BookOpen, Wand2 } from 'lucide-react';
+import { Menu, User, BookOpen, Wand2, Award } from 'lucide-react';
+import { ATTESTATION_HREF } from '@/lib/nav-links';
 
 interface BottomNavProps {
   onMenuClick: () => void;
@@ -19,7 +20,6 @@ export default function BottomNav({ onMenuClick }: BottomNavProps) {
   if (isTestSolving) return null;
 
   // Determine active state
-  const isDashboard = pathname.endsWith('/dashboard') || pathname.includes('/dashboard/');
   const isTests = pathname.endsWith('/tests') || (pathname.includes('/tests') && !pathname.includes('/solve'));
   const isBuild = pathname.includes('/build');
   const isProfile = pathname.endsWith('/profile');
@@ -36,22 +36,6 @@ export default function BottomNav({ onMenuClick }: BottomNavProps) {
           <span className="text-[10px] font-medium">Menyu</span>
         </button>
 
-        {/* Dashboard */}
-        <Link
-          href="/dashboard"
-          className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors relative ${
-            isDashboard ? 'text-primary-600' : 'text-text-secondary hover:text-primary-600'
-          }`}
-        >
-          <LayoutDashboard size={22} />
-          <span className={`text-[10px] font-medium ${isDashboard ? 'text-primary-600' : ''}`}>
-            Dashboard
-          </span>
-          {isDashboard && (
-            <span className="absolute bottom-1 w-6 h-0.5 rounded-full bg-primary-600" />
-          )}
-        </Link>
-
         {/* Tests */}
         <Link
           href="/tests"
@@ -66,6 +50,25 @@ export default function BottomNav({ onMenuClick }: BottomNavProps) {
           {isTests && (
             <span className="absolute bottom-1 w-6 h-0.5 rounded-full bg-primary-600" />
           )}
+        </Link>
+
+        {/* Attestatsiya — markaziy, ajralib turadigan punkt. Faol holat
+            ko'rsatilmaydi: ?type ni o'qish uchun useSearchParams layout'da
+            Suspense talab qiladi, punkt esa baribir doim ko'zga tashlanadi. */}
+        <Link
+          href={ATTESTATION_HREF}
+          aria-label={t('attestation')}
+          className="flex flex-col items-center justify-center gap-1 flex-1 h-full"
+        >
+          <span
+            aria-hidden="true"
+            className="-mt-5 w-11 h-11 rounded-xl bg-[#fbbf24] text-[#451a03] flex items-center justify-center shadow-md ring-4 ring-white"
+          >
+            <Award size={22} />
+          </span>
+          <span className="text-[10px] font-semibold text-[#92400e] whitespace-nowrap">
+            {t('attestation')}
+          </span>
         </Link>
 
         {/* Build (test constructor) */}

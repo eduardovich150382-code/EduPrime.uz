@@ -164,6 +164,8 @@
     "home": "Bosh sahifa",
     "tests": "Testlar",
     "build": "Test tuzish",
+    "attestation": "Attestatsiya",
+    "attestationBadge": "2026",
     "dashboard": "Dashboard",
     "rating": "Reyting",
     "pricing": "Tariflar",
