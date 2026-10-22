@@ -43,3 +43,50 @@ export function tashkentDayRangeUtc(daysAgo: number, now: Date = new Date()): { 
   const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
   return { start, end };
 }
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const DATE_KEY_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+// `YYYY-MM-DD` kalitini UTC yarim tunga aylantiradi. 2026-02-30 kabi
+// mavjud bo'lmagan sanani Date jimgina 2-martga suradi — shuning uchun
+// qismlar qayta solishtiriladi.
+function dateKeyToUtcMs(key: string): number | null {
+  const match = DATE_KEY_RE.exec(key.trim());
+  if (!match) return null;
+  const [, y, m, d] = match.map(Number);
+  const ms = Date.UTC(y, m - 1, d);
+  const check = new Date(ms);
+  if (check.getUTCFullYear() !== y || check.getUTCMonth() !== m - 1 || check.getUTCDate() !== d) return null;
+  return ms;
+}
+
+/**
+ * Bugungi Tashkent kunidan `dateStr` (`YYYY-MM-DD`) gacha qolgan kalendar
+ * kunlar soni: 0 — bugun, 1 — ertaga. Sana o'tgan yoki noto'g'ri bo'lsa
+ * `null` — chaqiruvchi hisoblagichni yashiradi. Soatlar farqi emas, kun
+ * kalitlari solishtiriladi: aks holda soat 00:30 da "1 kun" o'rniga "0"
+ * chiqardi.
+ */
+export function daysUntil(dateStr: string | null | undefined, now: Date = new Date()): number | null {
+  if (!dateStr) return null;
+  const target = dateKeyToUtcMs(dateStr);
+  const today = dateKeyToUtcMs(tashkentDateKey(now));
+  if (target === null || today === null) return null;
+  const days = Math.round((target - today) / DAY_MS);
+  return days < 0 ? null : days;
+}
+
+/**
+ * `date` Tashkent kalendari bo'yicha necha kun oldin bo'lgani: 0 — bugun,
+ * 1 — kecha. Matn ("Bugun", "Kecha") i18n'da — bu yerda faqat son.
+ * Noto'g'ri sana yoki kelajak uchun `null`.
+ */
+export function tashkentRelativeDay(date: Date | string | number, now: Date = new Date()): number | null {
+  const d = date instanceof Date ? date : new Date(date);
+  if (Number.isNaN(d.getTime())) return null;
+  const then = dateKeyToUtcMs(tashkentDateKey(d));
+  const today = dateKeyToUtcMs(tashkentDateKey(now));
+  if (then === null || today === null) return null;
+  const days = Math.round((today - then) / DAY_MS);
+  return days < 0 ? null : days;
+}

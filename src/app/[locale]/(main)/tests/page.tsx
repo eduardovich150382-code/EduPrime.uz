@@ -8,6 +8,8 @@ import { BookOpen, Loader2, Zap } from 'lucide-react';
 import { TestCard, TestCardSkeleton, type TestItem } from '@/components/tests/TestCard';
 import { TestsSearchBar } from '@/components/tests/TestsSearchBar';
 import { TestsFilters, type SubjectOption } from '@/components/tests/TestsFilters';
+import { AttestationBanner } from '@/components/tests/AttestationBanner';
+import { ContinueRow } from '@/components/tests/ContinueRow';
 import {
   buildQuery,
   buildTestsApiQuery,
@@ -17,6 +19,14 @@ import {
   type TestsSort,
 } from '@/lib/tests-filters';
 import { latestResultByTest, type BriefResult } from '@/lib/test-card';
+import {
+  CLOCK_KEY_PREFIX,
+  DRAFT_KEY_PREFIX,
+  isClockExpired,
+  pickContinueDrafts,
+  readDraftSummary,
+  type DraftSummary,
+} from '@/lib/test-draft';
 
 // 24 — 2 va 3 ustunli to'rda ham to'liq qatorlar bilan tugaydi.
 const PAGE_SIZE = 24;
@@ -24,6 +34,22 @@ const PAGE_SIZE = 24;
 // auto-fill + min(280px, 100%): 390px telefonda bitta ustun va gorizontal
 // aylanish yo'q, kengroq ekranda ustunlar o'zi qo'shiladi.
 const CARD_GRID = 'grid gap-[18px] grid-cols-[repeat(auto-fill,minmax(min(280px,100%),1fr))]';
+
+// Qoralamalar faqat shu qurilmaning localStorage'ida — server ularni bilmaydi.
+function readLocalDrafts(): DraftSummary[] {
+  const drafts: DraftSummary[] = [];
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key?.startsWith(DRAFT_KEY_PREFIX)) continue;
+      const testId = key.slice(DRAFT_KEY_PREFIX.length);
+      const summary = readDraftSummary(testId, localStorage.getItem(key));
+      if (!summary) continue;
+      drafts.push({ ...summary, expired: isClockExpired(localStorage.getItem(`${CLOCK_KEY_PREFIX}${testId}`)) });
+    }
+  } catch { /* Storage yopiq bo'lsa blok shunchaki chiqmaydi. */ }
+  return drafts;
+}
 
 interface TestsResponse {
   tests?: TestItem[];
@@ -49,6 +75,11 @@ function TestsPageContent() {
   const [loadingTests, setLoadingTests] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [recentResults, setRecentResults] = useState<BriefResult[]>([]);
+  // null — hali noma'lum. Alohida sessiya so'rovi o'rniga brief javobining
+  // 401 iga tayanamiz.
+  const [isAuthed, setIsAuthed] = useState<boolean | null>(null);
+  const [drafts, setDrafts] = useState<DraftSummary[]>([]);
+  const [attestationDate, setAttestationDate] = useState<string | null>(null);
 
   // Har filtr o'zgarishi push emas, replace: aks holda har chip bosilishi
   // tarixga yoziladi va "orqaga" sahifadan chiqish o'rniga chiplarni birma-bir
@@ -73,9 +104,22 @@ function TestsPageContent() {
   // Mehmon uchun 401 — kartalar shunchaki "Hali yechilmagan" bo'lib qoladi.
   useEffect(() => {
     fetch('/api/results?limit=100&brief=true')
-      .then(r => r.json())
+      .then(r => {
+        setIsAuthed(r.ok);
+        return r.json();
+      })
       .then((data: { results?: BriefResult[] }) => {
         if (data.results) setRecentResults(data.results);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    setDrafts(readLocalDrafts());
+    fetch('/api/settings')
+      .then(r => r.json())
+      .then((data: { settings?: Record<string, string> }) => {
+        setAttestationDate(data.settings?.attestation_date || null);
       })
       .catch(() => {});
   }, []);
@@ -150,6 +194,9 @@ function TestsPageContent() {
   };
 
   const resultByTestId = useMemo(() => latestResultByTest(recentResults), [recentResults]);
+  const continueDrafts = useMemo(() => pickContinueDrafts(drafts, resultByTestId), [drafts, resultByTestId]);
+  // Qidirayotgan foydalanuvchiga natijalar kerak — bloklar ularni pastga surmasin.
+  const showPromo = filters.q === '';
 
   return (
     <div className="max-w-full overflow-x-hidden">
@@ -169,6 +216,12 @@ function TestsPageContent() {
         </div>
 
         <TestsSearchBar value={filters.q} onChange={handleQueryChange} />
+
+        {showPromo && (filters.type === null || filters.type === 'ATTESTATION') && (
+          <AttestationBanner attestationDate={attestationDate} />
+        )}
+
+        {showPromo && isAuthed && <ContinueRow drafts={continueDrafts} tests={tests} />}
 
         <TestsFilters
           filters={filters}

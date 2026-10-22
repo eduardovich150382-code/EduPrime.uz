@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { daysSince, tashkentDateKey, tashkentDayRangeUtc } from "../date";
+import { daysSince, daysUntil, tashkentDateKey, tashkentDayRangeUtc, tashkentRelativeDay } from "../date";
 
 describe("tashkentDateKey", () => {
   it("UTC 23:30 — Tashkent'da ertasi kun ertalabki soatlarda (04:30)", () => {
@@ -84,5 +84,60 @@ describe("tashkentDayRangeUtc", () => {
   it("oraliq aynan 24 soat", () => {
     const { start, end } = tashkentDayRangeUtc(0, new Date("2026-05-10T12:00:00.000Z"));
     expect(end.getTime() - start.getTime()).toBe(24 * 60 * 60 * 1000);
+  });
+});
+
+describe("daysUntil", () => {
+  it("Toshkent 00:30 — kun allaqachon almashgan, UTC hali kechagi kunda", () => {
+    // 2026-10-21T19:30Z = 2026-10-22 00:30 Tashkent
+    expect(daysUntil("2026-10-23", new Date("2026-10-21T19:30:00.000Z"))).toBe(1);
+  });
+
+  it("Toshkent 23:59 — hali eski kun", () => {
+    // 2026-10-21T18:59Z = 2026-10-21 23:59 Tashkent
+    expect(daysUntil("2026-10-23", new Date("2026-10-21T18:59:00.000Z"))).toBe(2);
+  });
+
+  it("bugungi sana — 0", () => {
+    expect(daysUntil("2026-10-22", new Date("2026-10-21T19:30:00.000Z"))).toBe(0);
+  });
+
+  it("o'tgan sana — null", () => {
+    expect(daysUntil("2026-10-21", new Date("2026-10-21T19:30:00.000Z"))).toBeNull();
+  });
+
+  it("yil almashuvi", () => {
+    expect(daysUntil("2027-01-01", new Date("2026-12-30T12:00:00.000Z"))).toBe(2);
+  });
+
+  it("noto'g'ri format, mavjud bo'lmagan sana va bo'sh qiymat — null", () => {
+    const now = new Date("2026-01-10T12:00:00.000Z");
+    expect(daysUntil("", now)).toBeNull();
+    expect(daysUntil(null, now)).toBeNull();
+    expect(daysUntil("15.01.2027", now)).toBeNull();
+    expect(daysUntil("2027-02-30", now)).toBeNull();
+  });
+});
+
+describe("tashkentRelativeDay", () => {
+  it("Toshkent 00:30 da kechagi 23:00 — 'kecha', UTC bo'yicha bir kun bo'lsa ham", () => {
+    const now = new Date("2026-10-21T19:30:00.000Z"); // 22-oktabr 00:30
+    expect(tashkentRelativeDay(new Date("2026-10-21T18:00:00.000Z"), now)).toBe(1); // 21-oktabr 23:00
+  });
+
+  it("Toshkent 00:30 da 00:10 — 'bugun'", () => {
+    const now = new Date("2026-10-21T19:30:00.000Z");
+    expect(tashkentRelativeDay(new Date("2026-10-21T19:10:00.000Z"), now)).toBe(0);
+  });
+
+  it("3 kun oldin, timestamp son ko'rinishida", () => {
+    const now = new Date("2026-10-22T10:00:00.000Z");
+    expect(tashkentRelativeDay(new Date("2026-10-19T10:00:00.000Z").getTime(), now)).toBe(3);
+  });
+
+  it("noto'g'ri sana va kelajak — null", () => {
+    const now = new Date("2026-10-22T10:00:00.000Z");
+    expect(tashkentRelativeDay("abc", now)).toBeNull();
+    expect(tashkentRelativeDay(new Date("2026-10-24T10:00:00.000Z"), now)).toBeNull();
   });
 });
