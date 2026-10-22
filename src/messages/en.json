@@ -596,10 +596,9 @@
       "viewResult": "View result",
       "retake": "Retake",
       "new": "New",
-      "buy": "Buy — {price} UZS",
-      "upgradePremium": "Upgrade to Premium",
-      "upgradeTeacher": "Upgrade to Teacher plan",
-      "upgrade": "Choose a plan"
+      "lockPremium": "Premium",
+      "lockTeacher": "Teacher plan",
+      "lockPrice": "{price} UZS"
     }
   }
 }

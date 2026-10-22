@@ -596,10 +596,9 @@
       "viewResult": "Смотреть результат",
       "retake": "Решить заново",
       "new": "Новый",
-      "buy": "Купить — {price} сум",
-      "upgradePremium": "Перейти на Premium",
-      "upgradeTeacher": "Перейти на тариф Ustoz",
-      "upgrade": "Выбрать тариф"
+      "lockPremium": "Premium",
+      "lockTeacher": "Тариф Ustoz",
+      "lockPrice": "{price} сум"
     }
   }
 }

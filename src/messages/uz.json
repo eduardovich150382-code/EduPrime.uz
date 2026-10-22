@@ -596,10 +596,9 @@
       "viewResult": "Natijani ko'rish",
       "retake": "Qayta yechish",
       "new": "Yangi",
-      "buy": "Sotib olish — {price} so'm",
-      "upgradePremium": "Premium tarifga o'tish",
-      "upgradeTeacher": "Ustoz tarifga o'tish",
-      "upgrade": "Tarifga o'tish"
+      "lockPremium": "Premium",
+      "lockTeacher": "Ustoz tarifi",
+      "lockPrice": "{price} so'm"
     }
   }
 }

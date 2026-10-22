@@ -6,7 +6,7 @@ import { Clock, ListChecks, Lock, RotateCcw, Sparkles } from 'lucide-react';
 import type { TestType } from '@prisma/client';
 import { Link } from '@/i18n/routing';
 import { TEST_GOALS, type TestGoal } from '@/lib/tests-filters';
-import { getCardState, isNewTest, type BriefResult } from '@/lib/test-card';
+import { getCardLinks, getCardState, isNewTest, type BriefResult } from '@/lib/test-card';
 
 export interface TestItem {
   id: string;
@@ -73,8 +73,21 @@ export function TestCard({
   const t = useTranslations('tests');
   const locale = useLocale();
   const state = getCardState(test, result);
+  const links = getCardLinks(test.id, state);
   const goal = test.category?.type;
   const solveHref = `/tests/${test.id}/solve`;
+
+  // Qulflangan testda tugma baribir "Boshlash" — qanday kirish kerakligini
+  // kichik belgi aytadi. premium_teacher kabi aralash turda belgi yo'q,
+  // faqat qulf ikonkasi (aniq tarifni solve sahifasi aytadi).
+  const lockLabel =
+    state.kind === 'buy'
+      ? t('card.lockPrice', { price: state.price.toLocaleString() })
+      : state.kind === 'upgrade' && state.plan === 'premium'
+      ? t('card.lockPremium')
+      : state.kind === 'upgrade' && state.plan === 'teacher'
+      ? t('card.lockTeacher')
+      : null;
 
   // `||` ataylab: bo'sh satr ("") ham tarjima yo'q degani.
   const title =
@@ -137,39 +150,24 @@ export function TestCard({
       )}
 
       <div className="mt-auto pt-1">
-        {state.kind === 'solved' && (
+        {state.kind === 'solved' && links.secondary ? (
           <div className="grid grid-cols-2 gap-2">
-            <Link href={`/results/${state.resultId}`} className={secondaryButton}>
+            <Link href={links.secondary} className={secondaryButton}>
               {t('card.viewResult')}
             </Link>
-            <Link href={solveHref} className={primaryButton}>
+            <Link href={links.primary} className={primaryButton}>
               <RotateCcw size={16} aria-hidden /> {t('card.retake')}
             </Link>
           </div>
-        )}
-        {state.kind === 'start' && (
-          <Link href={solveHref} className={primaryButton}>
+        ) : (
+          <Link href={links.primary} className={primaryButton}>
+            {state.kind !== 'start' && <Lock size={16} aria-hidden />}
             {t('card.start')}
-          </Link>
-        )}
-        {state.kind === 'buy' && (
-          <a
-            href={`https://t.me/EduPrimeuzbot?start=buy_test_${test.id}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={primaryButton}
-          >
-            <Lock size={16} aria-hidden /> {t('card.buy', { price: state.price.toLocaleString() })}
-          </a>
-        )}
-        {state.kind === 'upgrade' && (
-          <Link href="/pricing" className={primaryButton}>
-            <Lock size={16} aria-hidden />
-            {state.plan === 'premium'
-              ? t('card.upgradePremium')
-              : state.plan === 'teacher'
-              ? t('card.upgradeTeacher')
-              : t('card.upgrade')}
+            {lockLabel && (
+              <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
+                {lockLabel}
+              </span>
+            )}
           </Link>
         )}
       </div>

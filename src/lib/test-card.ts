@@ -67,3 +67,19 @@ export function getCardState(test: CardAccessInfo, result?: BriefResult): CardSt
   if (test.accessType === 'teacher') return { kind: 'upgrade', plan: 'teacher' };
   return { kind: 'upgrade', plan: 'other' };
 }
+
+export interface CardLinks {
+  primary: string;
+  // Faqat yechilgan testda: "Natijani ko'rish".
+  secondary?: string;
+}
+
+// Qulflangan testda ham asosiy tugma /pricing yoki botga emas, solve'ga
+// olib boradi: karta obuna holatini bilmaydi, solve sahifasi esa
+// check-access orqali biladi — obunachi to'g'ridan-to'g'ri kiradi,
+// obunasiz foydalanuvchi o'sha yerda "Test yopiq" ekranini ko'radi.
+export function getCardLinks(testId: string, state: CardState): CardLinks {
+  const solve = `/tests/${testId}/solve`;
+  if (state.kind === 'solved') return { primary: solve, secondary: `/results/${state.resultId}` };
+  return { primary: solve };
+}

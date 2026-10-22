@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { getCardState, isNewTest, latestResultByTest, type BriefResult } from '@/lib/test-card';
+import {
+  getCardLinks,
+  getCardState,
+  isNewTest,
+  latestResultByTest,
+  type BriefResult,
+} from '@/lib/test-card';
 
 function result(over: Partial<BriefResult> = {}): BriefResult {
   return {
@@ -39,6 +45,23 @@ describe('getCardState', () => {
       maxScore: 50,
       percentage: 84,
     });
+  });
+});
+
+describe('getCardLinks', () => {
+  const solve = '/tests/t1/solve';
+
+  it('start, buy va upgrade — hammasi solve sahifasiga (kirishni o\'sha yer hal qiladi)', () => {
+    expect(getCardLinks('t1', { kind: 'start' })).toEqual({ primary: solve });
+    expect(getCardLinks('t1', { kind: 'buy', price: 15000 })).toEqual({ primary: solve });
+    expect(getCardLinks('t1', { kind: 'upgrade', plan: 'premium' })).toEqual({ primary: solve });
+    expect(getCardLinks('t1', { kind: 'upgrade', plan: 'teacher' })).toEqual({ primary: solve });
+    expect(getCardLinks('t1', { kind: 'upgrade', plan: 'other' })).toEqual({ primary: solve });
+  });
+
+  it('solved — asosiy "Qayta yechish" solve\'ga, ikkinchi darajali natija sahifasiga', () => {
+    const state = getCardState({ isFree: true }, result({ id: 'r9' }));
+    expect(getCardLinks('t1', state)).toEqual({ primary: solve, secondary: '/results/r9' });
   });
 });
 
