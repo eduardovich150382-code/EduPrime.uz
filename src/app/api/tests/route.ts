@@ -102,14 +102,14 @@ export async function GET(request: NextRequest) {
     // GET /api/tests/[id] da. Kirmagan foydalanuvchida bazaga qo'shimcha
     // so'rov yo'q: bepul testlar ochiq, qolganlari yopiq.
     const userId = session?.user?.id;
-    const [categories, accessContext] = await Promise.all([
-      db.testCategory.findMany({
-        where: { id: { in: [...new Set(tests.map((t) => t.categoryId))] } },
-        select: { id: true, type: true },
-      }),
-      userId ? loadTestAccessContext(userId, session.user.role, tests) : null,
-    ]);
+    const categories = await db.testCategory.findMany({
+      where: { id: { in: [...new Set(tests.map((t) => t.categoryId))] } },
+      select: { id: true, type: true },
+    });
     const typeByCategory = new Map(categories.map((c) => [c.id, c.type]));
+    const accessContext = userId
+      ? await loadTestAccessContext(userId, session.user.role, tests, { categoryTypes: typeByCategory })
+      : null;
     const testsWithType = tests.map((t) => ({
       ...t,
       category: typeByCategory.has(t.categoryId) ? { type: typeByCategory.get(t.categoryId) } : null,
@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'titleUz, subjectId, duration required' }, { status: 400 });
     }
 
-    const VALID_ACCESS_TYPES = ['free', 'premium', 'teacher', 'premium_teacher', 'paid'];
+    const VALID_ACCESS_TYPES = ['free', 'subscription', 'premium', 'teacher', 'premium_teacher', 'paid'];
     if (accessType !== undefined && !VALID_ACCESS_TYPES.includes(accessType)) {
       return NextResponse.json({ error: 'Invalid accessType' }, { status: 400 });
     }

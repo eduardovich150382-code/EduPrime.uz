@@ -72,7 +72,7 @@ export function getCardState(test: CardAccessInfo, result?: BriefResult, hasAcce
   return { kind: 'upgrade', plan: 'other' };
 }
 
-export type LockBadge = { kind: 'price'; price: number } | { kind: 'premium' } | { kind: 'teacher' } | null;
+export type LockBadge = { kind: 'price'; price: number } | { kind: 'premium' } | { kind: 'teacher' } | { kind: 'subscription' } | null;
 
 // Qulf yonidagi kichik belgi. premium_teacher'ga "Premium" — eng ko'p
 // sotiladigan tarif, Ustoz tarifini solve sahifasi qo'shimcha aytadi.
@@ -82,6 +82,7 @@ export function getLockBadge(test: CardAccessInfo, state: CardState): LockBadge 
   if (state.kind !== 'upgrade') return null;
   if (test.accessType === 'premium' || test.accessType === 'premium_teacher') return { kind: 'premium' };
   if (test.accessType === 'teacher') return { kind: 'teacher' };
+  if (test.accessType === 'subscription') return { kind: 'subscription' };
   return null;
 }
 

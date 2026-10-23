@@ -97,6 +97,7 @@ const TEST_SELECT = {
   price: true,
   questionCount: true,
   subjectId: true,
+  categoryId: true,
 } satisfies Prisma.TestSelect;
 
 export async function loadAttestationPage(
@@ -104,7 +105,7 @@ export async function loadAttestationPage(
   locale: string,
 ): Promise<AttestationPageData> {
   const [categories, settings] = await Promise.all([
-    db.testCategory.findMany({ where: { type: 'ATTESTATION' }, select: { id: true } }),
+    db.testCategory.findMany({ where: { type: 'ATTESTATION' }, select: { id: true, type: true } }),
     loadAttestationSettings(),
   ]);
 
@@ -133,7 +134,7 @@ export async function loadAttestationPage(
               select: { id: true, testId: true, score: true, maxScore: true, percentage: true, completedAt: true, answers: true },
             })
           : [],
-        user ? loadTestAccessContext(user.id, user.role, tests) : null,
+        user ? loadTestAccessContext(user.id, user.role, tests, { categoryTypes: new Map(categories.map((c) => [c.id, c.type])) }) : null,
       ])
     : [[], [], null];
 

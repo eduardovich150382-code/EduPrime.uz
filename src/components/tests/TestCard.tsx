@@ -75,6 +75,8 @@ export function TestCard({
       ? t('card.lockPremium')
       : badge?.kind === 'teacher'
       ? t('card.lockTeacher')
+      : badge?.kind === 'subscription'
+      ? t('card.lockSubscription')
       : null;
 
   // `||` ataylab: bo'sh satr ("") ham tarjima yo'q degani.

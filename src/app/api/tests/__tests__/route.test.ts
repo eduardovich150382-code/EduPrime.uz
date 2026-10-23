@@ -24,6 +24,7 @@ vi.mock("@/lib/db", () => ({
     testCategory: {
       findMany: (...args: unknown[]) => findManyCategoryMock(...args),
     },
+    userPermission: { findMany: async () => [] },
     subscription: { findMany: (...args: unknown[]) => subscriptionMock(...args) },
     purchase: { findMany: (...args: unknown[]) => purchaseMock(...args) },
     payment: { findMany: (...args: unknown[]) => paymentMock(...args) },
@@ -235,7 +236,7 @@ describe("GET /api/tests", () => {
     expectNoPaidContent(guest.data);
 
     authMock.mockResolvedValue({ user: { id: "u1", role: "USER" } });
-    subscriptionMock.mockResolvedValue([{ plan: "PREMIUM" }]);
+    subscriptionMock.mockResolvedValue([{ plan: "PREMIUM", isActive: true, endDate: new Date("2099-01-01"), categoryId: null, subjectIds: [], product: null }]);
     const authed = await callGet("?type=ATTESTATION");
     expect(authed.status).toBe(200);
     expect(authed.data.tests[0].hasAccess).toBe(true);
@@ -243,6 +244,24 @@ describe("GET /api/tests", () => {
   });
 
   describe("hasAccess", () => {
+    it.each([
+      ["TEACHER_PLAN", [true, false]],
+      ["PREMIUM", [false, true]],
+    ] as const)("%s subscription: kategoriya turlari qayta so'ralmaydi", async (plan, expected) => {
+      authMock.mockResolvedValue({ user: { id: "u1", role: "USER" } });
+      findManyTestMock.mockImplementation(async (args: FindManyArgs) => [
+        applyPrismaShape({ ...fullRow, categoryId: "att", accessType: "subscription" }, args),
+        applyPrismaShape({ ...fullRow, id: "t2", categoryId: "dtm", accessType: "subscription" }, args),
+      ]);
+      findManyCategoryMock.mockResolvedValue([{ id: "att", type: "ATTESTATION" }, { id: "dtm", type: "DTM" }]);
+      subscriptionMock.mockResolvedValue([{ plan, isActive: true, endDate: new Date("2099-01-01"), categoryId: null, subjectIds: [], product: null }]);
+      const { status, data } = await callGet("");
+      expect(status).toBe(200);
+      expect(data.tests.map((t: { hasAccess: boolean }) => t.hasAccess)).toEqual(expected);
+      expect(findManyCategoryMock).toHaveBeenCalledTimes(1);
+      expect(findManyCategoryMock).toHaveBeenCalledWith({ where: { id: { in: ["att", "dtm"] } }, select: { id: true, type: true } });
+    });
+
     const rows = [
       { ...fullRow, id: "free", isFree: true, accessType: "free" },
       { ...fullRow, id: "prem", accessType: "premium" },
@@ -268,7 +287,7 @@ describe("GET /api/tests", () => {
 
     it("premium obunachi — premium ochiq, sotib olinmagan paid yopiq; javob shaxsiy va keshlanmaydi", async () => {
       authMock.mockResolvedValue({ user: { id: "u1", role: "USER" } });
-      subscriptionMock.mockResolvedValue([{ plan: "PREMIUM" }]);
+      subscriptionMock.mockResolvedValue([{ plan: "PREMIUM", isActive: true, endDate: new Date("2099-01-01"), categoryId: null, subjectIds: [], product: null }]);
       const { data, headers } = await callGet("");
       expect(data.tests.map((t: { id: string; hasAccess: boolean }) => [t.id, t.hasAccess])).toEqual([
         ["free", true],
@@ -285,7 +304,7 @@ describe("GET /api/tests", () => {
 
     it("javobda faqat boolean — obuna/xarid tafsilotlari yo'q", async () => {
       authMock.mockResolvedValue({ user: { id: "u1", role: "USER" } });
-      subscriptionMock.mockResolvedValue([{ plan: "PREMIUM" }]);
+      subscriptionMock.mockResolvedValue([{ plan: "PREMIUM", isActive: true, endDate: new Date("2099-01-01"), categoryId: null, subjectIds: [], product: null }]);
       purchaseMock.mockResolvedValue([{ itemId: "paid" }]);
       const { data } = await callGet("");
       for (const t of data.tests) expect(typeof t.hasAccess).toBe("boolean");
@@ -305,10 +324,10 @@ describe("POST /api/tests", () => {
     createTestMock.mockResolvedValue({ id: "t-new", titleUz: "Attestatsiya" });
   });
 
-  async function callPost(questions: unknown[]) {
+  async function callPost(questions: unknown[], accessType?: string) {
     const request = new NextRequest("http://localhost/api/tests", {
       method: "POST",
-      body: JSON.stringify({ titleUz: "Attestatsiya", subjectId: "s1", duration: 120, questions }),
+      body: JSON.stringify({ titleUz: "Attestatsiya", subjectId: "s1", duration: 120, questions, accessType }),
     });
     return POST(request);
   }
@@ -322,5 +341,11 @@ describe("POST /api/tests", () => {
     expect(response.status).toBe(201);
     const created = createTestMock.mock.calls[0][0].data.questions.create;
     expect(created.map((q: { tags: string[] }) => q.tags)).toEqual([["section:fizika"], []]);
+  });
+
+  it("subscription turi validatsiyadan o'tadi va saqlanadi", async () => {
+    const response = await callPost([{ text: "a", correctAnswer: "A" }], "subscription");
+    expect(response.status).toBe(201);
+    expect(createTestMock.mock.calls[0][0].data.accessType).toBe("subscription");
   });
 });

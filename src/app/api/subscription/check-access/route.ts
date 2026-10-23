@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     const test = await db.test.findUnique({
       where: { id: testId },
       select: {
-        id: true, isFree: true, accessType: true, price: true, titleUz: true,
+        id: true, categoryId: true, subjectId: true, isFree: true, accessType: true, price: true, titleUz: true,
         isPublished: true, userId: true, teacher: { select: { userId: true } },
       },
     });
@@ -80,6 +80,7 @@ function grantReason(accessType: string, role: string | undefined): string {
   if (role === 'ADMIN') return 'admin';
   if (accessType === 'premium') return 'premium_subscription';
   if (accessType === 'teacher') return 'teacher_subscription';
+  if (accessType === 'subscription') return 'subscription';
   if (accessType === 'premium_teacher') return 'subscription';
   return 'purchased';
 }

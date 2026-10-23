@@ -152,28 +152,32 @@ model TestCategory {
   order        Int      @default(0)
   createdAt    DateTime @default(now())
 
-  subjects Subject[]
-  permissions UserPermission[]
+  subjects      Subject[]
+  permissions   UserPermission[]
+  products      Product[]
+  subscriptions Subscription[]
 }
 
 model Subject {
-  id         String   @id @default(cuid())
-  nameUz     String
-  nameRu     String
-  nameEn     String
-  icon       String?
-  categoryId String
-  order      Int      @default(0)
-  createdAt  DateTime @default(now())
+  id          String   @id @default(cuid())
+  nameUz      String
+  nameRu      String
+  nameEn      String
+  icon        String?
+  isMandatory Boolean  @default(false)
+  categoryId  String
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
 
-  category TestCategory @relation(fields: [categoryId], references: [id])
-  teachers Teacher[]
-  tests    Test[]
+  permissions   UserPermission[]
+  category      TestCategory     @relation(fields: [categoryId], references: [id])
+  teachers      Teacher[]
+  tests         Test[]
   bankQuestions BankQuestion[]
-  courses  Course[]
-  topics   TopicNode[]
-  items    Item[]
-  importJobs ImportJob[]
+  courses       Course[]
+  topics        TopicNode[]
+  items         Item[]
+  importJobs    ImportJob[]
 
   @@index([categoryId, order])
 }
@@ -230,7 +234,7 @@ model Test {
   userId          String?      // Faqat dasturiy generatsiya qilingan testlar uchun (masalan DTM Online) — egasi va "shaxsiy/generatsiya qilingan" belgisi
   price           Int          @default(0)
   isFree          Boolean      @default(false)
-  accessType      String       @default("free") // free, premium, teacher, premium_teacher, paid
+  accessType      String       @default("free") // free, subscription, premium, teacher, premium_teacher, paid
   duration        Int          // in minutes
   questionCount   Int
   format          QuestionType @default(MULTIPLE_CHOICE)
@@ -726,9 +730,61 @@ model TestResult {
 
 // ===================== SUBSCRIPTIONS & PAYMENTS =====================
 
+enum ProductKind {
+  BUNDLE
+  CATEGORY
+}
+
+enum SubjectRule {
+  NONE
+  ONE
+  DTM_BLOCK
+}
+
+model Product {
+  id                       String      @id @default(cuid())
+  kind                     ProductKind
+  categoryId               String?
+  subjectRule              SubjectRule
+  nameUz                   String
+  nameRu                   String
+  nameEn                   String
+  isOnSale                 Boolean     @default(false)
+  secondSubjectDiscountPct Int         @default(0)
+  order                    Int         @default(0)
+  createdAt                DateTime    @default(now())
+  updatedAt                DateTime    @updatedAt
+
+  category      TestCategory?  @relation(fields: [categoryId], references: [id])
+  offers        ProductOffer[]
+  subscriptions Subscription[]
+
+  @@index([categoryId])
+}
+
+model ProductOffer {
+  id             String    @id @default(cuid())
+  productId      String
+  labelUz        String
+  labelRu        String
+  labelEn        String
+  durationMonths Int?
+  untilDate      DateTime?
+  price          Int
+  isActive       Boolean   @default(true)
+  order          Int       @default(0)
+
+  product       Product        @relation(fields: [productId], references: [id])
+  subscriptions Subscription[]
+
+  @@index([productId, isActive, order])
+}
+
 enum SubscriptionPlan {
   PREMIUM
   TEACHER_PLAN
+  CATEGORY
+  BUNDLE
 }
 
 enum SubscriptionDuration {
@@ -736,18 +792,26 @@ enum SubscriptionDuration {
   THREE_MONTHS
   SIX_MONTHS
   ONE_YEAR
+  CUSTOM
 }
 
 model Subscription {
-  id        String               @id @default(cuid())
-  userId    String
-  plan      SubscriptionPlan
-  duration  SubscriptionDuration
-  startDate DateTime             @default(now())
-  endDate   DateTime
-  isActive  Boolean              @default(true)
-  paymentId String?              @unique
-  createdAt DateTime             @default(now())
+  productId  String?
+  offerId    String?
+  categoryId String?
+  subjectIds String[]             @default([])
+  product    Product?             @relation(fields: [productId], references: [id])
+  offer      ProductOffer?        @relation(fields: [offerId], references: [id])
+  category   TestCategory?        @relation(fields: [categoryId], references: [id])
+  id         String               @id @default(cuid())
+  userId     String
+  plan       SubscriptionPlan
+  duration   SubscriptionDuration
+  startDate  DateTime             @default(now())
+  endDate    DateTime
+  isActive   Boolean              @default(true)
+  paymentId  String?              @unique
+  createdAt  DateTime             @default(now())
 
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   payment Payment? @relation(fields: [paymentId], references: [id])
@@ -756,13 +820,15 @@ model Subscription {
 }
 
 model UserPermission {
-  id         String   @id @default(cuid())
+  subjectId  String?
+  subject    Subject?  @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  id         String    @id @default(cuid())
   userId     String
   categoryId String
-  grantedBy  String?  // Admin who granted
+  grantedBy  String? // Admin who granted
   expiresAt  DateTime?
-  isActive   Boolean  @default(true)
-  createdAt  DateTime @default(now())
+  isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
 
   user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   category TestCategory @relation(fields: [categoryId], references: [id])

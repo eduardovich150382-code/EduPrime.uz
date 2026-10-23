@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { PermissionEntitlement } from "../entitlements";
 import { checkTestAccess, loadTestAccessContext, resolveTestAccess, type TestAccessInfo } from "../access";
 
 /**
@@ -10,15 +11,18 @@ import { checkTestAccess, loadTestAccessContext, resolveTestAccess, type TestAcc
  * javoblaydi.
  */
 interface FakeDb {
-  subscriptions: { userId: string; isActive: boolean; endDate: Date; plan: string }[];
+  subscriptions: { userId: string; isActive: boolean; endDate: Date; plan: string; categoryId?: string; subjectIds?: string[]; product?: { subjectRule: string } }[];
+  permissions: PermissionEntitlement[];
   purchases: { userId: string; itemType: string; itemId: string }[];
   payments: { userId: string; status: string; selectedSubjects: string[] }[];
 }
 
-const state: FakeDb = { subscriptions: [], purchases: [], payments: [] };
+const state: FakeDb = { subscriptions: [], permissions: [], purchases: [], payments: [] };
 
 const mocks = vi.hoisted(() => ({
   subscriptionFindMany: vi.fn(),
+  permissionFindMany: vi.fn(),
+  categoryFindMany: vi.fn(),
   purchaseFindUnique: vi.fn(),
   purchaseFindMany: vi.fn(),
   paymentFindFirst: vi.fn(),
@@ -27,6 +31,8 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("../db", () => ({
   db: {
+    userPermission: { findMany: (...args: unknown[]) => mocks.permissionFindMany(...args) },
+    testCategory: { findMany: (...args: unknown[]) => mocks.categoryFindMany(...args) },
     subscription: { findMany: (...args: unknown[]) => mocks.subscriptionFindMany(...args) },
     purchase: {
       findUnique: (...args: unknown[]) => mocks.purchaseFindUnique(...args),
@@ -48,6 +54,9 @@ interface PaymentManyArgs { where: { userId: string; status: string; selectedSub
 beforeEach(() => {
   vi.clearAllMocks();
   state.subscriptions = [];
+  state.permissions = [];
+  mocks.permissionFindMany.mockImplementation(async () => state.permissions);
+  mocks.categoryFindMany.mockImplementation(async () => [{ id: "att", type: "ATTESTATION" }, { id: "cat", type: "DTM" }]);
   state.purchases = [];
   state.payments = [];
 
@@ -55,7 +64,7 @@ beforeEach(() => {
     state.subscriptions
       .filter((s) => s.userId === where.userId && s.isActive === where.isActive)
       .filter((s) => s.endDate.getTime() >= where.endDate.gte.getTime())
-      .map((s) => ({ plan: s.plan })),
+      .map((s) => ({ categoryId: null, subjectIds: [], product: null, ...s })),
   );
   mocks.purchaseFindUnique.mockImplementation(async ({ where }: PurchaseUniqueArgs) => {
     const k = where.userId_itemType_itemId;
@@ -84,14 +93,19 @@ const past = new Date(Date.now() - 1000 * 60 * 60 * 24 * 30);
 
 // Bitta sahifa: har accessType'dan bittadan, ikkita pullik (biri sotib olingan).
 const PAGE: TestAccessInfo[] = [
-  { id: "free1", isFree: true, accessType: "free" },
-  { id: "free2", isFree: false, accessType: "free" },
-  { id: "prem", isFree: false, accessType: "premium" },
-  { id: "teach", isFree: false, accessType: "teacher" },
-  { id: "both", isFree: false, accessType: "premium_teacher" },
-  { id: "paidA", isFree: false, accessType: "paid" },
-  { id: "paidB", isFree: false, accessType: "paid" },
-  { id: "weird", isFree: false, accessType: "something_new" },
+  { categoryId: "cat", subjectId: "subject", id: "free1", isFree: true, accessType: "free" },
+  { categoryId: "cat", subjectId: "subject", id: "free2", isFree: false, accessType: "free" },
+  { categoryId: "cat", subjectId: "subject", id: "prem", isFree: false, accessType: "premium" },
+  { categoryId: "cat", subjectId: "subject", id: "teach", isFree: false, accessType: "teacher" },
+  { categoryId: "cat", subjectId: "subject", id: "both", isFree: false, accessType: "premium_teacher" },
+  { categoryId: "cat", subjectId: "subject", id: "paidA", isFree: false, accessType: "paid" },
+  { categoryId: "cat", subjectId: "subject", id: "paidB", isFree: false, accessType: "paid" },
+  { categoryId: "cat", subjectId: "subject", id: "sub-dtm", isFree: false, accessType: "subscription" },
+  { categoryId: "att", subjectId: "physics", id: "sub-att", isFree: false, accessType: "subscription" },
+  { categoryId: "att", subjectId: "math", id: "sub-att-math", isFree: false, accessType: "subscription" },
+  { categoryId: "att", subjectId: "physics", id: "paid-att", isFree: false, accessType: "paid" },
+  { categoryId: "cat", subjectId: "other", id: "paid-other", isFree: false, accessType: "paid" },
+  { categoryId: "cat", subjectId: "subject", id: "weird", isFree: false, accessType: "something_new" },
 ];
 
 interface Scenario {
@@ -110,7 +124,7 @@ const scenarios: Scenario[] = [
     name: "faol PREMIUM obunachi",
     role: "USER",
     setup: () => state.subscriptions.push({ userId: "u1", isActive: true, endDate: future, plan: "PREMIUM" }),
-    open: [...FREE, "prem", "both"],
+    open: [...FREE, "prem", "both", "sub-dtm"],
   },
   {
     name: "muddati tugagan PREMIUM obuna",
@@ -128,7 +142,7 @@ const scenarios: Scenario[] = [
     name: "faol TEACHER_PLAN obunachi",
     role: "USER",
     setup: () => state.subscriptions.push({ userId: "u1", isActive: true, endDate: future, plan: "TEACHER_PLAN" }),
-    open: [...FREE, "teach", "both"],
+    open: [...FREE, "teach", "both", "sub-att", "sub-att-math"],
   },
   // checkTestAccess TEACHER rolining o'ziga hech narsa bermaydi — faqat obuna.
   { name: "TEACHER roli, obunasiz", role: "TEACHER", setup: () => {}, open: FREE },
@@ -157,6 +171,16 @@ const scenarios: Scenario[] = [
   },
 ];
 
+scenarios.push(
+  { name: "CATEGORY ONE: o'z fani va paid mock", role: "USER", setup: () => state.subscriptions.push({ userId: "u1", isActive: true, endDate: future, plan: "CATEGORY", categoryId: "att", subjectIds: ["physics"], product: { subjectRule: "ONE" } }), open: [...FREE, "sub-att", "paid-att"] },
+  { name: "CATEGORY NONE: butun kategoriya", role: "USER", setup: () => state.subscriptions.push({ userId: "u1", isActive: true, endDate: future, plan: "CATEGORY", categoryId: "att", subjectIds: [], product: { subjectRule: "NONE" } }), open: [...FREE, "sub-att", "sub-att-math", "paid-att"] },
+  { name: "DTM_BLOCK: saqlangan fanlar", role: "USER", setup: () => state.subscriptions.push({ userId: "u1", isActive: true, endDate: future, plan: "CATEGORY", categoryId: "cat", subjectIds: ["subject", "m1", "m2", "m3", "m4"], product: { subjectRule: "DTM_BLOCK" } }), open: [...FREE, "prem", "teach", "both", "paidA", "paidB", "sub-dtm", "weird"] },
+  { name: "BUNDLE barcha testlar", role: "USER", setup: () => state.subscriptions.push({ userId: "u1", isActive: true, endDate: future, plan: "BUNDLE" }), open: PAGE.map((t) => t.id) },
+  { name: "fanli UserPermission", role: "USER", setup: () => state.permissions.push({ categoryId: "att", subjectId: "physics", isActive: true, expiresAt: future }), open: [...FREE, "sub-att", "paid-att"] },
+  { name: "fansiz UserPermission", role: "USER", setup: () => state.permissions.push({ categoryId: "att", subjectId: null, isActive: true, expiresAt: null }), open: [...FREE, "sub-att", "sub-att-math", "paid-att"] },
+  { name: "tugagan va nofaol UserPermission", role: "USER", setup: () => { state.permissions.push({ categoryId: "att", subjectId: null, isActive: true, expiresAt: past }, { categoryId: "cat", subjectId: null, isActive: false, expiresAt: future }); }, open: FREE },
+);
+
 describe("resolveTestAccess ↔ checkTestAccess mosligi", () => {
   for (const sc of scenarios) {
     it(sc.name, async () => {
@@ -164,10 +188,7 @@ describe("resolveTestAccess ↔ checkTestAccess mosligi", () => {
       const ctx = await loadTestAccessContext("u1", sc.role, PAGE);
       for (const test of PAGE) {
         const listed = resolveTestAccess(test, ctx);
-        const isFree = test.isFree || test.accessType === "free";
-        // checkTestAccess bepulni chaqiruvchiga qoldiradi (GET /api/tests/[id]
-        // ham shunday) — bepulda uni chaqirmaymiz.
-        const single = isFree ? true : await checkTestAccess("u1", test, sc.role);
+        const single = await checkTestAccess("u1", test, sc.role);
         expect({ id: test.id, access: listed }).toEqual({ id: test.id, access: single });
       }
       expect(PAGE.filter((t) => resolveTestAccess(t, ctx)).map((t) => t.id).sort()).toEqual([...sc.open].sort());
@@ -182,28 +203,38 @@ describe("resolveTestAccess — kirmagan foydalanuvchi (ctx = null)", () => {
 });
 
 describe("loadTestAccessContext — N+1 yo'q", () => {
-  it("testlar soni qancha bo'lsa ham har jadvalga ko'pi bilan bitta so'rov", async () => {
-    const many: TestAccessInfo[] = Array.from({ length: 50 }, (_, i) => ({
+  it.each([3, 50, 200])("%i ta test: har jadvalga ko'pi bilan bitta so'rov", async (count) => {
+    const many: TestAccessInfo[] = Array.from({ length: count }, (_, i) => ({
+      categoryId: i % 3 ? "att" : "cat",
+      subjectId: "subject",
       id: `t${i}`,
       isFree: false,
-      accessType: i % 2 ? "paid" : "premium",
+      accessType: i % 3 === 2 ? "paid" : "subscription",
     }));
     await loadTestAccessContext("u1", "USER", many);
     expect(mocks.subscriptionFindMany).toHaveBeenCalledTimes(1);
+    expect(mocks.permissionFindMany).toHaveBeenCalledTimes(1);
+    expect(mocks.permissionFindMany).toHaveBeenCalledWith({
+      where: { userId: "u1", isActive: true, OR: [{ expiresAt: null }, { expiresAt: { gte: expect.any(Date) } }] },
+      select: { categoryId: true, subjectId: true, isActive: true, expiresAt: true },
+    });
+    expect(mocks.categoryFindMany).toHaveBeenCalledTimes(1);
+    expect(mocks.categoryFindMany).toHaveBeenCalledWith({ where: { id: { in: ["cat", "att"] } }, select: { id: true, type: true } });
     expect(mocks.purchaseFindMany).toHaveBeenCalledTimes(1);
     expect(mocks.paymentFindMany).toHaveBeenCalledTimes(1);
     expect(mocks.purchaseFindUnique).not.toHaveBeenCalled();
     expect(mocks.paymentFindFirst).not.toHaveBeenCalled();
   });
 
-  it("pullik test yo'q — xarid so'rovlari yo'q; obunali test yo'q — obuna so'rovi yo'q", async () => {
-    await loadTestAccessContext("u1", "USER", [{ id: "p", isFree: false, accessType: "premium" }]);
+  it("pullik test yo'q — xarid so'rovlari yo'q; paid uchun ham obuna tekshiriladi", async () => {
+    await loadTestAccessContext("u1", "USER", [{ categoryId: "cat", subjectId: "subject", id: "p", isFree: false, accessType: "premium" }]);
     expect(mocks.purchaseFindMany).not.toHaveBeenCalled();
     expect(mocks.paymentFindMany).not.toHaveBeenCalled();
 
     vi.clearAllMocks();
-    await loadTestAccessContext("u1", "USER", [{ id: "x", isFree: false, accessType: "paid" }]);
-    expect(mocks.subscriptionFindMany).not.toHaveBeenCalled();
+    await loadTestAccessContext("u1", "USER", [{ categoryId: "cat", subjectId: "subject", id: "x", isFree: false, accessType: "paid" }]);
+    expect(mocks.subscriptionFindMany).toHaveBeenCalledTimes(1);
+    expect(mocks.permissionFindMany).toHaveBeenCalledTimes(1);
   });
 
   it("faqat bepul testlar yoki ADMIN — hech qanday so'rov yo'q", async () => {
@@ -212,5 +243,7 @@ describe("loadTestAccessContext — N+1 yo'q", () => {
     expect(mocks.subscriptionFindMany).not.toHaveBeenCalled();
     expect(mocks.purchaseFindMany).not.toHaveBeenCalled();
     expect(mocks.paymentFindMany).not.toHaveBeenCalled();
+    expect(mocks.permissionFindMany).not.toHaveBeenCalled();
+    expect(mocks.categoryFindMany).not.toHaveBeenCalled();
   });
 });

@@ -587,6 +587,7 @@
       "needPremium": "Для доступа к тесту «{title}» нужен тариф Premium.",
       "needTeacher": "Для доступа к тесту «{title}» нужен тариф Ustoz.",
       "needPremiumTeacher": "Для доступа к тесту «{title}» нужен тариф Premium или Ustoz.",
+      "needSubscription": "Для доступа к тесту «{title}» нужна подписка на эту категорию и предмет.",
       "needPaid": "Для доступа к тесту «{title}» нужно оплатить {price} сум.",
       "needGeneric": "Для доступа к тесту «{title}» нужен тариф.",
       "buy": "Купить — {price} сум",
@@ -692,6 +693,7 @@
       "new": "Новый",
       "lockPremium": "Premium",
       "lockTeacher": "Тариф Ustoz",
+      "lockSubscription": "По подписке",
       "lockPrice": "{price} сум"
     },
     "banner": {
