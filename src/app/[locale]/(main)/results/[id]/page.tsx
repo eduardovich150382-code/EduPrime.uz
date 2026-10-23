@@ -55,6 +55,8 @@ interface QuestionData {
   // xato" izohi. Faqat parametrik shablondan kelgan va NOTO'G'RI javob
   // berilgan savolda bor — bepul, S17 yechim qulfiga kirmaydi.
   distractorWhy?: string | null;
+  // Attestatsiya bo'limi (`section:*`) — natija xaritasi shu bo'yicha guruhlaydi.
+  tags?: string[];
 }
 
 interface SolutionQuota {
@@ -500,7 +502,7 @@ export default function ResultPage() {
         </div>
       </motion.div>
 
-      <ResultQuestionMap questions={result.test.questions} answers={result.answers} onSelect={id => {
+      <ResultQuestionMap questions={result.test.questions} answers={result.answers} categoryType={result.test.category?.type} onSelect={id => {
         setQuestionFilter('all');
         requestAnimationFrame(() => {
           const element = document.getElementById(`result-question-${id}`);

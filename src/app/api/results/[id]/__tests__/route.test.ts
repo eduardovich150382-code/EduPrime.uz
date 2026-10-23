@@ -256,6 +256,24 @@ describe("GET /api/results/[id]", () => {
       expect(categoryFindUniqueMock).toHaveBeenCalledWith({ where: { id: "cat1" }, select: { type: true } });
       expect(data.result.test.category).toEqual({ type: "ATTESTATION" });
     });
+
+    it("savol teglarini (attestatsiya bo'limi) so'raydi va qaytaradi", async () => {
+      findUniqueResultMock.mockResolvedValue({
+        id: "result1",
+        userId: "user1",
+        testId: "test1",
+        sessionId: null,
+        completedAt: new Date(),
+        test: { id: "test1", categoryId: "cat1", questions: [baseQuestion({ tags: ["section:fizika"] })], subject: {} },
+        session: null,
+      });
+      categoryFindUniqueMock.mockResolvedValue({ type: "ATTESTATION" });
+
+      const { data } = await callGet();
+      const args = findUniqueResultMock.mock.calls[0][0];
+      expect(args.include.test.include.questions.select.tags).toBe(true);
+      expect(data.result.test.questions[0].tags).toEqual(["section:fizika"]);
+    });
   });
 
   describe("Sessiya tarmog'i (result.session bor, result.test yo'q)", () => {

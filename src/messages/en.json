@@ -505,6 +505,8 @@
     "aiFillHint": "Let AI fill in the topic, level and options",
     "aiFillButton": "Fill with AI",
     "topicLabel": "Topic tag (optional)",
+    "sectionLabel": "Section",
+    "sectionNone": "—",
     "topicPlaceholder": "For example: Quadratic equation",
     "difficultyLabel": "Difficulty level",
     "difficultyEasy": "Easy",
@@ -514,6 +516,11 @@
     "testTopicLabel": "Test topic",
     "testTopicPlaceholder": "For example: Quadratic equation",
     "testTopicNote": "This field is not saved — it only pre-fills the topic for new questions."
+  },
+  "questionSections": {
+    "fizika": "Physics",
+    "kasb-standarti": "Professional standard",
+    "pedagogika": "Pedagogy"
   },
   "exam": {
     "locked": {
@@ -565,6 +572,9 @@
     "incorrect": "Incorrect",
     "timeSpent": "Time spent",
     "resultMap": "{count} questions — result map",
+    "sectionRange": "{name} · {from}–{to}",
+    "sectionCount": "{name} · {count} questions",
+    "sectionScore": "{score} / {max} pts",
     "questionStatus": "Question {number} · {status}",
     "openAnalysis": "Open analysis for question {number}",
     "minutesLeft": "{minutes} minutes remaining",

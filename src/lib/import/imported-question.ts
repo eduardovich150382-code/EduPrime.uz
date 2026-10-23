@@ -39,6 +39,7 @@ export function toImportedCore(q: AIImportedQuestion): ImportedCore {
       { left: '', right: '' },
       { left: '', right: '' },
     ],
+    tags: q.tags ?? [],
     aiConfidence: q.confidence,
   };
 }

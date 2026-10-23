@@ -505,6 +505,8 @@
     "aiFillHint": "Пусть ИИ заполнит тему, уровень и варианты",
     "aiFillButton": "Заполнить с ИИ",
     "topicLabel": "Тема (необязательно)",
+    "sectionLabel": "Раздел",
+    "sectionNone": "—",
     "topicPlaceholder": "Например: Квадратное уравнение",
     "difficultyLabel": "Уровень сложности",
     "difficultyEasy": "Легко",
@@ -514,6 +516,11 @@
     "testTopicLabel": "Тема теста",
     "testTopicPlaceholder": "Например: Квадратное уравнение",
     "testTopicNote": "Это поле не сохраняется — оно только подставляет тему новым вопросам."
+  },
+  "questionSections": {
+    "fizika": "Физика",
+    "kasb-standarti": "Профессиональный стандарт",
+    "pedagogika": "Педагогика"
   },
   "exam": {
     "locked": {
@@ -565,6 +572,9 @@
     "incorrect": "Неверно",
     "timeSpent": "Затраченное время",
     "resultMap": "{count} вопросов — карта результатов",
+    "sectionRange": "{name} · {from}–{to}",
+    "sectionCount": "{name} · {count} вопр.",
+    "sectionScore": "{score} / {max} балл.",
     "questionStatus": "Вопрос {number} · {status}",
     "openAnalysis": "Открыть разбор вопроса {number}",
     "minutesLeft": "Осталось минут: {minutes}",

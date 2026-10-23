@@ -24,6 +24,7 @@ interface IncomingQuestion {
   bloomLevel?: string | null;
   difficulty?: unknown;
   points?: number;
+  tags?: unknown;
 }
 
 // PUT /api/teacher/tests/[id]/questions — savollarni yangilash
@@ -156,6 +157,13 @@ export async function PUT(
             difficulty: typeof q.difficulty === 'number' && Number.isInteger(q.difficulty) && q.difficulty >= 1 && q.difficulty <= 5 ? q.difficulty : null,
             points: q.points || 1,
             order: index,
+            // `tags` FAQAT massiv kelganda yoziladi. Maydon yo'q bo'lsa update
+            // ustunga tegmaydi (create'da esa default `[]`): teglarni
+            // yubormaydigan eski klient SQL bilan qo'yilgan `section:` teglarini
+            // har saqlashda o'chirib yubormasin.
+            ...(Array.isArray(q.tags)
+              ? { tags: q.tags.filter((t): t is string => typeof t === 'string') }
+              : {}),
           };
           const row = typeof q.id === 'string' && existingIds.has(q.id)
             ? await tx.question.update({ where: { id: q.id }, data, select: { id: true, order: true } })

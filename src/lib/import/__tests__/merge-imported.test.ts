@@ -111,6 +111,11 @@ describe("toImportedCore", () => {
     expect(core.options.every((o) => o.image === null)).toBe(true);
   });
 
+  it("tags o'tkaziladi, berilmasa bo'sh massiv", () => {
+    expect(toImportedCore({ ...base, tags: ["section:pedagogika"] }).tags).toEqual(["section:pedagogika"]);
+    expect(toImportedCore(base).tags).toEqual([]);
+  });
+
   it("difficulty berilmasa null", () => {
     expect(toImportedCore(base).difficulty).toBeNull();
   });

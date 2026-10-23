@@ -194,6 +194,8 @@ export interface AIImportedQuestion {
   topic?: string;
   bloomLevel?: string;
   difficulty?: number | null;
+  /** `Question.tags` ga boradi — masalan attestatsiyaning `section:fizika` tegi. */
+  tags?: string[];
   confidence: number; // 0-1 how confident AI is
 }
 
@@ -228,4 +230,10 @@ export interface QuestionCoreFields {
   difficulty: number | null;
   blankAnswers: string[];
   matchingPairs: { left: string; right: string }[];
+  /**
+   * Ixtiyoriy: `undefined` — "teglarga tegma" degani (saqlashda maydon
+   * yuborilmaydi va serverdagi qiymat o'zgarmaydi). Teglarni bilmaydigan
+   * sahifa bazadagi `section:` teglarini shu tufayli o'chirib yubormaydi.
+   */
+  tags?: string[];
 }

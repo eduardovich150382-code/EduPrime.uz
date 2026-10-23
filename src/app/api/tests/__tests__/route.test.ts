@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { findManyTestMock, countTestMock, findManyCategoryMock, subscriptionMock, purchaseMock, paymentMock, authMock } =
+const { findManyTestMock, countTestMock, findManyCategoryMock, subscriptionMock, purchaseMock, paymentMock, authMock, createTestMock } =
   vi.hoisted(() => ({
+    createTestMock: vi.fn(),
     findManyTestMock: vi.fn(),
     countTestMock: vi.fn(),
     findManyCategoryMock: vi.fn(),
@@ -16,7 +17,10 @@ vi.mock("@/lib/db", () => ({
     test: {
       findMany: (...args: unknown[]) => findManyTestMock(...args),
       count: (...args: unknown[]) => countTestMock(...args),
+      create: (...args: unknown[]) => createTestMock(...args),
     },
+    teacher: { findUnique: () => Promise.resolve({ id: "teacher1" }) },
+    subject: { findUnique: () => Promise.resolve({ categoryId: "cat1" }) },
     testCategory: {
       findMany: (...args: unknown[]) => findManyCategoryMock(...args),
     },
@@ -30,7 +34,7 @@ vi.mock("@/lib/auth", () => ({ auth: (...args: unknown[]) => authMock(...args) }
 vi.mock("@/lib/telegram-notify", () => ({ notifyViaTelegram: vi.fn() }));
 
 import { NextRequest } from "next/server";
-import { GET } from "../route";
+import { GET, POST } from "../route";
 
 // Bazadagi to'liq qator — yechim maydonlari va savollar bilan. Mock Prisma
 // kabi `omit` va `include` ni qo'llaydi: route ularni noto'g'ri bersa,
@@ -242,5 +246,32 @@ describe("GET /api/tests", () => {
         expect(json).not.toContain(leak);
       }
     });
+  });
+});
+
+describe("POST /api/tests", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    authMock.mockResolvedValue({ user: { id: "user1", role: "TEACHER" } });
+    createTestMock.mockResolvedValue({ id: "t-new", titleUz: "Attestatsiya" });
+  });
+
+  async function callPost(questions: unknown[]) {
+    const request = new NextRequest("http://localhost/api/tests", {
+      method: "POST",
+      body: JSON.stringify({ titleUz: "Attestatsiya", subjectId: "s1", duration: 120, questions }),
+    });
+    return POST(request);
+  }
+
+  it("JSON importdagi section: teglari Question.tags ga yoziladi", async () => {
+    const response = await callPost([
+      { text: "a", correctAnswer: "A", tags: ["section:fizika", 5] },
+      { text: "b", correctAnswer: "B" },
+    ]);
+
+    expect(response.status).toBe(201);
+    const created = createTestMock.mock.calls[0][0].data.questions.create;
+    expect(created.map((q: { tags: string[] }) => q.tags)).toEqual([["section:fizika"], []]);
   });
 });

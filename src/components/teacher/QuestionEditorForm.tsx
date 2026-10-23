@@ -13,12 +13,15 @@ import FillBlankEditor from '@/components/ui/FillBlankEditor';
 import MatchingEditor from '@/components/ui/MatchingEditor';
 import type { QuestionCoreFields } from '@/types';
 import DifficultyPicker from '@/components/teacher/DifficultyPicker';
+import SectionSelect from '@/components/teacher/SectionSelect';
 
 interface QuestionEditorFormProps<T extends QuestionCoreFields> {
   question: T;
   onChange: (updater: (prev: T) => T) => void;
   /** Test yaratishda "Video yechim URL" kabi sahifaga xos qo'shimcha maydon uchun. */
   footerSlot?: React.ReactNode;
+  /** Faqat ATTESTATION kategoriyasidagi testda — "Bo'lim" tanlovi (`section:` tegi). */
+  showSection?: boolean;
 }
 
 const QUESTION_TYPE_OPTIONS = [
@@ -52,7 +55,7 @@ const TYPE_DESCRIPTIONS: Record<QuestionCoreFields['type'], string> = {
  * indeksni yangilash kifoya.
  */
 export default function QuestionEditorForm<T extends QuestionCoreFields>({
-  question, onChange, footerSlot,
+  question, onChange, footerSlot, showSection = false,
 }: QuestionEditorFormProps<T>) {
   const questionTextRef = useRef<HTMLTextAreaElement | null>(null);
   const explanationRef = useRef<HTMLTextAreaElement | null>(null);
@@ -426,6 +429,12 @@ export default function QuestionEditorForm<T extends QuestionCoreFields>({
           value={question.difficulty}
           onChange={(value) => patch({ difficulty: value } as Partial<T>)}
         />
+        {showSection && (
+          <SectionSelect
+            tags={question.tags ?? []}
+            onChange={(tags) => patch({ tags } as Partial<T>)}
+          />
+        )}
         <p className="text-xs text-text-secondary sm:col-span-2">
           {t('metaNote')}
         </p>

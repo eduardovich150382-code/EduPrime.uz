@@ -235,6 +235,28 @@ describe("PUT /api/teacher/tests/[id]/questions", () => {
     expect(body.count).toBe(2);
   });
 
+  it("`tags` massiv kelsa yangi savolga ham, mavjudiga ham yoziladi (faqat satrlar)", async () => {
+    const { tx } = buildTx([{ id: "q1" }]);
+    runWith(tx);
+
+    await callPut([
+      validQuestion({ id: "q1", tags: ["section:fizika", 7] }),
+      validQuestion({ text: "yangi", tags: ["section:pedagogika"] }),
+    ]);
+
+    expect(tx.question.update.mock.calls[0][0].data).toMatchObject({ tags: ["section:fizika"] });
+    expect(tx.question.create.mock.calls[0][0].data).toMatchObject({ tags: ["section:pedagogika"] });
+  });
+
+  it("`tags` kelmasa update `tags` ga TEGMAYDI — SQL bilan qo'yilgan bo'lim o'chmasin", async () => {
+    const { tx } = buildTx([{ id: "q1" }]);
+    runWith(tx);
+
+    await callPut([validQuestion({ id: "q1" })]);
+
+    expect(tx.question.update.mock.calls[0][0].data).not.toHaveProperty("tags");
+  });
+
   it("begona ustozning testiga yozmaydi", async () => {
     findUniqueTestMock.mockResolvedValue({ id: "test1", teacher: { userId: "boshqa-user" } });
 

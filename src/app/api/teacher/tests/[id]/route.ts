@@ -44,6 +44,9 @@ export async function GET(
             difficulty: true,
             points: true,
             order: true,
+            // Tahrirlash sahifasi teglarni PUT da qaytarib yuboradi — bu yerda
+            // o'qilmasa, har saqlash bazadagi `section:` teglarini o'chirardi.
+            tags: true,
           },
         },
       },

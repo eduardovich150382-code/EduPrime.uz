@@ -23,6 +23,7 @@ import MatchingEditor, { type MatchingPairInput } from '@/components/ui/Matching
 import { parseMatchingPairs } from '@/lib/matching';
 import { dropDuplicateQuestions, findDuplicateQuestions, type DuplicateGroup } from '@/lib/duplicate-questions';
 import DuplicateQuestionsDialog from '@/components/teacher/DuplicateQuestionsDialog';
+import SectionSelect from '@/components/teacher/SectionSelect';
 
 interface QuestionForm {
   id?: string;
@@ -40,6 +41,7 @@ interface QuestionForm {
   difficulty: number | null;
   blankAnswers: string[];
   matchingPairs: MatchingPairInput[];
+  tags: string[];
 }
 
 interface SubjectItem {
@@ -69,6 +71,7 @@ const emptyQuestion: QuestionForm = {
   difficulty: null,
   blankAnswers: [''],
   matchingPairs: [{ left: '', right: '' }, { left: '', right: '' }],
+  tags: [],
 };
 
 // FILL_BLANK: matndagi "___" soniga mos ravishda blankAnswers ro'yxatini hisoblaydi.
@@ -140,6 +143,7 @@ export default function EditTestPage() {
   // Saqlashdan oldingi dublikat ogohlantirishi — ustoz javob berguncha saqlash kutib turadi
   const [duplicateGroups, setDuplicateGroups] = useState<DuplicateGroup[]>([]);
   const [pendingPublish, setPendingPublish] = useState(false);
+  const isAttestation = subjects.find((s) => s.id === testInfo.subjectId)?.category.type === 'ATTESTATION';
 
   const handleImageDropOrPaste = async (file: File, target: 'question' | 'explanation') => {
     setDropUploading(target);
@@ -218,6 +222,7 @@ export default function EditTestPage() {
                 ? pairs.left.map((left, i) => ({ left, right: pairs.right[i] }))
                 : [{ left: '', right: '' }, { left: '', right: '' }];
             })(),
+            tags: Array.isArray(q.tags) ? q.tags : [],
           }));
           setQuestions(loadedQuestions);
         }
@@ -412,6 +417,7 @@ export default function EditTestPage() {
             topic: q.topic || null,
             bloomLevel: q.bloomLevel || null,
             difficulty: q.difficulty || null,
+            tags: q.tags,
             order: index,
             };
           }),
@@ -976,6 +982,16 @@ export default function EditTestPage() {
                   setQuestions(updated);
                 }}
               />
+              {isAttestation && questions[activeQuestion] && (
+                <SectionSelect
+                  tags={questions[activeQuestion].tags}
+                  onChange={(tags) => {
+                    const updated = [...questions];
+                    updated[activeQuestion] = { ...updated[activeQuestion], tags };
+                    setQuestions(updated);
+                  }}
+                />
+              )}
             </div>
 
             {/* Explanation */}
