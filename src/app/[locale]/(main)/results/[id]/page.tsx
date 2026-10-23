@@ -14,6 +14,7 @@ import ResultRetakeFooter, { RETAKE_BUTTON_CLASS, SECONDARY_BUTTON_CLASS } from 
 import { buildAttemptHistory, testsHrefForType, type AttemptHistory } from '@/lib/result-attempts';
 import { hasExamAnswer, restoreQuestionOrder } from '@/lib/exam-presentation';
 import QuotaUpsellDialog from '@/components/premium/QuotaUpsellDialog';
+import { AttestationMessage, AttestationRings, type AttestationResultInfo } from '@/components/attestation/AttestationResult';
 import {
   splitFillBlankText, parseFillBlankAnswer, parseFillBlankCorrectAnswer, isFillBlankIndexCorrect,
 } from '@/lib/fill-blank';
@@ -122,6 +123,8 @@ export default function ResultPage() {
   const [questionFilter, setQuestionFilter] = useState<'all' | 'incorrect' | 'skipped'>('all');
   const [showTimeAnalysis, setShowTimeAnalysis] = useState(false);
   const [attempts, setAttempts] = useState<AttemptHistory | null>(null);
+  // Faqat attestatsiya mock'ida (server aniqlaydi) — ball + toifa aylanalari.
+  const [attestation, setAttestation] = useState<AttestationResultInfo | null>(null);
 
   // S17 — yechim darajalari
   const [solutionQuota, setSolutionQuota] = useState<SolutionQuota | null>(null);
@@ -140,6 +143,7 @@ export default function ResultPage() {
           setResult({ ...data.result, test: { ...data.result.test, questions } });
           if (data.solutionQuota) setSolutionQuota(data.solutionQuota);
           setAttempts(data.attempts ? buildAttemptHistory(data.attempts) : null);
+          setAttestation(data.attestation ?? null);
         } else {
           setError(data.error || 'Natija topilmadi');
         }
@@ -458,7 +462,8 @@ export default function ResultPage() {
             )}
 
             <ResultScore score={result.score} maxScore={result.maxScore} percentage={result.percentage}
-              correct={correctCount} incorrect={incorrectCount} skipped={skippedCount} timeSpent={result.timeSpent} />
+              correct={correctCount} incorrect={incorrectCount} skipped={skippedCount} timeSpent={result.timeSpent}
+              ring={attestation ? <AttestationRings resultId={result.id} info={attestation} /> : undefined} />
           </div>
 
           {/* Qayta yechish — sahifadagi asosiy harakat: mobilda to'liq
@@ -481,8 +486,8 @@ export default function ResultPage() {
           </div>
         </div>
 
-        {/* Motivational message */}
-        <div className={`mt-6 p-4 rounded-xl border ${
+        {/* Motivational message — attestatsiya mock'ida toifaga mos tabrik/dalda */}
+        {attestation ? <AttestationMessage info={attestation} /> : <div className={`mt-6 p-4 rounded-xl border ${
           result.percentage >= 90 ? 'bg-green-50 border-green-200' :
           result.percentage >= 70 ? 'bg-blue-50 border-blue-200' :
           result.percentage >= 50 ? 'bg-yellow-50 border-yellow-200' :
@@ -499,7 +504,7 @@ export default function ResultPage() {
              result.percentage >= 50 ? '💪 Yomon emas! Xatolarni tahlil qiling va qayta urinib ko\'ring.' :
              '📚 Ko\'proq mashq kerak. Yechimlarni diqqat bilan o\'rganing va qayta ishlang.'}
           </p>
-        </div>
+        </div>}
       </motion.div>
 
       <ResultQuestionMap questions={result.test.questions} answers={result.answers} categoryType={result.test.category?.type} onSelect={id => {

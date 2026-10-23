@@ -8,6 +8,9 @@ import { getSolutionQuotaStatus, getUnlockedItemIds, resolveUnlockKeys } from '@
 import { resolveSolutionVisibility, type RawSolutionData } from '@/lib/solution-visibility';
 import { getDistractorWhy, toLang } from '@/lib/paramgen/regenerate';
 import { logger } from '@/lib/logger';
+import { classifyAttestationTests } from '@/lib/attestation-stats';
+import { loadAttestationSettings } from '@/lib/attestation-settings';
+import { attestationScore, getAttestationTier, type AttestationTier, type TierThresholds } from '@/lib/attestation-tiers';
 
 // GET /api/results/[id] — bitta natijani to'liq olish (savollar bilan).
 // Natija Test orqali (testId) yoki TestSession orqali (sessionId) kelgan
@@ -104,6 +107,13 @@ export async function GET(
       // resolveUnlockKey) — o'qishda ham AYNAN shu normallashtirish
       // qo'llanmasa, savol ochilgan bo'lsa ham bu yerda "yopiq" ko'rinib
       // qoladi (yozish/o'qish kalitlari mos kelmaydi).
+      const attestation = await loadAttestationResult(
+        category?.type,
+        result.test,
+        result.score,
+        result.maxScore,
+      );
+
       const questionIds = result.test.questions.map((q) => q.id);
       const unlockKeyMap = writtenUnlimited ? new Map<string, string>() : await resolveUnlockKeys(questionIds);
       const unlockedIds = writtenUnlimited
@@ -129,6 +139,7 @@ export async function GET(
         },
         solutionQuota,
         attempts,
+        attestation,
       });
     }
 
@@ -210,6 +221,36 @@ const RECENT_ATTEMPTS = 5;
  * Raqamlash `buildAttemptHistory` (lib/result-attempts.ts) da; tie-break
  * (teng completedAt'da id) uchala so'rovda bir xil bo'lishi shart.
  */
+interface AttestationResultInfo {
+  ball: number;
+  tier: AttestationTier;
+  thresholds: TierThresholds;
+  questionCount: number;
+}
+
+/**
+ * Faqat attestatsiya **mock**ida ball va toifa — mock qoidasi /attestation
+ * ro'yxati bilan aynan bir (`classifyAttestationTests`: barcha savollarida
+ * `section:` tegi). Mavzu testi, boshqa tur va sessiya natijalarida `null`,
+ * natija sahifasi avvalgidek qoladi. `isPublished` ga bog'liq emas.
+ */
+async function loadAttestationResult(
+  categoryType: string | undefined,
+  test: { id: string; questions: { tags: string[] }[] },
+  score: number,
+  maxScore: number,
+): Promise<AttestationResultInfo | null> {
+  if (categoryType !== 'ATTESTATION') return null;
+  const { mocks } = classifyAttestationTests(
+    [test],
+    test.questions.map((q) => ({ testId: test.id, tags: q.tags })),
+  );
+  if (mocks.length === 0) return null;
+  const { tiers } = await loadAttestationSettings();
+  const ball = attestationScore(score, maxScore);
+  return { ball, tier: getAttestationTier(ball, tiers), thresholds: tiers, questionCount: test.questions.length };
+}
+
 async function loadAttempts(userId: string, testId: string, resultId: string, completedAt: Date) {
   const where: Prisma.TestResultWhereInput = { userId, testId };
   const olderWhere: Prisma.TestResultWhereInput = {

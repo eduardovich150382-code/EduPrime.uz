@@ -8,6 +8,7 @@ import { filterMocks, type MockFilter } from '@/lib/attestation-stats';
 import { GOAL_STYLES } from '@/lib/goal-styles';
 import { primaryButton, secondaryButton } from '@/components/tests/button-classes';
 import type { MockRow } from '@/lib/attestation-page';
+import { TierPill } from './TierPill';
 
 const FILTERS: MockFilter[] = ['all', 'unsolved', 'solved'];
 
@@ -82,7 +83,15 @@ export function TestRowList({ title, rows, emptyText }: { title: string; rows: M
                     >
                       {row.solved ? t('status.solved') : t('status.new')}
                     </span>
-                    {row.solved && (
+                    {row.solved && row.ball !== null ? (
+                      // Mock — rasmiy 100 ballik shkala va toifa.
+                      <>
+                        <span className="font-medium" style={{ color: '#166534' }}>
+                          {t('list.lastBall', { score: row.ball })}
+                        </span>
+                        {row.tier && <TierPill tier={row.tier} label={t(`tiers.${row.tier}`)} />}
+                      </>
+                    ) : row.solved && (
                       <span className="font-medium" style={{ color: '#166534' }}>
                         {/* Eski natijalarda maxScore 0 bo'lishi mumkin — TestCard'dagi kabi foiz. */}
                         {row.lastMax
