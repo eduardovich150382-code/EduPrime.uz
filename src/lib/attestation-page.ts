@@ -1,3 +1,4 @@
+import 'server-only';
 import type { Prisma } from '@prisma/client';
 import { db } from './db';
 import { loadTestAccessContext, resolveTestAccess } from './access';
@@ -25,8 +26,7 @@ import type { SectionKey } from './question-sections';
 // PAYWALL CHEGARASI: `TestResult.answers` va Question qatorlari faqat shu
 // fayl ichida ishlatiladi. Qaytariladigan obyektda savol matni, variant,
 // javob yoki savol id'si yo'q — faqat tayyor qatorlar va sonlar; client
-// komponentlarga shu uzatiladi. Fayl `db` ni import qiladi, shuning uchun
-// client bundle'ga tushsa build yiqiladi — faqat server komponentdan chaqiring.
+// komponentlarga shu uzatiladi.
 
 const SETTING_KEYS = ['attestation_date', 'attestation_duration_min', 'attestation_pass_score'] as const;
 
