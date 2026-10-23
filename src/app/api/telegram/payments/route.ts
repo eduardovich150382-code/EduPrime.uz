@@ -69,6 +69,9 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingPending) {
+      if (existingPending.productId) {
+        return NextResponse.json({ error: 'Product payments cannot be changed by this API' }, { status: 400 });
+      }
       // Update existing pending payment instead of creating new one
       const payment = await db.payment.update({
         where: { id: existingPending.id },
@@ -138,6 +141,10 @@ export async function PATCH(request: NextRequest) {
 
     if (!payment) {
       return NextResponse.json({ error: 'No pending payment found' }, { status: 404 });
+    }
+
+    if (payment.productId) {
+      return NextResponse.json({ error: 'Product payments require atomic confirmation' }, { status: 400 });
     }
 
     // If receipt photo is being attached

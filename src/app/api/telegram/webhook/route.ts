@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { recordPurchase } from '@/lib/purchases';
 import { logger } from '@/lib/logger';
+import { handleCheckoutCallback, handleCheckoutReceipt, showCheckoutProducts } from '@/lib/telegram-category-checkout';
+import { processLegacySubscription } from '@/lib/subscription-payments';
+import uzMessages from '@/messages/uz.json';
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || '';
@@ -11,11 +14,6 @@ const PAYMENT_CARD_OWNER = 'Asrorov Xushbaxt';
 const CHANNEL_USERNAME = '@EduPrimeuz';
 const CHANNEL_LINK = 'https://t.me/EduPrimeuz';
 
-const DEFAULT_PRICES: Record<string, Record<string, number>> = {
-  premium: { '1_month': 29000, '3_months': 79000, '6_months': 150000, '1_year': 270000 },
-  teacher: { '1_month': 49000, '3_months': 129000, '6_months': 240000, '1_year': 430000 },
-};
-
 const DURATION_LABELS: Record<string, string> = {
   '1_month': '1 oy',
   '3_months': '3 oy',
@@ -23,46 +21,19 @@ const DURATION_LABELS: Record<string, string> = {
   '1_year': '1 yil',
 };
 
-// Fetch dynamic settings from DB
+// Bitta test/kurs va obuna bir xil karta rekvizitlaridan foydalanadi.
 async function getSettings() {
   try {
-    const settings = await db.systemSetting.findMany({
-      where: { key: { in: [
-        'premium_price_1_month', 'premium_price_3_months', 'premium_price_6_months', 'premium_price_1_year',
-        'teacher_price_1_month', 'teacher_price_3_months', 'teacher_price_6_months', 'teacher_price_1_year',
-        'payment_card_number', 'payment_card_owner',
-      ] } },
-    });
-    const s: Record<string, string> = {};
-    for (const st of settings) s[st.key] = st.value;
-    return {
-      prices: {
-        premium: {
-          '1_month': parseInt(s.premium_price_1_month) || DEFAULT_PRICES.premium['1_month'],
-          '3_months': parseInt(s.premium_price_3_months) || DEFAULT_PRICES.premium['3_months'],
-          '6_months': parseInt(s.premium_price_6_months) || DEFAULT_PRICES.premium['6_months'],
-          '1_year': parseInt(s.premium_price_1_year) || DEFAULT_PRICES.premium['1_year'],
-        },
-        teacher: {
-          '1_month': parseInt(s.teacher_price_1_month) || DEFAULT_PRICES.teacher['1_month'],
-          '3_months': parseInt(s.teacher_price_3_months) || DEFAULT_PRICES.teacher['3_months'],
-          '6_months': parseInt(s.teacher_price_6_months) || DEFAULT_PRICES.teacher['6_months'],
-          '1_year': parseInt(s.teacher_price_1_year) || DEFAULT_PRICES.teacher['1_year'],
-        },
-      },
-      cardNumber: s.payment_card_number || PAYMENT_CARD,
-      cardOwner: s.payment_card_owner || PAYMENT_CARD_OWNER,
-    };
+    const settings = await db.systemSetting.findMany({ where: { key: { in: ['payment_card_number', 'payment_card_owner'] } } });
+    return { cardNumber: settings.find((s) => s.key === 'payment_card_number')?.value || PAYMENT_CARD,
+      cardOwner: settings.find((s) => s.key === 'payment_card_owner')?.value || PAYMENT_CARD_OWNER };
   } catch {
-    return { prices: DEFAULT_PRICES, cardNumber: PAYMENT_CARD, cardOwner: PAYMENT_CARD_OWNER };
+    return { cardNumber: PAYMENT_CARD, cardOwner: PAYMENT_CARD_OWNER };
   }
 }
 
-function calcSavings(monthly: number, total: number, months: number): string {
-  const full = monthly * months;
-  if (full <= 0) return '';
-  const pct = Math.round(((full - total) / full) * 100);
-  return pct > 0 ? ` (tejash ${pct}%)` : '';
+function checkoutTransport() {
+  return { send: sendMessage, forward: forwardMessage, fileUrl: getFileUrl, settings: getSettings, adminIds: ADMIN_IDS };
 }
 
 // Get Telegram file URL (for photos and documents)
@@ -287,77 +258,13 @@ async function handleStart(chatId: number, userId: number, username: string, fir
     return;
   }
 
-  // Handle plan-specific buy params: buy_premium_1month, buy_teacher_6months, etc.
-  if (param.startsWith('buy_')) {
-    const parts = param.replace('buy_', '').split('_');
-    const plan = parts[0]; // premium or teacher
-    const durationKey = parts.slice(1).join(''); // 1month, 3months, 6months, 1year
-
-    const durationMap: Record<string, string> = {
-      '1month': '1_month',
-      '3months': '3_months',
-      '6months': '6_months',
-      '1year': '1_year',
-    };
-    const duration = durationMap[durationKey] || '1_month';
-
-    // Fetch dynamic prices and card info from admin settings
-    const { prices, cardNumber, cardOwner } = await getSettings();
-    const planPrices = plan === 'teacher' ? prices.teacher : prices.premium;
-    const amount = planPrices[duration] || planPrices['1_month'];
-    const planName = plan === 'premium' ? '💎 Premium' : '👨‍🏫 Ustoz';
-
-    // Check if user exists in DB, if not register them
-    let dbUser = await db.user.findFirst({
-      where: { telegramId: userId.toString() },
-    });
-
-    if (!dbUser) {
-      // Register user first
-      dbUser = await db.user.create({
-        data: {
-          telegramId: userId.toString(),
-          telegramUsername: username || undefined,
-          name: firstName || username || 'Telegram User',
-          role: 'USER',
-        },
-      });
-
-      // Send welcome message first
-      await sendMessage(chatId,
-        `🎓 <b>EduPrime.uz</b>ga xush kelibsiz, ${firstName}! 👋\n\n` +
-        `Siz muvaffaqiyatli ro'yxatdan o'tdingiz. Endi to'lov ma'lumotlarini ko'rishingiz mumkin.`
-      );
-    }
-
-    // Store pending payment
-    await db.systemSetting.upsert({
-      where: { key: `pending_payment_${userId}` },
-      update: {
-        value: JSON.stringify({ userId, username, plan, duration, amount, timestamp: Date.now() }),
-      },
-      create: {
-        key: `pending_payment_${userId}`,
-        value: JSON.stringify({ userId, username, plan, duration, amount, timestamp: Date.now() }),
-      },
-    });
-
-    // Show payment details
-    await sendMessage(chatId,
-      `📋 <b>To'lov ma'lumotlari:</b>\n\n` +
-      `Tarif: ${planName}\n` +
-      `Muddat: ${DURATION_LABELS[duration]}\n` +
-      `Summa: <b>${amount.toLocaleString()} so'm</b>\n\n` +
-      `💳 Karta raqami:\n` +
-      `<code>${cardNumber}</code>\n` +
-      `👤 Karta egasi: <b>${cardOwner}</b>\n\n` +
-      `📎 To'lov qilganingizdan keyin <b>chek screenshot yoki PDF</b>ini shu yerga yuboring.\n\n` +
-      `⏱ Chek yuborilgandan keyin 24 soat ichida admin tasdiqlaydi.`
-    );
+  // Eski pricing havolalari ham yangi mahsulot tanloviga olib keladi.
+  if (param === 'buy' || param === 'obuna' || param.startsWith('buy_')) {
+    await showCheckoutProducts(chatId, checkoutTransport());
     return;
   }
 
-  if (param === 'login' || param === 'buy') {
+  if (param === 'login') {
     try {
       const crypto = await import('crypto');
       const token = crypto.randomBytes(32).toString('hex');
@@ -402,12 +309,11 @@ async function handleStart(chatId: number, userId: number, username: string, fir
     `Salom, ${firstName}! Xush kelibsiz! 👋\n\n` +
     `📚 Bu bot orqali:\n` +
     `• Saytga kirish\n` +
-    `• Premium/Ustoz tarif sotib olish\n` +
+    `• Obuna sotib olish\n` +
     `• Yangiliklar olish\n\n` +
     `<b>Buyruqlar:</b>\n` +
     `/login — Saytga kirish\n` +
-    `/premium — Premium sotib olish\n` +
-    `/ustoz — Ustoz tarifi\n` +
+    `${uzMessages.checkout.subscriptionCommand}\n` +
     `/help — Yordam` +
     adminText,
     {
@@ -452,56 +358,6 @@ async function handleLogin(chatId: number, userId: number, username: string, fir
   );
 }
 
-// Handle /premium
-async function handlePremium(chatId: number) {
-  const { prices } = await getSettings();
-  const p = prices.premium;
-  await sendMessage(chatId,
-    `💎 <b>Premium tarif</b>\n\n` +
-    `✅ DTM testlari — cheksiz\n` +
-    `✅ Maktab testlari — cheksiz\n` +
-    `✅ Milliy sertifikat testlari\n` +
-    `✅ Video va yozma yechimlar\n` +
-    `✅ Reklama yo'q\n\n` +
-    `Muddatni tanlang:`,
-    {
-      reply_markup: {
-        inline_keyboard: [
-          [{ text: `1 oy — ${p['1_month'].toLocaleString()} so'm`, callback_data: 'pay_premium_1month' }],
-          [{ text: `3 oy — ${p['3_months'].toLocaleString()} so'm${calcSavings(p['1_month'], p['3_months'], 3)}`, callback_data: 'pay_premium_3months' }],
-          [{ text: `6 oy — ${p['6_months'].toLocaleString()} so'm${calcSavings(p['1_month'], p['6_months'], 6)}`, callback_data: 'pay_premium_6months' }],
-          [{ text: `1 yil — ${p['1_year'].toLocaleString()} so'm${calcSavings(p['1_month'], p['1_year'], 12)}`, callback_data: 'pay_premium_1year' }],
-        ]
-      }
-    }
-  );
-}
-
-// Handle /ustoz
-async function handleUstoz(chatId: number) {
-  const { prices } = await getSettings();
-  const p = prices.teacher;
-  await sendMessage(chatId,
-    `👨‍🏫 <b>Ustoz tarif</b>\n\n` +
-    `✅ Attestatsiya testlari (tanlangan fanlar)\n` +
-    `✅ SAT testlari — cheksiz\n` +
-    `✅ GRE Physics — cheksiz\n` +
-    `✅ Milliy sertifikat testlari\n` +
-    `✅ Video va yozma yechimlar\n\n` +
-    `Muddatni tanlang:`,
-    {
-      reply_markup: {
-        inline_keyboard: [
-          [{ text: `1 oy — ${p['1_month'].toLocaleString()} so'm`, callback_data: 'pay_teacher_1month' }],
-          [{ text: `3 oy — ${p['3_months'].toLocaleString()} so'm${calcSavings(p['1_month'], p['3_months'], 3)}`, callback_data: 'pay_teacher_3months' }],
-          [{ text: `6 oy — ${p['6_months'].toLocaleString()} so'm${calcSavings(p['1_month'], p['6_months'], 6)}`, callback_data: 'pay_teacher_6months' }],
-          [{ text: `1 yil — ${p['1_year'].toLocaleString()} so'm${calcSavings(p['1_month'], p['1_year'], 12)}`, callback_data: 'pay_teacher_1year' }],
-        ]
-      }
-    }
-  );
-}
-
 // Handle /help
 async function handleHelp(chatId: number, userId: number) {
   const adminText = isAdmin(userId)
@@ -513,8 +369,7 @@ async function handleHelp(chatId: number, userId: number) {
     `<b>Asosiy buyruqlar:</b>\n` +
     `/start — Botni boshlash\n` +
     `/login — Saytga kirish havolasi\n` +
-    `/premium — Premium tarif sotib olish\n` +
-    `/ustoz — Ustoz tarifi sotib olish\n` +
+    `${uzMessages.checkout.subscriptionCommand}\n` +
     `/stats — Statistikani ko'rish\n` +
     `/help — Shu yordam` +
     adminText +
@@ -537,14 +392,14 @@ async function handleAdmin(chatId: number, userId: number) {
   }
 
   const userCount = await db.user.count();
-  const pendingPayments = await db.systemSetting.findMany({
-    where: { key: { startsWith: 'pending_payment_' } },
+  const pendingPayments = await db.payment.count({
+    where: { status: 'PENDING', receiptPhoto: { not: null } },
   });
 
   await sendMessage(chatId,
     `🔐 <b>Admin Panel</b>\n\n` +
     `👥 Foydalanuvchilar: <b>${userCount}</b>\n` +
-    `💰 Kutilayotgan to'lovlar: <b>${pendingPayments.length}</b>\n\n` +
+    `💰 Kutilayotgan to'lovlar: <b>${pendingPayments}</b>\n\n` +
     `<b>Admin buyruqlar:</b>\n` +
     `/users — Foydalanuvchilar ro'yxati\n` +
     `/broadcast [xabar] — Barchaga xabar yuborish\n\n` +
@@ -644,6 +499,15 @@ async function handleCallbackQuery(callbackQuery: any) {
 
   await answerCallbackQuery(callbackQuery.id);
 
+  if (data.startsWith('co:') || data.startsWith('cp:')) {
+    if (data.startsWith('co:') && !isAdmin(userId) && !await checkChannelSubscription(userId)) {
+      await sendSubscriptionPrompt(chatId);
+      return;
+    }
+    await handleCheckoutCallback(chatId, callbackQuery.from, data, checkoutTransport());
+    return;
+  }
+
   // Handle subscription check callback
   if (data === 'check_subscription') {
     const isSubscribed = await checkChannelSubscription(userId);
@@ -658,12 +522,11 @@ async function handleCallbackQuery(callbackQuery: any) {
         `Salom, ${firstName}! Xush kelibsiz! 👋\n\n` +
         `📚 Bu bot orqali:\n` +
         `• Saytga kirish\n` +
-        `• Premium/Ustoz tarif sotib olish\n` +
+        `• Obuna sotib olish\n` +
         `• Yangiliklar olish\n\n` +
         `<b>Buyruqlar:</b>\n` +
         `/login — Saytga kirish\n` +
-        `/premium — Premium sotib olish\n` +
-        `/ustoz — Ustoz tarifi\n` +
+        `${uzMessages.checkout.subscriptionCommand}\n` +
         `/help — Yordam` +
         adminText,
         {
@@ -692,48 +555,10 @@ async function handleCallbackQuery(callbackQuery: any) {
     return;
   }
 
-  // Payment selection
+  // Ilgari yuborilgan tarif tugmalari endi yangi tarif sotmaydi.
   if (data.startsWith('pay_')) {
-    const parts = data.replace('pay_', '').split('_');
-    const plan = parts[0]; // premium or teacher
-    const durationKey = parts.slice(1).join(''); // 1month, 3months, 6months, 1year
-
-    const durationMap: Record<string, string> = {
-      '1month': '1_month',
-      '3months': '3_months',
-      '6months': '6_months',
-      '1year': '1_year',
-    };
-    const duration = durationMap[durationKey] || '1_month';
-
-    // Fetch dynamic prices and card info from admin settings
-    const { prices, cardNumber, cardOwner } = await getSettings();
-    const planPrices = plan === 'teacher' ? prices.teacher : prices.premium;
-    const amount = planPrices[duration] || planPrices['1_month'];
-    const planName = plan === 'premium' ? '💎 Premium' : '👨‍🏫 Ustoz';
-
-    await db.systemSetting.upsert({
-      where: { key: `pending_payment_${userId}` },
-      update: {
-        value: JSON.stringify({ userId, username, plan, duration, amount, timestamp: Date.now() }),
-      },
-      create: {
-        key: `pending_payment_${userId}`,
-        value: JSON.stringify({ userId, username, plan, duration, amount, timestamp: Date.now() }),
-      },
-    });
-
-    await sendMessage(chatId,
-      `📋 <b>To'lov ma'lumotlari:</b>\n\n` +
-      `Tarif: ${planName}\n` +
-      `Muddat: ${DURATION_LABELS[duration]}\n` +
-      `Summa: <b>${amount.toLocaleString()} so'm</b>\n\n` +
-      `💳 Karta raqami:\n` +
-      `<code>${cardNumber}</code>\n` +
-      `👤 Karta egasi: <b>${cardOwner}</b>\n\n` +
-      `📎 To'lov qilganingizdan keyin <b>chek screenshot yoki PDF</b>ini shu yerga yuboring.\n\n` +
-      `⏱ Chek yuborilgandan keyin 24 soat ichida admin tasdiqlaydi.`
-    );
+    await showCheckoutProducts(chatId, checkoutTransport());
+    return;
   }
 
   // Admin confirms payment
@@ -749,6 +574,13 @@ async function handleCallbackQuery(callbackQuery: any) {
 
     if (paymentData) {
       const payment = JSON.parse(paymentData.value);
+      if (payment.plan === 'premium' || payment.plan === 'teacher') {
+        const admin = await db.user.findUnique({ where: { telegramId: String(userId) }, select: { id: true } });
+        const result = await processLegacySubscription(targetUserId, 'confirm', admin?.id ?? null);
+        if (result && !result.alreadyProcessed) await sendMessage(Number(targetUserId), uzMessages.checkout.confirmed);
+        await sendMessage(chatId, uzMessages.checkout.alreadyProcessed);
+        return;
+      }
 
       // Find the user by telegramId to get their DB userId
       const targetUser = await db.user.findFirst({
@@ -789,56 +621,6 @@ async function handleCallbackQuery(callbackQuery: any) {
             },
           });
           await recordPurchase(targetUser.id, 'course', payment.courseId, paymentRecord.id);
-        } else {
-          // Map plan string to SubscriptionPlan enum
-          const planEnum = payment.plan === 'premium' ? 'PREMIUM' : 'TEACHER_PLAN';
-
-          // Map duration string to SubscriptionDuration enum
-          const durationMap: Record<string, string> = {
-            '1_month': 'ONE_MONTH',
-            '3_months': 'THREE_MONTHS',
-            '6_months': 'SIX_MONTHS',
-            '1_year': 'ONE_YEAR',
-          };
-          const durationEnum = durationMap[payment.duration] || 'ONE_MONTH';
-
-          // Calculate end date based on duration
-          const startDate = new Date();
-          const endDate = new Date(startDate);
-          if (payment.duration === '1_month') {
-            endDate.setMonth(endDate.getMonth() + 1);
-          } else if (payment.duration === '3_months') {
-            endDate.setMonth(endDate.getMonth() + 3);
-          } else if (payment.duration === '6_months') {
-            endDate.setMonth(endDate.getMonth() + 6);
-          } else if (payment.duration === '1_year') {
-            endDate.setFullYear(endDate.getFullYear() + 1);
-          }
-
-          // Create Payment record
-          const paymentRecord = await db.payment.create({
-            data: {
-              userId: targetUser.id,
-              plan: planEnum as any,
-              duration: durationEnum as any,
-              amount: payment.amount,
-              status: 'CONFIRMED',
-              confirmedAt: new Date(),
-            },
-          });
-
-          // Create Subscription record
-          await db.subscription.create({
-            data: {
-              userId: targetUser.id,
-              plan: planEnum as any,
-              duration: durationEnum as any,
-              startDate,
-              endDate,
-              isActive: true,
-              paymentId: paymentRecord.id,
-            },
-          });
         }
       }
 
@@ -880,6 +662,13 @@ async function handleCallbackQuery(callbackQuery: any) {
 
     if (paymentData) {
       const payment = JSON.parse(paymentData.value);
+      if (payment.plan === 'premium' || payment.plan === 'teacher') {
+        const admin = await db.user.findUnique({ where: { telegramId: String(userId) }, select: { id: true } });
+        await processLegacySubscription(targetUserId, 'reject', admin?.id ?? null);
+        await sendMessage(Number(targetUserId), uzMessages.checkout.rejected);
+        await sendMessage(chatId, uzMessages.checkout.alreadyProcessed);
+        return;
+      }
 
       await sendMessage(parseInt(targetUserId),
         `❌ Sizning to'lovingiz rad etildi.\n\nSabab: Chek tasdiqlash imkoni bo'lmadi.\nIltimos, qayta to'lov qiling yoki admin bilan bog'laning.`
@@ -893,6 +682,7 @@ async function handleCallbackQuery(callbackQuery: any) {
 
 // Handle photo (payment receipt — image)
 async function handlePhoto(message: any) {
+  if (await handleCheckoutReceipt(message, checkoutTransport())) return;
   const chatId = message.chat.id;
   const userId = message.from.id;
   const username = message.from.username || '';
@@ -902,7 +692,7 @@ async function handlePhoto(message: any) {
   });
 
   if (!paymentData) {
-    await sendMessage(chatId, 'ℹ️ Avval tarif tanlang:\n/premium yoki /ustoz');
+    await sendMessage(chatId, `${uzMessages.checkout.chooseProduct}\n/obuna`);
     return;
   }
 
@@ -927,6 +717,7 @@ async function handlePhoto(message: any) {
 
 // Handle document (PDF receipt)
 async function handleDocument(message: any) {
+  if (await handleCheckoutReceipt(message, checkoutTransport())) return;
   const chatId = message.chat.id;
   const userId = message.from.id;
   const username = message.from.username || '';
@@ -944,7 +735,7 @@ async function handleDocument(message: any) {
   });
 
   if (!paymentData) {
-    await sendMessage(chatId, 'ℹ️ Avval tarif tanlang:\n/premium yoki /ustoz');
+    await sendMessage(chatId, `${uzMessages.checkout.chooseProduct}\n/obuna`);
     return;
   }
 
@@ -981,7 +772,7 @@ async function saveReceiptToDB(userId: number, payment: any, receiptUrl: string 
 
     // Check if there's already a pending payment for this user
     const existingPayment = await db.payment.findFirst({
-      where: { userId: dbUser.id, status: 'PENDING' },
+      where: { userId: dbUser.id, status: 'PENDING', productId: null },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -1140,10 +931,8 @@ export async function POST(request: NextRequest) {
         await handleStart(chatId, userId, username, firstName, param);
       } else if (text === '/login') {
         await handleLogin(chatId, userId, username, firstName);
-      } else if (text === '/premium') {
-        await handlePremium(chatId);
-      } else if (text === '/ustoz') {
-        await handleUstoz(chatId);
+      } else if (text === '/premium' || text === '/ustoz' || text === '/obuna') {
+        await showCheckoutProducts(chatId, checkoutTransport(), msg.from.language_code);
       } else if (text === '/help') {
         await handleHelp(chatId, userId);
       } else if (text === '/stats') {

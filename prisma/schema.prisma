@@ -758,6 +758,7 @@ model Product {
   category      TestCategory?  @relation(fields: [categoryId], references: [id])
   offers        ProductOffer[]
   subscriptions Subscription[]
+  payments      Payment[]
 
   @@index([categoryId])
 }
@@ -776,6 +777,7 @@ model ProductOffer {
 
   product       Product        @relation(fields: [productId], references: [id])
   subscriptions Subscription[]
+  payments      Payment[]
 
   @@index([productId, isActive, order])
 }
@@ -845,6 +847,11 @@ enum PaymentStatus {
 }
 
 model Payment {
+  productId        String?
+  offerId          String?
+  subjectIds       String[]             @default([])
+  product          Product?             @relation(fields: [productId], references: [id])
+  offer            ProductOffer?        @relation(fields: [offerId], references: [id])
   id               String               @id @default(cuid())
   userId           String
   plan             SubscriptionPlan
