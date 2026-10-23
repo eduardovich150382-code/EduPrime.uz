@@ -176,6 +176,48 @@ describe("GET /api/results/[id]", () => {
       expect(data.result.test.questions[0].videoUrl).toBe("https://youtube.com/watch?v=x");
     });
 
+    describe("test darajasidagi yechim (Test.videoSolution / writtenSolution)", () => {
+      function mockResultWithTestSolutions() {
+        findUniqueResultMock.mockResolvedValue({
+          id: "result1",
+          userId: "user1",
+          testId: "test1",
+          sessionId: null,
+          test: {
+            videoSolution: "https://youtube.com/watch?v=test",
+            writtenSolution: "Testning to'liq yechimi",
+            questions: [baseQuestion()],
+            subject: {},
+          },
+          session: null,
+        });
+      }
+
+      it("obunasiz foydalanuvchida ikkala maydon null", async () => {
+        mockResultWithTestSolutions();
+        const { status, data } = await callGet();
+        expect(status).toBe(200);
+        expect(data.result.test.videoSolution).toBeNull();
+        expect(data.result.test.writtenSolution).toBeNull();
+      });
+
+      it("premium foydalanuvchida ikkala maydon qiymati bilan", async () => {
+        mockResultWithTestSolutions();
+        subscriptionFindManyMock.mockResolvedValue([{ plan: "PREMIUM" }]);
+        const { data } = await callGet();
+        expect(data.result.test.videoSolution).toBe("https://youtube.com/watch?v=test");
+        expect(data.result.test.writtenSolution).toBe("Testning to'liq yechimi");
+      });
+
+      it("Teacher obunasi — savol darajasidagidek: yozma ochiq, video yopiq", async () => {
+        mockResultWithTestSolutions();
+        subscriptionFindManyMock.mockResolvedValue([{ plan: "TEACHER_PLAN" }]);
+        const { data } = await callGet();
+        expect(data.result.test.videoSolution).toBeNull();
+        expect(data.result.test.writtenSolution).toBe("Testning to'liq yechimi");
+      });
+    });
+
     it("ADMIN uchun har doim ochiq", async () => {
       authMock.mockReturnValue({ user: { id: "admin1", role: "ADMIN" } });
       userFindUniqueMock.mockResolvedValue({ role: "ADMIN" });

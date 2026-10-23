@@ -4,6 +4,7 @@ import { auth } from '@/lib/auth';
 import { sanitizeText, sanitizeInt } from '@/lib/sanitize';
 import { generateSeed } from '@/lib/shuffle';
 import { checkTestAccess } from '@/lib/access';
+import { resolveTestVisibility } from '@/lib/test-visibility';
 import { gradeSubmission } from '@/lib/grading';
 import { creditQuizLessonProgress } from '@/lib/course-progress';
 import { resolveAttemptCandidates, toAttemptCreateInput } from '@/lib/attempts';
@@ -53,10 +54,21 @@ export async function POST(
           select: { id: true, text: true, correctAnswer: true, points: true, type: true, options: true, subjectId: true },
         },
         courseLessons: { select: { id: true } },
+        teacher: { select: { userId: true } },
       },
     });
 
     if (!test) {
+      return NextResponse.json({ error: 'Test not found' }, { status: 404 });
+    }
+
+    // GET /api/tests/[id] bilan AYNAN bir qaror — aks holda qoralama savollari
+    // yopiq bo'lsa ham, bu yerga to'g'ridan-to'g'ri POST to'g'ri javoblarni beradi.
+    const visible = await resolveTestVisibility(
+      { id: test.id, isPublished: test.isPublished, ownerUserIds: [test.teacher?.userId, test.userId] },
+      { userId, role: session.user.role }
+    );
+    if (!visible) {
       return NextResponse.json({ error: 'Test not found' }, { status: 404 });
     }
 

@@ -61,3 +61,27 @@ export function resolveSolutionVisibility(input: SolutionVisibilityInput): Solut
 
   return { explanation: null, explanationImages: [], videoUrl: null, solutionKind: 'none', unlocked: true };
 }
+
+export interface SolutionTiers {
+  /** Kvotasiz yozma yechim: Premium, Teacher yoki ADMIN. Qolganlarga — `SolutionUnlock` orqali, savolma-savol. */
+  writtenUnlimited: boolean;
+  /** Video yechim: faqat Premium yoki ADMIN. */
+  videoUnlocked: boolean;
+}
+
+/**
+ * Obuna → yechim darajalari. Savol darajasidagi (`explanation`/`videoUrl`) va
+ * test darajasidagi (`Test.writtenSolution`/`videoSolution`) qulf shu bitta
+ * joydan olinadi — ikkalasi alohida hisoblansa, vaqt o'tib bir-biridan
+ * uzoqlashadi va bir xil kontent bir joyda yopiq, boshqasida ochiq qoladi.
+ */
+export function resolveSolutionTiers(
+  role: string | undefined,
+  subscription: { premium: boolean; teacher: boolean }
+): SolutionTiers {
+  const isAdmin = role === 'ADMIN';
+  return {
+    writtenUnlimited: isAdmin || subscription.premium || subscription.teacher,
+    videoUnlocked: isAdmin || subscription.premium,
+  };
+}

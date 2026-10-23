@@ -151,6 +151,23 @@ describe("GET /api/tests", () => {
     expect(data.tests[0].category).toEqual({ type: "ATTESTATION" });
   });
 
+  it("noma'lum type — 400, bazaga so'rov yo'q (avval Prisma 500 berardi)", async () => {
+    const { status } = await callGet("?type=FOO");
+    expect(status).toBe(400);
+    expect(findManyCategoryMock).not.toHaveBeenCalled();
+    expect(findManyTestMock).not.toHaveBeenCalled();
+  });
+
+  it("kichik harfli type ham noma'lum — 400 (enum registrga sezgir)", async () => {
+    expect((await callGet("?type=dtm")).status).toBe(400);
+  });
+
+  it("bo'sh ?type= — 200, filtrsiz (Hammasi)", async () => {
+    const { status } = await callGet("?type=");
+    expect(status).toBe(200);
+    expect(lastFindManyArgs().where).toEqual({ isPublished: true });
+  });
+
   it("mos kategoriyasi yo'q type — bo'sh ro'yxat (avvalgidek)", async () => {
     findManyCategoryMock.mockResolvedValue([]);
     const { data } = await callGet("?type=GRE");

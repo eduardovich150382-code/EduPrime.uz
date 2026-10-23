@@ -58,7 +58,7 @@ function buildQuestions(tagged: (i: number) => boolean = () => true) {
 
 function setup(categoryType: string, questions = buildQuestions()) {
   mocks.findUniqueTest.mockResolvedValue({
-    id: 'test1', categoryId: 'cat1', isFree: true, accessType: 'free', courseLessons: [], subject: { nameUz: 'Fizika' }, teacher: null,
+    id: 'test1', categoryId: 'cat1', isPublished: true, isFree: true, accessType: 'free', courseLessons: [], subject: { nameUz: 'Fizika' }, teacher: null,
     questions: questions.map((q) => ({ ...q, correctAnswer: 'B' })),
   });
   // GET'dagi select correctAnswer'ni olmaydi — u faqat submit'dagi test.questions'da.

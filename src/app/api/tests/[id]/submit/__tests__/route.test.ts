@@ -49,6 +49,7 @@ function buildTest(overrides: Partial<Record<string, unknown>> = {}) {
     id: "test1",
     isFree: true,
     accessType: "free",
+    isPublished: true,
     courseLessons: [] as unknown[],
     questions: [
       {
