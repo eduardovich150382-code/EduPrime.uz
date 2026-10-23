@@ -4,6 +4,7 @@ import { auth } from '@/lib/auth';
 import { planQuestionOrder, shuffleTest } from '@/lib/shuffle';
 import { getQuestionSection, groupBySection } from '@/lib/question-sections';
 import { checkTestAccess } from '@/lib/access';
+import { resolveTestVisibility } from '@/lib/test-visibility';
 import { logger } from '@/lib/logger';
 
 // GET /api/tests/[id] — bitta testni olish
@@ -16,6 +17,9 @@ export async function GET(
 
     const test = await db.test.findUnique({
       where: { id },
+      // Paywall: yozma va video yechim — pullik mahsulot, yechish sahifasiga
+      // kerak emas. Ular natija sahifasida, obuna tekshiruvidan keyin beriladi.
+      omit: { writtenSolution: true, videoSolution: true },
       include: {
         subject: true,
         teacher: {
@@ -30,6 +34,15 @@ export async function GET(
 
     const session = await auth();
     const userId = session?.user?.id;
+
+    // Qoralama mavjudligini ham oshkor qilmaymiz — 403 emas, 404.
+    const visible = await resolveTestVisibility(
+      { id: test.id, isPublished: test.isPublished, ownerUserIds: [test.teacher?.userId, test.userId] },
+      { userId, role: session?.user?.role }
+    );
+    if (!visible) {
+      return NextResponse.json({ error: 'Test not found' }, { status: 404 });
+    }
 
     // Enforce access control server-side — the question content itself is the
     // paid product, so it must never be returned to users without access,

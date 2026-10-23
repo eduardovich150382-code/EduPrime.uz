@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Prisma } from '@prisma/client';
+import { Prisma, TestType } from '@prisma/client';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { notifyViaTelegram } from '@/lib/telegram-notify';
@@ -8,6 +8,11 @@ import { MAX_QUERY_LENGTH } from '@/lib/tests-filters';
 import { loadTestAccessContext, resolveTestAccess } from '@/lib/access';
 
 const MAX_LIMIT = 50;
+const TEST_TYPES = new Set<string>(Object.values(TestType));
+
+function isTestType(value: string): value is TestType {
+  return TEST_TYPES.has(value);
+}
 
 // Javob endi foydalanuvchiga bog'liq (hasAccess) — CDN yoki Next keshi bir
 // foydalanuvchining javobini boshqasiga bermasin.
@@ -23,7 +28,13 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const category = searchParams.get('category');
     const subject = searchParams.get('subject');
-    const type = searchParams.get('type');
+    const rawType = searchParams.get('type');
+    // Noma'lum qiymat enum filtriga tushsa Prisma 500 berardi. Bo'sh `?type=`
+    // esa "Hammasi" — avvalgidek filtrsiz.
+    if (rawType && !isTestType(rawType)) {
+      return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
+    }
+    const type = rawType && isTestType(rawType) ? rawType : null;
     const q = (searchParams.get('q') ?? '').trim().slice(0, MAX_QUERY_LENGTH);
     const sort = searchParams.get('sort');
     // NaN yoki manfiy qiymat skip/take ga tushib Prisma xatosiga (500)
@@ -49,7 +60,7 @@ export async function GET(request: NextRequest) {
     // Filter by TestCategory type (DTM, SCHOOL, ATTESTATION, SAT, GRE, CERTIFICATE)
     if (type) {
       const matchingCategories = await db.testCategory.findMany({
-        where: { type: type as any },
+        where: { type },
         select: { id: true },
       });
       const categoryIds = matchingCategories.map(c => c.id);

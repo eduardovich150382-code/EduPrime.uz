@@ -5,7 +5,7 @@ import { auth } from '@/lib/auth';
 import { extractItemPoints, loadSessionItems } from '@/lib/sessions';
 import { hasActiveSubscription } from '@/lib/access';
 import { getSolutionQuotaStatus, getUnlockedItemIds, resolveUnlockKeys } from '@/lib/quota';
-import { resolveSolutionVisibility, type RawSolutionData } from '@/lib/solution-visibility';
+import { resolveSolutionTiers, resolveSolutionVisibility, type RawSolutionData } from '@/lib/solution-visibility';
 import { getDistractorWhy, toLang } from '@/lib/paramgen/regenerate';
 import { logger } from '@/lib/logger';
 import { classifyAttestationTests } from '@/lib/attestation-stats';
@@ -83,9 +83,7 @@ export async function GET(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const { premium, teacher } = await hasActiveSubscription(userId);
-    const writtenUnlimited = role === 'ADMIN' || premium || teacher;
-    const videoUnlocked = role === 'ADMIN' || premium;
+    const { writtenUnlimited, videoUnlocked } = resolveSolutionTiers(role, await hasActiveSubscription(userId));
     const solutionQuota = await getSolutionQuotaStatus(userId);
 
     // S20a — distraktor izohi har doim bepul (S17 dagi "bir qatorli sabab"
@@ -125,6 +123,11 @@ export async function GET(
           ...result,
           test: {
             ...result.test,
+            // Test darajasidagi yechim — savoldagi `videoUrl`/`explanation` bilan
+            // bir xil daraja. Submit paytidagi kirish huquqi yetmaydi: obuna
+            // tugaydi, natija sahifasi esa abadiy ochiladi.
+            videoSolution: videoUnlocked ? result.test.videoSolution : null,
+            writtenSolution: writtenUnlimited ? result.test.writtenSolution : null,
             category: category ? { type: category.type } : null,
             questions: result.test.questions.map((q) =>
               attachDistractorWhy(

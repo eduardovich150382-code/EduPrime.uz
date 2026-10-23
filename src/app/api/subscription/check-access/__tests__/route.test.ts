@@ -11,17 +11,32 @@ interface FakeState {
   subscriptions: { userId: string; isActive: boolean; endDate: Date; plan: string }[];
   purchases: { userId: string; itemType: string; itemId: string }[];
   payments: { userId: string; status: string; selectedSubjects: string[] }[];
+  // Nashr etilgan kursdagi QUIZ darslari soni (lib/test-visibility.ts)
+  publishedCourseLessons: number;
 }
 
-const state: FakeState = { role: "USER", subscriptions: [], purchases: [], payments: [] };
+const state: FakeState = { role: "USER", subscriptions: [], purchases: [], payments: [], publishedCourseLessons: 0 };
 
-const PAID_TEST = { id: "t1", isFree: false, accessType: "paid", price: 15000, titleUz: "Kinematika" };
-let currentTest: typeof PAID_TEST | null = PAID_TEST;
+interface FakeTest {
+  id: string;
+  isFree: boolean;
+  accessType: string;
+  price: number;
+  titleUz: string;
+  isPublished: boolean;
+  userId: string | null;
+  teacher: { userId: string } | null;
+}
+
+const PAID_TEST: FakeTest = { id: "t1", isFree: false, accessType: "paid", price: 15000, titleUz: "Kinematika", isPublished: true, userId: null, teacher: null };
+let currentTest: FakeTest | null = PAID_TEST;
 
 vi.mock("@/lib/db", () => ({
   db: {
     test: { findUnique: async () => currentTest },
     user: { findUnique: async () => ({ role: state.role }) },
+    courseLesson: { count: async () => state.publishedCourseLessons },
+    lessonBlock: { count: async () => 0 },
     subscription: {
       findMany: async ({ where }: { where: { userId: string; isActive: boolean; endDate: { gte: Date } } }) =>
         state.subscriptions
@@ -61,7 +76,32 @@ beforeEach(() => {
   state.subscriptions = [];
   state.purchases = [];
   state.payments = [];
+  state.publishedCourseLessons = 0;
   currentTest = PAID_TEST;
+});
+
+describe("GET /api/subscription/check-access — qoralama test", () => {
+  const DRAFT: FakeTest = { ...PAID_TEST, isPublished: false, teacher: { userId: "teacher-user" } };
+
+  it("begona foydalanuvchi — 404, sarlavha oshkor bo'lmaydi", async () => {
+    currentTest = DRAFT;
+    const { status, data } = await check();
+    expect(status).toBe(404);
+    expect(data).not.toHaveProperty("testTitle");
+  });
+
+  it("nashr etilgan kursga ulangan qoralama — odatdagi paywall javobi", async () => {
+    currentTest = DRAFT;
+    state.publishedCourseLessons = 1;
+    const { status, data } = await check();
+    expect(status).toBe(200);
+    expect(data).toEqual({ hasAccess: false, accessType: "paid", price: 15000, testTitle: "Kinematika" });
+  });
+
+  it("ega (Test.userId) — 404 emas", async () => {
+    currentTest = { ...DRAFT, teacher: null, userId: "u1" };
+    expect((await check()).status).toBe(200);
+  });
 });
 
 describe("GET /api/subscription/check-access", () => {

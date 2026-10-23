@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { checkTestAccess } from '@/lib/access';
+import { resolveTestVisibility } from '@/lib/test-visibility';
 import { logger } from '@/lib/logger';
 
 /**
@@ -25,10 +26,23 @@ export async function GET(request: NextRequest) {
     // Get test info
     const test = await db.test.findUnique({
       where: { id: testId },
-      select: { id: true, isFree: true, accessType: true, price: true, titleUz: true },
+      select: {
+        id: true, isFree: true, accessType: true, price: true, titleUz: true,
+        isPublished: true, userId: true, teacher: { select: { userId: true } },
+      },
     });
 
     if (!test) {
+      return NextResponse.json({ error: 'Test not found' }, { status: 404 });
+    }
+
+    // Javobda sarlavha bor — qoralama testda GET /api/tests/[id] bilan bir xil
+    // qaror (lib/test-visibility.ts), aks holda id orqali nom oshkor bo'ladi.
+    const visible = await resolveTestVisibility(
+      { id: test.id, isPublished: test.isPublished, ownerUserIds: [test.teacher?.userId, test.userId] },
+      { userId, role: session.user.role }
+    );
+    if (!visible) {
       return NextResponse.json({ error: 'Test not found' }, { status: 404 });
     }
 

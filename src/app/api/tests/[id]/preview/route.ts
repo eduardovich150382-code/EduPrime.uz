@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { canViewTest } from '@/lib/test-visibility';
 import { logger } from '@/lib/logger';
 
 const PREVIEW_QUESTION_COUNT = 3;
@@ -34,7 +35,10 @@ export async function GET(
       },
     });
 
-    if (!test || !test.isPublished) {
+    // Ommaviy havola — ko'ruvchi noma'lum va kurs istisnosi ham yo'q: qoralama
+    // (kursga ulangan bo'lsa ham) har kim uchun 404, sarlavhasi meta teglarga
+    // (preview/[id]/layout.tsx) ham tushmaydi.
+    if (!test || !canViewTest({ isPublished: test.isPublished, ownerUserIds: [] }, {}, false)) {
       return NextResponse.json({ error: 'Test not found' }, { status: 404 });
     }
 

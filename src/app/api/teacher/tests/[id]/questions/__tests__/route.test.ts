@@ -97,7 +97,7 @@ function runWith(tx: unknown) {
 beforeEach(() => {
   vi.clearAllMocks();
   authMock.mockResolvedValue({ user: { id: "user1", role: "TEACHER" } });
-  findUniqueTestMock.mockResolvedValue({ id: "test1", teacher: { userId: "user1" } });
+  findUniqueTestMock.mockResolvedValue({ id: "test1", isPublished: true, teacher: { userId: "user1" } });
 });
 
 describe("PUT /api/teacher/tests/[id]/questions", () => {
@@ -258,7 +258,7 @@ describe("PUT /api/teacher/tests/[id]/questions", () => {
   });
 
   it("begona ustozning testiga yozmaydi", async () => {
-    findUniqueTestMock.mockResolvedValue({ id: "test1", teacher: { userId: "boshqa-user" } });
+    findUniqueTestMock.mockResolvedValue({ id: "test1", isPublished: true, teacher: { userId: "boshqa-user" } });
 
     const { response } = await callPut([validQuestion()]);
 

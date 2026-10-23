@@ -26,7 +26,7 @@ import {
   Video, FileText, ArrowLeft, Share2, RotateCcw,
   Loader2, AlertCircle, Play,
   X, Copy, ExternalLink, Filter, Bookmark, BarChart3, Bot,
-  Lock, Unlock, Crown, Sparkles, Info, ThumbsUp, ThumbsDown,
+  Lock, Unlock, Crown, Sparkles, Info, ThumbsUp, ThumbsDown, TrendingUp, BookOpen,
 } from 'lucide-react';
 
 interface QuestionOption {
@@ -106,7 +106,9 @@ export default function ResultPage() {
 
   const [result, setResult] = useState<ResultData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Server xabari bo'lsa o'zi, aks holda tarjima kaliti — effekt ichida `t`
+  // ishlatilsa u bog'liqlikka kirib, til almashganda natija qayta so'ralardi.
+  const [error, setError] = useState<{ serverMessage?: string; fallback: 'notFound' | 'serverError' } | null>(null);
   const [showExplanation, setShowExplanation] = useState<Record<string, boolean>>({});
   const [showVideo, setShowVideo] = useState<Record<string, boolean>>({});
   const [showAiExplain, setShowAiExplain] = useState<Record<string, boolean>>({});
@@ -145,10 +147,10 @@ export default function ResultPage() {
           setAttempts(data.attempts ? buildAttemptHistory(data.attempts) : null);
           setAttestation(data.attestation ?? null);
         } else {
-          setError(data.error || 'Natija topilmadi');
+          setError({ serverMessage: data.error, fallback: 'notFound' });
         }
       } catch (err) {
-        setError('Server bilan bog\'lanishda xatolik');
+        setError({ fallback: 'serverError' });
       }
       setLoading(false);
     }
@@ -168,7 +170,7 @@ export default function ResultPage() {
   const getShareText = () => {
     if (!result) return '';
     const scoreEmoji = result.percentage >= 80 ? '🏆' : result.percentage >= 60 ? '✅' : '📚';
-    return `${scoreEmoji} Men "${result.test.titleUz}" testidan ${result.percentage}% natija oldim!\n\nSiz ham o'zingizni sinab ko'ring va o'rganing!\n\nEduPrime.uz - bilimingizni sinash va oshirish platformasi`;
+    return `${scoreEmoji} ${t('shareText', { title: result.test.titleUz, percentage: result.percentage })}`;
   };
 
   const shareToTelegram = () => {
@@ -251,7 +253,7 @@ export default function ResultPage() {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setAiExplain(prev => ({ ...prev, [questionId]: { error: data.error || 'Xatolik yuz berdi' } }));
+        setAiExplain(prev => ({ ...prev, [questionId]: { error: data.error || t('genericError') } }));
         return;
       }
 
@@ -273,7 +275,7 @@ export default function ResultPage() {
       // Newly generated explanations stream in as plain text — show it as
       // it arrives instead of waiting for the whole thing
       if (!res.body) {
-        setAiExplain(prev => ({ ...prev, [questionId]: { error: 'Xatolik yuz berdi' } }));
+        setAiExplain(prev => ({ ...prev, [questionId]: { error: t('genericError') } }));
         return;
       }
 
@@ -300,10 +302,10 @@ export default function ResultPage() {
       }
 
       if (!accumulated.trim()) {
-        setAiExplain(prev => ({ ...prev, [questionId]: { error: "AI javob bera olmadi, qayta urinib ko'ring" } }));
+        setAiExplain(prev => ({ ...prev, [questionId]: { error: t('aiEmpty') } }));
       }
     } catch {
-      setAiExplain(prev => ({ ...prev, [questionId]: { error: "Server bilan bog'lanishda xatolik" } }));
+      setAiExplain(prev => ({ ...prev, [questionId]: { error: t('serverError') } }));
     }
   };
 
@@ -391,7 +393,7 @@ export default function ResultPage() {
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
           <Loader2 size={40} className="animate-spin text-primary-600 mx-auto mb-4" />
-          <p className="text-text-secondary">Natija yuklanmoqda...</p>
+          <p className="text-text-secondary">{t('loading')}</p>
         </div>
       </div>
     );
@@ -401,11 +403,11 @@ export default function ResultPage() {
     return (
       <div className="text-center py-20">
         <AlertCircle size={48} className="text-red-400 mx-auto mb-4" />
-        <h2 className="text-xl font-bold text-text-primary mb-2">Xatolik</h2>
-        <p className="text-text-secondary">{error || 'Natija topilmadi'}</p>
+        <h2 className="text-xl font-bold text-text-primary mb-2">{t('errorTitle')}</h2>
+        <p className="text-text-secondary">{error?.serverMessage || t(error?.fallback ?? 'notFound')}</p>
         <Link href="/tests" className="btn-primary mt-6 inline-flex items-center gap-2">
           <ArrowLeft size={16} />
-          Testlarga qaytish
+          {t('backToTests')}
         </Link>
       </div>
     );
@@ -481,7 +483,7 @@ export default function ResultPage() {
               className={SECONDARY_BUTTON_CLASS}
             >
               <Share2 size={16} aria-hidden="true" />
-              {shareSuccess ? 'Nusxalandi!' : 'Ulashish'}
+              {shareSuccess ? t('copied') : t('share')}
             </button>
           </div>
         </div>
@@ -493,17 +495,22 @@ export default function ResultPage() {
           result.percentage >= 50 ? 'bg-yellow-50 border-yellow-200' :
           'bg-red-50 border-red-200'
         }`}>
-          <p className={`text-sm font-medium text-center ${
-            result.percentage >= 90 ? 'text-green-700' :
-            result.percentage >= 70 ? 'text-blue-700' :
-            result.percentage >= 50 ? 'text-yellow-700' :
-            'text-red-700'
-          }`}>
-            {result.percentage >= 90 ? '🏆 Ajoyib natija! Siz ushbu mavzuni mukammal bilasiz!' :
-             result.percentage >= 70 ? '👏 Yaxshi natija! Bir oz mashq qilsangiz, a\'lochiga chiqasiz!' :
-             result.percentage >= 50 ? '💪 Yomon emas! Xatolarni tahlil qiling va qayta urinib ko\'ring.' :
-             '📚 Ko\'proq mashq kerak. Yechimlarni diqqat bilan o\'rganing va qayta ishlang.'}
-          </p>
+          {(() => {
+            // Emoji o'rniga lucide ikonka (dizayn qoidasi) — daraja chegaralari avvalgidek.
+            const level = result.percentage >= 90 ? 'excellent' : result.percentage >= 70 ? 'good' : result.percentage >= 50 ? 'fair' : 'low';
+            const Icon = { excellent: Trophy, good: ThumbsUp, fair: TrendingUp, low: BookOpen }[level];
+            return (
+              <p className={`flex items-center justify-center gap-2 text-sm font-medium text-center ${
+                level === 'excellent' ? 'text-green-700' :
+                level === 'good' ? 'text-blue-700' :
+                level === 'fair' ? 'text-yellow-700' :
+                'text-red-700'
+              }`}>
+                <Icon size={16} className="flex-shrink-0" aria-hidden="true" />
+                {t(`motivation.${level}`)}
+              </p>
+            );
+          })()}
         </div>}
       </motion.div>
 
@@ -526,7 +533,7 @@ export default function ResultPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-bold text-text-primary">Natijani ulashish</h3>
+              <h3 className="text-lg font-bold text-text-primary">{t('shareTitle')}</h3>
               <button
                 onClick={() => setShowShareModal(false)}
                 className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
@@ -538,10 +545,15 @@ export default function ResultPage() {
             {/* Share preview */}
             <div className="p-4 rounded-xl bg-primary-50 border border-primary-200 mb-6">
               <p className="text-sm text-text-primary">
-                {result.percentage >= 80 ? '🏆' : result.percentage >= 60 ? '✅' : '📚'} Men &ldquo;{result.test.titleUz}&rdquo; testidan <strong>{result.percentage}%</strong> natija oldim!
+                {result.percentage >= 80 ? '🏆' : result.percentage >= 60 ? '✅' : '📚'}{' '}
+                {t.rich('sharePreview', {
+                  title: result.test.titleUz,
+                  percentage: result.percentage,
+                  strong: (chunks) => <strong>{chunks}</strong>,
+                })}
               </p>
               <p className="text-sm text-text-secondary mt-2">
-                Siz ham o&apos;zingizni sinab ko&apos;ring va o&apos;rganing!
+                {t('shareInvite')}
               </p>
             </div>
 
@@ -554,7 +566,7 @@ export default function ResultPage() {
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
                 </svg>
-                Telegram orqali ulashish
+                {t('shareTelegram')}
               </button>
 
               <button
@@ -564,7 +576,7 @@ export default function ResultPage() {
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/>
                 </svg>
-                Instagram orqali ulashish
+                {t('shareInstagram')}
               </button>
 
               <button
@@ -574,7 +586,7 @@ export default function ResultPage() {
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                 </svg>
-                Facebook orqali ulashish
+                {t('shareFacebook')}
               </button>
 
               <button
@@ -582,7 +594,7 @@ export default function ResultPage() {
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-100 text-text-primary font-medium hover:bg-gray-200 transition-colors"
               >
                 <Copy size={22} className="text-text-secondary" />
-                Havolani nusxalash
+                {t('copyLink')}
               </button>
             </div>
           </motion.div>
@@ -600,7 +612,7 @@ export default function ResultPage() {
         className="result-review card min-w-0 p-4 sm:p-6 lg:p-8"
       >
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-xl font-bold text-text-primary sm:text-2xl">Savollar tahlili</h2>
+          <h2 className="text-xl font-bold text-text-primary sm:text-2xl">{t('reviewTitle')}</h2>
           <button
             onClick={() => setShowTimeAnalysis(!showTimeAnalysis)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
@@ -608,7 +620,7 @@ export default function ResultPage() {
             }`}
           >
             <BarChart3 size={14} />
-            Vaqt tahlili
+            {t('timeAnalysis')}
           </button>
         </div>
 
@@ -643,7 +655,7 @@ export default function ResultPage() {
           >
             <h4 className="text-sm font-semibold text-blue-800 mb-3 flex items-center gap-2">
               <Clock size={14} />
-              Har savolga sarflangan vaqt
+              {t('timePerQuestion')}
             </h4>
             <div className="space-y-2">
               {(() => {
@@ -681,10 +693,10 @@ export default function ResultPage() {
               })()}
             </div>
             <div className="flex items-center gap-4 mt-3 text-xs text-text-secondary">
-              <span className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-full bg-green-400" /> To&apos;g&apos;ri</span>
-              <span className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-full bg-red-400" /> Noto&apos;g&apos;ri</span>
-              <span className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-full bg-gray-300" /> Javobsiz</span>
-              <span className="ml-auto">Jami: {formatTime(result.timeSpent)}</span>
+              <span className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-full bg-green-400" /> {t('legendCorrect')}</span>
+              <span className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-full bg-red-400" /> {t('legendIncorrect')}</span>
+              <span className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-full bg-gray-300" /> {t('legendSkipped')}</span>
+              <span className="ml-auto">{t('totalTime', { time: formatTime(result.timeSpent) })}</span>
             </div>
           </motion.div>
         )}
@@ -693,9 +705,9 @@ export default function ResultPage() {
         <div className="flex items-center gap-2 mb-4 flex-wrap">
           <Filter size={14} className="text-text-secondary" />
           {([
-            { key: 'all' as const, label: `Barchasi (${result.test.questions.length})` },
-            { key: 'incorrect' as const, label: `Noto'g'ri (${incorrectCount})` },
-            { key: 'skipped' as const, label: `Javobsiz (${skippedCount})` },
+            { key: 'all' as const, label: t('filterAll', { count: result.test.questions.length }) },
+            { key: 'incorrect' as const, label: t('filterIncorrect', { count: incorrectCount }) },
+            { key: 'skipped' as const, label: t('filterSkipped', { count: skippedCount }) },
           ]).map((f) => (
             <button
               key={f.key}
@@ -721,7 +733,7 @@ export default function ResultPage() {
               className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-xl bg-primary-50 border-2 border-primary-200 hover:border-primary-400 hover:bg-primary-100 transition-all"
             >
               <Play size={20} className="text-primary-600" />
-              <span className="font-semibold text-primary-700">Umumiy videoyechim</span>
+              <span className="font-semibold text-primary-700">{t('generalVideo')}</span>
             </button>
             {showGeneralVideo && (
               <motion.div
@@ -731,7 +743,7 @@ export default function ResultPage() {
               >
                 <SecureYouTubePlayer
                   videoUrl={result.test.videoSolution}
-                  title={`${result.test.titleUz} - Videoyechim`}
+                  title={t('generalVideoTitle', { title: result.test.titleUz })}
                   onClose={() => setShowGeneralVideo(false)}
                 />
               </motion.div>
@@ -784,11 +796,11 @@ export default function ResultPage() {
                     <div className="flex items-center gap-3 mt-1 text-xs">
                       {!isSkipped && (
                         <span className={isCorrect ? 'text-green-600' : 'text-red-600'}>
-                          {isCorrect ? '✓ To\'g\'ri javob topildi' : '✗ Noto\'g\'ri javob'}
+                          {isCorrect ? `✓ ${t('answerCorrect')}` : `✗ ${t('answerIncorrect')}`}
                         </span>
                       )}
                       {isSkipped && (
-                        <span className="text-gray-500">Javob berilmagan</span>
+                        <span className="text-gray-500">{t('notAnswered')}</span>
                       )}
                     </div>
                   </div>
@@ -801,7 +813,7 @@ export default function ResultPage() {
                     {question.solutionKind === 'written' && (
                       <span
                         className="p-1.5 rounded-lg bg-blue-50"
-                        title={question.solutionUnlocked ? 'Yozma yechim bor' : t('unlockSolution')}
+                        title={question.solutionUnlocked ? t('hasWrittenSolution') : t('unlockSolution')}
                       >
                         {question.solutionUnlocked ? (
                           <FileText size={14} className="text-blue-600" />
@@ -813,7 +825,7 @@ export default function ResultPage() {
                     {question.solutionKind === 'video' && (
                       <span
                         className="p-1.5 rounded-lg bg-purple-50"
-                        title={question.solutionUnlocked ? 'Video yechim bor' : t('videoLockedPremium')}
+                        title={question.solutionUnlocked ? t('hasVideoSolution') : t('videoLockedPremium')}
                       >
                         {question.solutionUnlocked ? (
                           <Video size={14} className="text-purple-600" />
@@ -834,7 +846,7 @@ export default function ResultPage() {
                         <img
                           key={imgIdx}
                           src={img}
-                          alt={`Savol rasmi ${imgIdx + 1}`}
+                          alt={t('questionImage', { number: imgIdx + 1 })}
                           className="max-h-48 w-auto object-contain rounded-lg border border-border"
                         />
                       ))}
@@ -876,7 +888,7 @@ export default function ResultPage() {
                               <div className="flex items-start gap-3 p-3 rounded-xl border-2 border-green-400 bg-green-50">
                                 <CheckCircle size={16} className="text-green-600 flex-shrink-0 mt-0.5" />
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-xs text-text-secondary mb-1">To&apos;g&apos;ri javob(lar):</p>
+                                  <p className="text-xs text-text-secondary mb-1">{t('correctAnswers')}</p>
                                   <p className="review-copy font-medium text-green-700">
                                     {acceptedPerBlank.map((accepted) => accepted[0] || '').join(', ')}
                                   </p>
@@ -906,11 +918,11 @@ export default function ResultPage() {
                             {isCorrect ? <CheckCircle size={14} /> : isSkipped ? '?' : <XCircle size={14} />}
                           </div>
                           <div className="flex-1 min-w-0 pt-0.5">
-                            <p className="text-xs text-text-secondary mb-1">Sizning javobingiz:</p>
+                            <p className="text-xs text-text-secondary mb-1">{t('yourAnswer')}</p>
                             <p className={`review-copy font-medium ${
                               isCorrect ? 'text-green-700' : isSkipped ? 'text-gray-500' : 'text-red-700'
                             }`}>
-                              {isSkipped ? 'Javob berilmagan' : userAnswer}
+                              {isSkipped ? t('notAnswered') : userAnswer}
                             </p>
                           </div>
                           {isCorrect && <CheckCircle size={16} className="text-green-600 flex-shrink-0 mt-1" />}
@@ -922,7 +934,7 @@ export default function ResultPage() {
                               <CheckCircle size={14} />
                             </div>
                             <div className="flex-1 min-w-0 pt-0.5">
-                              <p className="text-xs text-text-secondary mb-1">To&apos;g&apos;ri javob:</p>
+                              <p className="text-xs text-text-secondary mb-1">{t('correctAnswer')}</p>
                               <p className="review-copy font-medium text-green-700">{question.correctAnswer}</p>
                             </div>
                           </div>
@@ -962,10 +974,10 @@ export default function ResultPage() {
                                   </div>
                                   <div className="review-copy min-w-0 basis-full text-right sm:basis-auto sm:max-w-[50%]">
                                     <p className={`font-medium ${rowCorrect ? 'text-green-700' : chosenText ? 'text-red-700' : 'text-gray-500'}`}>
-                                      {chosenText || 'Tanlanmagan'}
+                                      {chosenText || t('notSelected')}
                                     </p>
                                     {!rowCorrect && (
-                                      <p className="review-copy text-green-600 mt-0.5">To&apos;g&apos;ri: {pairs.right[i]}</p>
+                                      <p className="review-copy text-green-600 mt-0.5">{t('correctShort', { answer: pairs.right[i] })}</p>
                                     )}
                                   </div>
                                 </div>
@@ -1019,7 +1031,7 @@ export default function ResultPage() {
                             {option.image && (
                               <img
                                 src={option.image}
-                                alt="Variant rasmi"
+                                alt={t('optionImage')}
                                 className="mt-2 max-h-32 w-auto object-contain rounded-lg border border-border"
                               />
                             )}
@@ -1061,7 +1073,7 @@ export default function ResultPage() {
                         }`}
                       >
                         <FileText size={16} />
-                        Yozma yechim
+                        {t('writtenSolution')}
                       </button>
                     )}
 
@@ -1093,7 +1105,7 @@ export default function ResultPage() {
                         }`}
                       >
                         <Video size={16} />
-                        Videoyechim
+                        {t('videoSolution')}
                       </button>
                     )}
 
@@ -1126,7 +1138,7 @@ export default function ResultPage() {
                         }`}
                       >
                         <Bot size={16} />
-                        AI&apos;dan tushuntirish
+                        {t('aiExplainButton')}
                       </button>
                     )}
                   </div>
@@ -1143,7 +1155,7 @@ export default function ResultPage() {
                       className="mt-4 p-4 rounded-xl bg-blue-50 border border-blue-200"
                     >
                       <h4 className="text-sm font-semibold text-blue-800 mb-2 flex items-center gap-2">
-                        <FileText size={14} /> Yozma yechim
+                        <FileText size={14} /> {t('writtenSolution')}
                       </h4>
                       <div className="review-copy text-text-primary whitespace-pre-line">
                         <LatexRenderer content={question.explanation} />
@@ -1154,7 +1166,7 @@ export default function ResultPage() {
                             <img
                               key={imgIdx}
                               src={img}
-                              alt={`Yechim rasmi ${imgIdx + 1}`}
+                              alt={t('solutionImage', { number: imgIdx + 1 })}
                               className="max-h-48 w-auto object-contain rounded-lg border border-blue-100"
                             />
                           ))}
@@ -1172,7 +1184,7 @@ export default function ResultPage() {
                     >
                       <SecureYouTubePlayer
                         videoUrl={question.videoUrl}
-                        title={`${i + 1}-savol videoyechim`}
+                        title={t('questionVideoTitle', { number: i + 1 })}
                         onClose={() => toggleVideo(question.id)}
                       />
                     </motion.div>
@@ -1186,12 +1198,12 @@ export default function ResultPage() {
                       className="mt-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200"
                     >
                       <h4 className="text-sm font-semibold text-emerald-800 mb-2 flex items-center gap-2">
-                        <Bot size={14} /> AI tushuntirishi
+                        <Bot size={14} /> {t('aiExplainTitle')}
                       </h4>
                       {aiExplain[question.id]?.loading && (
                         <div className="flex items-center gap-2 text-sm text-emerald-700">
                           <Loader2 size={14} className="animate-spin" />
-                          AI tushuntirmoqda...
+                          {t('aiExplaining')}
                         </div>
                       )}
                       {aiExplain[question.id]?.error && (
