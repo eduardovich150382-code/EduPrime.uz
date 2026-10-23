@@ -663,7 +663,9 @@
       "subtitle": "Rasmiy spetsifikatsiya asosidagi mock testlar. Har bir savolga «Berilgan → Yechilishi → Javob» tartibida batafsil yechim berilgan.",
       "ctaNext": "Navbatdagi mock testni boshlash · №{number}",
       "ctaRetake": "Eng past natijani qayta yechish · №{number}",
-      "ctaStructure": "Imtihon tuzilmasi"
+      "ctaStructure": "Imtihon tuzilmasi",
+      "ctaTopicStart": "Mavzu testlaridan boshlash",
+      "ctaRetakeLowest": "Eng past natijani qayta yechish"
     },
     "countdown": {
       "before": "Attestatsiyagacha",
@@ -680,13 +682,14 @@
     },
     "list": {
       "title": "Mock testlar",
-      "empty": "Hozircha attestatsiya mock testlari yo'q.",
       "emptyFiltered": "Bu bo'limda test yo'q.",
       "lastScore": "Oxirgi natija: {score} / {max}",
       "lastPercent": "Oxirgi natija: {percent}%",
       "result": "Natija",
       "retake": "Qayta yechish",
-      "start": "Boshlash"
+      "start": "Boshlash",
+      "mocksEmpty": "Mock testlar tez orada qo'shiladi.",
+      "topicsTitle": "Mavzular bo'yicha testlar"
     },
     "filter": {
       "label": "Testlarni saralash",
@@ -704,7 +707,8 @@
       "average": "o'rtacha natija",
       "sections": "Bo'limlar",
       "topics": "Fizika mavzulari",
-      "answers": "{count} javob"
+      "answers": "{count} javob",
+      "solvedTopics": "{solved} / {total} mavzu testi yechildi"
     },
     "weak": {
       "title": "Zaif joy: {name}",

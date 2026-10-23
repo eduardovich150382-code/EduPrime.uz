@@ -38,7 +38,10 @@ export async function ReadinessPanel({ readiness }: { readiness: Readiness }) {
       <section className={card}>
         <h2 className="text-lg font-bold text-text-primary">{t('readiness.title')}</h2>
         <p className="mt-3 text-sm text-text-secondary">
-          {t('readiness.solved', { solved: readiness.solved, total: readiness.total })}
+          {t(readiness.progressKind === 'mock' ? 'readiness.solved' : 'readiness.solvedTopics', {
+            solved: readiness.solved,
+            total: readiness.total,
+          })}
         </p>
         {readiness.averagePercent !== null && (
           <p className="mt-2 flex items-baseline gap-2">

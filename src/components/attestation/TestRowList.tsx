@@ -15,9 +15,11 @@ const FILTERS: MockFilter[] = ['all', 'unsolved', 'solved'];
 // attestatsiya maqsad belgisi bilan bir xil juftlik.
 const SOLVED_PILL = { color: '#166534', background: '#dcfce7' };
 
+// Mock va mavzu testlari ro'yxati — bitta komponent, farqi faqat sarlavha,
+// bo'sh holat matni va tartib raqami (mavzu testida `number === null`).
 // Faqat server tayyorlagan qatorlarni chizadi — savol yoki javob ma'lumoti
 // bu komponentga hech qachon kelmaydi (lib/attestation-page.ts).
-export function MockList({ rows }: { rows: MockRow[] }) {
+export function TestRowList({ title, rows, emptyText }: { title: string; rows: MockRow[]; emptyText: string }) {
   const t = useTranslations('attestation');
   const tests = useTranslations('tests.card');
   const [filter, setFilter] = useState<MockFilter>('all');
@@ -26,7 +28,7 @@ export function MockList({ rows }: { rows: MockRow[] }) {
   return (
     <section className="min-w-0">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-xl font-bold text-text-primary">{t('list.title')}</h2>
+        <h2 className="text-xl font-bold text-text-primary">{title}</h2>
         {rows.length > 0 && (
           <div role="group" aria-label={t('filter.label')} className="overflow-x-auto">
             <div className="inline-flex rounded-xl border border-gray-200 bg-white p-1">
@@ -49,7 +51,7 @@ export function MockList({ rows }: { rows: MockRow[] }) {
       </div>
 
       {rows.length === 0 ? (
-        <p className="mt-4 rounded-2xl border border-gray-200 bg-white p-5 text-sm text-text-secondary">{t('list.empty')}</p>
+        <p className="mt-4 rounded-2xl border border-gray-200 bg-white p-5 text-sm text-text-secondary">{emptyText}</p>
       ) : visible.length === 0 ? (
         <p className="mt-4 rounded-2xl border border-gray-200 bg-white p-5 text-sm text-text-secondary">{t('list.emptyFiltered')}</p>
       ) : (
@@ -60,12 +62,14 @@ export function MockList({ rows }: { rows: MockRow[] }) {
               className="flex min-w-0 flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:p-5"
             >
               <div className="flex min-w-0 flex-1 items-start gap-3">
-                <span
-                  aria-hidden
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-base font-bold tabular-nums text-primary-700"
-                >
-                  {row.number}
-                </span>
+                {row.number !== null && (
+                  <span
+                    aria-hidden
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-base font-bold tabular-nums text-primary-700"
+                  >
+                    {row.number}
+                  </span>
+                )}
                 <div className="min-w-0 flex-1">
                   <h3 className="font-semibold leading-snug text-text-primary wrap-break-word">{row.title}</h3>
                   <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm text-text-secondary">

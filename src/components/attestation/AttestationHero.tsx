@@ -19,12 +19,29 @@ function formatDateKey(key: string, locale: string): string {
   }).format(new Date(Date.UTC(y, m - 1, d)));
 }
 
+// "№N" faqat mock uchun — mavzu testlarida tartib raqami ko'rsatilmaydi.
+function ctaLabel(
+  t: Awaited<ReturnType<typeof getTranslations<'attestation'>>>,
+  hero: NonNullable<AttestationPageData['hero']>,
+): string {
+  switch (hero.kind) {
+    case 'mockNext':
+      return t('hero.ctaNext', { number: hero.number ?? 0 });
+    case 'mockRetake':
+      return t('hero.ctaRetake', { number: hero.number ?? 0 });
+    case 'topicStart':
+      return t('hero.ctaTopicStart');
+    case 'topicRetake':
+      return t('hero.ctaRetakeLowest');
+  }
+}
+
 export async function AttestationHero({
-  next,
+  hero,
   date,
   locale,
 }: {
-  next: AttestationPageData['next'];
+  hero: AttestationPageData['hero'];
   date: string | null;
   locale: string;
 }) {
@@ -48,15 +65,17 @@ export async function AttestationHero({
           <p className="mt-3 text-sm text-[#ddd6fe] sm:text-base">{t('hero.subtitle')}</p>
 
           <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-            {next && (
+            {hero && (
               <Link
-                href={next.href}
+                href={hero.href}
                 className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#fbbf24] px-5 text-sm font-semibold text-[#451a03] transition-colors hover:bg-[#f59e0b]"
               >
-                {next.kind === 'next' ? <Play size={16} aria-hidden /> : <RotateCcw size={16} aria-hidden />}
-                {next.kind === 'next'
-                  ? t('hero.ctaNext', { number: next.number })
-                  : t('hero.ctaRetake', { number: next.number })}
+                {hero.kind === 'mockRetake' || hero.kind === 'topicRetake' ? (
+                  <RotateCcw size={16} aria-hidden />
+                ) : (
+                  <Play size={16} aria-hidden />
+                )}
+                {ctaLabel(t, hero)}
               </Link>
             )}
             <a

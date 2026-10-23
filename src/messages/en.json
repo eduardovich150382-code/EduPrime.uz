@@ -663,7 +663,9 @@
       "subtitle": "Mock tests based on the official specification. Every question has a detailed solution: Given → Solution → Answer.",
       "ctaNext": "Start the next mock test · №{number}",
       "ctaRetake": "Retake your lowest score · №{number}",
-      "ctaStructure": "Exam structure"
+      "ctaStructure": "Exam structure",
+      "ctaTopicStart": "Start with topic tests",
+      "ctaRetakeLowest": "Retake your lowest score"
     },
     "countdown": {
       "before": "Attestation in",
@@ -680,13 +682,14 @@
     },
     "list": {
       "title": "Mock tests",
-      "empty": "No attestation mock tests yet.",
       "emptyFiltered": "No tests here.",
       "lastScore": "Last score: {score} / {max}",
       "lastPercent": "Last score: {percent}%",
       "result": "Result",
       "retake": "Retake",
-      "start": "Start"
+      "start": "Start",
+      "mocksEmpty": "Mock tests are coming soon.",
+      "topicsTitle": "Tests by topic"
     },
     "filter": {
       "label": "Filter tests",
@@ -704,7 +707,8 @@
       "average": "average score",
       "sections": "Sections",
       "topics": "Physics topics",
-      "answers": "{count} answers"
+      "answers": "{count} answers",
+      "solvedTopics": "{solved} / {total} topic tests solved"
     },
     "weak": {
       "title": "Weak spot: {name}",

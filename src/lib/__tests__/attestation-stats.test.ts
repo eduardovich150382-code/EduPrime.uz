@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
+  classifyAttestationTests,
   computeProgress,
   computeSectionStats,
   computeTopicStats,
@@ -7,6 +8,7 @@ import {
   normalizeTopicHead,
   parsePositiveInt,
   parseResultAnswers,
+  pickHeroTarget,
   pickNextMock,
   pickWeakSpot,
   type AnswerEntry,
@@ -154,7 +156,7 @@ describe('computeTopicStats', () => {
       ['c', 'fizika', 'Optika'],
       ['d', 'pedagogika', 'Didaktika'],
     ]);
-    const stats = computeTopicStats([answers([['a', true], ['b', false], ['c', true], ['d', false]])], m);
+    const stats = computeTopicStats({ mock: [answers([['a', true], ['b', false], ['c', true], ['d', false]])], topic: [] }, m);
     expect(stats).toEqual([
       { key: 'mexanika', label: 'Mexanika', correct: 1, total: 2, percent: 50 },
       { key: 'optika', label: 'Optika', correct: 1, total: 1, percent: 100 },
@@ -164,14 +166,58 @@ describe('computeTopicStats', () => {
   it("topic'siz ulush 30% dan oshsa null, aynan 30% da hisoblanadi", () => {
     const ids = Array.from({ length: 10 }, (_, i) => `q${i}`);
     const at30 = meta(ids.map((id, i) => [id, 'fizika', i < 3 ? null : 'Optika']));
-    expect(computeTopicStats([answers(ids.map((id) => [id, true]))], at30)).not.toBeNull();
+    expect(computeTopicStats({ mock: [answers(ids.map((id) => [id, true]))], topic: [] }, at30)).not.toBeNull();
 
     const at40 = meta(ids.map((id, i) => [id, 'fizika', i < 4 ? null : 'Optika']));
-    expect(computeTopicStats([answers(ids.map((id) => [id, true]))], at40)).toBeNull();
+    expect(computeTopicStats({ mock: [answers(ids.map((id) => [id, true]))], topic: [] }, at40)).toBeNull();
+  });
+
+  it("mavzu testlarining barcha javoblari tegsiz ham fizika deb olinadi", () => {
+    const m = meta([
+      ['t1', null, 'Mexanika: Dinamika'],
+      ['t2', null, 'Optika: Linzalar'],
+    ]);
+    expect(computeTopicStats({ mock: [], topic: [answers([['t1', false], ['t2', true]])] }, m)).toEqual([
+      { key: 'mexanika', label: 'Mexanika', correct: 0, total: 1, percent: 0 },
+      { key: 'optika', label: 'Optika', correct: 1, total: 1, percent: 100 },
+    ]);
+  });
+
+  it("mock'da tegsiz savol fizika hisoblanmaydi, mavzu testida esa hisoblanadi", () => {
+    const m = meta([
+      ['mx', null, 'Mexanika'],
+      ['tx', null, 'Mexanika'],
+    ]);
+    expect(computeTopicStats({ mock: [answers([['mx', true]])], topic: [] }, m)).toBeNull();
+    expect(computeTopicStats({ mock: [], topic: [answers([['tx', true]])] }, m)?.[0].total).toBe(1);
+  });
+
+  it("aralash: mock fizikasi + mavzu testlari bitta mavzuda qo'shiladi, 30% chegarasi umumiy", () => {
+    const m = meta([
+      ['f1', 'fizika', 'Mexanika: Kinematika'],
+      ['p1', 'pedagogika', 'Didaktika'],
+      ['t1', null, 'mexanika: Dinamika'],
+      ['t2', null, null],
+    ]);
+    const stats = computeTopicStats(
+      { mock: [answers([['f1', true], ['p1', false]])], topic: [answers([['t1', true], ['t2', false]])] },
+      m,
+    );
+    // 3 ta fizika javobidan 1 tasi topic'siz (33%) — chegaradan oshadi.
+    expect(stats).toBeNull();
+
+    const m2 = new Map(m);
+    m2.set('t2', { tags: [], topic: 'Optika' });
+    expect(
+      computeTopicStats({ mock: [answers([['f1', true], ['p1', false]])], topic: [answers([['t1', true], ['t2', false]])] }, m2),
+    ).toEqual([
+      { key: 'mexanika', label: 'Mexanika', correct: 2, total: 2, percent: 100 },
+      { key: 'optika', label: 'Optika', correct: 0, total: 1, percent: 0 },
+    ]);
   });
 
   it("fizika javobi yo'q bo'lsa null", () => {
-    expect(computeTopicStats([answers([['p', true]])], meta([['p', 'pedagogika', 'X']]))).toBeNull();
+    expect(computeTopicStats({ mock: [answers([['p', true]])], topic: [] }, meta([['p', 'pedagogika', 'X']]))).toBeNull();
   });
 });
 
@@ -221,5 +267,70 @@ describe('parsePositiveInt', () => {
     for (const v of [undefined, null, '', '0', '-1', '45 daqiqa', '1.5', 'abc', '99999999999999999999']) {
       expect(parsePositiveInt(v)).toBeNull();
     }
+  });
+});
+
+describe('classifyAttestationTests', () => {
+  const tests = [{ id: 'a' }, { id: 'b' }, { id: 'c' }, { id: 'd' }];
+  const tag = (k: string) => [`section:${k}`];
+
+  it("mock yo'q — hamma mavzu testi (tegsiz, qisman tegli, savolsiz)", () => {
+    const { mocks, topics } = classifyAttestationTests(tests, [
+      { testId: 'a', tags: [] },
+      { testId: 'b', tags: tag('fizika') },
+      { testId: 'b', tags: [] },
+      { testId: 'c', tags: ['boshqa'] },
+    ]);
+    expect(mocks).toEqual([]);
+    expect(topics.map((t) => t.id)).toEqual(['a', 'b', 'c', 'd']);
+  });
+
+  it("faqat mock — barcha savollarda section: tegi", () => {
+    const { mocks, topics } = classifyAttestationTests(tests.slice(0, 2), [
+      { testId: 'a', tags: tag('fizika') },
+      { testId: 'a', tags: tag('pedagogika') },
+      { testId: 'b', tags: tag('kasb-standarti') },
+    ]);
+    expect(mocks.map((t) => t.id)).toEqual(['a', 'b']);
+    expect(topics).toEqual([]);
+  });
+
+  it("aralash — kirish tartibi saqlanadi, noma'lum section kaliti mock emas", () => {
+    const { mocks, topics } = classifyAttestationTests(tests, [
+      { testId: 'a', tags: [] },
+      { testId: 'b', tags: tag('fizika') },
+      { testId: 'c', tags: tag('nomalum') },
+      { testId: 'd', tags: tag('pedagogika') },
+    ]);
+    expect(mocks.map((t) => t.id)).toEqual(['b', 'd']);
+    expect(topics.map((t) => t.id)).toEqual(['a', 'c']);
+  });
+});
+
+describe('pickHeroTarget', () => {
+  const mocks = [{ id: 'm1' }, { id: 'm2' }];
+  const topics = [{ id: 't1' }, { id: 't2' }];
+
+  it("hech narsa yo'q bo'lsa null", () => {
+    expect(pickHeroTarget([], [], new Map())).toBeNull();
+  });
+
+  it('faqat mock — raqamli', () => {
+    expect(pickHeroTarget(mocks, [], new Map([['m1', { percentage: 50 }]]))).toEqual({ kind: 'mockNext', testId: 'm2', number: 2 });
+    expect(
+      pickHeroTarget(mocks, [], new Map([['m1', { percentage: 50 }], ['m2', { percentage: 30 }]])),
+    ).toEqual({ kind: 'mockRetake', testId: 'm2', number: 2 });
+  });
+
+  it("mock yo'q — mavzu testlari, raqamsiz", () => {
+    expect(pickHeroTarget([], topics, new Map([['t1', { percentage: 90 }]]))).toEqual({ kind: 'topicStart', testId: 't2', number: null });
+    expect(
+      pickHeroTarget([], topics, new Map([['t1', { percentage: 20 }], ['t2', { percentage: 80 }]])),
+    ).toEqual({ kind: 'topicRetake', testId: 't1', number: null });
+  });
+
+  it("aralash — mavzu testlari yechilmagan bo'lsa ham mock ustida", () => {
+    const latest = new Map([['m1', { percentage: 70 }], ['m2', { percentage: 40 }]]);
+    expect(pickHeroTarget(mocks, topics, latest)).toEqual({ kind: 'mockRetake', testId: 'm2', number: 2 });
   });
 });

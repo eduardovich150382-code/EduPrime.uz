@@ -6,14 +6,16 @@ import { getCardLinks, getCardState, getLockBadge, latestResultByTest, type Brie
 import { loginHref } from './safe-return-path';
 import { resolveTopicNodes } from './topic-bridge';
 import {
+  classifyAttestationTests,
   computeProgress,
   computeSectionStats,
   computeTopicStats,
   normalizeTopicHead,
   parsePositiveInt,
   parseResultAnswers,
-  pickNextMock,
+  pickHeroTarget,
   pickWeakSpot,
+  type HeroTarget,
   type QuestionMeta,
   type SectionStat,
   type TopicStat,
@@ -39,8 +41,8 @@ export interface AttestationSettings {
 
 export interface MockRow {
   id: string;
-  /** Ro'yxatdagi o'rin (createdAt o'sish tartibi), 1 dan. */
-  number: number;
+  /** Mock ro'yxatidagi o'rin (createdAt o'sish tartibi), 1 dan; mavzu testida `null`. */
+  number: number | null;
   title: string;
   questionCount: number;
   solved: boolean;
@@ -63,6 +65,8 @@ export interface WeakSpotView {
 }
 
 export interface Readiness {
+  /** Mock hali yo'q bo'lsa progress mavzu testlari bo'yicha. */
+  progressKind: 'mock' | 'topic';
   solved: number;
   total: number;
   averagePercent: number | null;
@@ -73,8 +77,9 @@ export interface Readiness {
 
 export interface AttestationPageData {
   settings: AttestationSettings;
-  rows: MockRow[];
-  next: { kind: 'next' | 'retakeLowest'; number: number; href: string } | null;
+  mockRows: MockRow[];
+  topicRows: MockRow[];
+  hero: { kind: HeroTarget['kind']; number: number | null; href: string } | null;
   /** `null` — kirmagan foydalanuvchi. */
   readiness: Readiness | null;
 }
@@ -128,15 +133,25 @@ export async function loadAttestationPage(
     : [];
   const testIds = tests.map((t) => t.id);
 
-  const [results, accessContext] = user && testIds.length
+  // Tasniflash uchun teglar bitta so'rovda (N+1 yo'q). Faqat teg va mavzu —
+  // matn, variant va to'g'ri javob tanlanmaydi.
+  const [questions, results, accessContext] = testIds.length
     ? await Promise.all([
-        db.testResult.findMany({
-          where: { userId: user.id, testId: { in: testIds } },
-          select: { id: true, testId: true, score: true, maxScore: true, percentage: true, completedAt: true, answers: true },
+        db.question.findMany({
+          where: { testId: { in: testIds } },
+          select: { id: true, testId: true, tags: true, topic: true },
         }),
-        loadTestAccessContext(user.id, user.role, tests),
+        user
+          ? db.testResult.findMany({
+              where: { userId: user.id, testId: { in: testIds } },
+              select: { id: true, testId: true, score: true, maxScore: true, percentage: true, completedAt: true, answers: true },
+            })
+          : [],
+        user ? loadTestAccessContext(user.id, user.role, tests) : null,
       ])
-    : [[], null];
+    : [[], [], null];
+
+  const { mocks, topics: topicTests } = classifyAttestationTests(tests, questions);
 
   const brief: BriefResult[] = results.flatMap((r) =>
     r.testId
@@ -145,13 +160,13 @@ export async function loadAttestationPage(
   );
   const latest = latestResultByTest(brief);
 
-  const rows: MockRow[] = tests.map((test, index) => {
+  const toRow = (test: (typeof tests)[number], number: number | null): MockRow => {
     const result = latest.get(test.id);
     const state = getCardState(test, result, resolveTestAccess(test, accessContext));
     const links = getCardLinks(test.id, state);
     return {
       id: test.id,
-      number: index + 1,
+      number,
       title: localizedTitle(test, locale),
       questionCount: test.questionCount,
       solved: state.kind === 'solved',
@@ -165,52 +180,57 @@ export async function loadAttestationPage(
       locked: state.kind === 'buy' || state.kind === 'upgrade',
       lockBadge: getLockBadge(test, state),
     };
-  });
+  };
+  const mockRows = mocks.map((test, index) => toRow(test, index + 1));
+  const topicRows = topicTests.map((test) => toRow(test, null));
 
-  const nextPick = pickNextMock(tests, latest);
-  const next = nextPick
-    ? { kind: nextPick.kind, number: nextPick.number, href: rows[nextPick.number - 1].primaryHref }
-    : null;
+  const target = pickHeroTarget(mocks, topicTests, latest);
+  const targetRow = target && [...mockRows, ...topicRows].find((r) => r.id === target.testId);
+  const hero = target && targetRow ? { kind: target.kind, number: target.number, href: targetRow.primaryHref } : null;
 
-  if (!user) return { settings, rows, next, readiness: null };
+  if (!user) return { settings, mockRows, topicRows, hero, readiness: null };
 
-  const progress = computeProgress(testIds, latest);
-  const latestIds = new Set([...latest.values()].map((r) => r.id));
-  const answerSets = results.filter((r) => latestIds.has(r.id)).map((r) => parseResultAnswers(r.answers));
+  const progressKind = mocks.length > 0 ? 'mock' : 'topic';
+  const progress = computeProgress((progressKind === 'mock' ? mocks : topicTests).map((t) => t.id), latest);
 
-  let sections: SectionStat[] | null = null;
-  let topics: TopicStat[] | null = null;
-  let weakSpot: WeakSpotView | null = null;
-
-  if (answerSets.length > 0) {
-    // Faqat teg va mavzu — matn, variant va to'g'ri javob tanlanmaydi.
-    const questions = await db.question.findMany({
-      where: { testId: { in: [...latest.keys()] } },
-      select: { id: true, testId: true, tags: true, topic: true },
+  // Har test bo'yicha oxirgi urinish javoblari, mock va mavzu testi alohida.
+  const resultById = new Map(results.map((r) => [r.id, r]));
+  const latestAnswers = (list: { id: string }[]) =>
+    list.flatMap((t) => {
+      const last = latest.get(t.id);
+      const full = last && resultById.get(last.id);
+      return full ? [parseResultAnswers(full.answers)] : [];
     });
-    const meta = new Map<string, QuestionMeta>(questions.map((q) => [q.id, { tags: q.tags, topic: q.topic }]));
-    sections = computeSectionStats(answerSets, meta);
-    topics = computeTopicStats(answerSets, meta);
+  const mockAnswers = latestAnswers(mocks);
+  const topicAnswers = latestAnswers(topicTests);
 
-    const spot = pickWeakSpot(sections, topics);
-    if (spot) {
-      weakSpot = {
-        section: spot.section.key,
-        topicLabel: spot.topic?.label ?? null,
-        percent: spot.topic?.percent ?? spot.section.percent,
-        href: spot.topic ? await buildHrefForTopic(spot.topic.key, questions, tests) : '/build',
-      };
-    }
+  const meta = new Map<string, QuestionMeta>(questions.map((q) => [q.id, { tags: q.tags, topic: q.topic }]));
+  // Bo'limlar faqat mock javoblaridan — mavzu testlarida `section:` tegi yo'q.
+  const sections: SectionStat[] | null = mockAnswers.length ? computeSectionStats(mockAnswers, meta) : null;
+  const topicStats: TopicStat[] | null =
+    mockAnswers.length || topicAnswers.length ? computeTopicStats({ mock: mockAnswers, topic: topicAnswers }, meta) : null;
+
+  let weakSpot: WeakSpotView | null = null;
+  const spot = pickWeakSpot(sections, topicStats);
+  if (spot) {
+    weakSpot = {
+      section: spot.section.key,
+      topicLabel: spot.topic?.label ?? null,
+      percent: spot.topic?.percent ?? spot.section.percent,
+      href: spot.topic ? await buildHrefForTopic(spot.topic.key, questions, tests) : '/build',
+    };
   }
 
   return {
     settings,
-    rows,
-    next,
+    mockRows,
+    topicRows,
+    hero,
     readiness: {
+      progressKind,
       ...progress,
       sections,
-      topics: topics?.map(({ label, percent, total }) => ({ label, percent, total })) ?? null,
+      topics: topicStats?.map(({ label, percent, total }) => ({ label, percent, total })) ?? null,
       weakSpot,
     },
   };

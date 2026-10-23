@@ -1,4 +1,4 @@
-import { getQuestionSection, SECTION_KEYS, type SectionKey } from './question-sections';
+import { getQuestionSection, groupBySection, SECTION_KEYS, type SectionKey } from './question-sections';
 
 // /attestation sahifasidagi "Sizning tayyorgarligingiz" paneli uchun sof
 // hisob-kitoblar. Kirish ma'lumoti serverda (lib/attestation-page.ts)
@@ -113,6 +113,56 @@ export function pickNextMock(tests: { id: string }[], latest: Map<string, Latest
 }
 
 /**
+ * ATTESTATION kategoriyasidagi testlarni ikkiga ajratadi (migratsiyasiz,
+ * S13 teglariga tayanib): **mock** — barcha savollarida `section:` tegi bor
+ * test (`groupBySection` null emas), **mavzu testi** — qolganlari (bitta
+ * bob, faqat fizika, tegsiz). Savolsiz test ham mavzu testi: bo'sh testni
+ * mock deb ko'rsatish "50 savol" va'dasini buzardi. Kirish tartibi saqlanadi.
+ */
+export function classifyAttestationTests<T extends { id: string }>(
+  tests: T[],
+  questions: { testId: string; tags: unknown }[],
+): { mocks: T[]; topics: T[] } {
+  const byTest = new Map<string, { tags: unknown }[]>();
+  for (const q of questions) {
+    const list = byTest.get(q.testId) ?? [];
+    list.push({ tags: q.tags });
+    byTest.set(q.testId, list);
+  }
+  const mocks: T[] = [];
+  const topics: T[] = [];
+  for (const test of tests) {
+    (groupBySection(byTest.get(test.id) ?? []) ? mocks : topics).push(test);
+  }
+  return { mocks, topics };
+}
+
+export type HeroTarget = {
+  kind: 'mockNext' | 'mockRetake' | 'topicStart' | 'topicRetake';
+  testId: string;
+  /** Faqat mock uchun — "№N" ro'yxatdagi o'rin. Mavzu testida raqam yo'q. */
+  number: number | null;
+};
+
+/**
+ * Hero tugmasi. Mock bo'lsa — `pickNextMock` faqat mocklar ustida; mock
+ * hali yo'q bo'lsa xuddi shu qoida mavzu testlari ustida (raqamsiz).
+ */
+export function pickHeroTarget(
+  mocks: { id: string }[],
+  topics: { id: string }[],
+  latest: Map<string, LatestLike>,
+): HeroTarget | null {
+  if (mocks.length > 0) {
+    const pick = pickNextMock(mocks, latest)!;
+    return { kind: pick.kind === 'next' ? 'mockNext' : 'mockRetake', testId: pick.testId, number: pick.number };
+  }
+  const pick = pickNextMock(topics, latest);
+  if (!pick) return null;
+  return { kind: pick.kind === 'next' ? 'topicStart' : 'topicRetake', testId: pick.testId, number: null };
+}
+
+/**
  * Bo'limlar bo'yicha foiz. Faqat `section:` tegi bor savollar hisobga
  * olinadi; tegli javob umuman bo'lmasa `null` — panel bu qatorni chiqarmaydi.
  * Natija `SECTION_KEYS` tartibida, javobsiz bo'lim tushib qoladi.
@@ -144,33 +194,46 @@ export function computeSectionStats(
 export const MAX_UNTOPICED_SHARE = 0.3;
 
 /**
- * Fizika bo'limi ichida mavzular (":" dan oldingi qism bo'yicha). Topic'siz
- * savollar ulushi `MAX_UNTOPICED_SHARE` dan oshsa `null`: qolgan foizlar
- * kichik, tasodifiy tanlanma bo'lib, chalg'itadi. Saralash — javoblar soni
- * bo'yicha kamayish, teng bo'lsa nom bo'yicha (barqaror tartib).
+ * Fizika mavzulari (":" dan oldingi qism bo'yicha). Ikki manba:
+ * mock'lardan faqat `section:fizika` savollar, mavzu testlaridan esa barcha
+ * javoblar — ular faqat fizika va `section:` tegsiz.
+ *
+ * Topic'siz savollar ulushi `MAX_UNTOPICED_SHARE` dan oshsa `null`: qolgan
+ * foizlar kichik, tasodifiy tanlanma bo'lib, chalg'itadi. Saralash — javoblar
+ * soni bo'yicha kamayish, teng bo'lsa nom bo'yicha (barqaror tartib).
  */
 export function computeTopicStats(
-  answerSets: AnswerEntry[][],
+  sources: { mock: AnswerEntry[][]; topic: AnswerEntry[][] },
   meta: Map<string, QuestionMeta>,
 ): TopicStat[] | null {
   let physicsTotal = 0;
   let untopiced = 0;
   const groups = new Map<string, { label: string; correct: number; total: number }>();
-  for (const answers of answerSets) {
-    for (const a of answers) {
-      const q = meta.get(a.questionId);
-      if (!q || getQuestionSection(q.tags) !== 'fizika') continue;
-      physicsTotal += 1;
-      const head = normalizeTopicHead(q.topic);
-      if (!head) {
-        untopiced += 1;
-        continue;
-      }
-      const g = groups.get(head.key) ?? { label: head.label, correct: 0, total: 0 };
-      g.total += 1;
-      if (a.isCorrect) g.correct += 1;
-      groups.set(head.key, g);
+  const physicsAnswers = [
+    ...sources.mock.flatMap((answers) =>
+      answers.flatMap((a) => {
+        const q = meta.get(a.questionId);
+        return q && getQuestionSection(q.tags) === 'fizika' ? [{ a, q }] : [];
+      }),
+    ),
+    ...sources.topic.flatMap((answers) =>
+      answers.flatMap((a) => {
+        const q = meta.get(a.questionId);
+        return q ? [{ a, q }] : [];
+      }),
+    ),
+  ];
+  for (const { a, q } of physicsAnswers) {
+    physicsTotal += 1;
+    const head = normalizeTopicHead(q.topic);
+    if (!head) {
+      untopiced += 1;
+      continue;
     }
+    const g = groups.get(head.key) ?? { label: head.label, correct: 0, total: 0 };
+    g.total += 1;
+    if (a.isCorrect) g.correct += 1;
+    groups.set(head.key, g);
   }
   if (physicsTotal === 0 || untopiced / physicsTotal > MAX_UNTOPICED_SHARE) return null;
   return [...groups.entries()]
