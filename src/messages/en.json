@@ -249,7 +249,13 @@
     "quotaExceededCta": "Get Premium",
     "quotaExceededClose": "Close",
     "distractorWhyLabel": "Why this answer is wrong:",
-    "wasHelpful": "Was this helpful?"
+    "wasHelpful": "Was this helpful?",
+    "retake": "Retake",
+    "retakeTitle": "Want to improve your score?",
+    "retakeSubtitle": "Review your mistakes and take the test again.",
+    "attempt": "Attempt {number}",
+    "attemptsHistory": "Attempts",
+    "attemptScore": "{score} / {max}"
   },
   "sessionSolve": {
     "exitButton": "Exit test",
@@ -573,7 +579,10 @@
       "body": "{answered} of {total} questions answered.",
       "restart": "Start over",
       "submit": "Submit my answers"
-    }
+    },
+    "legendCorrect": "Correct ({count})",
+    "legendIncorrect": "Incorrect ({count})",
+    "legendUnanswered": "Unanswered ({count})"
   },
   "tests": {
     "title": "Tests",

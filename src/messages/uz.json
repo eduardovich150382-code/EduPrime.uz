@@ -249,7 +249,13 @@
     "quotaExceededCta": "Premium olish",
     "quotaExceededClose": "Yopish",
     "distractorWhyLabel": "Nega bu javob noto'g'ri:",
-    "wasHelpful": "Foydali bo'ldimi?"
+    "wasHelpful": "Foydali bo'ldimi?",
+    "retake": "Qayta yechish",
+    "retakeTitle": "Natijangizni yaxshilamoqchimisiz?",
+    "retakeSubtitle": "Xatolarni tahlil qilib, testni qayta yeching.",
+    "attempt": "{number}-urinish",
+    "attemptsHistory": "Urinishlar",
+    "attemptScore": "{score} / {max}"
   },
   "sessionSolve": {
     "exitButton": "Testdan chiqish",
@@ -573,7 +579,10 @@
       "body": "{answered} / {total} savolga javob berilgan.",
       "restart": "Yangidan boshlash",
       "submit": "Javoblarimni topshirish"
-    }
+    },
+    "legendCorrect": "To‘g‘ri ({count})",
+    "legendIncorrect": "Xato ({count})",
+    "legendUnanswered": "Javob berilmagan ({count})"
   },
   "tests": {
     "title": "Testlar",
