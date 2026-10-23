@@ -45,8 +45,8 @@ export default function ResultQuestionMap({ questions, answers, onSelect, catego
       {index + 1}<Icon size={11} aria-hidden="true" className="absolute right-1 top-1" />
     </button>;
   };
-  // Attestatsiyada savollar aralashtiriladi, shuning uchun bo'lim raqamlari
-  // ko'pincha uzluksiz emas — `sectionRange` null bo'lsa sarlavhada son chiqadi.
+  // Eski (bo'limlashdan oldingi) urinishlarda bo'lim raqamlari uzluksiz
+  // bo'lmasligi mumkin — `sectionRange` null bo'lsa sarlavhada son chiqadi.
   const groups = categoryType === 'ATTESTATION' ? groupBySection(questions) : null;
   return <section className="rounded-[18px] border border-border bg-white p-4 sm:p-6" aria-label={t('resultMap', { count: questions.length })}>
     <h2 className="text-base font-semibold text-text-primary sm:text-lg">{t('resultMap', { count: questions.length })}</h2>

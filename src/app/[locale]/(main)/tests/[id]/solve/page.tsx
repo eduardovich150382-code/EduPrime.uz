@@ -23,6 +23,7 @@ interface QuestionData {
   points: number;
   order: number;
   subjectId?: string | null; // Faqat generatsiya qilingan (DTM Online) testlarda — bo'lim belgisi
+  section?: string | null; // Faqat bo'limli attestatsiya testida — blokni aralashtirishda saqlash uchun
   hints?: string[]; // S20a — bo'lim-asosidagi (generatsiya qilingan) testlarda ataylab bo'sh (qarang GET /api/tests/[id])
 }
 

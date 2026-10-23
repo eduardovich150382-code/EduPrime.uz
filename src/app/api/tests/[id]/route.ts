@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
-import { shuffleTest } from '@/lib/shuffle';
+import { planQuestionOrder, shuffleTest } from '@/lib/shuffle';
+import { getQuestionSection, groupBySection } from '@/lib/question-sections';
 import { checkTestAccess } from '@/lib/access';
 import { logger } from '@/lib/logger';
 
@@ -65,9 +66,19 @@ export async function GET(
         order: true,
         subjectId: true, // Faqat generatsiya qilingan (masalan DTM Online) testlarda to'ldirilgan — bo'lim belgisi
         hints: true, // S20a — "Ko'rsatma" tugmasi (yechish sahifasida)
+        tags: true, // Faqat bo'lim aniqlash uchun — javobdan olib tashlanadi
         // NOT including correctAnswer — foydalanuvchi ko'rmasligi kerak
       },
     });
+
+    // Attestatsiya: barcha savollarda `section:` tegi bo'lsa, haqiqiy imtihon
+    // kabi bo'limlar ketma-ket keladi. Kategoriya faqat teglar to'liq bo'lgandagina
+    // so'raladi — boshqa testlarga qo'shimcha so'rov tushmasin.
+    let bySection = false;
+    if (groupBySection(rawQuestions)) {
+      const category = await db.testCategory.findUnique({ where: { id: test.categoryId }, select: { type: true } });
+      bySection = category?.type === 'ATTESTATION';
+    }
 
     // Bo'limlarga bo'lingan generatsiya qilingan testlarda (masalan DTM
     // Online) taqdimot tartibi (mutaxassislik 1 → 2 → majburiy fanlar)
@@ -83,10 +94,21 @@ export async function GET(
       : rawQuestions;
 
     // Shuffle questions and options for authenticated users (anti-cheating)
-    let questions = questionsWithHints;
+    let shuffled = questionsWithHints;
     if (userId) {
-      questions = shuffleTest(questionsWithHints, userId, id, { preserveOrder });
+      shuffled = shuffleTest(questionsWithHints, userId, id, { preserveOrder, bySection });
+    } else if (bySection) {
+      // Kirmagan foydalanuvchida aralashtirish yo'q, lekin bazadagi tartib
+      // bo'limlar bo'yicha aralash bo'lishi mumkin — ajratilmasa mijozdagi
+      // shufflePresentedQuestions ko'p mayda guruh hosil qilardi.
+      shuffled = planQuestionOrder(questionsWithHints, 0, { preserveOrder: true, bySection: true }).map((entry) => entry.question);
     }
+
+    // `tags` aralashtirishdan KEYIN olinadi (bo'limlash unga tayanadi). Bo'limli
+    // bo'lmagan testlarda javob avvalgidek — qo'shimcha maydonsiz.
+    const questions = shuffled.map(({ tags, ...question }) =>
+      bySection ? { ...question, section: getQuestionSection(tags) } : question
+    );
 
     return NextResponse.json({
       test: {
