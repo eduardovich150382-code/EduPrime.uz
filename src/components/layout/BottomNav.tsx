@@ -3,9 +3,9 @@
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useSession } from 'next-auth/react';
-import { Link } from '@/i18n/routing';
+import { Link, usePathname as useLocalePathname } from '@/i18n/routing';
 import { Menu, User, BookOpen, Wand2, Award, LogIn } from 'lucide-react';
-import { ATTESTATION_HREF } from '@/lib/nav-links';
+import { ATTESTATION_HREF, isAttestationPath } from '@/lib/nav-links';
 import { loginHref } from '@/lib/safe-return-path';
 
 interface BottomNavProps {
@@ -17,6 +17,7 @@ export default function BottomNav({ onMenuClick }: BottomNavProps) {
   const t = useTranslations('nav');
   const tCommon = useTranslations('common');
   const { status } = useSession();
+  const isAttestation = isAttestationPath(useLocalePathname());
 
   // Hide during test solving — MainLayoutClient'dagi bir xil qoida bilan
   // mos (konstruktordan kelgan /session/[id] ham shu yerga kiradi).
@@ -56,13 +57,12 @@ export default function BottomNav({ onMenuClick }: BottomNavProps) {
           )}
         </Link>
 
-        {/* Attestatsiya — markaziy, ajralib turadigan punkt. Faol holat
-            ko'rsatilmaydi: ?type ni o'qish uchun useSearchParams layout'da
-            Suspense talab qiladi, punkt esa baribir doim ko'zga tashlanadi. */}
+        {/* Attestatsiya — markaziy, ajralib turadigan punkt. */}
         <Link
           href={ATTESTATION_HREF}
           aria-label={t('attestation')}
-          className="flex flex-col items-center justify-center gap-1 flex-1 h-full"
+          aria-current={isAttestation ? 'page' : undefined}
+          className="flex flex-col items-center justify-center gap-1 flex-1 h-full relative"
         >
           <span
             aria-hidden="true"
@@ -73,6 +73,9 @@ export default function BottomNav({ onMenuClick }: BottomNavProps) {
           <span className="text-[10px] font-semibold text-[#92400e] whitespace-nowrap">
             {t('attestation')}
           </span>
+          {isAttestation && (
+            <span className="absolute bottom-1 w-6 h-0.5 rounded-full bg-[#92400e]" />
+          )}
         </Link>
 
         {/* Build (test constructor) */}

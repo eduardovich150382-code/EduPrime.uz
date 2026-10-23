@@ -1,4 +1,7 @@
-// Attestatsiya hozircha alohida sahifaga ega emas — tests sahifasi ?type ni
-// o'qib, attestatsiya kategoriyasini o'zi tanlaydi. S6 da /attestation sahifasi
-// qo'shilganda faqat shu qiymat almashtiriladi (Header va BottomNav shundan oladi).
-export const ATTESTATION_HREF = '/tests?type=ATTESTATION';
+// Header, BottomNav va /tests banneri shundan oladi — manzil bitta joyda.
+export const ATTESTATION_HREF = '/attestation';
+
+/** Locale'siz yo'l (`@/i18n/routing` dagi usePathname) attestatsiya bo'limidami. */
+export function isAttestationPath(pathname: string): boolean {
+  return pathname === ATTESTATION_HREF || pathname.startsWith(`${ATTESTATION_HREF}/`);
+}

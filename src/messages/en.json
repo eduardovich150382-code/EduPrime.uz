@@ -650,5 +650,75 @@
       "yesterday": "Yesterday",
       "daysAgo": "{count, plural, one {# day ago} other {# days ago}}"
     }
+  },
+  "attestation": {
+    "meta": {
+      "title": "Physics teacher attestation prep",
+      "description": "Attestation mock tests based on the official specification: 35 physics, 5 professional standard and 10 pedagogy questions, each with a detailed solution."
+    },
+    "hero": {
+      "breadcrumbTests": "Tests",
+      "breadcrumbCurrent": "Attestation",
+      "title": "Physics teacher attestation prep",
+      "subtitle": "Mock tests based on the official specification. Every question has a detailed solution: Given → Solution → Answer.",
+      "ctaNext": "Start the next mock test · №{number}",
+      "ctaRetake": "Retake your lowest score · №{number}",
+      "ctaStructure": "Exam structure",
+      "ctaTopicStart": "Start with topic tests",
+      "ctaRetakeLowest": "Retake your lowest score"
+    },
+    "countdown": {
+      "before": "Attestation in",
+      "daysLeft": "days left"
+    },
+    "structure": {
+      "title": "Exam structure",
+      "questions": "{count} questions",
+      "total": "Total",
+      "duration": "Time",
+      "durationValue": "{count} min",
+      "passScore": "Pass score",
+      "passScoreValue": "{count} points"
+    },
+    "list": {
+      "title": "Mock tests",
+      "emptyFiltered": "No tests here.",
+      "lastScore": "Last score: {score} / {max}",
+      "lastPercent": "Last score: {percent}%",
+      "result": "Result",
+      "retake": "Retake",
+      "start": "Start",
+      "mocksEmpty": "Mock tests are coming soon.",
+      "topicsTitle": "Tests by topic"
+    },
+    "filter": {
+      "label": "Filter tests",
+      "all": "All",
+      "unsolved": "Not solved",
+      "solved": "Solved"
+    },
+    "status": {
+      "solved": "Solved",
+      "new": "New"
+    },
+    "readiness": {
+      "title": "Your readiness",
+      "solved": "{solved} / {total} mocks solved",
+      "average": "average score",
+      "sections": "Sections",
+      "topics": "Physics topics",
+      "answers": "{count} answers",
+      "solvedTopics": "{solved} / {total} topic tests solved"
+    },
+    "weak": {
+      "title": "Weak spot: {name}",
+      "body": "{percent}% correct — start here.",
+      "cta": "Start practice"
+    },
+    "guest": {
+      "title": "Sign in to track your results",
+      "body": "Once you sign in, your solved mocks, average score and weak sections show up here.",
+      "cta": "Sign in"
+    }
   }
 }
