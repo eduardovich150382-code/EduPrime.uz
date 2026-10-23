@@ -3,6 +3,7 @@ import { LogIn, Target } from 'lucide-react';
 import { Link } from '@/i18n/routing';
 import { primaryButton } from '@/components/tests/button-classes';
 import type { Readiness } from '@/lib/attestation-page';
+import { TierPill } from './TierPill';
 
 function Bar({ label, percent, hint }: { label: string; percent: number; hint: string }) {
   return (
@@ -43,7 +44,16 @@ export async function ReadinessPanel({ readiness }: { readiness: Readiness }) {
             total: readiness.total,
           })}
         </p>
-        {readiness.averagePercent !== null && (
+        {readiness.averagePercent !== null && readiness.averageTier ? (
+          // Mock rejimi: foiz = 100 ballik ball, yonida mos toifa.
+          <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span className="text-3xl font-bold tabular-nums text-text-primary">
+              {t('readiness.averageBall', { score: readiness.averagePercent })}
+            </span>
+            <span className="text-sm text-text-secondary">{t('readiness.average')}</span>
+            <TierPill tier={readiness.averageTier} label={t(`tiers.${readiness.averageTier}`)} />
+          </div>
+        ) : readiness.averagePercent !== null && (
           <p className="mt-2 flex items-baseline gap-2">
             <span className="text-3xl font-bold tabular-nums text-text-primary">{readiness.averagePercent}%</span>
             <span className="text-sm text-text-secondary">{t('readiness.average')}</span>

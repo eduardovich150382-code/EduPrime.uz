@@ -10,7 +10,6 @@ import {
   computeSectionStats,
   computeTopicStats,
   normalizeTopicHead,
-  parsePositiveInt,
   parseResultAnswers,
   pickHeroTarget,
   pickWeakSpot,
@@ -20,6 +19,8 @@ import {
   type TopicStat,
 } from './attestation-stats';
 import type { SectionKey } from './question-sections';
+import { loadAttestationSettings, type AttestationSettings } from './attestation-settings';
+import { attestationScore, getAttestationTier, type AttestationTier } from './attestation-tiers';
 
 // /attestation sahifasining barcha ma'lumoti — bitta joyda, so'rovlar soni
 // testlar sonidan qat'i nazar o'zgarmas (N+1 yo'q).
@@ -29,14 +30,7 @@ import type { SectionKey } from './question-sections';
 // javob yoki savol id'si yo'q — faqat tayyor qatorlar va sonlar; client
 // komponentlarga shu uzatiladi.
 
-const SETTING_KEYS = ['attestation_date', 'attestation_duration_min', 'attestation_pass_score'] as const;
-
-export interface AttestationSettings {
-  /** `YYYY-MM-DD`; hisoblagich `daysUntil` orqali. */
-  date: string | null;
-  durationMin: number | null;
-  passScore: number | null;
-}
+export type { AttestationSettings };
 
 export interface MockRow {
   id: string;
@@ -48,6 +42,9 @@ export interface MockRow {
   lastScore: number | null;
   lastMax: number | null;
   lastPercent: number | null;
+  /** Faqat yechilgan mockda — 100 ballik ball va toifa; mavzu testida `null`. */
+  ball: number | null;
+  tier: AttestationTier | null;
   primaryHref: string;
   /** Faqat yechilganda — natija sahifasi. */
   secondaryHref: string | null;
@@ -69,6 +66,8 @@ export interface Readiness {
   solved: number;
   total: number;
   averagePercent: number | null;
+  /** Mock rejimida `averagePercent` o'rtacha ball sifatida ko'rsatiladi va shu toifa bilan. */
+  averageTier: AttestationTier | null;
   sections: SectionStat[] | null;
   topics: { label: string; percent: number; total: number }[] | null;
   weakSpot: WeakSpotView | null;
@@ -104,16 +103,10 @@ export async function loadAttestationPage(
   user: { id: string; role?: string } | null,
   locale: string,
 ): Promise<AttestationPageData> {
-  const [categories, settingRows] = await Promise.all([
+  const [categories, settings] = await Promise.all([
     db.testCategory.findMany({ where: { type: 'ATTESTATION' }, select: { id: true } }),
-    db.systemSetting.findMany({ where: { key: { in: [...SETTING_KEYS] } }, select: { key: true, value: true } }),
+    loadAttestationSettings(),
   ]);
-  const settingMap = new Map(settingRows.map((s) => [s.key, s.value]));
-  const settings: AttestationSettings = {
-    date: settingMap.get('attestation_date')?.trim() || null,
-    durationMin: parsePositiveInt(settingMap.get('attestation_duration_min')),
-    passScore: parsePositiveInt(settingMap.get('attestation_pass_score')),
-  };
 
   // Test'da category relation yo'q — kategoriya id lari bo'yicha. Tartib
   // maydoni ham yo'q: createdAt o'sish (teng bo'lsa id — barqaror).
@@ -158,6 +151,14 @@ export async function loadAttestationPage(
     const state = getCardState(test, result, resolveTestAccess(test, accessContext));
     // Mehmon havolasi (login → solve) /tests kartasi bilan bitta qoidada.
     const links = getCardLinks(test.id, state, user ? undefined : { locale });
+    // Eski natijalarda maxScore 0 bo'lishi mumkin — u holda saqlangan foiz
+    // (ball = foiz, 100 ballik shkala).
+    const ball =
+      number !== null && result
+        ? result.maxScore > 0
+          ? attestationScore(result.score, result.maxScore)
+          : Math.min(100, Math.max(0, Math.round(result.percentage)))
+        : null;
     return {
       id: test.id,
       number,
@@ -167,6 +168,8 @@ export async function loadAttestationPage(
       lastScore: result?.score ?? null,
       lastMax: result?.maxScore ?? null,
       lastPercent: result ? Math.round(result.percentage) : null,
+      ball,
+      tier: ball !== null ? getAttestationTier(ball, settings.tiers) : null,
       primaryHref: links.primary,
       secondaryHref: links.secondary ?? null,
       locked: state.kind === 'buy' || state.kind === 'upgrade',
@@ -221,6 +224,10 @@ export async function loadAttestationPage(
     readiness: {
       progressKind,
       ...progress,
+      averageTier:
+        progressKind === 'mock' && progress.averagePercent !== null
+          ? getAttestationTier(progress.averagePercent, settings.tiers)
+          : null,
       sections,
       topics: topicStats?.map(({ label, percent, total }) => ({ label, percent, total })) ?? null,
       weakSpot,

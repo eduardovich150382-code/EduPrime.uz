@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { logger } from '@/lib/logger';
+import { hasAttestationKeys, validateAttestationSettings } from '@/lib/attestation-tiers';
 
 const DEFAULT_SETTINGS = [
   { key: 'payment_card_number', value: '' },
@@ -25,6 +27,14 @@ const DEFAULT_SETTINGS = [
   { key: 'subscription_alert_days', value: '7,3,1' },
   { key: 'bot_welcome_message', value: '' },
   { key: 'bot_payment_message', value: '' },
+  // Attestatsiya — sana/davomiylik bo'sh bo'lsa sahifada qator yashirinadi,
+  // toifa chegaralari rasmiy shkala (lib/attestation-tiers.ts).
+  { key: 'attestation_date', value: '' },
+  { key: 'attestation_duration_min', value: '' },
+  { key: 'attestation_tier2_min', value: '60' },
+  { key: 'attestation_tier1_min', value: '70' },
+  { key: 'attestation_tier_top_min', value: '80' },
+  { key: 'attestation_tier_top_bonus_min', value: '86' },
 ];
 
 // GET /api/admin/settings — get all settings (ADMIN only)
@@ -78,9 +88,21 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'settings object required' }, { status: 400 });
     }
 
+    // Attestatsiya qiymatlari yozishdan OLDIN tekshiriladi — xato bo'lsa
+    // hech narsa saqlanmaydi (yarim yozilgan shkala sahifada standartga
+    // tushib, admin kiritganini "yo'qotib" qo'yardi).
+    let entries = Object.entries(settings as Record<string, unknown>);
+    const attestation = hasAttestationKeys(settings) ? validateAttestationSettings(settings) : null;
+    if (attestation && !attestation.ok) {
+      return NextResponse.json({ error: attestation.error }, { status: 400 });
+    }
+    if (attestation?.ok) {
+      entries = entries.map(([key, value]) => [key, key in attestation.values ? attestation.values[key] : value]);
+    }
+
     // Upsert each setting
     const results = [];
-    for (const [key, value] of Object.entries(settings)) {
+    for (const [key, value] of entries) {
       if (typeof value !== 'string') continue;
 
       const result = await db.systemSetting.upsert({
@@ -89,6 +111,13 @@ export async function PUT(request: NextRequest) {
         create: { key, value },
       });
       results.push(result);
+    }
+
+    // Ikkala sahifa hozir dinamik (auth() / client fetch), lekin kesh
+    // qo'shilsa ham yangi sana va chegaralar darhol ko'rinsin.
+    if (attestation) {
+      revalidatePath('/[locale]/(public)/attestation', 'page');
+      revalidatePath('/[locale]/(public)/tests', 'page');
     }
 
     return NextResponse.json({ message: 'Settings updated', count: results.length });

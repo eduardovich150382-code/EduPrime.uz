@@ -255,7 +255,18 @@
     "retakeSubtitle": "Разберите ошибки и пройдите тест заново.",
     "attempt": "Попытка {number}",
     "attemptsHistory": "Попытки",
-    "attemptScore": "{score} / {max}"
+    "attemptScore": "{score} / {max}",
+    "attestation": {
+      "ball": "{score, plural, one {балл} few {балла} other {баллов}}",
+      "scoreAria": "{score} из 100 баллов",
+      "tierAria": "Категория: {tier}",
+      "congratsTier2": "Поздравляем! Вы набрали достаточно баллов для 2-й категории",
+      "congratsTier1": "Поздравляем! Вы набрали достаточно баллов для 1-й категории",
+      "congratsTop": "Поздравляем! Вы набрали достаточно баллов для высшей категории",
+      "congratsTopBonus": "Поздравляем! Вы набрали достаточно баллов для высшей категории и надбавки 70%",
+      "below": "До 2-й категории не хватает {points, plural, one {# балла} other {# баллов}} (≈ {answers} верных ответов)",
+      "belowHint": "Разберите ошибки и решите тест ещё раз — каждая попытка приближает к цели."
+    }
   },
   "sessionSolve": {
     "exitButton": "Выйти из теста",
@@ -676,9 +687,7 @@
       "questions": "{count} вопр.",
       "total": "Всего",
       "duration": "Время",
-      "durationValue": "{count} мин",
-      "passScore": "Проходной балл",
-      "passScoreValue": "{count} б."
+      "durationValue": "{count} мин"
     },
     "list": {
       "title": "Пробные тесты",
@@ -689,7 +698,8 @@
       "retake": "Перерешать",
       "start": "Начать",
       "mocksEmpty": "Пробные тесты скоро появятся.",
-      "topicsTitle": "Тесты по темам"
+      "topicsTitle": "Тесты по темам",
+      "lastBall": "Последний результат: {score, plural, one {# балл} few {# балла} other {# баллов}}"
     },
     "filter": {
       "label": "Фильтр тестов",
@@ -708,7 +718,8 @@
       "sections": "Разделы",
       "topics": "Темы по физике",
       "answers": "{count} отв.",
-      "solvedTopics": "Решено тестов по темам: {solved} из {total}"
+      "solvedTopics": "Решено тестов по темам: {solved} из {total}",
+      "averageBall": "{score, plural, one {# балл} few {# балла} other {# баллов}}"
     },
     "weak": {
       "title": "Слабое место: {name}",
@@ -719,6 +730,16 @@
       "title": "Войдите, чтобы отслеживать результаты",
       "body": "После входа здесь появятся решённые тесты, средний результат и слабые разделы.",
       "cta": "Войти"
+    },
+    "tiers": {
+      "title": "Категории",
+      "none": "Без категории",
+      "tier2": "2-я категория",
+      "tier1": "1-я категория",
+      "top": "Высшая категория",
+      "topBonus": "Высшая + надбавка 70%",
+      "bonus": "+70% надбавка",
+      "threshold": "{min}+ баллов"
     }
   }
 }

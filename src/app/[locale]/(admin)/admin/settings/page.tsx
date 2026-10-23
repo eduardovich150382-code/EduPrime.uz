@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import {
   Settings, Save, CreditCard, MessageCircle, DollarSign,
   Megaphone, Loader2, Check, AlertCircle, Crown, GraduationCap,
-  Users, Bell, Bot,
+  Users, Bell, Bot, Award, CalendarDays, Clock,
 } from 'lucide-react';
 import BackButton from '@/components/ui/BackButton';
 
@@ -31,6 +31,13 @@ interface SettingsForm {
   free_daily_test_limit: string;
   subscription_alert_days: string;
   bot_welcome_message: string;
+  // Attestatsiya
+  attestation_date: string;
+  attestation_duration_min: string;
+  attestation_tier2_min: string;
+  attestation_tier1_min: string;
+  attestation_tier_top_min: string;
+  attestation_tier_top_bonus_min: string;
 }
 
 interface SettingsGroup {
@@ -107,6 +114,19 @@ const settingsGroups: SettingsGroup[] = [
       { key: 'site_announcement', label: "Sayt e'loni (barcha foydalanuvchilarga)", placeholder: "Yangi funksiyalar qo'shildi!", icon: Megaphone },
     ],
   },
+  {
+    title: 'Attestatsiya',
+    icon: Award,
+    description: "/attestation sahifasi va /tests banneri. Toifa chegaralari 100 ballik shkalada, o'sish tartibida",
+    fields: [
+      { key: 'attestation_date', label: 'Imtihon sanasi', placeholder: '2026-11-15', icon: CalendarDays, type: 'date' },
+      { key: 'attestation_duration_min', label: 'Davomiylik', placeholder: '120', icon: Clock, type: 'number', suffix: 'daqiqa' },
+      { key: 'attestation_tier2_min', label: '2-toifa (dan)', placeholder: '60', icon: Award, type: 'number', suffix: 'ball' },
+      { key: 'attestation_tier1_min', label: '1-toifa (dan)', placeholder: '70', icon: Award, type: 'number', suffix: 'ball' },
+      { key: 'attestation_tier_top_min', label: 'Oliy toifa (dan)', placeholder: '80', icon: Award, type: 'number', suffix: 'ball' },
+      { key: 'attestation_tier_top_bonus_min', label: 'Oliy + 70% ustama (dan)', placeholder: '86', icon: Award, type: 'number', suffix: 'ball' },
+    ],
+  },
 ];
 
 export default function AdminSettingsPage() {
@@ -128,6 +148,12 @@ export default function AdminSettingsPage() {
     free_daily_test_limit: '3',
     subscription_alert_days: '7,3,1',
     bot_welcome_message: '',
+    attestation_date: '',
+    attestation_duration_min: '',
+    attestation_tier2_min: '60',
+    attestation_tier1_min: '70',
+    attestation_tier_top_min: '80',
+    attestation_tier_top_bonus_min: '86',
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -357,6 +383,7 @@ export default function AdminSettingsPage() {
           <li>Sayt e&apos;loni barcha foydalanuvchilarga ko&apos;rsatiladi</li>
           <li>Telegram username @ belgisi bilan kiritilsin</li>
           <li>Obuna ogohlantirish kunlari vergul bilan ajratiladi (masalan: 7,3,1)</li>
+          <li>Attestatsiya sanasi bo&apos;sh qolsa &quot;kun qoldi&quot; hisoblagichi yashiriladi</li>
         </ul>
       </motion.div>
     </div>

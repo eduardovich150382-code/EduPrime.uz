@@ -255,7 +255,18 @@
     "retakeSubtitle": "Xatolarni tahlil qilib, testni qayta yeching.",
     "attempt": "{number}-urinish",
     "attemptsHistory": "Urinishlar",
-    "attemptScore": "{score} / {max}"
+    "attemptScore": "{score} / {max}",
+    "attestation": {
+      "ball": "ball",
+      "scoreAria": "{score} ball, 100 dan",
+      "tierAria": "Toifa: {tier}",
+      "congratsTier2": "Tabriklaymiz! Siz 2-toifaga yetarli ball to'pladingiz",
+      "congratsTier1": "Tabriklaymiz! Siz 1-toifaga yetarli ball to'pladingiz",
+      "congratsTop": "Tabriklaymiz! Siz Oliy toifaga yetarli ball to'pladingiz",
+      "congratsTopBonus": "Tabriklaymiz! Siz Oliy toifa va 70% ustamaga yetarli ball to'pladingiz",
+      "below": "2-toifagacha yana {points} ball kerak (≈ {answers} ta to'g'ri javob)",
+      "belowHint": "Xatolarni tahlil qiling va qayta yeching — har bir urinish sizni yaqinlashtiradi."
+    }
   },
   "sessionSolve": {
     "exitButton": "Testdan chiqish",
@@ -676,9 +687,7 @@
       "questions": "{count} savol",
       "total": "Jami",
       "duration": "Vaqt",
-      "durationValue": "{count} daqiqa",
-      "passScore": "O'tish bali",
-      "passScoreValue": "{count} ball"
+      "durationValue": "{count} daqiqa"
     },
     "list": {
       "title": "Mock testlar",
@@ -689,7 +698,8 @@
       "retake": "Qayta yechish",
       "start": "Boshlash",
       "mocksEmpty": "Mock testlar tez orada qo'shiladi.",
-      "topicsTitle": "Mavzular bo'yicha testlar"
+      "topicsTitle": "Mavzular bo'yicha testlar",
+      "lastBall": "Oxirgi natija: {score} ball"
     },
     "filter": {
       "label": "Testlarni saralash",
@@ -708,7 +718,8 @@
       "sections": "Bo'limlar",
       "topics": "Fizika mavzulari",
       "answers": "{count} javob",
-      "solvedTopics": "{solved} / {total} mavzu testi yechildi"
+      "solvedTopics": "{solved} / {total} mavzu testi yechildi",
+      "averageBall": "{score} ball"
     },
     "weak": {
       "title": "Zaif joy: {name}",
@@ -719,6 +730,16 @@
       "title": "Natijalaringizni kuzatish uchun kiring",
       "body": "Kirganingizdan keyin yechilgan mocklar, o'rtacha natija va zaif bo'limlaringiz shu yerda ko'rinadi.",
       "cta": "Kirish"
+    },
+    "tiers": {
+      "title": "Toifalar",
+      "none": "Toifa yo'q",
+      "tier2": "2-toifa",
+      "tier1": "1-toifa",
+      "top": "Oliy toifa",
+      "topBonus": "Oliy + 70% ustama",
+      "bonus": "+70% ustama",
+      "threshold": "{min}+ ball"
     }
   }
 }

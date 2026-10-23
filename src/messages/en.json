@@ -255,7 +255,18 @@
     "retakeSubtitle": "Review your mistakes and take the test again.",
     "attempt": "Attempt {number}",
     "attemptsHistory": "Attempts",
-    "attemptScore": "{score} / {max}"
+    "attemptScore": "{score} / {max}",
+    "attestation": {
+      "ball": "points",
+      "scoreAria": "{score} out of 100 points",
+      "tierAria": "Tier: {tier}",
+      "congratsTier2": "Congratulations! You scored enough for Tier 2",
+      "congratsTier1": "Congratulations! You scored enough for Tier 1",
+      "congratsTop": "Congratulations! You scored enough for the Top tier",
+      "congratsTopBonus": "Congratulations! You scored enough for the Top tier and the 70% bonus",
+      "below": "{points} more points needed for Tier 2 (≈ {answers} correct answers)",
+      "belowHint": "Review your mistakes and try again — every attempt brings you closer."
+    }
   },
   "sessionSolve": {
     "exitButton": "Exit test",
@@ -676,9 +687,7 @@
       "questions": "{count} questions",
       "total": "Total",
       "duration": "Time",
-      "durationValue": "{count} min",
-      "passScore": "Pass score",
-      "passScoreValue": "{count} points"
+      "durationValue": "{count} min"
     },
     "list": {
       "title": "Mock tests",
@@ -689,7 +698,8 @@
       "retake": "Retake",
       "start": "Start",
       "mocksEmpty": "Mock tests are coming soon.",
-      "topicsTitle": "Tests by topic"
+      "topicsTitle": "Tests by topic",
+      "lastBall": "Last score: {score} points"
     },
     "filter": {
       "label": "Filter tests",
@@ -708,7 +718,8 @@
       "sections": "Sections",
       "topics": "Physics topics",
       "answers": "{count} answers",
-      "solvedTopics": "{solved} / {total} topic tests solved"
+      "solvedTopics": "{solved} / {total} topic tests solved",
+      "averageBall": "{score} points"
     },
     "weak": {
       "title": "Weak spot: {name}",
@@ -719,6 +730,16 @@
       "title": "Sign in to track your results",
       "body": "Once you sign in, your solved mocks, average score and weak sections show up here.",
       "cta": "Sign in"
+    },
+    "tiers": {
+      "title": "Tiers",
+      "none": "No tier",
+      "tier2": "Tier 2",
+      "tier1": "Tier 1",
+      "top": "Top tier",
+      "topBonus": "Top tier + 70% bonus",
+      "bonus": "+70% bonus",
+      "threshold": "{min}+ points"
     }
   }
 }

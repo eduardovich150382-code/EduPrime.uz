@@ -17,6 +17,7 @@ const {
   resultCountMock,
   resultFindManyMock,
   categoryFindUniqueMock,
+  settingFindManyMock,
 } = vi.hoisted(() => ({
   findUniqueResultMock: vi.fn(),
   authMock: vi.fn(),
@@ -28,6 +29,7 @@ const {
   resultCountMock: vi.fn(),
   resultFindManyMock: vi.fn(),
   categoryFindUniqueMock: vi.fn(),
+  settingFindManyMock: vi.fn(),
 }));
 
 vi.mock("@/lib/db", () => ({
@@ -43,8 +45,13 @@ vi.mock("@/lib/db", () => ({
     solutionUnlock: { findMany: (...args: unknown[]) => solutionUnlockFindManyMock(...args) },
     dailyUsage: { findUnique: (...args: unknown[]) => dailyUsageFindUniqueMock(...args) },
     item: { findMany: (...args: unknown[]) => itemFindManyMock(...args) },
+    systemSetting: { findMany: (...args: unknown[]) => settingFindManyMock(...args) },
   },
 }));
+
+// lib/attestation-settings.ts `server-only` — Vitest uni client deb
+// hisoblab yiqiladi; bu test Node'da ishlaydi, belgi kerak emas.
+vi.mock("server-only", () => ({}));
 
 vi.mock("@/lib/auth", () => ({
   auth: () => authMock(),
@@ -92,6 +99,7 @@ describe("GET /api/results/[id]", () => {
     resultCountMock.mockResolvedValue(1);
     resultFindManyMock.mockResolvedValue([]);
     categoryFindUniqueMock.mockResolvedValue(null);
+    settingFindManyMock.mockResolvedValue([]);
   });
 
   describe("Test tarmog'i (result.test bor)", () => {
@@ -351,6 +359,70 @@ describe("GET /api/results/[id]", () => {
       expect(data.result.test.category).toBeNull();
       expect(resultFindManyMock).not.toHaveBeenCalled();
       expect(resultCountMock).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("attestatsiya mock'i — ball va toifa", () => {
+    function attestationResult(tags: string[][], score: number, maxScore: number) {
+      return {
+        id: "result1",
+        userId: "user1",
+        testId: "test1",
+        sessionId: null,
+        score,
+        maxScore,
+        test: {
+          id: "test1",
+          categoryId: "cat1",
+          questions: tags.map((t, i) => baseQuestion({ id: `q${i}`, tags: t })),
+          subject: {},
+        },
+        session: null,
+      };
+    }
+
+    it("barcha savollari section: tegli ATTESTATION testida ball va toifa qaytadi", async () => {
+      categoryFindUniqueMock.mockResolvedValue({ type: "ATTESTATION" });
+      findUniqueResultMock.mockResolvedValue(attestationResult([["section:fizika"], ["section:pedagogika"]], 84, 100));
+
+      const { data } = await callGet();
+      expect(data.attestation).toEqual({
+        ball: 84,
+        tier: "top",
+        thresholds: { tier2: 60, tier1: 70, top: 80, topBonus: 86 },
+        questionCount: 2,
+      });
+    });
+
+    it("admin chegaralari qo'llanadi", async () => {
+      categoryFindUniqueMock.mockResolvedValue({ type: "ATTESTATION" });
+      settingFindManyMock.mockResolvedValue([
+        { key: "attestation_tier2_min", value: "50" },
+        { key: "attestation_tier1_min", value: "65" },
+        { key: "attestation_tier_top_min", value: "85" },
+        { key: "attestation_tier_top_bonus_min", value: "95" },
+      ]);
+      findUniqueResultMock.mockResolvedValue(attestationResult([["section:fizika"]], 84, 100));
+
+      const { data } = await callGet();
+      expect(data.attestation.tier).toBe("tier1");
+    });
+
+    it("mavzu testi (teg yetishmaydi) — attestation: null, sozlama o'qilmaydi", async () => {
+      categoryFindUniqueMock.mockResolvedValue({ type: "ATTESTATION" });
+      findUniqueResultMock.mockResolvedValue(attestationResult([["section:fizika"], []], 84, 100));
+
+      const { data } = await callGet();
+      expect(data.attestation).toBeNull();
+      expect(settingFindManyMock).not.toHaveBeenCalled();
+    });
+
+    it("boshqa tur testida section: teglari bo'lsa ham attestation: null", async () => {
+      categoryFindUniqueMock.mockResolvedValue({ type: "DTM" });
+      findUniqueResultMock.mockResolvedValue(attestationResult([["section:fizika"]], 84, 100));
+
+      const { data } = await callGet();
+      expect(data.attestation).toBeNull();
     });
   });
 
