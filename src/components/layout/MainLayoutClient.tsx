@@ -6,21 +6,27 @@ import Sidebar from './Sidebar';
 import BottomNav from './BottomNav';
 
 interface MainLayoutClientProps {
-  role: string;
+  role: string | null;
+  // Mehmonda PremiumBanner render qilinmaydi — padding uning joyini band qilmasin.
+  showPremiumBanner: boolean;
   children: React.ReactNode;
 }
 
-export default function MainLayoutClient({ role, children }: MainLayoutClientProps) {
+export default function MainLayoutClient({ role, showPremiumBanner, children }: MainLayoutClientProps) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [bannerVisible, setBannerVisible] = useState(false);
 
   // Check if premium banner is visible (for padding)
   useEffect(() => {
+    if (!showPremiumBanner) {
+      setBannerVisible(false);
+      return;
+    }
     const dismissed = sessionStorage.getItem('premium_banner_dismissed');
     // Banner shows only for free users who haven't dismissed it
     setBannerVisible(dismissed !== 'true');
-  }, []);
+  }, [showPremiumBanner]);
 
   // Hide sidebar when user is solving a test — konstruktordan ("/build")
   // kelgan virtual sessiyalar /session/[id] da yechiladi, xuddi shu holat
