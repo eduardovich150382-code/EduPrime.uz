@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
+import type { Prisma } from '@prisma/client';
+import { z } from 'zod';
+import { processSubscriptionPayment } from '@/lib/subscription-payments';
+import { adminApiError } from '@/lib/admin-products-api';
 import { recordPurchase, resolvePurchaseItemType } from '@/lib/purchases';
 import { logger } from '@/lib/logger';
 
@@ -22,14 +26,19 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '50');
 
-    const where: any = {};
+    const visible: Prisma.PaymentWhereInput = searchParams.get('includeUnreceipted') === '1' ? {} : {
+      OR: [{ status: { not: 'PENDING' } }, { receiptPhoto: { not: null } }],
+    };
+    const where: Prisma.PaymentWhereInput = { ...visible };
     if (status && ['PENDING', 'CONFIRMED', 'REJECTED'].includes(status)) {
-      where.status = status;
+      where.status = z.enum(['PENDING', 'CONFIRMED', 'REJECTED']).parse(status);
     }
 
     const payments = await db.payment.findMany({
       where,
       include: {
+        product: { include: { offers: { where: { isActive: true }, orderBy: { order: 'asc' } } } },
+        offer: true,
         user: {
           select: {
             id: true,
@@ -55,13 +64,14 @@ export async function GET(request: NextRequest) {
 
     // Get counts by status
     const [pendingCount, confirmedCount, rejectedCount] = await Promise.all([
-      db.payment.count({ where: { status: 'PENDING' } }),
-      db.payment.count({ where: { status: 'CONFIRMED' } }),
-      db.payment.count({ where: { status: 'REJECTED' } }),
+      db.payment.count({ where: { ...visible, status: 'PENDING' } }),
+      db.payment.count({ where: { ...visible, status: 'CONFIRMED' } }),
+      db.payment.count({ where: { ...visible, status: 'REJECTED' } }),
     ]);
 
+    const subjects = await db.subject.findMany({ where: { id: { in: payments.flatMap((p) => p.subjectIds) } }, select: { id: true, nameUz: true, nameRu: true, nameEn: true } });
     return NextResponse.json({
-      payments,
+      payments: payments.map((p) => ({ ...p, subjects: subjects.filter((subject) => p.subjectIds.includes(subject.id)) })),
       total,
       page,
       limit,
@@ -87,7 +97,9 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { paymentId, action } = body;
+    const { paymentId, action, replacementOfferId } = z.object({
+      paymentId: z.string().min(1).max(200), action: z.enum(['confirm', 'reject']), replacementOfferId: z.string().min(1).max(200).optional(),
+    }).strict().parse(body);
 
     if (!paymentId || !action || !['confirm', 'reject'].includes(action)) {
       return NextResponse.json({ error: 'paymentId and action (confirm/reject) required' }, { status: 400 });
@@ -98,46 +110,11 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Payment not found' }, { status: 404 });
     }
 
-    if (payment.status !== 'PENDING') {
-      return NextResponse.json({ error: 'Payment already processed' }, { status: 400 });
-    }
+    const result = await processSubscriptionPayment(paymentId, action, session.user.id, replacementOfferId);
+    const updated = result.payment;
+    const newStatus = updated.status;
 
-    const newStatus = action === 'confirm' ? 'CONFIRMED' : 'REJECTED';
-
-    const updated = await db.payment.update({
-      where: { id: paymentId },
-      data: {
-        status: newStatus,
-        confirmedById: session.user.id,
-        confirmedAt: new Date(),
-      },
-    });
-
-    // If confirmed, create subscription
-    if (action === 'confirm') {
-      const durationMonths: Record<string, number> = {
-        ONE_MONTH: 1,
-        THREE_MONTHS: 3,
-        SIX_MONTHS: 6,
-        ONE_YEAR: 12,
-      };
-
-      const months = durationMonths[payment.duration] || 1;
-      const endDate = new Date();
-      endDate.setMonth(endDate.getMonth() + months);
-
-      await db.subscription.create({
-        data: {
-          userId: payment.userId,
-          plan: payment.plan,
-          duration: payment.duration,
-          startDate: new Date(),
-          endDate,
-          isActive: true,
-          paymentId: payment.id,
-        },
-      });
-
+    if (action === 'confirm' && !payment.productId && !result.alreadyProcessed) {
       // `selectedSubjects` bitta-test/bitta-kurs xaridlarida ham ishlatiladi
       // (lib/purchases.ts) — shu maydondagi har bir id haqiqatan Test/Course
       // ekanini tekshirib, mos Purchase yozuvini yaratamiz. TEACHER_PLAN
@@ -156,7 +133,6 @@ export async function PATCH(request: NextRequest) {
       payment: updated,
     });
   } catch (error) {
-    logger.error('PATCH /api/admin/payments error:', { error });
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    return adminApiError(error);
   }
 }

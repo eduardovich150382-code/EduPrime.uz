@@ -8,8 +8,10 @@ import {
   ArrowUpDown, ArrowUp, ArrowDown,
 } from 'lucide-react';
 import BackButton from '@/components/ui/BackButton';
+import PaymentProductDetails, { type ProductPaymentDetails } from '@/components/admin/PaymentProductDetails';
+import { useTranslations } from 'next-intl';
 
-interface PaymentData {
+interface PaymentData extends ProductPaymentDetails {
   id: string;
   plan: string;
   duration: string;
@@ -59,6 +61,8 @@ function getPlanLabel(p: string) {
 }
 
 export default function AdminPaymentsPage() {
+  const t = useTranslations('checkout');
+  const [includeUnreceipted, setIncludeUnreceipted] = useState(false);
   const [payments, setPayments] = useState<PaymentData[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
@@ -73,6 +77,7 @@ export default function AdminPaymentsPage() {
     try {
       const params = new URLSearchParams();
       if (statusFilter) params.set('status', statusFilter);
+      if (includeUnreceipted) params.set('includeUnreceipted', '1');
       const res = await fetch(`/api/admin/payments?${params.toString()}`);
       const data = await res.json();
       if (data.payments) { setPayments(data.payments); setCounts(data.counts); }
@@ -80,7 +85,7 @@ export default function AdminPaymentsPage() {
     setLoading(false);
   };
 
-  useEffect(() => { fetchPayments(); }, [statusFilter]);
+  useEffect(() => { fetchPayments(); }, [statusFilter, includeUnreceipted]);
 
   // Sort payments by amount
   const sortedPayments = [...payments].sort((a, b) => {
@@ -95,16 +100,16 @@ export default function AdminPaymentsPage() {
     else setAmountSort('none');
   };
 
-  const handleAction = async (paymentId: string, action: 'confirm' | 'reject') => {
+  const handleAction = async (paymentId: string, action: 'confirm' | 'reject', replacementOfferId?: string) => {
     setProcessing(paymentId);
     try {
       const res = await fetch('/api/admin/payments', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ paymentId, action }),
+        body: JSON.stringify({ paymentId, action, ...(replacementOfferId ? { replacementOfferId } : {}) }),
       });
       if (res.ok) fetchPayments();
-      else { const d = await res.json(); alert(d.error || 'Xatolik'); }
+      else { const d = await res.json(); alert(d.error === 'EXPIRED_OFFER' ? t('expired') : d.error === 'INVALID_REPLACEMENT' ? t('invalidReplacement') : d.error || 'Xatolik'); }
     } catch { alert('Server xatolik'); }
     setProcessing(null);
   };
@@ -185,6 +190,11 @@ export default function AdminPaymentsPage() {
         </button>
       </div>
 
+      <label className="flex items-center gap-2 min-h-11 text-sm">
+        <input type="checkbox" checked={includeUnreceipted} onChange={(event) => setIncludeUnreceipted(event.target.checked)} className="h-5 w-5" />
+        {t('showUnreceipted')}
+      </label>
+
       {/* Amount Sort Filter */}
       <div className="flex items-center gap-3">
         <span className="text-sm text-text-secondary">Saralash:</span>
@@ -238,11 +248,12 @@ export default function AdminPaymentsPage() {
                   </p>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-secondary">
                     <span className="font-semibold text-text-primary">{payment.amount.toLocaleString()} so&apos;m</span>
-                    <span>{getPlanLabel(payment.plan)} ({getDurationLabel(payment.duration)})</span>
+                    {!payment.product && <span>{getPlanLabel(payment.plan)} ({getDurationLabel(payment.duration)})</span>}
                     <span>{new Date(payment.createdAt).toLocaleDateString('uz-UZ')}</span>
                   </div>
+                  <PaymentProductDetails payment={payment} processing={processing === payment.id} onConfirm={(offerId) => handleAction(payment.id, 'confirm', offerId)} />
                   {/* Actions */}
-                  <div className="flex items-center gap-2 mt-3">
+                  <div className="flex flex-wrap items-center gap-2 mt-3">
                     {payment.receiptPhoto && (
                       <button
                         onClick={() => {

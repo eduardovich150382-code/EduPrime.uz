@@ -1,3 +1,4 @@
+// Ishlatilmaydi — webhook bilan bir tokenda polling mumkin emas; to'lov oqimi api/telegram/webhook da
 /**
  * EduPrime Telegram Bot (@EduPrimeuzbot)
  * 
