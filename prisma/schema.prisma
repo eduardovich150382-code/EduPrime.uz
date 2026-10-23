@@ -819,6 +819,8 @@ model Subscription {
   @@index([userId, isActive, endDate])
 }
 
+// UserPermission_userId_categoryId_whole_key qisman unique indeksi migratsiyada:
+// Prisma NULL fan uchun noyoblikni ifodalamaydi; fansiz ruxsat takrorlanmasin.
 model UserPermission {
   subjectId  String?
   subject    Subject?  @relation(fields: [subjectId], references: [id], onDelete: Restrict)
@@ -833,7 +835,7 @@ model UserPermission {
   user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   category TestCategory @relation(fields: [categoryId], references: [id])
 
-  @@unique([userId, categoryId])
+  @@unique([userId, categoryId, subjectId])
 }
 
 enum PaymentStatus {

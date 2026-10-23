@@ -118,6 +118,19 @@ describe("GET /api/tests", () => {
     paymentMock.mockResolvedValue([]);
   });
 
+  it("kategoriya javobini kutayotganda kirish konteksti parallel yuklanadi", async () => {
+    authMock.mockResolvedValue({ user: { id: 'u1', role: 'USER' } });
+    let release!: (value: { id: string; type: string }[]) => void;
+    findManyCategoryMock.mockReturnValue(new Promise((resolve) => { release = resolve; }));
+    const response = callGet('');
+    try {
+      await vi.waitFor(() => expect(subscriptionMock).toHaveBeenCalledTimes(1));
+      expect(findManyCategoryMock).toHaveBeenCalledTimes(1);
+    } finally { release([{ id: 'cat1', type: 'ATTESTATION' }]); }
+    expect((await response).status).toBe(200);
+    expect(findManyCategoryMock).toHaveBeenCalledTimes(1);
+  });
+
   it("eski chaqiruv ?type= — where/orderBy/skip/take avvalgidek", async () => {
     const { status } = await callGet("?type=ATTESTATION");
     expect(status).toBe(200);
@@ -347,5 +360,11 @@ describe("POST /api/tests", () => {
     const response = await callPost([{ text: "a", correctAnswer: "A" }], "subscription");
     expect(response.status).toBe(201);
     expect(createTestMock.mock.calls[0][0].data.accessType).toBe("subscription");
+  });
+
+  it.each([-1, 1.5, '1000', 2147483648])('noto‘g‘ri narxni rad etadi: %s', async (price) => {
+    const response = await POST(new NextRequest('http://localhost/api/tests', { method: 'POST', body: JSON.stringify({ titleUz: 'Test', subjectId: 's1', duration: 30, accessType: 'paid', price }) }));
+    expect(response.status).toBe(400);
+    expect(createTestMock).not.toHaveBeenCalled();
   });
 });

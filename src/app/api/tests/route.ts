@@ -6,6 +6,7 @@ import { notifyViaTelegram } from '@/lib/telegram-notify';
 import { logger } from '@/lib/logger';
 import { MAX_QUERY_LENGTH } from '@/lib/tests-filters';
 import { loadTestAccessContext, resolveTestAccess } from '@/lib/access';
+import { testPriceSchema } from '@/lib/test-price';
 
 const MAX_LIMIT = 50;
 const TEST_TYPES = new Set<string>(Object.values(TestType));
@@ -102,14 +103,14 @@ export async function GET(request: NextRequest) {
     // GET /api/tests/[id] da. Kirmagan foydalanuvchida bazaga qo'shimcha
     // so'rov yo'q: bepul testlar ochiq, qolganlari yopiq.
     const userId = session?.user?.id;
-    const categories = await db.testCategory.findMany({
+    const categoryTypesPromise = db.testCategory.findMany({
       where: { id: { in: [...new Set(tests.map((t) => t.categoryId))] } },
       select: { id: true, type: true },
-    });
-    const typeByCategory = new Map(categories.map((c) => [c.id, c.type]));
-    const accessContext = userId
-      ? await loadTestAccessContext(userId, session.user.role, tests, { categoryTypes: typeByCategory })
-      : null;
+    }).then((categories) => new Map(categories.map((c) => [c.id, c.type])));
+    const [typeByCategory, accessContext] = await Promise.all([
+      categoryTypesPromise,
+      userId ? loadTestAccessContext(userId, session.user.role, tests, { categoryTypes: categoryTypesPromise }) : null,
+    ]);
     const testsWithType = tests.map((t) => ({
       ...t,
       category: typeByCategory.has(t.categoryId) ? { type: typeByCategory.get(t.categoryId) } : null,
@@ -146,6 +147,9 @@ export async function POST(request: NextRequest) {
     }
 
     const VALID_ACCESS_TYPES = ['free', 'subscription', 'premium', 'teacher', 'premium_teacher', 'paid'];
+    if (price !== undefined && !testPriceSchema.safeParse(price).success) {
+      return NextResponse.json({ error: 'Invalid price' }, { status: 400 });
+    }
     if (accessType !== undefined && !VALID_ACCESS_TYPES.includes(accessType)) {
       return NextResponse.json({ error: 'Invalid accessType' }, { status: 400 });
     }

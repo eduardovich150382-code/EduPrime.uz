@@ -37,6 +37,7 @@ interface SidebarProps {
 export default function Sidebar({ role, mobileOpen, setMobileOpen }: SidebarProps) {
   const t = useTranslations('nav');
   const tCommon = useTranslations('common');
+  const tAdmin = useTranslations('adminProducts');
   const pathname = usePathname();
   // callbackUrl uchun locale prefiksli yo'l (Header'dagi bilan bir xil sabab).
   const fullPathname = useFullPathname();
@@ -103,6 +104,10 @@ export default function Sidebar({ role, mobileOpen, setMobileOpen }: SidebarProp
 
   const adminLinks = [
     { href: '/admin', icon: Shield, label: t('admin') },
+    { href: '/admin/products', icon: CreditCard, label: tAdmin('products') },
+    { href: '/admin/permissions', icon: Shield, label: tAdmin('permissions') },
+    { href: '/admin/subscriptions', icon: Crown, label: tAdmin('subscriptions') },
+    { href: '/admin/subjects', icon: BookOpen, label: tAdmin('subjects') },
   ];
 
   const links = [

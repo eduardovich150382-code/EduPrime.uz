@@ -55,7 +55,7 @@ export function resolveTestAccess(test: TestAccessInfo, ctx: TestAccessContext |
 
 interface TestAccessOptions {
   includePurchases?: boolean;
-  categoryTypes?: TestAccessContext['categoryTypes'];
+  categoryTypes?: TestAccessContext['categoryTypes'] | Promise<TestAccessContext['categoryTypes']>;
 }
 
 // Testlar sonidan qat'i nazar ko'pi bilan beshta so'rov: obuna, ruxsat,
@@ -72,11 +72,12 @@ export async function loadTestAccessContext(
   const categoryIds = [...new Set(locked.filter((t) => t.accessType === 'subscription').map((t) => t.categoryId))];
   const paidIds = includePurchases ? locked.filter((t) => t.accessType === 'paid').map((t) => t.id) : [];
   const now = new Date();
-  const [ent, categories, purchases, legacyPayments] = await Promise.all([
+  const [ent, categoryTypes, purchases, legacyPayments] = await Promise.all([
     locked.length ? loadUserEntitlements(userId, now) : { now, subscriptions: [], permissions: [] },
-    !knownCategoryTypes && categoryIds.length
+    knownCategoryTypes ?? (categoryIds.length
       ? db.testCategory.findMany({ where: { id: { in: categoryIds } }, select: { id: true, type: true } })
-      : [],
+        .then((categories) => new Map(categories.map((c) => [c.id, c.type])))
+      : new Map()),
     paidIds.length ? db.purchase.findMany({
       where: { userId, itemType: 'test', itemId: { in: paidIds } }, select: { itemId: true },
     }) : [],
@@ -91,7 +92,7 @@ export async function loadTestAccessContext(
       if (paidIdSet.has(id)) purchasedTestIds.add(id);
     }
   }
-  return { ...ent, isAdmin, purchasedTestIds, categoryTypes: knownCategoryTypes ?? new Map(categories.map((c) => [c.id, c.type])) };
+  return { ...ent, isAdmin, purchasedTestIds, categoryTypes };
 }
 
 /**

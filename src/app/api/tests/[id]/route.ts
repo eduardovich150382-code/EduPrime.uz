@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { testPriceSchema } from '@/lib/test-price';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { planQuestionOrder, shuffleTest } from '@/lib/shuffle';
@@ -165,6 +166,9 @@ export async function PUT(
     }
 
     const VALID_ACCESS_TYPES = ['free', 'subscription', 'premium', 'teacher', 'premium_teacher', 'paid'];
+    if (body.price !== undefined && !testPriceSchema.safeParse(body.price).success) {
+      return NextResponse.json({ error: 'Invalid price' }, { status: 400 });
+    }
     if (body.accessType !== undefined && !VALID_ACCESS_TYPES.includes(body.accessType)) {
       return NextResponse.json({ error: 'Invalid accessType' }, { status: 400 });
     }

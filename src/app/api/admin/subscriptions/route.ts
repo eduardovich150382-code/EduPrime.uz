@@ -1,145 +1,90 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
+import { z } from 'zod';
 import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/api-auth';
-import { logger } from '@/lib/logger';
+import { AdminInputError, adminApiError, grantSchema, hasPrismaCode, readAdminJson } from '@/lib/admin-products-api';
+import { buildSubjectIds, computeEndDate, resolveStartDate, sameSubjectIds } from '@/lib/product-offers';
 
-/**
- * GET /api/admin/subscriptions — Obunalar statistikasi va ro'yxati (ADMIN only)
- */
+const querySchema = z.object({
+  filter: z.enum(['all', 'premium', 'teacher', 'free', 'expiring', 'category', 'bundle']).default('all'),
+  page: z.coerce.number().int().min(1).max(100000).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+});
+
 export async function GET(request: NextRequest) {
+  const { error } = await requireAdmin();
+  if (error) return error;
   try {
-    const { error } = await requireAdmin();
-    if (error) return error;
-
-    const searchParams = request.nextUrl.searchParams;
-    const filter = searchParams.get('filter') || 'all'; // all, premium, teacher, free, expiring
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const { filter, page, limit } = querySchema.parse(Object.fromEntries(request.nextUrl.searchParams));
     const now = new Date();
+    const active: Prisma.SubscriptionWhereInput = { isActive: true, endDate: { gte: now } };
+    const expiring = { ...active, endDate: { gte: now, lte: new Date(now.getTime() + 7 * 86400000) } };
+    const [totalUsers, premiumCount, teacherCount, subscribedUsers, expiringCount] = await Promise.all([
+      db.user.count(), db.subscription.count({ where: { ...active, plan: 'PREMIUM' } }),
+      db.subscription.count({ where: { ...active, plan: 'TEACHER_PLAN' } }),
+      db.subscription.findMany({ where: active, select: { userId: true }, distinct: ['userId'] }),
+      db.subscription.count({ where: expiring }),
+    ]);
+    const plans = { premium: 'PREMIUM', teacher: 'TEACHER_PLAN', category: 'CATEGORY', bundle: 'BUNDLE' } as const;
+    const subscriptionWhere: Prisma.SubscriptionWhereInput = filter === 'expiring' ? expiring : {
+      ...active, ...(filter in plans ? { plan: plans[filter as keyof typeof plans] } : {}),
+    };
+    const where: Prisma.UserWhereInput = filter === 'all' ? {} : filter === 'free'
+      ? { id: { notIn: subscribedUsers.map((s) => s.userId) } }
+      : { subscriptions: { some: subscriptionWhere } };
+    const [total, users, subjects] = await Promise.all([
+      db.user.count({ where }),
+      db.user.findMany({ where, skip: (page - 1) * limit, take: limit, orderBy: { createdAt: 'desc' }, select: {
+        id: true, name: true, image: true, email: true, telegramUsername: true,
+        subscriptions: { where: active, include: { product: { select: { nameUz: true, nameRu: true, nameEn: true } }, offer: { select: { labelUz: true, labelRu: true, labelEn: true } } }, orderBy: { endDate: 'desc' } },
+      } }),
+      db.subject.findMany({ select: { id: true, nameUz: true, nameRu: true, nameEn: true } }),
+    ]);
+    return NextResponse.json({ stats: { totalUsers, premiumCount, teacherCount, freeCount: totalUsers - subscribedUsers.length, expiringCount },
+      users: users.map((u) => ({ ...u, plan: u.subscriptions.map((s) => s.plan).join('+') || 'FREE', endDate: u.subscriptions[0]?.endDate ?? null,
+        subscriptions: u.subscriptions.map((s) => ({ ...s, subjects: subjects.filter((subject) => s.subjectIds.includes(subject.id)) })),
+      })), total, page, limit });
+  } catch (error) { return adminApiError(error); }
+}
 
-    // Statistics
-    const totalUsers = await db.user.count();
-
-    const premiumCount = await db.subscription.count({
-      where: { plan: 'PREMIUM', isActive: true, endDate: { gte: now } },
-    });
-
-    const teacherCount = await db.subscription.count({
-      where: { plan: 'TEACHER_PLAN', isActive: true, endDate: { gte: now } },
-    });
-
-    const freeCount = totalUsers - premiumCount - teacherCount;
-
-    const expiringCount = await db.subscription.count({
-      where: {
-        isActive: true,
-        endDate: {
-          gte: now,
-          lte: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000),
-        },
-      },
-    });
-
-    // Build user query based on filter
-    let users: any[] = [];
-    let total = 0;
-
-    if (filter === 'free') {
-      // Users without active subscription
-      const usersWithSub = await db.subscription.findMany({
-        where: { isActive: true, endDate: { gte: now } },
-        select: { userId: true },
-        distinct: ['userId'],
-      });
-      const subUserIds = usersWithSub.map(s => s.userId);
-
-      total = await db.user.count({ where: { id: { notIn: subUserIds } } });
-      users = await db.user.findMany({
-        where: { id: { notIn: subUserIds } },
-        select: {
-          id: true, name: true, image: true, email: true, telegramUsername: true, createdAt: true,
-        },
-        orderBy: { createdAt: 'desc' },
-        skip: (page - 1) * limit,
-        take: limit,
-      });
-      users = users.map(u => ({ ...u, plan: 'Bepul', endDate: null }));
-    } else {
-      // Users with specific subscription
-      const where: any = { isActive: true, endDate: { gte: now } };
-      if (filter === 'premium') where.plan = 'PREMIUM';
-      if (filter === 'teacher') where.plan = 'TEACHER_PLAN';
-      if (filter === 'expiring') {
-        where.endDate = {
-          gte: now,
-          lte: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000),
-        };
-      }
-
-      if (filter === 'all') {
-        // All users with their subscription info
-        total = totalUsers;
-        const allUsers = await db.user.findMany({
-          select: {
-            id: true, name: true, image: true, email: true, telegramUsername: true, createdAt: true,
-            subscriptions: {
-              where: { isActive: true, endDate: { gte: now } },
-              select: { plan: true, endDate: true },
-              orderBy: { endDate: 'desc' },
-            },
-          },
-          orderBy: { createdAt: 'desc' },
-          skip: (page - 1) * limit,
-          take: limit,
-        });
-        users = allUsers.map(u => {
-          const subs = u.subscriptions;
-          let plan = 'Bepul';
-          let endDate = null;
-          if (subs.length > 0) {
-            const hasPremium = subs.some(s => s.plan === 'PREMIUM');
-            const hasTeacher = subs.some(s => s.plan === 'TEACHER_PLAN');
-            if (hasPremium && hasTeacher) plan = 'Premium+Ustoz';
-            else if (hasPremium) plan = 'Premium';
-            else if (hasTeacher) plan = 'Ustoz';
-            endDate = subs[0].endDate;
-          }
-          return { id: u.id, name: u.name, image: u.image, email: u.email, telegramUsername: u.telegramUsername, plan, endDate };
-        });
-      } else {
-        total = await db.subscription.count({ where });
-        const subs = await db.subscription.findMany({
-          where,
-          include: {
-            user: {
-              select: { id: true, name: true, image: true, email: true, telegramUsername: true },
-            },
-          },
-          orderBy: { endDate: 'asc' },
-          skip: (page - 1) * limit,
-          take: limit,
-        });
-        users = subs.map(s => ({
-          id: s.user.id,
-          name: s.user.name,
-          image: s.user.image,
-          email: s.user.email,
-          telegramUsername: s.user.telegramUsername,
-          plan: s.plan === 'PREMIUM' ? 'Premium' : 'Ustoz',
-          endDate: s.endDate,
-        }));
+export async function POST(request: NextRequest) {
+  const { error } = await requireAdmin();
+  if (error) return error;
+  try {
+    const input = grantSchema.parse(await readAdminJson(request));
+    // Takroriy parallel uzaytirishlar bir xil endDate'dan boshlanib qolmasin.
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const subscription = await db.$transaction(async (tx) => {
+          const [product, offer, user] = await Promise.all([
+            tx.product.findUnique({ where: { id: input.productId }, include: { category: { include: { subjects: true } } } }),
+            tx.productOffer.findUnique({ where: { id: input.offerId } }),
+            tx.user.findUnique({ where: { id: input.userId }, select: { id: true } }),
+          ]);
+          if (!product || !offer || !user) throw new AdminInputError('NOT_FOUND', 404);
+          if (offer.productId !== product.id || !offer.isActive) throw new AdminInputError('INVALID_OFFER');
+          const subjects = product.category?.subjects ?? [];
+          if (input.subjectIds.some((id) => !subjects.some((s) => s.id === id))) throw new AdminInputError('INVALID_SUBJECT');
+          const subjectIds = buildSubjectIds(product, input.subjectIds, subjects);
+          const now = new Date();
+          const current = offer.durationMonths !== null ? await tx.subscription.findMany({
+            where: { userId: input.userId, productId: product.id, isActive: true, endDate: { gt: now } },
+            select: { subjectIds: true, endDate: true }, orderBy: { endDate: 'desc' },
+          }) : [];
+          const currentEndDate = current.find((s) => sameSubjectIds(s.subjectIds, subjectIds))?.endDate;
+          return tx.subscription.create({ data: {
+            userId: input.userId, plan: product.kind === 'BUNDLE' ? 'BUNDLE' : 'CATEGORY', duration: 'CUSTOM',
+            productId: product.id, offerId: offer.id, categoryId: product.categoryId, subjectIds,
+            startDate: resolveStartDate(offer, now, currentEndDate), endDate: computeEndDate(offer, now, currentEndDate),
+          } });
+        }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+        return NextResponse.json({ subscription }, { status: 201 });
+      } catch (error) {
+        if (!hasPrismaCode(error, 'P2034')) throw error;
+        if (attempt === 2) throw new AdminInputError('RETRY_REQUIRED', 409);
       }
     }
-
-    return NextResponse.json({
-      stats: { totalUsers, premiumCount, teacherCount, freeCount, expiringCount },
-      users,
-      total,
-      page,
-      limit,
-    });
-  } catch (error) {
-    logger.error('GET /api/admin/subscriptions error:', { error });
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
-  }
+    throw new AdminInputError('RETRY_REQUIRED', 409);
+  } catch (error) { return adminApiError(error); }
 }

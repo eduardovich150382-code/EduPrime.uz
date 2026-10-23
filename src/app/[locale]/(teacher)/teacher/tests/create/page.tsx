@@ -1,5 +1,8 @@
 'use client';
 
+import TestAccessFields from '@/components/teacher/TestAccessFields';
+import { normalizeTestAccess } from '@/lib/test-access-form';
+
 import { useState, useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
@@ -89,7 +92,7 @@ export default function CreateTestPage() {
     difficulty: 3,
     videoSolution: '',
     coverImage: '',
-    accessType: 'free' as 'free' | 'premium' | 'teacher' | 'premium_teacher' | 'paid',
+    accessType: 'free' as 'free' | 'subscription' | 'premium' | 'teacher' | 'premium_teacher' | 'paid',
   });
   const [questions, setQuestions] = useState<QuestionForm[]>([{ ...emptyQuestion }]);
   // Ataylab `testInfo` dan tashqarida: `Test` modelida `topic` ustuni yo'q,
@@ -448,7 +451,8 @@ export default function CreateTestPage() {
       // ustma-ust ketib savollarni ikkilantirardi.
       await saveQueueRef.current.enqueue(async () => {
         // Exclude categoryType and accessType from the request body - only used client-side
-        const { categoryType, accessType, ...testData } = testInfo;
+        const { categoryType, accessType: storedAccessType, ...testData } = testInfo;
+        const accessType = normalizeTestAccess(storedAccessType);
 
         // Map accessType to isFree and price
         const isFree = accessType === 'free';
@@ -764,59 +768,7 @@ export default function CreateTestPage() {
           </div>
 
           {/* Access type / Tarif selector */}
-          <div>
-            <label className="text-sm font-medium text-text-primary block mb-3">Test kirish turi *</label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-              {([
-                { key: 'free' as const, label: 'Bepul', desc: 'Hammaga ochiq', color: 'border-green-300 bg-green-50 text-green-700' },
-                { key: 'premium' as const, label: 'Premium', desc: 'Premium tarifi', color: 'border-purple-300 bg-purple-50 text-purple-700' },
-                { key: 'teacher' as const, label: 'Ustoz', desc: 'Ustoz tarifi', color: 'border-blue-300 bg-blue-50 text-blue-700' },
-                { key: 'premium_teacher' as const, label: 'Premium + Ustoz', desc: 'Ikkala tarif', color: 'border-indigo-300 bg-indigo-50 text-indigo-700' },
-                { key: 'paid' as const, label: 'Narxli', desc: 'Alohida sotib olish', color: 'border-orange-300 bg-orange-50 text-orange-700' },
-              ]).map((opt) => (
-                <button
-                  key={opt.key}
-                  type="button"
-                  onClick={() => {
-                    const isFree = opt.key === 'free';
-                    setTestInfo({ ...testInfo, accessType: opt.key, isFree, price: isFree ? 0 : testInfo.price });
-                  }}
-                  className={`p-3 rounded-xl border-2 text-left transition-all ${
-                    testInfo.accessType === opt.key
-                      ? `${opt.color} shadow-sm`
-                      : 'border-gray-200 bg-white text-text-secondary hover:border-gray-300'
-                  }`}
-                >
-                  <p className="text-sm font-semibold">{opt.label}</p>
-                  <p className="text-xs opacity-75 mt-0.5">{opt.desc}</p>
-                </button>
-              ))}
-            </div>
-            {testInfo.accessType === 'paid' && (
-              <div className="flex items-center gap-2 mt-3">
-                <label className="text-sm font-medium text-text-primary">Narx:</label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={testInfo.price === 0 ? '' : testInfo.price.toString()}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    if (val === '') setTestInfo({ ...testInfo, price: 0 });
-                    else {
-                      const num = parseInt(val);
-                      if (!isNaN(num) && num >= 0) setTestInfo({ ...testInfo, price: num });
-                    }
-                  }}
-                  placeholder="5000"
-                  className="w-32 px-3 py-2 rounded-lg border border-border focus:ring-2 focus:ring-primary-500/20 text-sm"
-                />
-                <span className="text-sm text-text-secondary">so&apos;m</span>
-              </div>
-            )}
-          </div>
-          <p className="text-xs text-text-secondary bg-blue-50 p-3 rounded-lg border border-blue-100">
-            💡 <strong>Bepul</strong> — hammaga ochiq. <strong>Premium/Ustoz</strong> — faqat o&apos;sha tarif foydalanuvchilariga. <strong>Narxli</strong> — alohida sotib olish kerak (Telegram bot orqali).
-          </p>
+          <TestAccessFields value={testInfo.accessType} price={testInfo.price} onChange={(accessType, price) => setTestInfo({ ...testInfo, accessType, isFree: accessType === 'free', price })} />
 
           {/* General video solution */}
           <div>

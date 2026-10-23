@@ -12,6 +12,8 @@ const dirname = path.dirname(fileURLToPath(import.meta.url));
 // src/**/*.ts fayllaridagi "@/..." importlari bilan mos kelishi uchun
 // tsconfig.json dagi paths bilan bir xil.
 export default defineConfig({
+  // UI ogohlantirishlari haqiqiy React komponentlari bilan tekshiriladi.
+  oxc: { jsx: { runtime: 'automatic' } },
   resolve: {
     alias: {
       "@": path.resolve(dirname, "./src"),
@@ -28,7 +30,7 @@ export default defineConfig({
     // ularga yetarli CPU berishga qaratilgan.
     maxWorkers: 2,
     include: [
-      "src/**/*.{test,spec}.ts",
+      "src/**/*.{test,spec}.{ts,tsx}",
       "scripts/**/*.{test,spec}.ts",
       "prisma/**/*.{test,spec}.ts",
     ],

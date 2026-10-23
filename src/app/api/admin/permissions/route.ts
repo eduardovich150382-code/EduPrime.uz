@@ -1,194 +1,78 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { db } from '@/lib/db';
-import { auth } from '@/lib/auth';
-import { logger } from '@/lib/logger';
+import { requireAdmin } from '@/lib/api-auth';
+import { AdminInputError, adminApiError, hasPrismaCode, idSchema, permissionSchema, readAdminJson } from '@/lib/admin-products-api';
+import { tashkentDayEnd } from '@/lib/product-offers';
 
-// GET /api/admin/permissions — list user permissions (ADMIN only)
+const querySchema = z.object({ userId: idSchema.optional(), search: z.string().trim().max(100).optional() });
+const include = {
+  user: { select: { id: true, name: true, email: true, telegramUsername: true } },
+  category: { select: { id: true, nameUz: true, nameRu: true, nameEn: true, type: true } },
+  subject: { select: { id: true, nameUz: true, nameRu: true, nameEn: true } },
+};
+
 export async function GET(request: NextRequest) {
+  const { error } = await requireAdmin();
+  if (error) return error;
   try {
-    const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const role = session.user?.role;
-    if (role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
-    const searchParams = request.nextUrl.searchParams;
-    const userId = searchParams.get('userId') || '';
-    const search = searchParams.get('search') || '';
-
-    // Get categories
-    const categories = await db.testCategory.findMany({
-      orderBy: { order: 'asc' },
-      select: {
-        id: true,
-        nameUz: true,
-        nameRu: true,
-        nameEn: true,
-        type: true,
-        icon: true,
-      },
-    });
-
-    // If userId is provided, get permissions for that user
-    if (userId) {
-      const permissions = await db.userPermission.findMany({
-        where: { userId },
-        include: {
-          category: {
-            select: { id: true, nameUz: true, type: true, icon: true },
-          },
-        },
-      });
-
-      const user = await db.user.findUnique({
-        where: { id: userId },
-        select: { id: true, name: true, email: true, telegramUsername: true, role: true },
-      });
-
-      return NextResponse.json({ user, permissions, categories });
-    }
-
-    // Search users for permission management
-    if (search) {
-      const users = await db.user.findMany({
-        where: {
-          OR: [
-            { name: { contains: search, mode: 'insensitive' } },
-            { email: { contains: search, mode: 'insensitive' } },
-            { telegramUsername: { contains: search, mode: 'insensitive' } },
-          ],
-        },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          telegramUsername: true,
-          role: true,
-          permissions: {
-            include: {
-              category: { select: { id: true, nameUz: true, type: true } },
-            },
-          },
-        },
-        take: 20,
-        orderBy: { createdAt: 'desc' },
-      });
-
-      return NextResponse.json({ users, categories });
-    }
-
-    // Default: return categories and recent permissions
-    const recentPermissions = await db.userPermission.findMany({
-      include: {
-        user: { select: { id: true, name: true, email: true, telegramUsername: true } },
-        category: { select: { id: true, nameUz: true, type: true, icon: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 50,
-    });
-
-    return NextResponse.json({ permissions: recentPermissions, categories });
-  } catch (error) {
-    logger.error('GET /api/admin/permissions error:', { error });
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
-  }
+    const query = querySchema.parse(Object.fromEntries(request.nextUrl.searchParams));
+    const now = new Date();
+    const [categories, permissions, users] = await Promise.all([
+      db.testCategory.findMany({ orderBy: { order: 'asc' }, include: { subjects: { select: { id: true, nameUz: true, nameRu: true, nameEn: true }, orderBy: { order: 'asc' } } } }),
+      db.userPermission.findMany({ where: { ...(query.userId ? { userId: query.userId } : {}), isActive: true, OR: [{ expiresAt: null }, { expiresAt: { gte: now } }] }, include, orderBy: { createdAt: 'desc' }, take: 100 }),
+      query.search ? db.user.findMany({
+        where: { OR: ['name', 'email', 'telegramUsername'].map((field) => ({ [field]: { contains: query.search, mode: 'insensitive' as const } })) },
+        select: { id: true, name: true, email: true, telegramUsername: true }, take: 20, orderBy: { createdAt: 'desc' },
+      }) : [],
+    ]);
+    return NextResponse.json({ categories, permissions, users });
+  } catch (error) { return adminApiError(error); }
 }
 
-// POST /api/admin/permissions — grant permission
 export async function POST(request: NextRequest) {
+  const { user, error } = await requireAdmin();
+  if (error) return error;
   try {
-    const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const input = permissionSchema.parse(await readAdminJson(request));
+    const expiresAt = input.expiresAt ? tashkentDayEnd(input.expiresAt) : null;
+    if (expiresAt && expiresAt <= new Date()) throw new AdminInputError('INVALID_DATE');
+    const [targetUser, category, subject] = await Promise.all([
+      db.user.findUnique({ where: { id: input.userId }, select: { id: true } }),
+      db.testCategory.findUnique({ where: { id: input.categoryId }, select: { id: true } }),
+      input.subjectId ? db.subject.findUnique({ where: { id: input.subjectId }, select: { categoryId: true } }) : null,
+    ]);
+    if (!targetUser || !category) throw new AdminInputError('NOT_FOUND', 404);
+    if (input.subjectId && subject?.categoryId !== input.categoryId) throw new AdminInputError('INVALID_SUBJECT');
+    const data = { expiresAt, isActive: true, grantedBy: user.id };
+    let permission;
+    if (input.subjectId) {
+      permission = await db.userPermission.upsert({
+        where: { userId_categoryId_subjectId: { userId: input.userId, categoryId: input.categoryId, subjectId: input.subjectId } },
+        create: { userId: input.userId, categoryId: input.categoryId, subjectId: input.subjectId, ...data }, update: data,
+      });
+    } else {
+      // Qisman unique indeks parallel so'rovda ham bir xil fansiz ruxsatni himoya qiladi.
+      const where = { userId: input.userId, categoryId: input.categoryId, subjectId: null };
+      try {
+        permission = await db.userPermission.create({ data: { ...where, ...data } });
+      } catch (error) {
+        if (!hasPrismaCode(error, 'P2002')) throw error;
+        const existing = await db.userPermission.findFirst({ where, select: { id: true } });
+        if (!existing) throw error;
+        permission = await db.userPermission.update({ where: { id: existing.id }, data });
+      }
     }
-
-    const role = session.user?.role;
-    if (role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
-    const body = await request.json();
-    const { userId, categoryId, expiresAt } = body;
-
-    if (!userId || !categoryId) {
-      return NextResponse.json({ error: 'userId and categoryId required' }, { status: 400 });
-    }
-
-    // Check if user exists
-    const user = await db.user.findUnique({ where: { id: userId } });
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    // Check if category exists
-    const category = await db.testCategory.findUnique({ where: { id: categoryId } });
-    if (!category) {
-      return NextResponse.json({ error: 'Category not found' }, { status: 404 });
-    }
-
-    // Upsert permission
-    const permission = await db.userPermission.upsert({
-      where: {
-        userId_categoryId: { userId, categoryId },
-      },
-      update: {
-        isActive: true,
-        grantedBy: session.user.id,
-        expiresAt: expiresAt ? new Date(expiresAt) : null,
-      },
-      create: {
-        userId,
-        categoryId,
-        grantedBy: session.user.id,
-        isActive: true,
-        expiresAt: expiresAt ? new Date(expiresAt) : null,
-      },
-    });
-
-    return NextResponse.json({ message: 'Permission granted', permission });
-  } catch (error) {
-    logger.error('POST /api/admin/permissions error:', { error });
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
-  }
+    return NextResponse.json({ permission });
+  } catch (error) { return adminApiError(error); }
 }
 
-// DELETE /api/admin/permissions — revoke permission
 export async function DELETE(request: NextRequest) {
+  const { error } = await requireAdmin();
+  if (error) return error;
   try {
-    const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const role = session.user?.role;
-    if (role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
-    const body = await request.json();
-    const { userId, categoryId } = body;
-
-    if (!userId || !categoryId) {
-      return NextResponse.json({ error: 'userId and categoryId required' }, { status: 400 });
-    }
-
-    // Deactivate permission
-    const permission = await db.userPermission.update({
-      where: {
-        userId_categoryId: { userId, categoryId },
-      },
-      data: {
-        isActive: false,
-      },
-    });
-
-    return NextResponse.json({ message: 'Permission revoked', permission });
-  } catch (error) {
-    logger.error('DELETE /api/admin/permissions error:', { error });
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
-  }
+    const { id } = z.object({ id: idSchema }).strict().parse(await readAdminJson(request));
+    await db.userPermission.update({ where: { id }, data: { isActive: false } });
+    return NextResponse.json({ success: true });
+  } catch (error) { return adminApiError(error); }
 }
