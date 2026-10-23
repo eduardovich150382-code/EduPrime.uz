@@ -1,130 +1,97 @@
 import { db } from './db';
+import { canAccessByEntitlements, isFreeTest, type TestAccessContext, type TestAccessInfo, type UserEntitlements } from './entitlements';
 
-/**
- * Shared access-control helpers for test content. Question text/options and
- * correctAnswer are the paid product — every place that can reveal them
- * (serving the test, grading a submission, AI explanations) must go through
- * this same check, otherwise a paywall bypass leaks premium content for free.
- */
+export { canAccessByEntitlements, hasAnyActiveSubscription } from './entitlements';
+export type { TestAccessContext, TestAccessInfo, UserEntitlements } from './entitlements';
+
+// Obunalar va ruxsatlar foydalanuvchi uchun bir martadan olinadi. Mahsulot
+// sotuvdan olinsa ham oldin sotib olingan obuna huquqi saqlanadi.
+export async function loadUserEntitlements(userId: string, now = new Date()): Promise<UserEntitlements> {
+  const [subscriptions, permissions] = await Promise.all([
+    db.subscription.findMany({
+      where: { userId, isActive: true, endDate: { gte: now } },
+      select: {
+        plan: true, categoryId: true, subjectIds: true, isActive: true, endDate: true,
+        product: { select: { subjectRule: true } },
+      },
+    }),
+    db.userPermission.findMany({
+      where: { userId, isActive: true, OR: [{ expiresAt: null }, { expiresAt: { gte: now } }] },
+      select: { categoryId: true, subjectId: true, isActive: true, expiresAt: true },
+    }),
+  ]);
+  return {
+    now,
+    subscriptions: subscriptions.map(({ product, ...s }) => ({ ...s, subjectRule: product?.subjectRule ?? null })),
+    permissions,
+  };
+}
+
 export async function checkTestAccess(
   userId: string,
-  test: { id: string; accessType: string },
-  role: string | undefined
+  test: TestAccessInfo,
+  role: string | undefined,
 ): Promise<boolean> {
-  if (role === 'ADMIN') return true;
+  const ctx = await loadTestAccessContext(userId, role, [test], { includePurchases: false });
+  if (canAccessByEntitlements(test, ctx)) return true;
+  if (test.accessType !== 'paid') return false;
 
-  const { premium, teacher } = await hasActiveSubscription(userId);
-
-  if (test.accessType === 'premium' && premium) return true;
-  if (test.accessType === 'teacher' && teacher) return true;
-  if (test.accessType === 'premium_teacher' && (premium || teacher)) return true;
-
-  if (test.accessType === 'paid') {
-    const purchase = await db.purchase.findUnique({
-      where: { userId_itemType_itemId: { userId, itemType: 'test', itemId: test.id } },
-    });
-    if (purchase) return true;
-
-    // Zaxira: Purchase backfill prod'da bajarilmaguncha, backfill'dan oldingi
-    // xaridlar hali `Payment.selectedSubjects`da yotibdi — shu yerda ham
-    // tekshiramiz, ikkalasidan biri topilsa ruxsat beriladi.
-    const legacyPurchase = await db.payment.findFirst({
+  const purchase = await db.purchase.findUnique({
+    where: { userId_itemType_itemId: { userId, itemType: 'test', itemId: test.id } },
+  });
+  if (!purchase) {
+    // Backfill'dan oldingi xaridlar uchun mavjud zaxira yo'li saqlanadi.
+    const legacy = await db.payment.findFirst({
       where: { userId, status: 'CONFIRMED', selectedSubjects: { has: test.id } },
     });
-    if (legacyPurchase) return true;
+    if (!legacy) return false;
   }
-
-  return false;
+  return canAccessByEntitlements(test, { ...ctx, purchasedTestIds: new Set([test.id]) });
 }
 
-/**
- * Ro'yxat (GET /api/tests) uchun foydalanuvchining kirish ma'lumoti —
- * sahifadagi har test uchun checkTestAccess chaqirilsa 20 ta test = 40+
- * so'rov (N+1) bo'lardi. Shuning uchun ma'lumot bir marta yuklanadi va
- * qaror xotirada, resolveTestAccess bilan chiqariladi.
- *
- * UserPermission ataylab yo'q: checkTestAccess uni o'qimaydi. Bu yerda
- * o'qilsa karta "ochiq" deydi, solve va savollar endpointi esa rad etadi.
- */
-export interface TestAccessContext {
-  isAdmin: boolean;
-  premium: boolean;
-  teacher: boolean;
-  // Purchase va eski Payment.selectedSubjects xaridlari birlashmasi.
-  purchasedTestIds: ReadonlySet<string>;
-}
-
-export interface TestAccessInfo {
-  id: string;
-  isFree: boolean;
-  accessType: string;
-}
-
-function isFreeTest(test: TestAccessInfo): boolean {
-  return test.isFree || test.accessType === 'free';
-}
-
-/**
- * checkTestAccess bilan bir xil qaror, faqat sof. Farqi bitta: bepul testga
- * true — checkTestAccess'da bepul tekshiruv chaqiruvchida (GET /api/tests/[id]).
- * `ctx === null` — tizimga kirmagan foydalanuvchi.
- */
 export function resolveTestAccess(test: TestAccessInfo, ctx: TestAccessContext | null): boolean {
-  if (isFreeTest(test)) return true;
-  if (!ctx) return false;
-  if (ctx.isAdmin) return true;
-  if (test.accessType === 'premium' && ctx.premium) return true;
-  if (test.accessType === 'teacher' && ctx.teacher) return true;
-  if (test.accessType === 'premium_teacher' && (ctx.premium || ctx.teacher)) return true;
-  if (test.accessType === 'paid' && ctx.purchasedTestIds.has(test.id)) return true;
-  return false;
+  return canAccessByEntitlements(test, ctx);
 }
 
-const SUBSCRIPTION_ACCESS_TYPES = new Set(['premium', 'teacher', 'premium_teacher']);
+interface TestAccessOptions {
+  includePurchases?: boolean;
+  categoryTypes?: TestAccessContext['categoryTypes'];
+}
 
-/**
- * Sahifadagi testlar uchun kontekst — testlar sonidan qat'i nazar ko'pi
- * bilan 3 so'rov. Kerak bo'lmagan so'rov umuman bajarilmaydi: ADMIN'ga
- * hech biri, obunali test bo'lmasa — obuna, pullik test bo'lmasa — xarid.
- */
+// Testlar sonidan qat'i nazar ko'pi bilan beshta so'rov: obuna, ruxsat,
+// kategoriya turlari, Purchase va eski Payment. Bepul/ADMIN uchun so'rov yo'q.
 export async function loadTestAccessContext(
   userId: string,
   role: string | undefined,
-  tests: TestAccessInfo[]
+  tests: TestAccessInfo[],
+  options: TestAccessOptions = {},
 ): Promise<TestAccessContext> {
+  const { includePurchases = true, categoryTypes: knownCategoryTypes } = options;
   const isAdmin = role === 'ADMIN';
   const locked = isAdmin ? [] : tests.filter((t) => !isFreeTest(t));
-  const needsSubscription = locked.some((t) => SUBSCRIPTION_ACCESS_TYPES.has(t.accessType));
-  const paidIds = locked.filter((t) => t.accessType === 'paid').map((t) => t.id);
-
-  const [subscription, purchases, legacyPayments] = await Promise.all([
-    needsSubscription ? hasActiveSubscription(userId) : { premium: false, teacher: false },
-    paidIds.length > 0
-      ? db.purchase.findMany({
-          where: { userId, itemType: 'test', itemId: { in: paidIds } },
-          select: { itemId: true },
-        })
+  const categoryIds = [...new Set(locked.filter((t) => t.accessType === 'subscription').map((t) => t.categoryId))];
+  const paidIds = includePurchases ? locked.filter((t) => t.accessType === 'paid').map((t) => t.id) : [];
+  const now = new Date();
+  const [ent, categories, purchases, legacyPayments] = await Promise.all([
+    locked.length ? loadUserEntitlements(userId, now) : { now, subscriptions: [], permissions: [] },
+    !knownCategoryTypes && categoryIds.length
+      ? db.testCategory.findMany({ where: { id: { in: categoryIds } }, select: { id: true, type: true } })
       : [],
-    // checkTestAccess'dagi zaxira bilan bir xil sabab — Purchase backfill.
-    paidIds.length > 0
-      ? db.payment.findMany({
-          where: { userId, status: 'CONFIRMED', selectedSubjects: { hasSome: paidIds } },
-          select: { selectedSubjects: true },
-        })
-      : [],
+    paidIds.length ? db.purchase.findMany({
+      where: { userId, itemType: 'test', itemId: { in: paidIds } }, select: { itemId: true },
+    }) : [],
+    paidIds.length ? db.payment.findMany({
+      where: { userId, status: 'CONFIRMED', selectedSubjects: { hasSome: paidIds } }, select: { selectedSubjects: true },
+    }) : [],
   ]);
-
   const purchasedTestIds = new Set(purchases.map((p) => p.itemId));
-  // selectedSubjects'da fan id'lari ham aralashgan — faqat sahifadagi
-  // pullik testlarnikini olamiz.
   const paidIdSet = new Set(paidIds);
   for (const payment of legacyPayments) {
     for (const id of payment.selectedSubjects) {
       if (paidIdSet.has(id)) purchasedTestIds.add(id);
     }
   }
-
-  return { isAdmin, ...subscription, purchasedTestIds };
+  return { ...ent, isAdmin, purchasedTestIds, categoryTypes: knownCategoryTypes ?? new Map(categories.map((c) => [c.id, c.type])) };
 }
 
 /**

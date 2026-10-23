@@ -587,6 +587,7 @@
       "needPremium": "The “{title}” test requires the Premium plan.",
       "needTeacher": "The “{title}” test requires the Teacher plan.",
       "needPremiumTeacher": "The “{title}” test requires the Premium or Teacher plan.",
+      "needSubscription": "Access to “{title}” requires a subscription covering this category and subject.",
       "needPaid": "The “{title}” test requires a payment of {price} UZS.",
       "needGeneric": "The “{title}” test requires a plan.",
       "buy": "Buy — {price} UZS",
@@ -692,6 +693,7 @@
       "new": "New",
       "lockPremium": "Premium",
       "lockTeacher": "Teacher plan",
+      "lockSubscription": "Subscription",
       "lockPrice": "{price} UZS"
     },
     "banner": {

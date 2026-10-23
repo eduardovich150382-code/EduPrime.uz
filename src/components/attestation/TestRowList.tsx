@@ -123,6 +123,8 @@ export function TestRowList({ title, rows, emptyText }: { title: string; rows: M
                           ? tests('lockPrice', { price: row.lockBadge.price.toLocaleString() })
                           : row.lockBadge.kind === 'premium'
                           ? tests('lockPremium')
+                          : row.lockBadge.kind === 'subscription'
+                          ? tests('lockSubscription')
                           : tests('lockTeacher')}
                       </span>
                     )}

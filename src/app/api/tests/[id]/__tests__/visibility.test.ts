@@ -12,6 +12,8 @@ const mocks = vi.hoisted(() => ({
   lessonBlockCount: vi.fn(),
   createResult: vi.fn(),
   auth: vi.fn(),
+  subscriptions: vi.fn(),
+  categories: vi.fn(),
 }));
 
 // `omit` ni haqiqiy Prisma kabi qo'llaymiz — javobda maydon yo'qligini
@@ -33,11 +35,14 @@ vi.mock('@/lib/db', () => ({
           )
         ),
     },
-    testCategory: { findUnique: () => Promise.resolve({ type: 'DTM' }) },
+    testCategory: { findUnique: () => Promise.resolve({ type: 'DTM' }), findMany: (...args: unknown[]) => mocks.categories(...args) },
     courseLesson: { count: (...args: unknown[]) => mocks.courseLessonCount(...args) },
     lessonBlock: { count: (...args: unknown[]) => mocks.lessonBlockCount(...args) },
     user: { findUnique: () => Promise.resolve({ role: 'USER' }) },
-    subscription: { findMany: () => Promise.resolve([]) },
+    userPermission: { findMany: async () => [] },
+    subscription: { findMany: (...args: unknown[]) => mocks.subscriptions(...args) },
+    purchase: { findUnique: async () => null },
+    payment: { findFirst: async () => null },
     item: { findMany: () => Promise.resolve([]) },
     attempt: { createMany: () => Promise.resolve({ count: 0 }) },
     $transaction: (cb: (tx: unknown) => unknown) =>
@@ -57,6 +62,7 @@ function buildTest(overrides: Record<string, unknown> = {}) {
   return {
     id: 'test1',
     categoryId: 'cat1',
+    subjectId: 'physics',
     isPublished: false,
     isFree: true,
     accessType: 'free',
@@ -99,6 +105,8 @@ function signIn(id: string, role = 'USER') {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mocks.subscriptions.mockResolvedValue([]);
+  mocks.categories.mockResolvedValue([{ id: 'cat1', type: 'ATTESTATION' }, { id: 'dtm', type: 'DTM' }]);
   mocks.testRow = buildTest();
   mocks.auth.mockReturnValue(null);
   mocks.courseLessonCount.mockResolvedValue(0);
@@ -186,5 +194,31 @@ describe('nashr etilgan test', () => {
     expect(data.test).not.toHaveProperty('writtenSolution');
     expect(data.test).not.toHaveProperty('videoSolution');
     expect(data.test.questions[0]).not.toHaveProperty('correctAnswer');
+  });
+});
+
+
+describe('GET va submit — yangi kirish modeli', () => {
+  it.each([
+    ['TEACHER_PLAN', 'cat1', 200], ['TEACHER_PLAN', 'dtm', 403],
+    ['PREMIUM', 'cat1', 403], ['PREMIUM', 'dtm', 200],
+  ] as const)('%s, subscription kategoriya=%s → %s', async (plan, categoryId, status) => {
+    signIn('u1');
+    mocks.testRow = buildTest({ isPublished: true, isFree: false, accessType: 'subscription', categoryId });
+    mocks.subscriptions.mockResolvedValue([{ plan, isActive: true, endDate: new Date('2099-01-01'), categoryId: null, subjectIds: [], product: null }]);
+    expect((await callGet()).status).toBe(status);
+    expect((await callSubmit()).status).toBe(status);
+    if (status === 403) expect(mocks.createResult).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['cat1', 'physics', 200], ['cat1', 'math', 403], ['dtm', 'physics', 403],
+  ] as const)('CATEGORY ONE paid mock: %s/%s → %s', async (categoryId, subjectId, status) => {
+    signIn('u1');
+    mocks.testRow = buildTest({ isPublished: true, isFree: false, accessType: 'paid', categoryId, subjectId });
+    mocks.subscriptions.mockResolvedValue([{ plan: 'CATEGORY', isActive: true, endDate: new Date('2099-01-01'), categoryId: 'cat1', subjectIds: ['physics'], product: { subjectRule: 'ONE' } }]);
+    expect((await callGet()).status).toBe(status);
+    expect((await callSubmit()).status).toBe(status);
+    if (status === 403) expect(mocks.createResult).not.toHaveBeenCalled();
   });
 });

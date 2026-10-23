@@ -335,6 +335,7 @@ export default function TestSolvePage() {
         accessDenied.accessType === 'premium' ? exam('locked.needPremium', { title })
         : accessDenied.accessType === 'teacher' ? exam('locked.needTeacher', { title })
         : accessDenied.accessType === 'premium_teacher' ? exam('locked.needPremiumTeacher', { title })
+        : accessDenied.accessType === 'subscription' ? exam('locked.needSubscription', { title })
         : accessDenied.accessType === 'paid' ? exam('locked.needPaid', { title, price })
         : exam('locked.needGeneric', { title });
       return (

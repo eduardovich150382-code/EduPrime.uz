@@ -587,6 +587,7 @@
       "needPremium": "«{title}» testiga kirish uchun Premium tarif kerak.",
       "needTeacher": "«{title}» testiga kirish uchun Ustoz tarif kerak.",
       "needPremiumTeacher": "«{title}» testiga kirish uchun Premium yoki Ustoz tarif kerak.",
+      "needSubscription": "«{title}» testiga kirish uchun shu kategoriya va fanni qamrab oluvchi obuna kerak.",
       "needPaid": "«{title}» testiga kirish uchun {price} so'm to'lash kerak.",
       "needGeneric": "«{title}» testiga kirish uchun tarif kerak.",
       "buy": "Sotib olish — {price} so'm",
@@ -692,6 +693,7 @@
       "new": "Yangi",
       "lockPremium": "Premium",
       "lockTeacher": "Ustoz tarifi",
+      "lockSubscription": "Obuna bilan",
       "lockPrice": "{price} so'm"
     },
     "banner": {

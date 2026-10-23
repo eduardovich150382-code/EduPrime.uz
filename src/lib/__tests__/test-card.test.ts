@@ -81,6 +81,8 @@ describe('getLockBadge', () => {
   it("tur bo'yicha belgi", () => {
     expect(badge('premium')).toEqual({ kind: 'premium' });
     expect(badge('premium_teacher')).toEqual({ kind: 'premium' });
+    expect(badge('subscription')).toEqual({ kind: 'subscription' });
+    expect(badge('subscription', true)).toBeNull();
     expect(badge('teacher')).toEqual({ kind: 'teacher' });
     expect(badge('paid', undefined, 15000)).toEqual({ kind: 'price', price: 15000 });
   });

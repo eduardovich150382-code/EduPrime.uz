@@ -8,7 +8,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  */
 interface FakeState {
   role: string;
-  subscriptions: { userId: string; isActive: boolean; endDate: Date; plan: string }[];
+  subscriptions: { userId: string; isActive: boolean; endDate: Date; plan: string; categoryId?: string; subjectIds?: string[]; product?: { subjectRule: string } }[];
   purchases: { userId: string; itemType: string; itemId: string }[];
   payments: { userId: string; status: string; selectedSubjects: string[] }[];
   // Nashr etilgan kursdagi QUIZ darslari soni (lib/test-visibility.ts)
@@ -18,6 +18,8 @@ interface FakeState {
 const state: FakeState = { role: "USER", subscriptions: [], purchases: [], payments: [], publishedCourseLessons: 0 };
 
 interface FakeTest {
+  categoryId: string;
+  subjectId: string;
   id: string;
   isFree: boolean;
   accessType: string;
@@ -28,21 +30,23 @@ interface FakeTest {
   teacher: { userId: string } | null;
 }
 
-const PAID_TEST: FakeTest = { id: "t1", isFree: false, accessType: "paid", price: 15000, titleUz: "Kinematika", isPublished: true, userId: null, teacher: null };
+const PAID_TEST: FakeTest = { categoryId: "att", subjectId: "physics", id: "t1", isFree: false, accessType: "paid", price: 15000, titleUz: "Kinematika", isPublished: true, userId: null, teacher: null };
 let currentTest: FakeTest | null = PAID_TEST;
 
 vi.mock("@/lib/db", () => ({
   db: {
-    test: { findUnique: async () => currentTest },
+    test: { findUnique: async ({ select }: { select: Record<string, unknown> }) => currentTest && Object.fromEntries(Object.entries(currentTest).filter(([key]) => select[key])) },
+    testCategory: { findMany: async () => [{ id: "att", type: "ATTESTATION" }, { id: "dtm", type: "DTM" }] },
     user: { findUnique: async () => ({ role: state.role }) },
     courseLesson: { count: async () => state.publishedCourseLessons },
     lessonBlock: { count: async () => 0 },
+    userPermission: { findMany: async () => [] },
     subscription: {
       findMany: async ({ where }: { where: { userId: string; isActive: boolean; endDate: { gte: Date } } }) =>
         state.subscriptions
           .filter((s) => s.userId === where.userId && s.isActive === where.isActive)
           .filter((s) => s.endDate.getTime() >= where.endDate.gte.getTime())
-          .map((s) => ({ plan: s.plan })),
+          .map((s) => ({ categoryId: null, subjectIds: [], product: null, ...s })),
     },
     purchase: {
       findUnique: async ({ where }: { where: { userId_itemType_itemId: { userId: string; itemType: string; itemId: string } } }) => {
@@ -141,5 +145,29 @@ describe("GET /api/subscription/check-access", () => {
   it("bepul test — kiradi (avvalgidek)", async () => {
     currentTest = { ...PAID_TEST, isFree: true, accessType: "free" };
     expect((await check()).data).toEqual({ hasAccess: true, reason: "free" });
+  });
+});
+
+
+describe("check-access — kengaytirilgan select va yangi huquqlar", () => {
+  it.each([
+    ["TEACHER_PLAN", "att", true], ["TEACHER_PLAN", "dtm", false],
+    ["PREMIUM", "att", false], ["PREMIUM", "dtm", true],
+  ] as const)("%s, subscription kategoriya=%s → %s", async (plan, categoryId, expected) => {
+    currentTest = { ...PAID_TEST, categoryId, accessType: "subscription" };
+    state.subscriptions.push({ userId: "u1", plan: String(plan), isActive: true, endDate: future });
+    const result = await check();
+    expect(result.status).toBe(200);
+    expect(result.data.hasAccess).toBe(expected);
+    if (expected) expect(result.data.reason).toBe("subscription");
+  });
+
+  it("CATEGORY ONE: paid mock uchun categoryId va subjectId select qilinadi", async () => {
+    state.subscriptions.push({ userId: "u1", plan: "CATEGORY", categoryId: "att", subjectIds: ["physics"], product: { subjectRule: "ONE" }, isActive: true, endDate: future });
+    expect((await check()).data.hasAccess).toBe(true);
+    currentTest = { ...PAID_TEST, subjectId: "math" };
+    expect((await check()).data.hasAccess).toBe(false);
+    currentTest = { ...PAID_TEST, categoryId: "dtm" };
+    expect((await check()).data.hasAccess).toBe(false);
   });
 });

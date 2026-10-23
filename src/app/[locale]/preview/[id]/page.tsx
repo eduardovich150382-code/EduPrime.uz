@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
 import LatexRenderer from '@/components/ui/LatexRenderer';
 import {
@@ -33,6 +34,7 @@ interface PreviewTest {
 
 export default function TestPreviewPage() {
   const params = useParams();
+  const card = useTranslations('tests.card');
   const testId = params.id as string;
 
   const [test, setTest] = useState<PreviewTest | null>(null);
@@ -83,6 +85,7 @@ export default function TestPreviewPage() {
   const accessLabel =
     test.accessType === 'free' ? 'Bepul' :
     test.accessType === 'paid' ? `${test.price.toLocaleString()} so'm` :
+    test.accessType === 'subscription' ? card('lockSubscription') :
     test.accessType === 'premium' ? 'Premium tarif' :
     test.accessType === 'teacher' ? 'Ustoz tarifi' : 'Premium + Ustoz tarifi';
 

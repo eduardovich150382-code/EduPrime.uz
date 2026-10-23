@@ -20,6 +20,7 @@ const { findFirstMock, findManyMock, purchaseFindUniqueMock } = vi.hoisted(() =>
 vi.mock("../db", () => ({
   db: {
     payment: { findFirst: (...args: unknown[]) => findFirstMock(...args) },
+    userPermission: { findMany: async () => [] },
     subscription: { findMany: (...args: unknown[]) => findManyMock(...args) },
     purchase: { findUnique: (...args: unknown[]) => purchaseFindUniqueMock(...args) },
   },
@@ -62,7 +63,7 @@ function setSubscriptions(subscriptions: FakeSubscription[]) {
       .filter((s) => s.userId === args.where.userId)
       .filter((s) => s.isActive === args.where.isActive)
       .filter((s) => s.endDate.getTime() >= args.where.endDate.gte.getTime())
-      .map((s) => ({ plan: s.plan }));
+      .map((s) => ({ ...s, categoryId: null, subjectIds: [], product: null }));
   });
 }
 
@@ -102,74 +103,74 @@ beforeEach(() => {
 
 describe("checkTestAccess", () => {
   it("ADMIN har doim o'tadi — obuna tekshirilmaydi ham", async () => {
-    const result = await checkTestAccess("user-1", { id: "t1", accessType: "premium" }, "ADMIN");
+    const result = await checkTestAccess("user-1", { categoryId: "cat", subjectId: "subject", isFree: false, id: "t1", accessType: "premium" }, "ADMIN");
     expect(result).toBe(true);
     expect(findManyMock).not.toHaveBeenCalled();
   });
 
   it("premium accessType, faol PREMIUM obuna bilan o'tadi", async () => {
     setSubscriptions([{ userId: "user-1", isActive: true, endDate: farFuture, plan: "PREMIUM" }]);
-    const result = await checkTestAccess("user-1", { id: "t1", accessType: "premium" }, "STUDENT");
+    const result = await checkTestAccess("user-1", { categoryId: "cat", subjectId: "subject", isFree: false, id: "t1", accessType: "premium" }, "STUDENT");
     expect(result).toBe(true);
   });
 
   it("premium accessType, obuna yo'q bo'lsa o'tmaydi", async () => {
-    const result = await checkTestAccess("user-1", { id: "t1", accessType: "premium" }, "STUDENT");
+    const result = await checkTestAccess("user-1", { categoryId: "cat", subjectId: "subject", isFree: false, id: "t1", accessType: "premium" }, "STUDENT");
     expect(result).toBe(false);
   });
 
   it("premium accessType, muddati o'tgan obuna bo'lsa o'tmaydi", async () => {
     setSubscriptions([{ userId: "user-1", isActive: true, endDate: farPast, plan: "PREMIUM" }]);
-    const result = await checkTestAccess("user-1", { id: "t1", accessType: "premium" }, "STUDENT");
+    const result = await checkTestAccess("user-1", { categoryId: "cat", subjectId: "subject", isFree: false, id: "t1", accessType: "premium" }, "STUDENT");
     expect(result).toBe(false);
   });
 
   it("teacher accessType, faol TEACHER_PLAN obuna bilan o'tadi", async () => {
     setSubscriptions([{ userId: "user-1", isActive: true, endDate: farFuture, plan: "TEACHER_PLAN" }]);
-    const result = await checkTestAccess("user-1", { id: "t1", accessType: "teacher" }, "STUDENT");
+    const result = await checkTestAccess("user-1", { categoryId: "cat", subjectId: "subject", isFree: false, id: "t1", accessType: "teacher" }, "STUDENT");
     expect(result).toBe(true);
   });
 
   it("teacher accessType, faqat PREMIUM obuna bo'lsa o'tmaydi", async () => {
     setSubscriptions([{ userId: "user-1", isActive: true, endDate: farFuture, plan: "PREMIUM" }]);
-    const result = await checkTestAccess("user-1", { id: "t1", accessType: "teacher" }, "STUDENT");
+    const result = await checkTestAccess("user-1", { categoryId: "cat", subjectId: "subject", isFree: false, id: "t1", accessType: "teacher" }, "STUDENT");
     expect(result).toBe(false);
   });
 
   it("premium_teacher accessType, ikkalasidan biri bilan ham o'tadi", async () => {
     setSubscriptions([{ userId: "user-1", isActive: true, endDate: farFuture, plan: "PREMIUM" }]);
     expect(
-      await checkTestAccess("user-1", { id: "t1", accessType: "premium_teacher" }, "STUDENT")
+      await checkTestAccess("user-1", { categoryId: "cat", subjectId: "subject", isFree: false, id: "t1", accessType: "premium_teacher" }, "STUDENT")
     ).toBe(true);
 
     setSubscriptions([{ userId: "user-1", isActive: true, endDate: farFuture, plan: "TEACHER_PLAN" }]);
     expect(
-      await checkTestAccess("user-1", { id: "t1", accessType: "premium_teacher" }, "STUDENT")
+      await checkTestAccess("user-1", { categoryId: "cat", subjectId: "subject", isFree: false, id: "t1", accessType: "premium_teacher" }, "STUDENT")
     ).toBe(true);
   });
 
   it("paid accessType, shu testga CONFIRMED to'lov bilan o'tadi (legacy selectedSubjects)", async () => {
     setPayments([{ userId: "user-1", status: "CONFIRMED", selectedSubjects: ["t1"] }]);
-    const result = await checkTestAccess("user-1", { id: "t1", accessType: "paid" }, "STUDENT");
+    const result = await checkTestAccess("user-1", { categoryId: "cat", subjectId: "subject", isFree: false, id: "t1", accessType: "paid" }, "STUDENT");
     expect(result).toBe(true);
   });
 
   it("paid accessType, mos to'lov bo'lmasa o'tmaydi", async () => {
     setPayments([{ userId: "user-1", status: "CONFIRMED", selectedSubjects: ["boshqa-test"] }]);
-    const result = await checkTestAccess("user-1", { id: "t1", accessType: "paid" }, "STUDENT");
+    const result = await checkTestAccess("user-1", { categoryId: "cat", subjectId: "subject", isFree: false, id: "t1", accessType: "paid" }, "STUDENT");
     expect(result).toBe(false);
   });
 
   it("paid accessType, to'lov CONFIRMED bo'lmasa (masalan PENDING) o'tmaydi", async () => {
     setPayments([{ userId: "user-1", status: "PENDING", selectedSubjects: ["t1"] }]);
-    const result = await checkTestAccess("user-1", { id: "t1", accessType: "paid" }, "STUDENT");
+    const result = await checkTestAccess("user-1", { categoryId: "cat", subjectId: "subject", isFree: false, id: "t1", accessType: "paid" }, "STUDENT");
     expect(result).toBe(false);
   });
 
   it("paid accessType, Purchase yozuvi bo'lsa (selectedSubjects bo'lmasa ham) o'tadi — Payment'ga umuman murojaat qilinmaydi", async () => {
     setPurchases([{ userId: "user-1", itemType: "test", itemId: "t1" }]);
     setPayments([]);
-    const result = await checkTestAccess("user-1", { id: "t1", accessType: "paid" }, "STUDENT");
+    const result = await checkTestAccess("user-1", { categoryId: "cat", subjectId: "subject", isFree: false, id: "t1", accessType: "paid" }, "STUDENT");
     expect(result).toBe(true);
     expect(findFirstMock).not.toHaveBeenCalled();
   });
@@ -177,14 +178,14 @@ describe("checkTestAccess", () => {
   it("paid accessType, Purchase ham, legacy selectedSubjects ham yo'q bo'lsa o'tmaydi", async () => {
     setPurchases([]);
     setPayments([]);
-    const result = await checkTestAccess("user-1", { id: "t1", accessType: "paid" }, "STUDENT");
+    const result = await checkTestAccess("user-1", { categoryId: "cat", subjectId: "subject", isFree: false, id: "t1", accessType: "paid" }, "STUDENT");
     expect(result).toBe(false);
   });
 
   it("paid accessType, boshqa foydalanuvchining Purchase'i ruxsat bermaydi", async () => {
     setPurchases([{ userId: "user-2", itemType: "test", itemId: "t1" }]);
     setPayments([]);
-    const result = await checkTestAccess("user-1", { id: "t1", accessType: "paid" }, "STUDENT");
+    const result = await checkTestAccess("user-1", { categoryId: "cat", subjectId: "subject", isFree: false, id: "t1", accessType: "paid" }, "STUDENT");
     expect(result).toBe(false);
   });
 });
