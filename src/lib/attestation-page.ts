@@ -214,9 +214,9 @@ export async function loadAttestationPage(
   const spot = pickWeakSpot(sections, topicStats);
   if (spot) {
     weakSpot = {
-      section: spot.section.key,
+      section: spot.section,
       topicLabel: spot.topic?.label ?? null,
-      percent: spot.topic?.percent ?? spot.section.percent,
+      percent: spot.percent,
       href: spot.topic ? await buildHrefForTopic(spot.topic.key, questions, tests) : '/build',
     };
   }

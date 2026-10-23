@@ -228,23 +228,44 @@ describe('pickWeakSpot', () => {
   it("10 dan kam javobli bo'lim hisobga olinmaydi", () => {
     expect(pickWeakSpot([s('fizika', 20, 9)], null)).toBeNull();
     expect(pickWeakSpot(null, null)).toBeNull();
-    expect(pickWeakSpot([s('fizika', 20, 9), s('pedagogika', 60, 10)], null)?.section.key).toBe('pedagogika');
+    expect(pickWeakSpot([s('fizika', 20, 9), s('pedagogika', 60, 10)], null)?.section).toBe('pedagogika');
   });
 
   it("eng past bo'lim; teng bo'lsa SECTION_KEYS tartibida oldingisi", () => {
-    expect(pickWeakSpot([s('fizika', 70, 35), s('kasb-standarti', 40, 10), s('pedagogika', 40, 10)], null)?.section.key)
+    expect(pickWeakSpot([s('fizika', 70, 35), s('kasb-standarti', 40, 10), s('pedagogika', 40, 10)], null)?.section)
       .toBe('kasb-standarti');
   });
 
   it("fizika bo'lsa eng past mavzu (10+ javobli)", () => {
     const spot = pickWeakSpot([s('fizika', 50, 70), s('pedagogika', 80, 20)], [t('mexanika', 60, 30), t('optika', 10, 5), t('atom', 30, 12)]);
-    expect(spot?.section.key).toBe('fizika');
+    expect(spot?.section).toBe('fizika');
     expect(spot?.topic?.key).toBe('atom');
   });
 
   it("fizika bo'lmasa yoki mavzular ishonchsiz bo'lsa topic null", () => {
     expect(pickWeakSpot([s('pedagogika', 10, 20)], [t('mexanika', 0, 30)])?.topic).toBeNull();
     expect(pickWeakSpot([s('fizika', 10, 20)], null)?.topic).toBeNull();
+  });
+
+  it("mock yo'q (sections null) + ≥10 javobli mavzu — eng past mavzu zaif joy", () => {
+    const spot = pickWeakSpot(null, [t('mexanika', 70, 40), t('optika', 35, 12), t('atom', 5, 4)]);
+    expect(spot).toEqual({ section: 'fizika', topic: t('optika', 35, 12), percent: 35 });
+  });
+
+  it("mock yo'q + hamma mavzu 10 dan kam javobli — null", () => {
+    expect(pickWeakSpot(null, [t('mexanika', 10, 9), t('optika', 0, 3)])).toBeNull();
+    expect(pickWeakSpot(null, [])).toBeNull();
+  });
+
+  it("mock bor — eski tartib: avval bo'lim, mavzular bo'lim o'rnini bosmaydi", () => {
+    // Bo'limlarda ≥10 javob yo'q — mavzular yetarli bo'lsa ham null.
+    expect(pickWeakSpot([s('fizika', 10, 9)], [t('mexanika', 0, 30)])).toBeNull();
+    // Eng past bo'lim pedagogika — mavzu ko'rsatilmaydi, foiz bo'limniki.
+    expect(pickWeakSpot([s('fizika', 60, 35), s('pedagogika', 20, 10)], [t('mexanika', 0, 30)])).toEqual({
+      section: 'pedagogika',
+      topic: null,
+      percent: 20,
+    });
   });
 });
 

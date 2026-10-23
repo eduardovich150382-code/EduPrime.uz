@@ -244,9 +244,11 @@ export function computeTopicStats(
 export const WEAK_SPOT_MIN_ANSWERS = 10;
 
 export interface WeakSpot {
-  section: SectionStat;
-  /** Faqat zaif bo'lim fizika va mavzular ishonchli bo'lsa. */
+  section: SectionKey;
+  /** Zaif bo'lim fizika va mavzular ishonchli bo'lsa (yoki mock yo'q holatda). */
   topic: TopicStat | null;
+  /** Ko'rsatiladigan foiz — mavzu bo'lsa mavzuniki, aks holda bo'limniki. */
+  percent: number;
 }
 
 function lowest<T extends Tally>(items: T[], minAnswers: number): T | null {
@@ -262,16 +264,26 @@ function lowest<T extends Tally>(items: T[], minAnswers: number): T | null {
  * Eng past bo'lim (kamida `minAnswers` javob bilan — kam javobda bitta
  * xato foizni keskin tushiradi). Teng bo'lsa `SECTION_KEYS` tartibida
  * oldingisi. Bo'lim fizika bo'lsa, xuddi shu qoida bilan eng past mavzu.
+ *
+ * Bo'lim statistikasi umuman yo'q bo'lsa (`sections === null` — mock
+ * javobi yo'q), zaif joy to'g'ridan-to'g'ri eng past fizika mavzusi: mavzu
+ * testlari faqat fizika, aks holda mock qo'shilguncha karta hech kimda
+ * chiqmasdi. `topics` ning o'zi 30% qoidasidan o'tgan bo'lishi kerak
+ * (`computeTopicStats` ishonchsizda `null` qaytaradi).
  */
 export function pickWeakSpot(
   sections: SectionStat[] | null,
   topics: TopicStat[] | null,
   minAnswers: number = WEAK_SPOT_MIN_ANSWERS,
 ): WeakSpot | null {
-  const section = sections ? lowest(sections, minAnswers) : null;
+  if (sections === null) {
+    const topic = topics ? lowest(topics, minAnswers) : null;
+    return topic ? { section: 'fizika', topic, percent: topic.percent } : null;
+  }
+  const section = lowest(sections, minAnswers);
   if (!section) return null;
   const topic = section.key === 'fizika' && topics ? lowest(topics, minAnswers) : null;
-  return { section, topic };
+  return { section: section.key, topic, percent: topic?.percent ?? section.percent };
 }
 
 // Sozlama qo'lda (Neon SQL Editor) kiritiladi — "45 daqiqa" yoki "-1" kabi
