@@ -265,23 +265,22 @@ function lowest<T extends Tally>(items: T[], minAnswers: number): T | null {
  * xato foizni keskin tushiradi). Teng bo'lsa `SECTION_KEYS` tartibida
  * oldingisi. Bo'lim fizika bo'lsa, xuddi shu qoida bilan eng past mavzu.
  *
- * Bo'lim statistikasi umuman yo'q bo'lsa (`sections === null` — mock
- * javobi yo'q), zaif joy to'g'ridan-to'g'ri eng past fizika mavzusi: mavzu
- * testlari faqat fizika, aks holda mock qo'shilguncha karta hech kimda
- * chiqmasdi. `topics` ning o'zi 30% qoidasidan o'tgan bo'lishi kerak
- * (`computeTopicStats` ishonchsizda `null` qaytaradi).
+ * Hech bir bo'limda `minAnswers` javob bo'lmasa (yoki bo'lim statistikasi
+ * umuman yo'q — mock javobi yo'q), zaif joy to'g'ridan-to'g'ri eng past
+ * fizika mavzusi: mavzu testlari faqat fizika, aks holda mock yetarlicha
+ * yechilmaguncha karta chiqmasdi. `topics` ning o'zi 30% qoidasidan o'tgan
+ * bo'lishi kerak (`computeTopicStats` ishonchsizda `null` qaytaradi).
  */
 export function pickWeakSpot(
   sections: SectionStat[] | null,
   topics: TopicStat[] | null,
   minAnswers: number = WEAK_SPOT_MIN_ANSWERS,
 ): WeakSpot | null {
-  if (sections === null) {
+  const section = sections ? lowest(sections, minAnswers) : null;
+  if (!section) {
     const topic = topics ? lowest(topics, minAnswers) : null;
     return topic ? { section: 'fizika', topic, percent: topic.percent } : null;
   }
-  const section = lowest(sections, minAnswers);
-  if (!section) return null;
   const topic = section.key === 'fizika' && topics ? lowest(topics, minAnswers) : null;
   return { section: section.key, topic, percent: topic?.percent ?? section.percent };
 }

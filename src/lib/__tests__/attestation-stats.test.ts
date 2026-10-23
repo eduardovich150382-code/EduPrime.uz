@@ -257,9 +257,18 @@ describe('pickWeakSpot', () => {
     expect(pickWeakSpot(null, [])).toBeNull();
   });
 
-  it("mock bor — eski tartib: avval bo'lim, mavzular bo'lim o'rnini bosmaydi", () => {
-    // Bo'limlarda ≥10 javob yo'q — mavzular yetarli bo'lsa ham null.
-    expect(pickWeakSpot([s('fizika', 10, 9)], [t('mexanika', 0, 30)])).toBeNull();
+  it("mock bor, lekin hech bir bo'limda ≥10 javob yo'q — eng past fizika mavzusiga o'tadi", () => {
+    expect(pickWeakSpot([s('fizika', 10, 9), s('pedagogika', 0, 3)], [t('mexanika', 40, 30), t('optika', 20, 12)])).toEqual({
+      section: 'fizika',
+      topic: t('optika', 20, 12),
+      percent: 20,
+    });
+    // Mavzular ham <10 yoki ishonchsiz (null) — karta yo'q.
+    expect(pickWeakSpot([s('fizika', 10, 9)], [t('mexanika', 0, 9)])).toBeNull();
+    expect(pickWeakSpot([s('fizika', 10, 9)], null)).toBeNull();
+  });
+
+  it("kamida bitta bo'lim ≥10 javobli — eski tartib, mavzular bo'lim o'rnini bosmaydi", () => {
     // Eng past bo'lim pedagogika — mavzu ko'rsatilmaydi, foiz bo'limniki.
     expect(pickWeakSpot([s('fizika', 60, 35), s('pedagogika', 20, 10)], [t('mexanika', 0, 30)])).toEqual({
       section: 'pedagogika',
