@@ -38,5 +38,8 @@ export function mapQuestionForApi(q: ApiQuestionInput, index: number) {
     // dagi Bloom filtri shu ustunni o'qiydi.
     bloomLevel: q.bloomLevel || null,
     difficulty: q.difficulty || null,
+    // Faqat ma'lum bo'lsa yuboriladi: yo'q maydon serverda "o'zgartirma"
+    // degani, bo'sh massiv esa SQL bilan qo'yilgan bo'lim teglarini o'chirardi.
+    ...(q.tags ? { tags: q.tags } : {}),
   };
 }

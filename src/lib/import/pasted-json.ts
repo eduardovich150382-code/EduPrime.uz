@@ -248,6 +248,9 @@ export function parsePastedQuestions(text: string): PastedParseResult {
       topic: str(raw.topic).slice(0, 100),
       bloomLevel: str(raw.bloomLevel),
       difficulty: Number.isInteger(raw.difficulty) ? (raw.difficulty as number) : null,
+      // Attestatsiya bo'limi (`section:fizika`) shu yerda keladi. Ilgari
+      // jimgina tashlab yuborilardi va natija xaritasi bo'limlarni bilmasdi.
+      tags: stringList(raw.tags),
       confidence,
     });
   });

@@ -79,6 +79,15 @@ describe("parsePastedQuestions — yechim rasmlari", () => {
   });
 });
 
+describe("parsePastedQuestions — teglar", () => {
+  it("tags (section:*) ni o'tkazadi, satr bo'lmaganlarini tashlaydi", () => {
+    const raw = JSON.stringify([chatItem({ tags: ["section:fizika", 1, "boshqa"] }), apiItem()]);
+    const [tagged, plain] = parsePastedQuestions(raw).questions;
+    expect(tagged.tags).toEqual(["section:fizika", "boshqa"]);
+    expect(plain.tags).toBeUndefined();
+  });
+});
+
 describe("parsePastedQuestions — API shakli", () => {
   it("yorliqlarni indeksdan qayta qo'yadi va ixtiyoriy maydonlarni o'tkazadi", () => {
     const raw = JSON.stringify({

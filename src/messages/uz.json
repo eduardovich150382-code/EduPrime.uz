@@ -505,6 +505,8 @@
     "aiFillHint": "Mavzu, daraja va variantlarni AI to‘ldirsin",
     "aiFillButton": "AI bilan to‘ldirish",
     "topicLabel": "Mavzu tegi (ixtiyoriy)",
+    "sectionLabel": "Bo'lim",
+    "sectionNone": "—",
     "topicPlaceholder": "Masalan: Kvadrat tenglama",
     "difficultyLabel": "Qiyinlik darajasi",
     "difficultyEasy": "Oson",
@@ -514,6 +516,11 @@
     "testTopicLabel": "Test mavzusi",
     "testTopicPlaceholder": "Masalan: Kvadrat tenglama",
     "testTopicNote": "Bu maydon saqlanmaydi — u faqat yangi savollarga mavzu qo‘yib beradi."
+  },
+  "questionSections": {
+    "fizika": "Fizika",
+    "kasb-standarti": "Kasb standarti",
+    "pedagogika": "Pedagogika"
   },
   "exam": {
     "locked": {
@@ -565,6 +572,9 @@
     "incorrect": "Noto‘g‘ri",
     "timeSpent": "Sarflangan vaqt",
     "resultMap": "{count} savol — natijalar xaritasi",
+    "sectionRange": "{name} · {from}–{to}",
+    "sectionCount": "{name} · {count} ta savol",
+    "sectionScore": "{score} / {max} ball",
     "questionStatus": "{number}-savol · {status}",
     "openAnalysis": "{number}-savol tahlilini ochish",
     "minutesLeft": "{minutes} daqiqa qoldi",

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Check, Minus, X } from 'lucide-react';
 import { hasExamAnswer } from '@/lib/exam-presentation';
+import { groupBySection, sectionRange, sectionScore } from '@/lib/question-sections';
 
 type CellState = 'correct' | 'incorrect' | 'unanswered';
 
@@ -18,17 +19,35 @@ const CELL_STYLE: Record<CellState, string> = {
 const CELL_ICON = { correct: Check, incorrect: X, unanswered: Minus };
 const LEGEND_KEY = { correct: 'legendCorrect', incorrect: 'legendIncorrect', unanswered: 'legendUnanswered' } as const;
 
-export default function ResultQuestionMap({ questions, answers, onSelect }: {
-  questions: { id: string }[];
+type MapQuestion = { id: string; tags?: string[]; points?: number | null };
+
+export default function ResultQuestionMap({ questions, answers, onSelect, categoryType }: {
+  questions: MapQuestion[];
   answers: { questionId: string; answer: string; isCorrect: boolean }[];
   onSelect: (id: string) => void;
+  /** Faqat `ATTESTATION` da bo'limlar bo'yicha guruhlanadi; boshqa turlarda oddiy to'r. */
+  categoryType?: string | null;
 }) {
   const t = useTranslations('exam');
+  const sectionNames = useTranslations('questionSections');
   const [selected, setSelected] = useState<string | null>(null);
   const byId = new Map(answers.map(answer => [answer.questionId, answer]));
   const status = (id: string): CellState => { const answer = byId.get(id); return answer?.isCorrect ? 'correct' : hasExamAnswer(answer?.answer) ? 'incorrect' : 'unanswered'; };
   const counts: Record<CellState, number> = { correct: 0, incorrect: 0, unanswered: 0 };
   for (const question of questions) counts[status(question.id)]++;
+  // Katak bitta joyda chiziladi: guruhli va oddiy to'r bir xil ko'rinsin.
+  // `index` — foydalanuvchi yechishda ko'rgan raqam − 1 (aralashtirilgan tartib).
+  const renderCell = (question: MapQuestion, index: number) => {
+    const state = status(question.id), Icon = CELL_ICON[state];
+    return <button key={question.id} type="button" aria-label={`${t('questionStatus', { number: index + 1, status: t(state) })}. ${t('openAnalysis', { number: index + 1 })}`} aria-pressed={selected === question.id}
+      onClick={() => { setSelected(question.id); onSelect(question.id); }}
+      className={`relative flex min-h-11 min-w-0 items-center justify-center rounded-xl text-sm font-medium tabular-nums transition-shadow focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 ${CELL_STYLE[state]} ${selected === question.id ? 'ring-2 ring-primary-500 ring-offset-2' : 'hover:ring-2 hover:ring-primary-200'}`}>
+      {index + 1}<Icon size={11} aria-hidden="true" className="absolute right-1 top-1" />
+    </button>;
+  };
+  // Attestatsiyada savollar aralashtiriladi, shuning uchun bo'lim raqamlari
+  // ko'pincha uzluksiz emas — `sectionRange` null bo'lsa sarlavhada son chiqadi.
+  const groups = categoryType === 'ATTESTATION' ? groupBySection(questions) : null;
   return <section className="rounded-[18px] border border-border bg-white p-4 sm:p-6" aria-label={t('resultMap', { count: questions.length })}>
     <h2 className="text-base font-semibold text-text-primary sm:text-lg">{t('resultMap', { count: questions.length })}</h2>
     <div className="my-4 flex flex-wrap gap-x-4 gap-y-2 text-xs text-text-secondary">
@@ -40,16 +59,24 @@ export default function ResultQuestionMap({ questions, answers, onSelect }: {
         </span>;
       })}
     </div>
-    <div className="grid grid-cols-5 gap-2 sm:grid-cols-10">
-      {questions.map((question, index) => {
-        const state = status(question.id), Icon = CELL_ICON[state];
-        return <button key={question.id} type="button" aria-label={`${t('questionStatus', { number: index + 1, status: t(state) })}. ${t('openAnalysis', { number: index + 1 })}`} aria-pressed={selected === question.id}
-          onClick={() => { setSelected(question.id); onSelect(question.id); }}
-          className={`relative flex min-h-11 min-w-0 items-center justify-center rounded-xl text-sm font-medium tabular-nums transition-shadow focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 ${CELL_STYLE[state]} ${selected === question.id ? 'ring-2 ring-primary-500 ring-offset-2' : 'hover:ring-2 hover:ring-primary-200'}`}>
-          {index + 1}<Icon size={11} aria-hidden="true" className="absolute right-1 top-1" />
-        </button>;
+    {groups ? <div className="space-y-5">
+      {groups.map(group => {
+        const range = sectionRange(group.items.map(item => item.index));
+        const name = sectionNames(group.key);
+        const { score, max } = sectionScore(group.items, answers);
+        return <div key={group.key}>
+          <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+            <h3 className="text-sm font-semibold text-text-primary">{range ? t('sectionRange', { name, from: range.from, to: range.to }) : t('sectionCount', { name, count: group.items.length })}</h3>
+            <span className="text-xs font-medium tabular-nums text-text-secondary">{t('sectionScore', { score, max })}</span>
+          </div>
+          <div className="grid grid-cols-5 gap-2 sm:grid-cols-10">
+            {group.items.map(item => renderCell(item.question, item.index))}
+          </div>
+        </div>;
       })}
-    </div>
+    </div> : <div className="grid grid-cols-5 gap-2 sm:grid-cols-10">
+      {questions.map((question, index) => renderCell(question, index))}
+    </div>}
     <p className="mt-4 min-h-5 text-xs text-text-secondary" aria-live="polite">{selected && t('questionStatus', { number: questions.findIndex(question => question.id === selected) + 1, status: t(status(selected)) })}</p>
   </section>;
 }

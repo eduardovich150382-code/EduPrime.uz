@@ -998,6 +998,7 @@ export default function CreateTestPage() {
             {questions[activeQuestion] && (
               <QuestionEditorForm
                 question={questions[activeQuestion]}
+                showSection={testInfo.categoryType === 'ATTESTATION'}
                 onChange={(updater) => {
                   setQuestions((prev) => {
                     const next = [...prev];

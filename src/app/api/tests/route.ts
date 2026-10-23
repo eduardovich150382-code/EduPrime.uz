@@ -186,6 +186,8 @@ export async function POST(request: NextRequest) {
             bloomLevel: q.bloomLevel || null,
             difficulty: Number.isInteger(q.difficulty) && q.difficulty >= 1 && q.difficulty <= 5 ? q.difficulty : null,
             points: q.points || 1,
+            // Attestatsiya bo'limi (`section:*`) — natija xaritasi shundan guruhlaydi.
+            tags: Array.isArray(q.tags) ? q.tags.filter((t: unknown): t is string => typeof t === 'string') : [],
             order: index,
           })),
         } : undefined,

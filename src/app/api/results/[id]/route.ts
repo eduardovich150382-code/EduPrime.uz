@@ -57,6 +57,9 @@ export async function GET(
                 templateId: true,
                 variantSig: true,
                 lang: true,
+                // Attestatsiya bo'limi (`section:*`) — natija xaritasi shu
+                // bo'yicha guruhlaydi. Pullik mazmun emas, qulfga kirmaydi.
+                tags: true,
               },
             },
             subject: { select: { nameUz: true, nameRu: true, nameEn: true } },

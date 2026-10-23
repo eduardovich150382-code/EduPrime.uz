@@ -71,6 +71,9 @@ export async function POST(
             explanationImages: q.explanationImages,
             videoUrl: q.videoUrl,
             points: q.points,
+            // Attestatsiya to'plami nusxalanganda `section:` teglari yo'qolsa
+            // natija xaritasi bo'limlarni ko'rsatmay qo'yadi.
+            tags: q.tags,
             order: q.order,
           })),
         },

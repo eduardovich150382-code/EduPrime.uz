@@ -50,6 +50,14 @@ describe("mapQuestionForApi — baza maydonlari", () => {
 });
 
 describe("mapQuestionForApi — ID va tartib", () => {
+  it("`tags` bor bo'lsa yuboriladi", () => {
+    expect(mapQuestionForApi(question({ tags: ["section:fizika"] }), 0).tags).toEqual(["section:fizika"]);
+  });
+
+  it("`tags` noma'lum bo'lsa maydon UMUMAN yuborilmaydi (server teglarga tegmasin)", () => {
+    expect(mapQuestionForApi(question(), 0)).not.toHaveProperty("tags");
+  });
+
   it("`id` va `order` yuboriladi", () => {
     // Serverdagi update shoxi shu ikkisiga tayanadi: `id` yuborilmasa savol
     // o'chirilib qaytadan yaratiladi va `TestResult.answers` dagi `questionId`
