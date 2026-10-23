@@ -378,6 +378,7 @@ export default function EditTestPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           titleUz: testInfo.titleUz,
+          subjectId: testInfo.subjectId,
           duration: testInfo.duration,
           isFree: testInfo.accessType === 'free',
           price: testInfo.accessType === 'paid' ? testInfo.price : 0,
