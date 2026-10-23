@@ -37,7 +37,7 @@ import { GET } from '../route';
 import { POST } from '../submit/route';
 import { shuffleArray, shuffleTest } from '@/lib/shuffle';
 import { shufflePresentedQuestions } from '@/lib/exam-presentation';
-import { restoreTestDraft } from '@/lib/test-draft';
+import { DRAFT_KEY_PREFIX, restoreTestDraft } from '@/lib/test-draft';
 
 type Option = { label: string; text: string; image: null };
 type Served = { id: string; type: string; options: Option[]; subjectId: string | null; section?: string; tags?: unknown };
@@ -176,5 +176,59 @@ describe('Bo\'limli attestatsiya — GET → submit', () => {
 
     const { data } = await callSubmit(draft!.questions.map((q, i) => ({ questionId: q.id, answer: draft!.answers[i], timeSpent: 1 })));
     expect(data.result.score).toBe(16);
+  });
+
+  it.each([
+    ['ATTESTATION', 'DTM'],
+    ['DTM', 'ATTESTATION'],
+  ])('%s → %s: tugallanmagan test_progress_ qoralamasi to‘g‘ri tiklanadi va baholanadi', async (from, to) => {
+    const questions = setup(from);
+    const oldServed = await callGet();
+    const presented = shufflePresentedQuestions(oldServed, 726);
+    const answers = Object.fromEntries(presented.slice(0, 8).map((q, i) => [i, correctLabel(q)]));
+    const key = `${DRAFT_KEY_PREFIX}test1`;
+    const storage = new Map([[key, JSON.stringify({
+      questionIds: presented.map((q) => q.id), answers, currentQuestion: 7,
+      flagged: [2], questionTimeSpent: { 0: 5 }, autoNext: false, timestamp: Date.now(),
+    })]]);
+
+    setup(to, questions);
+    const served = await callGet();
+    expect(served.map((q) => q.id)).not.toEqual(oldServed.map((q) => q.id));
+    const draft = restoreTestDraft(served, storage.get(key)!);
+    expect(draft).not.toBeNull();
+    expect(draft).toMatchObject({ answers, current: 7, flagged: [2], questionTimeSpent: { 0: 5 }, autoNext: false });
+    expect(draft!.questions.map((q) => q.id)).toEqual(presented.map((q) => q.id));
+    draft!.questions.slice(0, 8).forEach((q, i) => {
+      expect(q.options.find((o) => o.label === draft!.answers[i])!.text).toBe(`${q.id}-B`);
+    });
+    const { status, data } = await callSubmit(draft!.questions.map((q, i) => ({
+      questionId: q.id, answer: draft!.answers[i] || '', timeSpent: draft!.questionTimeSpent[i] || 0,
+    })));
+    expect(status).toBe(200);
+    expect(data.result.score).toBe(8);
+    expect(data.result.maxScore).toBe(16);
+    expect(data.result.answers.map((a: { questionId: string }) => a.questionId)).toEqual(presented.map((q) => q.id));
+    expect(data.result.answers.filter((a: { isCorrect: boolean }) => a.isCorrect)).toHaveLength(8);
+    expect(questions).toEqual(buildQuestions());
+  });
+
+  // Audit: questionIds yozilmagan eski qoralama indeksga tayanadi. Bu xatti-harakat
+  // alohida tuzatishni talab qiladi; hozirgi vazifada faqat PR uchun qayd etiladi.
+  it.each([
+    ['ATTESTATION', 'DTM'],
+    ['DTM', 'ATTESTATION'],
+  ])('%s → %s: questionIds yo‘q eski qoralamada indekslar mos kelmasligi qayd etiladi', async (from, to) => {
+    const questions = setup(from);
+    const oldServed = await callGet();
+    const raw = JSON.stringify({ answers: Object.fromEntries(oldServed.map((q, i) => [i, correctLabel(q)])) });
+    setup(to, questions);
+    const draft = restoreTestDraft(await callGet(), raw)!;
+    expect(draft.questions.map((q) => q.id)).not.toEqual(oldServed.map((q) => q.id));
+    const { status, data } = await callSubmit(draft.questions.map((q, i) => ({
+      questionId: q.id, answer: draft.answers[i], timeSpent: 1,
+    })));
+    expect(status).toBe(200);
+    expect(data.result.score).toBeLessThan(16);
   });
 });

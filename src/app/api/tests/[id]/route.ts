@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import type { Prisma } from '@prisma/client';
+import { z } from 'zod';
 import { testPriceSchema } from '@/lib/test-price';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
@@ -7,6 +9,8 @@ import { getQuestionSection, groupBySection } from '@/lib/question-sections';
 import { checkTestAccess } from '@/lib/access';
 import { resolveTestVisibility } from '@/lib/test-visibility';
 import { logger } from '@/lib/logger';
+
+const subjectIdSchema = z.string().trim().min(1);
 
 // GET /api/tests/[id] — bitta testni olish
 export async function GET(
@@ -173,7 +177,25 @@ export async function PUT(
       return NextResponse.json({ error: 'Invalid accessType' }, { status: 400 });
     }
 
-    const updateData: any = {};
+    const updateData: Prisma.TestUncheckedUpdateInput = {};
+    if (body.subjectId !== undefined) {
+      const parsedSubjectId = subjectIdSchema.safeParse(body.subjectId);
+      if (!parsedSubjectId.success) {
+        return NextResponse.json({ error: 'Invalid subjectId' }, { status: 400 });
+      }
+
+      const subject = await db.subject.findUnique({
+        where: { id: parsedSubjectId.data },
+        select: { categoryId: true },
+      });
+      if (!subject) {
+        return NextResponse.json({ error: 'Subject not found' }, { status: 400 });
+      }
+
+      // Kirish huquqi fan va kategoriyaga birga tayanadi — juftlik bitta yozuvda yangilanadi.
+      updateData.subjectId = parsedSubjectId.data;
+      updateData.categoryId = subject.categoryId;
+    }
     if (body.titleUz !== undefined) updateData.titleUz = body.titleUz;
     if (body.titleRu !== undefined) updateData.titleRu = body.titleRu;
     if (body.titleEn !== undefined) updateData.titleEn = body.titleEn;
