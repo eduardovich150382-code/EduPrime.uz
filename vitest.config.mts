@@ -30,7 +30,7 @@ export default defineConfig({
     // ularga yetarli CPU berishga qaratilgan.
     maxWorkers: 2,
     include: [
-      "src/**/*.{test,spec}.ts",
+      "src/**/*.{test,spec}.{ts,tsx}",
       "scripts/**/*.{test,spec}.ts",
       "prisma/**/*.{test,spec}.ts",
     ],

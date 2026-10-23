@@ -11,10 +11,12 @@ import en from '@/messages/en.json';
 
 function render(child: React.ReactNode, locale = 'uz') {
   const translations = locale === 'ru' ? ru : locale === 'en' ? en : uz;
-  return renderToStaticMarkup(React.createElement(NextIntlClientProvider, {
-    locale, timeZone: 'Asia/Tashkent', now: new Date('2026-10-23'),
-    messages: { adminProducts: translations.adminProducts, testAccessForm: translations.testAccessForm }, children: child,
-  }));
+  return renderToStaticMarkup(
+    <NextIntlClientProvider locale={locale} timeZone="Asia/Tashkent" now={new Date('2026-10-23')}
+      messages={{ adminProducts: translations.adminProducts, testAccessForm: translations.testAccessForm }}>
+      {child}
+    </NextIntlClientProvider>,
+  );
 }
 const product: AdminProduct = {
   id: 'obuna-attestation', nameUz: 'Attestatsiya', nameRu: 'Аттестация', nameEn: 'Attestation', kind: 'CATEGORY', categoryId: 'att', subjectRule: 'ONE',
