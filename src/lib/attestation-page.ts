@@ -1,0 +1,239 @@
+import type { Prisma } from '@prisma/client';
+import { db } from './db';
+import { loadTestAccessContext, resolveTestAccess } from './access';
+import { getCardLinks, getCardState, getLockBadge, latestResultByTest, type BriefResult, type LockBadge } from './test-card';
+import { loginHref } from './safe-return-path';
+import { resolveTopicNodes } from './topic-bridge';
+import {
+  computeProgress,
+  computeSectionStats,
+  computeTopicStats,
+  normalizeTopicHead,
+  parsePositiveInt,
+  parseResultAnswers,
+  pickNextMock,
+  pickWeakSpot,
+  type QuestionMeta,
+  type SectionStat,
+  type TopicStat,
+} from './attestation-stats';
+import type { SectionKey } from './question-sections';
+
+// /attestation sahifasining barcha ma'lumoti — bitta joyda, so'rovlar soni
+// testlar sonidan qat'i nazar o'zgarmas (N+1 yo'q).
+//
+// PAYWALL CHEGARASI: `TestResult.answers` va Question qatorlari faqat shu
+// fayl ichida ishlatiladi. Qaytariladigan obyektda savol matni, variant,
+// javob yoki savol id'si yo'q — faqat tayyor qatorlar va sonlar; client
+// komponentlarga shu uzatiladi. Fayl `db` ni import qiladi, shuning uchun
+// client bundle'ga tushsa build yiqiladi — faqat server komponentdan chaqiring.
+
+const SETTING_KEYS = ['attestation_date', 'attestation_duration_min', 'attestation_pass_score'] as const;
+
+export interface AttestationSettings {
+  /** `YYYY-MM-DD`; hisoblagich `daysUntil` orqali. */
+  date: string | null;
+  durationMin: number | null;
+  passScore: number | null;
+}
+
+export interface MockRow {
+  id: string;
+  /** Ro'yxatdagi o'rin (createdAt o'sish tartibi), 1 dan. */
+  number: number;
+  title: string;
+  questionCount: number;
+  solved: boolean;
+  lastScore: number | null;
+  lastMax: number | null;
+  lastPercent: number | null;
+  primaryHref: string;
+  /** Faqat yechilganda — natija sahifasi. */
+  secondaryHref: string | null;
+  locked: boolean;
+  lockBadge: LockBadge;
+}
+
+export interface WeakSpotView {
+  section: SectionKey;
+  /** Fizika mavzusi (Question.topic dan, o'zbekcha erkin matn). */
+  topicLabel: string | null;
+  percent: number;
+  href: string;
+}
+
+export interface Readiness {
+  solved: number;
+  total: number;
+  averagePercent: number | null;
+  sections: SectionStat[] | null;
+  topics: { label: string; percent: number; total: number }[] | null;
+  weakSpot: WeakSpotView | null;
+}
+
+export interface AttestationPageData {
+  settings: AttestationSettings;
+  rows: MockRow[];
+  next: { kind: 'next' | 'retakeLowest'; number: number; href: string } | null;
+  /** `null` — kirmagan foydalanuvchi. */
+  readiness: Readiness | null;
+}
+
+function localizedTitle(test: { titleUz: string; titleRu: string | null; titleEn: string | null }, locale: string): string {
+  // `||` ataylab: bo'sh satr ham tarjima yo'q degani (TestCard bilan bir xil).
+  return (locale === 'ru' && test.titleRu) || (locale === 'en' && test.titleEn) || test.titleUz;
+}
+
+// callbackUrl locale prefiksli bo'lsin (middleware ham shunday qo'yadi),
+// aks holda ruscha sahifadan kirgan mehmon o'zbekcha solve'ga qaytardi.
+function localizedPath(path: string, locale: string): string {
+  return locale === 'uz' ? path : `/${locale}${path}`;
+}
+
+const TEST_SELECT = {
+  id: true,
+  titleUz: true,
+  titleRu: true,
+  titleEn: true,
+  isFree: true,
+  accessType: true,
+  price: true,
+  questionCount: true,
+  subjectId: true,
+} satisfies Prisma.TestSelect;
+
+export async function loadAttestationPage(
+  user: { id: string; role?: string } | null,
+  locale: string,
+): Promise<AttestationPageData> {
+  const [categories, settingRows] = await Promise.all([
+    db.testCategory.findMany({ where: { type: 'ATTESTATION' }, select: { id: true } }),
+    db.systemSetting.findMany({ where: { key: { in: [...SETTING_KEYS] } }, select: { key: true, value: true } }),
+  ]);
+  const settingMap = new Map(settingRows.map((s) => [s.key, s.value]));
+  const settings: AttestationSettings = {
+    date: settingMap.get('attestation_date')?.trim() || null,
+    durationMin: parsePositiveInt(settingMap.get('attestation_duration_min')),
+    passScore: parsePositiveInt(settingMap.get('attestation_pass_score')),
+  };
+
+  // Test'da category relation yo'q — kategoriya id lari bo'yicha. Tartib
+  // maydoni ham yo'q: createdAt o'sish (teng bo'lsa id — barqaror).
+  const where: Prisma.TestWhereInput = {
+    isPublished: true,
+    categoryId: { in: categories.map((c) => c.id) },
+  };
+  const tests = categories.length
+    ? await db.test.findMany({ where, select: TEST_SELECT, orderBy: [{ createdAt: 'asc' }, { id: 'asc' }] })
+    : [];
+  const testIds = tests.map((t) => t.id);
+
+  const [results, accessContext] = user && testIds.length
+    ? await Promise.all([
+        db.testResult.findMany({
+          where: { userId: user.id, testId: { in: testIds } },
+          select: { id: true, testId: true, score: true, maxScore: true, percentage: true, completedAt: true, answers: true },
+        }),
+        loadTestAccessContext(user.id, user.role, tests),
+      ])
+    : [[], null];
+
+  const brief: BriefResult[] = results.flatMap((r) =>
+    r.testId
+      ? [{ id: r.id, testId: r.testId, completedAt: r.completedAt.toISOString(), score: r.score, maxScore: r.maxScore, percentage: r.percentage }]
+      : [],
+  );
+  const latest = latestResultByTest(brief);
+
+  const rows: MockRow[] = tests.map((test, index) => {
+    const result = latest.get(test.id);
+    const state = getCardState(test, result, resolveTestAccess(test, accessContext));
+    const links = getCardLinks(test.id, state);
+    return {
+      id: test.id,
+      number: index + 1,
+      title: localizedTitle(test, locale),
+      questionCount: test.questionCount,
+      solved: state.kind === 'solved',
+      lastScore: result?.score ?? null,
+      lastMax: result?.maxScore ?? null,
+      lastPercent: result ? Math.round(result.percentage) : null,
+      // Mehmon uchun solve baribir login so'raydi — to'g'ridan-to'g'ri
+      // login'ga, qaytish manzili shu testning solve sahifasi.
+      primaryHref: user ? links.primary : loginHref(localizedPath(links.primary, locale)),
+      secondaryHref: links.secondary ?? null,
+      locked: state.kind === 'buy' || state.kind === 'upgrade',
+      lockBadge: getLockBadge(test, state),
+    };
+  });
+
+  const nextPick = pickNextMock(tests, latest);
+  const next = nextPick
+    ? { kind: nextPick.kind, number: nextPick.number, href: rows[nextPick.number - 1].primaryHref }
+    : null;
+
+  if (!user) return { settings, rows, next, readiness: null };
+
+  const progress = computeProgress(testIds, latest);
+  const latestIds = new Set([...latest.values()].map((r) => r.id));
+  const answerSets = results.filter((r) => latestIds.has(r.id)).map((r) => parseResultAnswers(r.answers));
+
+  let sections: SectionStat[] | null = null;
+  let topics: TopicStat[] | null = null;
+  let weakSpot: WeakSpotView | null = null;
+
+  if (answerSets.length > 0) {
+    // Faqat teg va mavzu — matn, variant va to'g'ri javob tanlanmaydi.
+    const questions = await db.question.findMany({
+      where: { testId: { in: [...latest.keys()] } },
+      select: { id: true, testId: true, tags: true, topic: true },
+    });
+    const meta = new Map<string, QuestionMeta>(questions.map((q) => [q.id, { tags: q.tags, topic: q.topic }]));
+    sections = computeSectionStats(answerSets, meta);
+    topics = computeTopicStats(answerSets, meta);
+
+    const spot = pickWeakSpot(sections, topics);
+    if (spot) {
+      weakSpot = {
+        section: spot.section.key,
+        topicLabel: spot.topic?.label ?? null,
+        percent: spot.topic?.percent ?? spot.section.percent,
+        href: spot.topic ? await buildHrefForTopic(spot.topic.key, questions, tests) : '/build',
+      };
+    }
+  }
+
+  return {
+    settings,
+    rows,
+    next,
+    readiness: {
+      ...progress,
+      sections,
+      topics: topics?.map(({ label, percent, total }) => ({ label, percent, total })) ?? null,
+      weakSpot,
+    },
+  };
+}
+
+/**
+ * Zaif fizika mavzusi uchun /build havolasi: `s` — fan, `t` — TopicNode yo'li
+ * (`buildStateFromParams`). Fizika daraxti ATTESTATION fanlari uchun ham seed
+ * qilingan, lekin "Mexanika" tuguni topilmasa majburan taxmin qilinmaydi —
+ * oddiy /build.
+ */
+async function buildHrefForTopic(
+  topicKey: string,
+  questions: { testId: string; topic: string | null }[],
+  tests: { id: string; subjectId: string }[],
+): Promise<string> {
+  const sample = questions.find((q) => normalizeTopicHead(q.topic)?.key === topicKey);
+  const subjectId = sample && tests.find((t) => t.id === sample.testId)?.subjectId;
+  const head = sample?.topic?.split(':')[0].trim();
+  if (!subjectId || !head) return '/build';
+  const nodes = await resolveTopicNodes(subjectId, [head]);
+  const node = nodes.get(head);
+  if (!node) return '/build';
+  const params = new URLSearchParams({ s: subjectId, t: node.path });
+  return `/build?${params.toString()}`;
+}

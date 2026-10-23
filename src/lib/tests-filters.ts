@@ -54,9 +54,9 @@ export function parseFilters(params: ParamsLike): TestsFilters {
   return { type, subject, q, sort };
 }
 
-// Standart qiymatlar URL'ga yozilmaydi — /tests toza qoladi va
-// menyudagi ATTESTATION_HREF ('/tests?type=ATTESTATION') bilan bir xil
-// ko'rinadi. Bo'sh bo'lsa '' qaytaradi, aks holda '?' bilan boshlanadi.
+// Standart qiymatlar URL'ga yozilmaydi — /tests toza qoladi va eski
+// '/tests?type=ATTESTATION' havolalari bilan bir xil ko'rinadi. Bo'sh
+// bo'lsa '' qaytaradi, aks holda '?' bilan boshlanadi.
 export function buildQuery(filters: TestsFilters): string {
   const params = new URLSearchParams();
   if (filters.type) {

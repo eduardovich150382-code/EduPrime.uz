@@ -2,13 +2,13 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { Link } from '@/i18n/routing';
+import { Link, usePathname as useLocalePathname } from '@/i18n/routing';
 import { Menu, X, LogOut, User, Bell, Crown } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 import LanguageSwitcher from './LanguageSwitcher';
 import PremiumCTA from '@/components/ui/PremiumCTA';
-import { ATTESTATION_HREF } from '@/lib/nav-links';
+import { ATTESTATION_HREF, isAttestationPath } from '@/lib/nav-links';
 import { loginHref } from '@/lib/safe-return-path';
 
 export default function Header() {
@@ -17,6 +17,7 @@ export default function Header() {
   // Locale prefiksli yo'l — middleware callbackUrl'ga ham shuni qo'yadi,
   // shunda ruscha sahifadan kirgan mehmon ruscha sahifaga qaytadi.
   const pathname = usePathname();
+  const isAttestation = isAttestationPath(useLocalePathname());
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -107,7 +108,11 @@ export default function Header() {
             <Link href="/tests" className="btn-ghost text-sm">
               {t('nav.tests')}
             </Link>
-            <Link href={ATTESTATION_HREF} className="btn-ghost text-sm font-semibold !text-[#92400e] inline-flex items-center gap-1.5">
+            <Link
+              href={ATTESTATION_HREF}
+              aria-current={isAttestation ? 'page' : undefined}
+              className={`btn-ghost text-sm font-semibold !text-[#92400e] inline-flex items-center gap-1.5 ${isAttestation ? '!bg-[#fef3c7]' : ''}`}
+            >
               {t('nav.attestation')}
               <span className="rounded-full bg-[#fef3c7] text-[#92400e] text-[10px] font-semibold leading-none px-1.5 py-1">
                 {t('nav.attestationBadge')}
@@ -269,7 +274,12 @@ export default function Header() {
               <Link href="/tests" className="btn-ghost text-sm" onClick={() => setIsMenuOpen(false)}>
                 {t('nav.tests')}
               </Link>
-              <Link href={ATTESTATION_HREF} className="btn-ghost text-sm font-semibold !text-[#92400e] flex items-center gap-1.5" onClick={() => setIsMenuOpen(false)}>
+              <Link
+                href={ATTESTATION_HREF}
+                aria-current={isAttestation ? 'page' : undefined}
+                className={`btn-ghost text-sm font-semibold !text-[#92400e] flex items-center gap-1.5 ${isAttestation ? '!bg-[#fef3c7]' : ''}`}
+                onClick={() => setIsMenuOpen(false)}
+              >
                 {t('nav.attestation')}
                 <span className="rounded-full bg-[#fef3c7] text-[#92400e] text-[10px] font-semibold leading-none px-1.5 py-1">
                   {t('nav.attestationBadge')}

@@ -16,7 +16,7 @@ describe('parseFilters', () => {
     expect(parse('')).toEqual(DEFAULT_FILTERS);
   });
 
-  it("menyudagi ATTESTATION_HREF ('?type=ATTESTATION') attestatsiyani tanlaydi", () => {
+  it("eski '?type=ATTESTATION' havolasi attestatsiyani tanlaydi", () => {
     expect(parse('type=ATTESTATION')).toEqual({ ...DEFAULT_FILTERS, type: 'ATTESTATION' });
   });
 

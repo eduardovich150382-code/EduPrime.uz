@@ -6,6 +6,8 @@ import { Clock, ListChecks, Lock, RotateCcw, Sparkles } from 'lucide-react';
 import type { TestType } from '@prisma/client';
 import { Link } from '@/i18n/routing';
 import { TEST_GOALS, type TestGoal } from '@/lib/tests-filters';
+import { GOAL_STYLES } from '@/lib/goal-styles';
+import { primaryButton, secondaryButton } from './button-classes';
 import { getCardLinks, getCardState, getLockBadge, isNewTest, type BriefResult } from '@/lib/test-card';
 
 export interface TestItem {
@@ -23,26 +25,9 @@ export interface TestItem {
   hasAccess?: boolean;
 }
 
-// Ranglar docs/design/testlar-ui.md jadvalidan — Tailwind palitrasida aynan
-// shu juftliklar yo'q, shuning uchun inline style.
-const GOAL_STYLES: Record<TestGoal, { color: string; background: string }> = {
-  ATTESTATION: { color: '#92400e', background: '#fef3c7' },
-  CERTIFICATE: { color: '#1e40af', background: '#dbeafe' },
-  DTM: { color: '#9a3412', background: '#ffedd5' },
-  SCHOOL: { color: '#115e59', background: '#ccfbf1' },
-  PRESIDENT_SCHOOL: { color: '#3730a3', background: '#e0e7ff' },
-  SAT: { color: '#334155', background: '#e2e8f0' },
-  GRE: { color: '#155e75', background: '#cffafe' },
-};
-
 function isTestGoal(type: TestType | undefined): type is TestGoal {
   return !!type && (TEST_GOALS as readonly string[]).includes(type);
 }
-
-const primaryButton =
-  'flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-primary-700';
-const secondaryButton =
-  'flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-primary-200 bg-primary-50 px-4 text-sm font-semibold text-primary-800 transition-colors hover:bg-primary-100';
 
 export function TestCardSkeleton() {
   return (

@@ -650,5 +650,71 @@
       "yesterday": "Kecha",
       "daysAgo": "{count} kun oldin"
     }
+  },
+  "attestation": {
+    "meta": {
+      "title": "Fizika o'qituvchilari attestatsiyasiga tayyorgarlik",
+      "description": "Rasmiy spetsifikatsiya asosidagi attestatsiya mock testlari: 35 fizika, 5 kasb standarti va 10 pedagogika savoli, har biriga batafsil yechim."
+    },
+    "hero": {
+      "breadcrumbTests": "Testlar",
+      "breadcrumbCurrent": "Attestatsiya",
+      "title": "Fizika o'qituvchilari attestatsiyasiga tayyorgarlik",
+      "subtitle": "Rasmiy spetsifikatsiya asosidagi mock testlar. Har bir savolga «Berilgan → Yechilishi → Javob» tartibida batafsil yechim berilgan.",
+      "ctaNext": "Navbatdagi mock testni boshlash · №{number}",
+      "ctaRetake": "Eng past natijani qayta yechish · №{number}",
+      "ctaStructure": "Imtihon tuzilmasi"
+    },
+    "countdown": {
+      "before": "Attestatsiyagacha",
+      "daysLeft": "kun qoldi"
+    },
+    "structure": {
+      "title": "Imtihon tuzilmasi",
+      "questions": "{count} savol",
+      "total": "Jami",
+      "duration": "Vaqt",
+      "durationValue": "{count} daqiqa",
+      "passScore": "O'tish bali",
+      "passScoreValue": "{count} ball"
+    },
+    "list": {
+      "title": "Mock testlar",
+      "empty": "Hozircha attestatsiya mock testlari yo'q.",
+      "emptyFiltered": "Bu bo'limda test yo'q.",
+      "lastScore": "Oxirgi natija: {score} / {max}",
+      "lastPercent": "Oxirgi natija: {percent}%",
+      "result": "Natija",
+      "retake": "Qayta yechish",
+      "start": "Boshlash"
+    },
+    "filter": {
+      "label": "Testlarni saralash",
+      "all": "Hammasi",
+      "unsolved": "Yechilmagan",
+      "solved": "Yechilgan"
+    },
+    "status": {
+      "solved": "Yechilgan",
+      "new": "Yangi"
+    },
+    "readiness": {
+      "title": "Sizning tayyorgarligingiz",
+      "solved": "{solved} / {total} mock yechildi",
+      "average": "o'rtacha natija",
+      "sections": "Bo'limlar",
+      "topics": "Fizika mavzulari",
+      "answers": "{count} javob"
+    },
+    "weak": {
+      "title": "Zaif joy: {name}",
+      "body": "To'g'ri javoblar {percent}% — shu yerdan boshlang.",
+      "cta": "Mashqni boshlash"
+    },
+    "guest": {
+      "title": "Natijalaringizni kuzatish uchun kiring",
+      "body": "Kirganingizdan keyin yechilgan mocklar, o'rtacha natija va zaif bo'limlaringiz shu yerda ko'rinadi.",
+      "cta": "Kirish"
+    }
   }
 }
