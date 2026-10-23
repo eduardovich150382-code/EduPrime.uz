@@ -7,6 +7,8 @@ import {
   Trash2, BarChart3, Users, Clock, Filter,
 } from 'lucide-react';
 import BackButton from '@/components/ui/BackButton';
+import { Link } from '@/i18n/routing';
+import { useTranslations } from 'next-intl';
 
 interface TestData {
   id: string;
@@ -27,6 +29,7 @@ interface TestData {
 type StatusFilter = 'all' | 'published' | 'draft';
 
 export default function AdminTestsPage() {
+  const tAccess = useTranslations('testAccessForm');
   const [tests, setTests] = useState<TestData[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -86,6 +89,7 @@ export default function AdminTestsPage() {
 
   function getAccessBadge(accessType: string) {
     switch (accessType) {
+      case 'subscription': return 'bg-purple-100 text-purple-700';
       case 'premium': return 'bg-purple-100 text-purple-700';
       case 'teacher': return 'bg-blue-100 text-blue-700';
       case 'premium_teacher': return 'bg-indigo-100 text-indigo-700';
@@ -96,6 +100,7 @@ export default function AdminTestsPage() {
 
   function getAccessLabel(accessType: string) {
     switch (accessType) {
+      case 'subscription': return tAccess('subscription');
       case 'premium': return 'Premium';
       case 'teacher': return 'Ustoz';
       case 'premium_teacher': return 'Prem+Ustoz';
@@ -117,6 +122,7 @@ export default function AdminTestsPage() {
           </h1>
           <p className="text-text-secondary text-sm mt-1">Jami: {total} ta test</p>
         </div>
+        <Link href="/teacher/tests/create" className="btn-primary min-h-11">{tAccess('create')}</Link>
         <button onClick={fetchTests} className="btn-ghost flex items-center gap-2 self-start">
           <RefreshCw size={16} /> Yangilash
         </button>
@@ -196,6 +202,7 @@ export default function AdminTestsPage() {
 
                 {/* Actions */}
                 <div className="flex items-center gap-1 flex-shrink-0">
+                  <Link href={`/teacher/tests/${test.id}/edit`} className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg px-2 text-sm text-primary-600">{tAccess('edit')}</Link>
                   {test.isPublished ? (
                     <button
                       onClick={() => handleAction(test.id, 'unpublish')}

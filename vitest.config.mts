@@ -12,6 +12,8 @@ const dirname = path.dirname(fileURLToPath(import.meta.url));
 // src/**/*.ts fayllaridagi "@/..." importlari bilan mos kelishi uchun
 // tsconfig.json dagi paths bilan bir xil.
 export default defineConfig({
+  // UI ogohlantirishlari haqiqiy React komponentlari bilan tekshiriladi.
+  oxc: { jsx: { runtime: 'automatic' } },
   resolve: {
     alias: {
       "@": path.resolve(dirname, "./src"),
