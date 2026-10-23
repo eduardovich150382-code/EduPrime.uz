@@ -68,10 +68,11 @@ export function groupBySection<T extends { tags?: unknown }>(questions: T[]): Se
 /**
  * Guruhdagi raqamlar (1 dan) uzluksiz bo'lsa `{ from, to }`, aks holda `null`.
  *
- * Attestatsiya testlarida savol tartibi foydalanuvchiga qarab aralashtiriladi,
- * shuning uchun bo'lim ko'pincha uzluksiz BO'LMAYDI — o'shanda sarlavhada
- * oraliq emas, son ko'rsatiladi. Raqamlarni qattiq yozish (1–35) xaritadagi
- * kataklar bilan ziddiyatga kirardi.
+ * Teglari to'liq attestatsiya testida bo'limlar ketma-ket keladi
+ * (`planQuestionOrder`), lekin eski natijalar va bo'limlashdan oldin boshlangan
+ * qoralamalar aralash tartibda — o'shanda sarlavhada oraliq emas, son
+ * ko'rsatiladi. Raqamlarni qattiq yozish (1–35) xaritadagi kataklar bilan
+ * ziddiyatga kirardi.
  */
 export function sectionRange(indexes: number[]): { from: number; to: number } | null {
   if (indexes.length === 0) return null;

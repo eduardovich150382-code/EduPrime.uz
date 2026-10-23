@@ -25,11 +25,14 @@ export function isPhysicsSubject(subject?: { nameUz?: string; nameRu?: string; n
 
 // Variantlar serverda aralashtirilgan: faqat butun savolni ko'chirish
 // baholashdagi variant urug'ini o'zgartirmaydi. Fan bo'limlari saqlanadi.
-export function shufflePresentedQuestions<T extends { id: string; subjectId?: string | null }>(questions: T[], seed: number): T[] {
+// `section` faqat bo'limli attestatsiya testida keladi (GET /api/tests/[id]);
+// u yo'q bo'lsa kalit aynan `subjectId` — boshqa testlarda guruhlar o'zgarmaydi.
+export function shufflePresentedQuestions<T extends { id: string; subjectId?: string | null; section?: string | null }>(questions: T[], seed: number): T[] {
+  const groupKey = (question: T) => question.section ? `section:${question.section}` : question.subjectId;
   const groups: T[][] = [];
   for (const question of questions) {
     const last = groups[groups.length - 1];
-    if (last && last[0].subjectId === question.subjectId) last.push(question);
+    if (last && groupKey(last[0]) === groupKey(question)) last.push(question);
     else groups.push([question]);
   }
   return groups.flatMap((group, index) => shuffleArray(group, seed + index));

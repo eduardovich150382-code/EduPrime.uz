@@ -51,6 +51,12 @@ export interface GradingResult {
  * va `preserveOrder` esa savol/GET marshrutida ishlatilgan XUDDI SHU
  * qiymatlar bilan kelishi shart, aks holda unshuffle noto'g'ri pozitsiyaga
  * to'g'ri kelib, baholash jimgina buziladi (CLAUDE.md — "Nozik joylar").
+ *
+ * Attestatsiyadagi bo'limlar tartibi (`bySection`) bu yerga uzatilmaydi va
+ * kerak ham emas: `planQuestionOrder` (lib/shuffle.ts) bo'limlashda faqat
+ * TAQDIMOT tartibini o'zgartiradi, har savolning `slot`i esa quyidagi
+ * `shuffleArray(questions, baseSeed)` dagi indeksga teng qoladi — variant
+ * urug'i shu indeksdan olinadi.
  */
 export async function gradeSubmission(params: {
   questions: GradableQuestion[];

@@ -73,7 +73,8 @@ export async function POST(
 
     // Recreate the same shuffle order used when serving the test — must
     // match GET /api/tests/[id]'s preserveOrder logic exactly, or grading
-    // will unshuffle against the wrong option positions.
+    // will unshuffle against the wrong option positions. Attestatsiya bo'limlari
+    // (bySection) bu yerda kerak emas — planQuestionOrder slotlari o'zgarmaydi.
     const baseSeed = generateSeed(userId, id);
     const preserveOrder = test.questions.some((q) => q.subjectId);
 

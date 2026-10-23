@@ -4,6 +4,8 @@
  * This ensures the shuffle is consistent for a given user+test combination.
  */
 
+import { groupBySection } from './question-sections';
+
 /**
  * Simple seeded pseudo-random number generator (mulberry32).
  */
@@ -51,11 +53,41 @@ export function shuffleArray<T>(array: T[], seed: number): T[] {
  * Options within each question are also shuffled, but A,B,C,D labels remain fixed.
  * Only the option TEXT/IMAGE content moves — labels stay in order.
  */
+export interface QuestionSlot<T> {
+  question: T;
+  /** Tekis aralashtirishdagi o'rin — variant urug'i `baseSeed + slot + 1` shundan olinadi. */
+  slot: number;
+}
+
+/**
+ * Savollar taqdimot tartibi — GET /api/tests/[id] (shuffleQuestionsWithSeed)
+ * va baholash (grading.ts) shu bitta mantiqqa tayanadi.
+ *
+ * `bySection` — attestatsiya testlari haqiqiy imtihon kabi bo'limlar tartibida
+ * (SECTION_KEYS) kelishi uchun. Yangi aralashtirish O'YLAB TOPILMAYDI: mavjud
+ * tekis Fisher-Yates natijasi bo'limlarga barqaror ajratiladi, ya'ni har
+ * bo'lim ichida o'sha urug'li tartib qoladi. Shu sababli `slot` (va demak
+ * variant urug'i) bo'limlashdan qat'i nazar o'zgarmaydi — grading.ts bo'lim
+ * haqida bilmasa ham to'g'ri baholaydi, eski qoralamalardagi "A" javoblar
+ * ham o'sha variantga ishora qilib qoladi.
+ */
+export function planQuestionOrder<T extends { tags?: unknown }>(
+  questions: T[],
+  baseSeed: number,
+  opts: { preserveOrder?: boolean; bySection?: boolean } = {}
+): QuestionSlot<T>[] {
+  const flat = (opts.preserveOrder ? [...questions] : shuffleArray(questions, baseSeed)).map((question, slot) => ({ question, slot }));
+  if (!opts.bySection) return flat;
+  // Birorta savolda bo'lim bo'lmasa — eski tekis tartib (qisman guruhlash yo'q).
+  const groups = groupBySection(flat.map((entry) => entry.question));
+  return groups ? groups.flatMap((group) => group.items.map((item) => flat[item.index])) : flat;
+}
+
 export function shuffleTest(
   questions: any[],
   userId: string,
   testId: string,
-  opts: { preserveOrder?: boolean } = {}
+  opts: { preserveOrder?: boolean; bySection?: boolean } = {}
 ): any[] {
   return shuffleQuestionsWithSeed(questions, generateSeed(userId, testId), opts);
 }
@@ -72,18 +104,18 @@ export function shuffleTest(
 export function shuffleQuestionsWithSeed(
   questions: any[],
   baseSeed: number,
-  opts: { preserveOrder?: boolean } = {}
+  opts: { preserveOrder?: boolean; bySection?: boolean } = {}
 ): any[] {
   // Shuffle question order — skipped for generated, section-grouped exams
   // (e.g. DTM Online) where the presentation order (mutaxassislik 1 →
   // mutaxassislik 2 → majburiy fanlar) must stay intact. Options within each
   // question still shuffle either way.
-  const shuffledQuestions = opts.preserveOrder ? [...questions] : shuffleArray(questions, baseSeed);
+  const ordered = planQuestionOrder(questions, baseSeed, opts);
 
   // Shuffle options within each question (only for MULTIPLE_CHOICE)
-  return shuffledQuestions.map((question, index) => {
+  return ordered.map(({ question, slot }) => {
     // Use a different seed for each question's options
-    const optionSeed = baseSeed + index + 1;
+    const optionSeed = baseSeed + slot + 1;
 
     // MATCHING: chap ustun o'zgarishsiz qoladi, o'ng ustun urug'langan
     // tartibda aralashtiriladi — qaysi pozitsiya qaysi original juftlikdan
