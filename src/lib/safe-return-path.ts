@@ -54,3 +54,31 @@ export function withReturnTo(path: string, returnTo: string | null | undefined):
   const separator = path.includes('?') ? '&' : '?';
   return `${path}${separator}returnTo=${encodeURIComponent(safe)}`;
 }
+
+const DEFAULT_LOGIN_CALLBACK = '/dashboard';
+
+/** Login sahifasi yozadi, telegram-callback o'qiydi va o'chiradi. */
+export const LOGIN_CALLBACK_STORAGE_KEY = 'loginCallbackUrl';
+
+/**
+ * Login sahifasidagi `callbackUrl` (middleware himoyalangan sahifadan
+ * yuborganda qo'yadi) — kirishdan keyin qayerga qaytish. NextAuth o'zi ham
+ * tashqi manzilni rad etadi, lekin Telegram oqimida qiymat localStorage
+ * orqali o'tadi, shuning uchun ikkala joyda ham shu tekshiruv ishlatiladi.
+ */
+export function resolveLoginCallback(value: string | null | undefined): string {
+  return sanitizeReturnPath(value) ?? DEFAULT_LOGIN_CALLBACK;
+}
+
+/**
+ * "Kirish" havolasi: mehmon kirgach turgan sahifasiga qaytadi. Bosh sahifa
+ * va login'ning o'zida parametr qo'shilmaydi — u yerdan qaytishning ma'nosi
+ * yo'q, standart `/dashboard` to'g'riroq.
+ */
+export function loginHref(currentPath: string | null | undefined): string {
+  const safe = sanitizeReturnPath(currentPath);
+  if (!safe || /^\/((uz|ru|en)\/?)?$/.test(safe) || /^\/((uz|ru|en)\/)?login(\/|$|\?)/.test(safe)) {
+    return '/login';
+  }
+  return `/login?callbackUrl=${encodeURIComponent(safe)}`;
+}

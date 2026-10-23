@@ -10,6 +10,7 @@ import {
   User,
   CreditCard,
   LogOut,
+  LogIn,
   ChevronLeft,
   ChevronRight,
   GraduationCap,
@@ -23,22 +24,31 @@ import {
 } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import { useState, useEffect } from 'react';
+import { usePathname as useFullPathname } from 'next/navigation';
+import { loginHref } from '@/lib/safe-return-path';
 
 interface SidebarProps {
-  role: string;
+  // `null` — kirmagan foydalanuvchi ((public) guruhidagi sahifalar).
+  role: string | null;
   mobileOpen: boolean;
   setMobileOpen: (open: boolean) => void;
 }
 
 export default function Sidebar({ role, mobileOpen, setMobileOpen }: SidebarProps) {
   const t = useTranslations('nav');
+  const tCommon = useTranslations('common');
   const pathname = usePathname();
+  // callbackUrl uchun locale prefiksli yo'l (Header'dagi bilan bir xil sabab).
+  const fullPathname = useFullPathname();
+  const isGuest = role === null;
   const [collapsed, setCollapsed] = useState(false);
   const [userPlan, setUserPlan] = useState<string>('Bepul');
   const [planColor, setPlanColor] = useState<string>('text-text-secondary bg-gray-100');
 
   // Fetch real subscription status
   useEffect(() => {
+    // Mehmonda tarif yo'q — so'rov baribir 401 qaytarardi.
+    if (isGuest) return;
     fetch('/api/subscription/status')
       .then(r => r.json())
       .then(data => {
@@ -57,7 +67,7 @@ export default function Sidebar({ role, mobileOpen, setMobileOpen }: SidebarProp
         }
       })
       .catch(() => {});
-  }, []);
+  }, [isGuest]);
 
   // Close mobile sidebar on route change
   useEffect(() => {
@@ -107,7 +117,7 @@ export default function Sidebar({ role, mobileOpen, setMobileOpen }: SidebarProp
   const sidebarContent = (
     <>
       {/* Tarif ko'rsatish */}
-      {!collapsed && (
+      {!collapsed && !isGuest && (
         <div className="p-3 border-b border-border">
           <div className="flex items-center gap-2 px-3 py-2">
             <span className="text-xs text-text-secondary">Tarifingiz:</span>
@@ -185,13 +195,23 @@ export default function Sidebar({ role, mobileOpen, setMobileOpen }: SidebarProp
 
       {/* Bottom actions */}
       <div className="p-3 border-t border-border space-y-1">
-        <button
-          onClick={() => signOut({ callbackUrl: '/' })}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-all duration-200"
-        >
-          <LogOut size={20} className="flex-shrink-0" />
-          {!collapsed && <span>Chiqish</span>}
-        </button>
+        {isGuest ? (
+          <Link
+            href={loginHref(fullPathname)}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-primary-700 hover:bg-primary-50 transition-all duration-200"
+          >
+            <LogIn size={20} className="flex-shrink-0" />
+            {!collapsed && <span>{tCommon('login')}</span>}
+          </Link>
+        ) : (
+          <button
+            onClick={() => signOut({ callbackUrl: '/' })}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-all duration-200"
+          >
+            <LogOut size={20} className="flex-shrink-0" />
+            {!collapsed && <span>Chiqish</span>}
+          </button>
+        )}
 
         {/* Collapse button only visible on desktop */}
         <button

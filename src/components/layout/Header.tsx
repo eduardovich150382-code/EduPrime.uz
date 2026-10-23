@@ -5,13 +5,18 @@ import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
 import { Menu, X, LogOut, User, Bell, Crown } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
+import { usePathname } from 'next/navigation';
 import LanguageSwitcher from './LanguageSwitcher';
 import PremiumCTA from '@/components/ui/PremiumCTA';
 import { ATTESTATION_HREF } from '@/lib/nav-links';
+import { loginHref } from '@/lib/safe-return-path';
 
 export default function Header() {
   const t = useTranslations();
   const { data: session, status } = useSession();
+  // Locale prefiksli yo'l — middleware callbackUrl'ga ham shuni qo'yadi,
+  // shunda ruscha sahifadan kirgan mehmon ruscha sahifaga qaytadi.
+  const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -206,10 +211,10 @@ export default function Header() {
             ) : (
               /* User is NOT logged in - show login buttons */
               <>
-                <Link href="/login" className="btn-secondary text-sm !px-4 !py-2">
+                <Link href={loginHref(pathname)} className="btn-secondary text-sm !px-4 !py-2">
                   {t('common.login')}
                 </Link>
-                <Link href="/login" className="btn-primary text-sm !px-4 !py-2">
+                <Link href={loginHref(pathname)} className="btn-primary text-sm !px-4 !py-2">
                   {t('common.register')}
                 </Link>
               </>
@@ -297,7 +302,7 @@ export default function Header() {
                     {t('common.logout')}
                   </button>
                 ) : (
-                  <Link href="/login" className="btn-primary text-sm flex-1 text-center">
+                  <Link href={loginHref(pathname)} className="btn-primary text-sm flex-1 text-center">
                     {t('common.login')}
                   </Link>
                 )}

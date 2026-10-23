@@ -8,11 +8,13 @@ import { Send, ArrowLeft, Sparkles } from 'lucide-react';
 import SessionProvider from '@/components/providers/SessionProvider';
 import { useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
+import { LOGIN_CALLBACK_STORAGE_KEY, resolveLoginCallback } from '@/lib/safe-return-path';
 
 function LoginContent() {
   const t = useTranslations('auth');
   const searchParams = useSearchParams();
   const error = searchParams.get('error');
+  const callbackUrl = resolveLoginCallback(searchParams.get('callbackUrl'));
 
   // Capture referral code from URL and store in localStorage
   useEffect(() => {
@@ -21,6 +23,17 @@ function LoginContent() {
       localStorage.setItem('referralCode', refCode);
     }
   }, [searchParams]);
+
+  // Telegram oqimida kirish bot yuborgan havola orqali yangi oynada tugaydi —
+  // callbackUrl u yerga URL orqali yetib bormaydi. Parametrsiz kirishda ham
+  // yoziladi ('/dashboard'), aks holda eski tashrifdagi manzil qolib ketardi.
+  useEffect(() => {
+    try {
+      localStorage.setItem(LOGIN_CALLBACK_STORAGE_KEY, callbackUrl);
+    } catch {
+      // Saqlab bo'lmasa Telegram'dan keyin /dashboard ga qaytadi — eski xatti-harakat.
+    }
+  }, [callbackUrl]);
 
   const getErrorMessage = (errorCode: string | null): string | null => {
     if (!errorCode) return null;
@@ -43,7 +56,7 @@ function LoginContent() {
   const errorMessage = getErrorMessage(error);
 
   const handleGoogleLogin = () => {
-    signIn('google', { callbackUrl: '/dashboard' });
+    signIn('google', { callbackUrl });
   };
 
   const handleTelegramLogin = () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { sanitizeReturnPath, withReturnTo } from '../safe-return-path';
+import { sanitizeReturnPath, withReturnTo, resolveLoginCallback, loginHref } from '../safe-return-path';
 
 describe('sanitizeReturnPath', () => {
   it('ichki manzilni qabul qiladi', () => {
@@ -99,5 +99,42 @@ describe('withReturnTo', () => {
     expect(withReturnTo('/results/1?foo=bar', '/courses/abc/learn')).toBe(
       '/results/1?foo=bar&returnTo=%2Fcourses%2Fabc%2Flearn',
     );
+  });
+});
+
+describe('resolveLoginCallback', () => {
+  it('ichki manzilni qaytaradi (locale prefiksi bilan ham)', () => {
+    expect(resolveLoginCallback('/tests/abc/solve')).toBe('/tests/abc/solve');
+    expect(resolveLoginCallback('/ru/tests/abc/solve')).toBe('/ru/tests/abc/solve');
+  });
+
+  it("bo'sh yoki xavfli qiymatda /dashboard", () => {
+    expect(resolveLoginCallback(null)).toBe('/dashboard');
+    expect(resolveLoginCallback('')).toBe('/dashboard');
+    expect(resolveLoginCallback('https://evil.com')).toBe('/dashboard');
+    expect(resolveLoginCallback('//evil.com')).toBe('/dashboard');
+    expect(resolveLoginCallback('/\\evil.com')).toBe('/dashboard');
+  });
+});
+
+describe('loginHref', () => {
+  it('joriy sahifani callbackUrl sifatida kodlab qo\'shadi', () => {
+    expect(loginHref('/attestation')).toBe('/login?callbackUrl=%2Fattestation');
+    expect(loginHref('/ru/tests/abc/solve')).toBe('/login?callbackUrl=%2Fru%2Ftests%2Fabc%2Fsolve');
+  });
+
+  it("bosh sahifa, login va xavfli qiymatda parametrsiz", () => {
+    expect(loginHref('/')).toBe('/login');
+    expect(loginHref('/ru')).toBe('/login');
+    expect(loginHref('/en/')).toBe('/login');
+    expect(loginHref('/login')).toBe('/login');
+    expect(loginHref('/ru/login')).toBe('/login');
+    expect(loginHref('//evil.com')).toBe('/login');
+    expect(loginHref(null)).toBe('/login');
+  });
+
+  it("'/rating' kabi o'xshash boshlanishni bosh sahifa deb olmaydi", () => {
+    expect(loginHref('/rating')).toBe('/login?callbackUrl=%2Frating');
+    expect(loginHref('/loginx')).toBe('/login?callbackUrl=%2Floginx');
   });
 });

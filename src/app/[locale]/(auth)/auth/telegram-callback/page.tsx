@@ -4,6 +4,19 @@ import { useEffect, useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 import { Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { LOGIN_CALLBACK_STORAGE_KEY, resolveLoginCallback } from '@/lib/safe-return-path';
+
+// Login sahifasi saqlagan manzil. Havola Telegram ichki brauzerida ochilsa
+// localStorage boshqa — u holda /dashboard (eski xatti-harakat).
+function takeStoredCallback(): string {
+  try {
+    const stored = localStorage.getItem(LOGIN_CALLBACK_STORAGE_KEY);
+    localStorage.removeItem(LOGIN_CALLBACK_STORAGE_KEY);
+    return resolveLoginCallback(stored);
+  } catch {
+    return resolveLoginCallback(null);
+  }
+}
 
 export default function TelegramCallbackPage() {
   const searchParams = useSearchParams();
@@ -28,7 +41,7 @@ export default function TelegramCallbackPage() {
       telegramUsername: username || '',
       firstName: firstName || '',
       authToken: token,
-      callbackUrl: '/dashboard',
+      callbackUrl: takeStoredCallback(),
       redirect: true,
     }).catch(() => {
       setStatus('error');

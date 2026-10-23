@@ -2,9 +2,11 @@
 
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { useSession } from 'next-auth/react';
 import { Link } from '@/i18n/routing';
-import { Menu, User, BookOpen, Wand2, Award } from 'lucide-react';
+import { Menu, User, BookOpen, Wand2, Award, LogIn } from 'lucide-react';
 import { ATTESTATION_HREF } from '@/lib/nav-links';
+import { loginHref } from '@/lib/safe-return-path';
 
 interface BottomNavProps {
   onMenuClick: () => void;
@@ -13,6 +15,8 @@ interface BottomNavProps {
 export default function BottomNav({ onMenuClick }: BottomNavProps) {
   const pathname = usePathname();
   const t = useTranslations('nav');
+  const tCommon = useTranslations('common');
+  const { status } = useSession();
 
   // Hide during test solving — MainLayoutClient'dagi bir xil qoida bilan
   // mos (konstruktordan kelgan /session/[id] ham shu yerga kiradi).
@@ -87,21 +91,32 @@ export default function BottomNav({ onMenuClick }: BottomNavProps) {
           )}
         </Link>
 
-        {/* Profile */}
-        <Link
-          href="/profile"
-          className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors relative ${
-            isProfile ? 'text-primary-600' : 'text-text-secondary hover:text-primary-600'
-          }`}
-        >
-          <User size={22} />
-          <span className={`text-[10px] font-medium ${isProfile ? 'text-primary-600' : ''}`}>
-            Profil
-          </span>
-          {isProfile && (
-            <span className="absolute bottom-1 w-6 h-0.5 rounded-full bg-primary-600" />
-          )}
-        </Link>
+        {/* Profile. Mehmonda "Kirish" — faqat aniq 'unauthenticated' da:
+            'loading' paytida Profil qoladi, kirgan foydalanuvchida miltillamasin. */}
+        {status === 'unauthenticated' ? (
+          <Link
+            href={loginHref(pathname)}
+            className="flex flex-col items-center justify-center gap-1 flex-1 h-full text-text-secondary hover:text-primary-600 transition-colors"
+          >
+            <LogIn size={22} />
+            <span className="text-[10px] font-medium">{tCommon('login')}</span>
+          </Link>
+        ) : (
+          <Link
+            href="/profile"
+            className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors relative ${
+              isProfile ? 'text-primary-600' : 'text-text-secondary hover:text-primary-600'
+            }`}
+          >
+            <User size={22} />
+            <span className={`text-[10px] font-medium ${isProfile ? 'text-primary-600' : ''}`}>
+              Profil
+            </span>
+            {isProfile && (
+              <span className="absolute bottom-1 w-6 h-0.5 rounded-full bg-primary-600" />
+            )}
+          </Link>
+        )}
       </div>
     </nav>
   );
