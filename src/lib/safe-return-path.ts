@@ -71,6 +71,15 @@ export function resolveLoginCallback(value: string | null | undefined): string {
 }
 
 /**
+ * callbackUrl locale prefiksli bo'lsin (middleware ham shunday qo'yadi),
+ * aks holda ruscha sahifadan kirgan mehmon o'zbekcha sahifaga qaytardi.
+ * `uz` — asosiy til, `as-needed` routing'da prefikssiz.
+ */
+export function localizedPath(path: string, locale: string): string {
+  return locale === 'uz' ? path : `/${locale}${path}`;
+}
+
+/**
  * "Kirish" havolasi: mehmon kirgach turgan sahifasiga qaytadi. Bosh sahifa
  * va login'ning o'zida parametr qo'shilmaydi — u yerdan qaytishning ma'nosi
  * yo'q, standart `/dashboard` to'g'riroq.

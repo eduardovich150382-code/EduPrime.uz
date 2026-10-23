@@ -1,33 +1,9 @@
 import createMiddleware from 'next-intl/middleware';
 import { NextRequest, NextResponse } from 'next/server';
 import { routing } from './i18n/routing';
+import { getCleanPath, isProtectedPath } from './lib/protected-paths';
 
 const intlMiddleware = createMiddleware(routing);
-
-// Protected routes — require authentication
-const protectedPaths = [
-  '/dashboard',
-  '/tests',
-  '/courses',
-  '/results',
-  '/rating',
-  '/profile',
-  '/pricing',
-  '/teacher',
-  '/admin',
-];
-
-// Public paths (no auth needed)
-const publicPaths = ['/', '/login', '/auth', '/share', '/certificate'];
-
-function getCleanPath(pathname: string): string {
-  return pathname.replace(/^\/(uz|ru|en)/, '') || '/';
-}
-
-function isProtectedPath(pathname: string): boolean {
-  const cleanPath = getCleanPath(pathname);
-  return protectedPaths.some(path => cleanPath.startsWith(path));
-}
 
 /**
  * Check if user has a session cookie.

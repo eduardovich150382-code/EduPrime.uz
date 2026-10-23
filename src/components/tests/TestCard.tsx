@@ -51,17 +51,18 @@ export function TestCard({
   test,
   index,
   result,
+  isGuest = false,
 }: {
   test: TestItem;
   index: number;
   result?: BriefResult;
+  isGuest?: boolean;
 }) {
   const t = useTranslations('tests');
   const locale = useLocale();
   const state = getCardState(test, result, test.hasAccess);
-  const links = getCardLinks(test.id, state);
+  const links = getCardLinks(test.id, state, isGuest ? { locale } : undefined);
   const goal = test.category?.type;
-  const solveHref = `/tests/${test.id}/solve`;
 
   // Qulflangan testda tugma baribir "Boshlash" — qanday kirish kerakligini
   // kichik belgi aytadi. Kirish huquqi bo'lsa state 'start' — belgi ham,
@@ -105,10 +106,10 @@ export function TestCard({
         </div>
       )}
 
-      {/* Alohida test sahifasi yo'q — sarlavha to'g'ridan-to'g'ri yechishga
-          olib boradi, xuddi eski kartaning o'zi kabi. */}
+      {/* Alohida test sahifasi yo'q — sarlavha asosiy tugma bilan bir joyga
+          (yechishga, mehmonda login'ga) olib boradi. */}
       <h3 className="text-lg font-bold leading-snug text-text-primary line-clamp-2 wrap-break-word">
-        <Link href={solveHref} className="hover:text-primary-700">
+        <Link href={links.primary} className="hover:text-primary-700">
           {title}
         </Link>
       </h3>

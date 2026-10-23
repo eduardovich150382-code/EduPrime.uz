@@ -57,8 +57,27 @@ const fullRow = {
   videoSolution: "https://youtu.be/secret",
   createdAt: "2026-10-01T00:00:00.000Z",
   subject: { nameUz: "Fizika", nameRu: "Физика", nameEn: "Physics", icon: null },
-  questions: [{ id: "q1", text: "Savol matni", correctAnswer: "A" }],
+  questions: [
+    {
+      id: "q1",
+      text: "Savol matni",
+      options: ["Variant-maxfiy"],
+      correctAnswer: "A-maxfiy",
+      explanation: "Tushuntirish-maxfiy",
+    },
+  ],
 };
+
+// Pullik kontentning har bir bo'lagi — javob JSON'ida hech qaysi kalit ham,
+// qiymat ham bo'lmasligi kerak.
+const PAID_KEYS = ["questions", "text", "options", "correctAnswer", "explanation", "writtenSolution", "videoSolution"];
+const PAID_VALUES = ["Savol matni", "Variant-maxfiy", "A-maxfiy", "Tushuntirish-maxfiy", "pullik yechim", "youtu.be/secret"];
+
+function expectNoPaidContent(data: unknown) {
+  const json = JSON.stringify(data);
+  for (const key of PAID_KEYS) expect(json).not.toContain(`"${key}"`);
+  for (const value of PAID_VALUES) expect(json).not.toContain(value);
+}
 
 type FindManyArgs = {
   omit?: Record<string, boolean>;
@@ -191,6 +210,19 @@ describe("GET /api/tests", () => {
     expect(test).not.toHaveProperty("writtenSolution");
     expect(test).not.toHaveProperty("videoSolution");
     expect(JSON.stringify(data)).not.toContain("pullik yechim");
+  });
+
+  it("paywall: mehmon ham, kirgan foydalanuvchi ham savol matni/varianti/to'g'ri javobi/yechimini olmaydi", async () => {
+    const guest = await callGet("");
+    expect(guest.status).toBe(200);
+    expectNoPaidContent(guest.data);
+
+    authMock.mockResolvedValue({ user: { id: "u1", role: "USER" } });
+    subscriptionMock.mockResolvedValue([{ plan: "PREMIUM" }]);
+    const authed = await callGet("?type=ATTESTATION");
+    expect(authed.status).toBe(200);
+    expect(authed.data.tests[0].hasAccess).toBe(true);
+    expectNoPaidContent(authed.data);
   });
 
   describe("hasAccess", () => {
