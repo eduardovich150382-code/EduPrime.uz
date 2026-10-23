@@ -210,11 +210,6 @@
     "videoSolution": "Video solution",
     "writtenSolution": "Written solution"
   },
-  "testBuilderCta": {
-    "title": "Build your own test",
-    "subtitle": "Choose a subject, topic, and difficulty",
-    "button": "Build a test"
-  },
   "build": {
     "quotaExceededTitle": "Today's free tests are used up",
     "quotaExceededBody": "To start a test with \"{config}\", today's free limit is used up.",

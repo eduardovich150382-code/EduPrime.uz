@@ -210,11 +210,6 @@
     "videoSolution": "Video yechim",
     "writtenSolution": "Yozma yechim"
   },
-  "testBuilderCta": {
-    "title": "O'zingiz test tuzing",
-    "subtitle": "Fan, mavzu va qiyinlikni tanlang",
-    "button": "Test tuzish"
-  },
   "build": {
     "quotaExceededTitle": "Bugungi bepul testlar tugadi",
     "quotaExceededBody": "\"{config}\" konfiguratsiyasi bilan testni boshlash uchun bugungi bepul limit tugadi.",
