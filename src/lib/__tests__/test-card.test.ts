@@ -114,6 +114,19 @@ describe('getCardLinks', () => {
     const state = getCardState({ isFree: true }, result({ id: 'r9' }));
     expect(getCardLinks('t1', state)).toEqual({ primary: solve, secondary: '/results/r9' });
   });
+
+  it('mehmon — har holatda login\'ga, qaytish manzili locale prefiksli solve', () => {
+    const uz = { primary: '/login?callbackUrl=%2Ftests%2Ft1%2Fsolve' };
+    expect(getCardLinks('t1', { kind: 'start' }, { locale: 'uz' })).toEqual(uz);
+    expect(getCardLinks('t1', { kind: 'buy', price: 15000 }, { locale: 'uz' })).toEqual(uz);
+    expect(getCardLinks('t1', { kind: 'upgrade', plan: 'premium' }, { locale: 'uz' })).toEqual(uz);
+    expect(getCardLinks('t1', { kind: 'start' }, { locale: 'ru' })).toEqual({
+      primary: '/login?callbackUrl=%2Fru%2Ftests%2Ft1%2Fsolve',
+    });
+    expect(getCardLinks('t1', { kind: 'start' }, { locale: 'en' })).toEqual({
+      primary: '/login?callbackUrl=%2Fen%2Ftests%2Ft1%2Fsolve',
+    });
+  });
 });
 
 describe('latestResultByTest', () => {

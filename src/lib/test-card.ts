@@ -1,6 +1,8 @@
 // /tests kartasining holat mantig'i — komponentsiz (Vitest'da) tekshirilishi
 // uchun alohida sof funksiyalarda. Karta faqat shu natijani chizadi.
 
+import { localizedPath, loginHref } from './safe-return-path';
+
 // /api/results?brief=true javobidagi bitta qator. Savol/javob ma'lumoti
 // ataylab yo'q — kartaga faqat ball va natija sahifasiga havola kerak.
 export interface BriefResult {
@@ -93,8 +95,13 @@ export interface CardLinks {
 // olib boradi: kartadagi hasAccess faqat ishora (eskirgan bo'lishi ham
 // mumkin), yakuniy qarorni solve sahifasi check-access orqali qiladi —
 // obunasiz foydalanuvchi o'sha yerda "Test yopiq" ekranini ko'radi.
-export function getCardLinks(testId: string, state: CardState): CardLinks {
+//
+// `guest` — mehmon: solve baribir login so'raydi, shuning uchun to'g'ridan-
+// to'g'ri login'ga, qaytish manzili shu testning (locale prefiksli) solve
+// sahifasi. Mehmonda natija yo'q — ikkinchi havola ham yo'q.
+export function getCardLinks(testId: string, state: CardState, guest?: { locale: string }): CardLinks {
   const solve = `/tests/${testId}/solve`;
+  if (guest) return { primary: loginHref(localizedPath(solve, guest.locale)) };
   if (state.kind === 'solved') return { primary: solve, secondary: `/results/${state.resultId}` };
   return { primary: solve };
 }

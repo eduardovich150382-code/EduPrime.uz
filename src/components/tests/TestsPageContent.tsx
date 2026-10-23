@@ -56,7 +56,7 @@ interface TestsResponse {
   total?: number;
 }
 
-function TestsPageContent() {
+function TestsPageContent({ isGuest }: { isGuest: boolean }) {
   const t = useTranslations('tests');
   const router = useRouter();
   const pathname = usePathname();
@@ -75,9 +75,6 @@ function TestsPageContent() {
   const [loadingTests, setLoadingTests] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [recentResults, setRecentResults] = useState<BriefResult[]>([]);
-  // null — hali noma'lum. Alohida sessiya so'rovi o'rniga brief javobining
-  // 401 iga tayanamiz.
-  const [isAuthed, setIsAuthed] = useState<boolean | null>(null);
   const [drafts, setDrafts] = useState<DraftSummary[]>([]);
   const [attestationDate, setAttestationDate] = useState<string | null>(null);
 
@@ -101,21 +98,25 @@ function TestsPageContent() {
   const clearFilters = () => router.replace(pathname, { scroll: false });
 
   // Kartadagi "Yechildi" holati va "Natijani ko'rish" havolasi uchun.
-  // Mehmon uchun 401 — kartalar shunchaki "Hali yechilmagan" bo'lib qoladi.
+  // Mehmonda so'rov umuman yuborilmaydi (aks holda konsolda 401) —
+  // kartalar shunchaki "Hali yechilmagan" bo'lib qoladi.
   useEffect(() => {
+    if (isGuest) return;
     fetch('/api/results?limit=100&brief=true')
-      .then(r => {
-        setIsAuthed(r.ok);
-        return r.json();
-      })
+      .then(r => r.json())
       .then((data: { results?: BriefResult[] }) => {
         if (data.results) setRecentResults(data.results);
       })
       .catch(() => {});
-  }, []);
+  }, [isGuest]);
+
+  // Qoralamalar boshqa (avval shu qurilmada kirgan) foydalanuvchiniki
+  // bo'lishi mumkin — mehmonga ko'rsatilmaydi va o'qilmaydi ham.
+  useEffect(() => {
+    if (!isGuest) setDrafts(readLocalDrafts());
+  }, [isGuest]);
 
   useEffect(() => {
-    setDrafts(readLocalDrafts());
     fetch('/api/settings')
       .then(r => r.json())
       .then((data: { settings?: Record<string, string> }) => {
@@ -221,7 +222,7 @@ function TestsPageContent() {
           <AttestationBanner attestationDate={attestationDate} />
         )}
 
-        {showPromo && isAuthed && <ContinueRow drafts={continueDrafts} tests={tests} />}
+        {showPromo && !isGuest && <ContinueRow drafts={continueDrafts} tests={tests} />}
 
         <TestsFilters
           filters={filters}
@@ -248,6 +249,7 @@ function TestsPageContent() {
                   // boshlansin — aks holda 48-karta 2.4 s kutib chiqadi.
                   index={index % PAGE_SIZE}
                   result={resultByTestId.get(test.id)}
+                  isGuest={isGuest}
                 />
               ))}
             </div>
@@ -286,7 +288,9 @@ function TestsPageContent() {
   );
 }
 
-export default function TestsPage() {
+// Sessiya serverda ((public)/tests/page.tsx) aniqlanadi: birinchi renderdanoq
+// mehmon ekani ma'lum, 401 ga qarab taxmin qilish va blok miltillashi yo'q.
+export function TestsPage({ isGuest }: { isGuest: boolean }) {
   return (
     <Suspense
       fallback={
@@ -296,7 +300,7 @@ export default function TestsPage() {
         </div>
       }
     >
-      <TestsPageContent />
+      <TestsPageContent isGuest={isGuest} />
     </Suspense>
   );
 }

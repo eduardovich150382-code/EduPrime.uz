@@ -3,7 +3,6 @@ import type { Prisma } from '@prisma/client';
 import { db } from './db';
 import { loadTestAccessContext, resolveTestAccess } from './access';
 import { getCardLinks, getCardState, getLockBadge, latestResultByTest, type BriefResult, type LockBadge } from './test-card';
-import { loginHref } from './safe-return-path';
 import { resolveTopicNodes } from './topic-bridge';
 import {
   classifyAttestationTests,
@@ -89,12 +88,6 @@ function localizedTitle(test: { titleUz: string; titleRu: string | null; titleEn
   return (locale === 'ru' && test.titleRu) || (locale === 'en' && test.titleEn) || test.titleUz;
 }
 
-// callbackUrl locale prefiksli bo'lsin (middleware ham shunday qo'yadi),
-// aks holda ruscha sahifadan kirgan mehmon o'zbekcha solve'ga qaytardi.
-function localizedPath(path: string, locale: string): string {
-  return locale === 'uz' ? path : `/${locale}${path}`;
-}
-
 const TEST_SELECT = {
   id: true,
   titleUz: true,
@@ -163,7 +156,8 @@ export async function loadAttestationPage(
   const toRow = (test: (typeof tests)[number], number: number | null): MockRow => {
     const result = latest.get(test.id);
     const state = getCardState(test, result, resolveTestAccess(test, accessContext));
-    const links = getCardLinks(test.id, state);
+    // Mehmon havolasi (login → solve) /tests kartasi bilan bitta qoidada.
+    const links = getCardLinks(test.id, state, user ? undefined : { locale });
     return {
       id: test.id,
       number,
@@ -173,9 +167,7 @@ export async function loadAttestationPage(
       lastScore: result?.score ?? null,
       lastMax: result?.maxScore ?? null,
       lastPercent: result ? Math.round(result.percentage) : null,
-      // Mehmon uchun solve baribir login so'raydi — to'g'ridan-to'g'ri
-      // login'ga, qaytish manzili shu testning solve sahifasi.
-      primaryHref: user ? links.primary : loginHref(localizedPath(links.primary, locale)),
+      primaryHref: links.primary,
       secondaryHref: links.secondary ?? null,
       locked: state.kind === 'buy' || state.kind === 'upgrade',
       lockBadge: getLockBadge(test, state),
