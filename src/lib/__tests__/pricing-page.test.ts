@@ -36,9 +36,10 @@ describe('pricing server ma’lumotlari', () => {
     m.subscriptions.mockResolvedValue([{ id: 's1', plan: 'CATEGORY', product: names, subjects: [subject], endDate: new Date('2026-11-24T19:30:00Z') }]);
     const result = await loadPricingPage('u1', 'en', now);
     expect(m.subscriptions).toHaveBeenCalledOnce(); expect(m.permissions).not.toHaveBeenCalled();
-    const [sql, userId, startDate, endDate] = m.subscriptions.mock.calls[0];
+    const [sql, userIds, sameIds, timeline, startDate, endDate] = m.subscriptions.mock.calls[0];
     expect(sql.join('?')).toContain('LEFT JOIN "Product"'); expect(sql.join('?')).toContain('ANY(s."subjectIds")');
-    expect(userId).toBe('u1'); expect(startDate).toBe(now); expect(endDate).toBe(now);
+    expect(userIds).toEqual(['u1']); expect(sameIds).toEqual(['u1']); expect(timeline).toBe(false);
+    expect(startDate).toBe(now); expect(endDate).toBe(now);
     expect(result.subscriptions[0]).toMatchObject({ name: 'Attestation', subjects: ['Physics'] });
   });
   it('har yuklashda yangi narx olinadi, 0 narx ham saqlanadi', async () => {

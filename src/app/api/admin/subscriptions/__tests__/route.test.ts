@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
 
-const m = vi.hoisted(() => ({ auth: vi.fn(), transaction: vi.fn(), product: vi.fn(), offer: vi.fn(), user: vi.fn(), current: vi.fn(), create: vi.fn(), countUsers: vi.fn(), countSubscriptions: vi.fn(), users: vi.fn(), subjects: vi.fn() }));
+const m = vi.hoisted(() => ({ auth: vi.fn(), transaction: vi.fn(), product: vi.fn(), offer: vi.fn(), user: vi.fn(), current: vi.fn(), create: vi.fn(), countUsers: vi.fn(), countSubscriptions: vi.fn(), users: vi.fn(), subjects: vi.fn(), details: vi.fn() }));
 vi.mock('@/lib/api-auth', () => ({ requireAdmin: m.auth }));
 vi.mock('@/lib/logger', () => ({ logger: { error: vi.fn() } }));
 vi.mock('@/lib/db', () => ({ db: {
-  $transaction: m.transaction, user: { count: m.countUsers, findMany: m.users },
+  $transaction: m.transaction, $queryRaw: m.details, user: { count: m.countUsers, findMany: m.users },
   subscription: { count: m.countSubscriptions, findMany: m.current }, subject: { findMany: m.subjects },
 } }));
 import { GET, POST } from '../route';
@@ -24,7 +24,7 @@ beforeEach(() => {
   m.product.mockResolvedValue(product); m.offer.mockResolvedValue(offer); m.user.mockResolvedValue({ id: 'u1' });
   m.current.mockResolvedValue([]); m.create.mockResolvedValue({ id: 'new-subscription' });
   m.transaction.mockImplementation((fn: (client: typeof tx) => Promise<unknown>) => fn(tx));
-  m.countUsers.mockResolvedValue(10); m.countSubscriptions.mockResolvedValue(2); m.users.mockResolvedValue([]); m.subjects.mockResolvedValue([]);
+  m.countUsers.mockResolvedValue(10); m.countSubscriptions.mockResolvedValue(2); m.users.mockResolvedValue([]); m.subjects.mockResolvedValue([]); m.details.mockResolvedValue([]);
 });
 afterEach(() => vi.useRealTimers());
 

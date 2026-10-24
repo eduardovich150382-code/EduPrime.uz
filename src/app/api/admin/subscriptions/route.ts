@@ -5,6 +5,8 @@ import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/api-auth';
 import { AdminInputError, adminApiError, grantSchema, hasPrismaCode, readAdminJson } from '@/lib/admin-products-api';
 import { buildSubjectIds, computeEndDate, resolveStartDate, sameSubjectIds } from '@/lib/product-offers';
+import { loadSubscriptionRows } from '@/lib/subscription-details';
+import { subscriptionProductStats } from '@/lib/subscription-display';
 
 const querySchema = z.object({
   filter: z.enum(['all', 'premium', 'teacher', 'free', 'expiring', 'category', 'bundle']).default('all'),
@@ -18,13 +20,14 @@ export async function GET(request: NextRequest) {
   try {
     const { filter, page, limit } = querySchema.parse(Object.fromEntries(request.nextUrl.searchParams));
     const now = new Date();
-    const active: Prisma.SubscriptionWhereInput = { isActive: true, endDate: { gte: now } };
+    const active: Prisma.SubscriptionWhereInput = { isActive: true, startDate: { lte: now }, endDate: { gte: now } };
     const expiring = { ...active, endDate: { gte: now, lte: new Date(now.getTime() + 7 * 86400000) } };
-    const [totalUsers, premiumCount, teacherCount, subscribedUsers, expiringCount] = await Promise.all([
+    const [totalUsers, premiumCount, teacherCount, subscribedUsers, expiringCount, details] = await Promise.all([
       db.user.count(), db.subscription.count({ where: { ...active, plan: 'PREMIUM' } }),
       db.subscription.count({ where: { ...active, plan: 'TEACHER_PLAN' } }),
       db.subscription.findMany({ where: active, select: { userId: true }, distinct: ['userId'] }),
       db.subscription.count({ where: expiring }),
+      loadSubscriptionRows(null, now),
     ]);
     const plans = { premium: 'PREMIUM', teacher: 'TEACHER_PLAN', category: 'CATEGORY', bundle: 'BUNDLE' } as const;
     const subscriptionWhere: Prisma.SubscriptionWhereInput = filter === 'expiring' ? expiring : {
@@ -41,7 +44,8 @@ export async function GET(request: NextRequest) {
       } }),
       db.subject.findMany({ select: { id: true, nameUz: true, nameRu: true, nameEn: true } }),
     ]);
-    return NextResponse.json({ stats: { totalUsers, premiumCount, teacherCount, freeCount: totalUsers - subscribedUsers.length, expiringCount },
+    return NextResponse.json({ stats: { totalUsers, premiumCount, teacherCount, freeCount: totalUsers - subscribedUsers.length, expiringCount,
+      products: subscriptionProductStats(details) },
       users: users.map((u) => ({ ...u, plan: u.subscriptions.map((s) => s.plan).join('+') || 'FREE', endDate: u.subscriptions[0]?.endDate ?? null,
         subscriptions: u.subscriptions.map((s) => ({ ...s, subjects: subjects.filter((subject) => s.subjectIds.includes(subject.id)) })),
       })), total, page, limit });

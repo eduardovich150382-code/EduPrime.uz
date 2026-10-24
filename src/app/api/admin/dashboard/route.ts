@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/api-auth';
 import { logger } from '@/lib/logger';
+import { loadSubscriptionRows } from '@/lib/subscription-details';
+import { subscriptionName, subscriptionProductStats } from '@/lib/subscription-display';
 
 /**
  * GET /api/admin/dashboard — Admin dashboard statistikasi
@@ -20,7 +22,7 @@ export async function GET() {
       todayNewUsers,
       todayTestsCompleted,
       pendingPayments,
-      activeSubscriptions,
+      subscriptions,
       totalUsers,
       totalTests,
       itemsWithExplanation,
@@ -29,7 +31,7 @@ export async function GET() {
       db.user.count({ where: { createdAt: { gte: todayStart } } }),
       db.testResult.count({ where: { completedAt: { gte: todayStart } } }),
       db.payment.count({ where: { status: 'PENDING' } }),
-      db.subscription.count({ where: { isActive: true, endDate: { gte: now } } }),
+      loadSubscriptionRows(null, now),
       db.user.count(),
       db.test.count({ where: { isPublished: true } }),
       // S20a — sifat halqasi ko'rsatkichi: "Yozma yechimi bor savollar".
@@ -63,6 +65,7 @@ export async function GET() {
       orderBy: { createdAt: 'desc' },
       include: {
         user: { select: { name: true, telegramUsername: true, image: true } },
+        product: { select: { nameUz: true, nameRu: true, nameEn: true } },
       },
     });
 
@@ -84,11 +87,12 @@ export async function GET() {
         todayNewUsers,
         todayTestsCompleted,
         pendingPayments,
-        activeSubscriptions,
+        activeSubscriptions: subscriptions.length,
         totalUsers,
         totalTests,
       },
       explanationCoverage: { withExplanation: itemsWithExplanation, total: totalItems },
+      subscriptionProducts: subscriptionProductStats(subscriptions),
       weeklyGrowth,
       recentPayments: recentPayments.map(p => ({
         id: p.id,
@@ -96,6 +100,7 @@ export async function GET() {
         telegramUsername: p.user.telegramUsername,
         userImage: p.user.image,
         plan: p.plan,
+        name: subscriptionName(p),
         amount: p.amount,
         status: p.status,
         createdAt: p.createdAt,

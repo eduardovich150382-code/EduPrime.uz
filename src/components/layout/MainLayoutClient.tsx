@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Sidebar from './Sidebar';
 import BottomNav from './BottomNav';
@@ -15,18 +15,6 @@ interface MainLayoutClientProps {
 export default function MainLayoutClient({ role, showPremiumBanner, children }: MainLayoutClientProps) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [bannerVisible, setBannerVisible] = useState(false);
-
-  // Check if premium banner is visible (for padding)
-  useEffect(() => {
-    if (!showPremiumBanner) {
-      setBannerVisible(false);
-      return;
-    }
-    const dismissed = sessionStorage.getItem('premium_banner_dismissed');
-    // Banner shows only for free users who haven't dismissed it
-    setBannerVisible(dismissed !== 'true');
-  }, [showPremiumBanner]);
 
   // Hide sidebar when user is solving a test — konstruktordan ("/build")
   // kelgan virtual sessiyalar /session/[id] da yechiladi, xuddi shu holat
@@ -34,7 +22,7 @@ export default function MainLayoutClient({ role, showPremiumBanner, children }: 
   const isTestSolving = /\/tests\/[^/]+\/solve/.test(pathname) || /\/session\/[^/]+/.test(pathname);
 
   return (
-    <div className={`flex ${bannerVisible ? 'pt-[104px]' : 'pt-16'}`}>
+    <div className="flex" style={{ paddingTop: showPremiumBanner ? 'calc(4rem + var(--subscription-banner-height, 0px))' : '4rem' }}>
       {!isTestSolving && (
         <Sidebar
           role={role}

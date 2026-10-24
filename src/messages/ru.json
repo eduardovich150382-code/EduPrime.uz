@@ -1,4 +1,22 @@
 {
+  "subscriptionUi": {
+    "active": "Активные подписки",
+    "until": "до {date}",
+    "more": "ещё {count}",
+    "subscribe": "Оформить подписку",
+    "offer": "Выберите подписку по вашей цели и предмету",
+    "renew": "Продлить",
+    "close": "Закрыть",
+    "expires": "Ваша подписка «{subscription}» истекает через {days} дн. Дата окончания: {date}",
+    "expiresToday": "Ваша подписка «{subscription}» истекает сегодня. Дата окончания: {date}",
+    "expired": "Ваша подписка «{subscription}» истекла. Дата окончания: {date}",
+    "alertTitle": "Напоминание о сроке подписки",
+    "cronRenew": "Продлить: {url}",
+    "productStats": "Активные подписки по продуктам",
+    "legacyPremium": "Premium",
+    "legacyTeacher": "Учитель",
+    "subscription": "Подписка"
+  },
   "common": {
     "siteName": "EduPrime",
     "login": "Войти",

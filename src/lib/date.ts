@@ -7,6 +7,12 @@
 
 const TASHKENT_OFFSET_MS = 5 * 60 * 60 * 1000; // UTC+5, DTM mintaqasida yozgi vaqt yo'q
 
+export function formatTashkentDate(value: Date | string, locale: string, includeYear = false): string {
+  return new Intl.DateTimeFormat(locale === 'ru' ? 'ru-RU' : locale === 'en' ? 'en-US' : 'uz-UZ', {
+    day: 'numeric', month: 'long', ...(includeYear ? { year: 'numeric' as const } : {}), timeZone: 'Asia/Tashkent',
+  }).format(new Date(value));
+}
+
 /**
  * Berilgan (yoki joriy) vaqtni Asia/Tashkent mahalliy sanasiga aylantirib,
  * `YYYY-MM-DD` shaklida qaytaradi. Kunlik kvota kalitlari shu qiymatdan

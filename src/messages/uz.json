@@ -1,4 +1,22 @@
 {
+  "subscriptionUi": {
+    "active": "Faol obunalar",
+    "until": "{date}gacha",
+    "more": "yana {count} ta",
+    "subscribe": "Obuna olish",
+    "offer": "Maqsadingiz va faningizga mos obunani tanlang",
+    "renew": "Uzaytirish",
+    "close": "Yopish",
+    "expires": "{subscription} obunangiz {days} kunda tugaydi. Tugash sanasi: {date}.",
+    "expiresToday": "{subscription} obunangiz bugun tugaydi. Tugash sanasi: {date}.",
+    "expired": "{subscription} obunangiz muddati tugadi. Tugash sanasi: {date}.",
+    "alertTitle": "Obuna muddati haqida eslatma",
+    "cronRenew": "Uzaytirish: {url}",
+    "productStats": "Mahsulotlar bo‘yicha faol obunalar",
+    "legacyPremium": "Premium",
+    "legacyTeacher": "Ustoz",
+    "subscription": "Obuna"
+  },
   "common": {
     "siteName": "EduPrime",
     "login": "Kirish",
