@@ -1,5 +1,5 @@
 import { db } from './db';
-import { checkoutCallback, checkoutPrice, resolveCheckoutKey } from './category-checkout';
+import { checkoutCallback, checkoutPrice, parseCheckoutStart, resolveCheckoutKey } from './category-checkout';
 import { buildSubjectIds, computeEndDate } from './product-offers';
 import { paymentTransaction, processSubscriptionPayment } from './subscription-payments';
 import uz from '@/messages/uz.json';
@@ -37,6 +37,12 @@ export async function showCheckoutProducts(chatId: number, transport: Transport,
   await transport.send(chatId, rows.length ? t.chooseProduct : t.noProducts, { reply_markup: { inline_keyboard: rows.map((p) => [{ text: name(p, lang), callback_data: checkoutCallback('p', p.id) }]) } });
 }
 
+export async function startSelectedCheckout(chatId: number, from: CheckoutUser, parameter: string, transport: Transport) {
+  const keys = parseCheckoutStart(parameter);
+  if (!keys) { await showCheckoutProducts(chatId, transport, from.language_code); return; }
+  await handleCheckoutCallback(chatId, from, `co:p:${keys.productKey}::${keys.offerKey}`, transport);
+}
+
 async function details(paymentId: string, lang: Lang) {
   const payment = await db.payment.findUniqueOrThrow({ where: { id: paymentId }, include: { product: true, offer: true, user: true } });
   const subjects = await db.subject.findMany({ where: { id: { in: payment.subjectIds } }, orderBy: [{ order: 'asc' }, { id: 'asc' }] });
@@ -70,6 +76,9 @@ export async function handleCheckoutCallback(chatId: number, from: CheckoutUser,
     const [, step, productKey, chosenKeys = '', offerKey] = data.split(':');
     if (!['p', 's', 'o'].includes(step)) throw new Error('INVALID_SELECTION');
     const product = resolveCheckoutKey(await catalog(), productKey);
+    if (!product.isOnSale) throw new Error('INVALID_SELECTION');
+    const selectedOffer = offerKey ? resolveCheckoutKey(product.offers, offerKey) : null;
+    if (selectedOffer && (!selectedOffer.isActive || (selectedOffer.untilDate && selectedOffer.untilDate <= new Date()))) throw new Error('EXPIRED_OFFER');
     const subjects = product.categoryId ? await db.subject.findMany({ where: { categoryId: product.categoryId },
       include: { _count: { select: { tests: { where: { isPublished: true, categoryId: product.categoryId } } } } }, orderBy: [{ order: 'asc' }, { id: 'asc' }] }) : [];
     const available = subjects.filter((s) => s._count.tests > 0 && (product.subjectRule !== 'DTM_BLOCK' || !s.isMandatory));
@@ -81,11 +90,11 @@ export async function handleCheckoutCallback(chatId: number, from: CheckoutUser,
     if (chosen.length < needed) {
       const text = (needed === 2 ? t.chooseTwo : t.chooseSubject) + (chosen.length ? `\n${chosen.map((id) => escape(name(subjects.find((s) => s.id === id)!, lang))).join(', ')}` : '') +
         (needed === 2 ? `\n${t.mandatory}: ${mandatory.map((s) => escape(name(s, lang))).join(', ')}` : '');
-      await transport.send(chatId, text, { reply_markup: { inline_keyboard: available.filter((s) => !chosen.includes(s.id)).map((s) => [{ text: name(s, lang), callback_data: checkoutCallback('s', product.id, [...chosen, s.id]) }]) } });
+      await transport.send(chatId, text, { reply_markup: { inline_keyboard: available.filter((s) => !chosen.includes(s.id)).map((s) => [{ text: name(s, lang), callback_data: checkoutCallback('s', product.id, [...chosen, s.id], selectedOffer?.id) }]) } });
       return true;
     }
     const subjectIds = buildSubjectIds(product, chosen, subjects).sort();
-    if (step !== 'o') {
+    if (step !== 'o' && !selectedOffer) {
       const offers = product.offers.filter((o) => !o.untilDate || o.untilDate > new Date());
       await transport.send(chatId, t.chooseOffer, { reply_markup: { inline_keyboard: offers.map((o) => [{ text: `${label(o, lang)} — ${o.price.toLocaleString('uz-UZ')} ${t.currency}`, callback_data: checkoutCallback('o', product.id, chosen, o.id) }]) } });
       return true;
@@ -113,6 +122,11 @@ export async function handleCheckoutCallback(chatId: number, from: CheckoutUser,
     }
   } catch (error) {
     logger.error('Category checkout error', { error });
+    // Saytdan kelgan variant sotuvdan olingan bo'lsa tanlovni qayta ochamiz.
+    if (data.startsWith('co:') && data.split(':')[4]) {
+      await showCheckoutProducts(chatId, transport, lang);
+      return true;
+    }
     await transport.send(chatId, error instanceof Error && error.message === 'EXPIRED_OFFER' ? t.expired : t.invalid);
   }
   return true;

@@ -8,7 +8,6 @@ const PROTECTED_PREFIXES = [
   '/results',
   '/rating',
   '/profile',
-  '/pricing',
   '/teacher',
   '/admin',
 ];

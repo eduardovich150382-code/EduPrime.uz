@@ -36,7 +36,8 @@ let currentTest: FakeTest | null = PAID_TEST;
 vi.mock("@/lib/db", () => ({
   db: {
     test: { findUnique: async ({ select }: { select: Record<string, unknown> }) => currentTest && Object.fromEntries(Object.entries(currentTest).filter(([key]) => select[key])) },
-    testCategory: { findMany: async () => [{ id: "att", type: "ATTESTATION" }, { id: "dtm", type: "DTM" }] },
+    testCategory: { findMany: async () => [{ id: "att", type: "ATTESTATION" }, { id: "dtm", type: "DTM" }],
+      findUnique: async ({ where }: { where: { id: string } }) => ({ type: where.id === 'att' ? 'ATTESTATION' : 'DTM' }) },
     user: { findUnique: async () => ({ role: state.role }) },
     courseLesson: { count: async () => state.publishedCourseLessons },
     lessonBlock: { count: async () => 0 },
@@ -99,7 +100,7 @@ describe("GET /api/subscription/check-access — qoralama test", () => {
     state.publishedCourseLessons = 1;
     const { status, data } = await check();
     expect(status).toBe(200);
-    expect(data).toEqual({ hasAccess: false, accessType: "paid", price: 15000, testTitle: "Kinematika" });
+    expect(data).toEqual({ hasAccess: false, accessType: "paid", price: 15000, testTitle: "Kinematika", categoryType: "ATTESTATION" });
   });
 
   it("ega (Test.userId) — 404 emas", async () => {
@@ -139,6 +140,7 @@ describe("GET /api/subscription/check-access", () => {
       accessType: "paid",
       price: 15000,
       testTitle: "Kinematika",
+      categoryType: "ATTESTATION",
     });
   });
 

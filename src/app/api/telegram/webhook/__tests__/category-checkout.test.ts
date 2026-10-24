@@ -18,7 +18,7 @@ vi.mock('@/lib/purchases', () => ({ recordPurchase: m.purchase }));
 vi.mock('@/lib/subscription-payments', () => ({ paymentTransaction: m.transaction, processSubscriptionPayment: m.confirm, processLegacySubscription: m.legacy }));
 vi.mock('@/lib/logger', () => ({ logger: { error: vi.fn() } }));
 import { POST } from '../route';
-import { checkoutCallback } from '@/lib/category-checkout';
+import { checkoutCallback, checkoutStartParameter } from '@/lib/category-checkout';
 
 const now = new Date('2026-10-24T07:00:00Z');
 const offer = { id: 'o', productId: 'p', labelUz: '1 oy', labelRu: '1 месяц', labelEn: '1 month', price: 10000, durationMonths: 1, untilDate: null, isActive: true };
@@ -67,7 +67,7 @@ describe('webhook mahsulot checkout', () => {
   it('webhook siri tekshiriladi', async () => {
     expect((await POST(request({}, 'wrong'))).status).toBe(401); expect(m.products).not.toHaveBeenCalled();
   });
-  it.each(['/obuna', '/premium', '/ustoz', '/start buy_teacher_1month'])('%s yangi mahsulotlar ro‘yxatini ochadi', async (text) => {
+  it.each(['/obuna', '/premium', '/ustoz', '/start buy_teacher_1month', '/start buy_premium_3months'])('%s yangi mahsulotlar ro‘yxatini ochadi', async (text) => {
     expect((await command(text)).status).toBe(200);
     expect(m.products).toHaveBeenCalledWith(expect.objectContaining({ where: { isOnSale: true } }));
     expect(messages().at(-1)?.reply_markup?.inline_keyboard[0][0].text).toBe('Attestatsiya');
@@ -122,6 +122,49 @@ describe('webhook mahsulot checkout', () => {
   it('boshqa yoki nashr etilmagan fanni callback bilan kiritib bo‘lmaydi', async () => {
     await callback(checkoutCallback('o', 'p', ['draft'], 'o')); expect(m.create).not.toHaveBeenCalled();
     await callback(checkoutCallback('o', 'p', ['unknown'], 'o')); expect(m.create).not.toHaveBeenCalled();
+  });
+});
+
+describe('webhook pricing deep link', () => {
+  it('ONE: variant fan tanlashda saqlanadi, muddat qayta so‘ralmaydi', async () => {
+    await command(`/start ${checkoutStartParameter('p', 'o')}`);
+    expect(m.create).not.toHaveBeenCalled();
+    const chooseSubject = messages().at(-1)?.reply_markup?.inline_keyboard[0][0].callback_data;
+    expect(chooseSubject).toBe(checkoutCallback('s', 'p', ['physics'], 'o'));
+    await callback(chooseSubject!);
+    expect(payment).toMatchObject({ offerId: 'o', subjectIds: ['physics'], amount: 10000 });
+  });
+  it('DTM: variant ikkala fan tanlashda ham saqlanadi', async () => {
+    m.products.mockResolvedValue([{ ...product, subjectRule: 'DTM_BLOCK' }]);
+    m.subjects.mockResolvedValue([subject('physics'), subject('math'), subject('a', 1, true), subject('b', 1, true), subject('c', 1, true)]);
+    await command(`/start ${checkoutStartParameter('p', 'o')}`);
+    await callback(messages().at(-1)!.reply_markup!.inline_keyboard[0][0].callback_data!);
+    expect(m.create).not.toHaveBeenCalled();
+    await callback(messages().at(-1)!.reply_markup!.inline_keyboard[0][0].callback_data!);
+    expect(payment?.subjectIds).toEqual(['a', 'b', 'c', 'math', 'physics']); expect(payment?.offerId).toBe('o');
+  });
+  it.each(['NONE', 'BUNDLE'])('%s: mavjud yakuniy summa oqimiga o‘tadi', async (kind) => {
+    const selected = { ...product, kind: kind === 'BUNDLE' ? 'BUNDLE' : 'CATEGORY', subjectRule: 'NONE' };
+    m.products.mockResolvedValue([selected]); m.freshProduct.mockResolvedValue(selected);
+    await command(`/start ${checkoutStartParameter('p', 'o')}`);
+    expect(payment).toMatchObject({ offerId: 'o', subjectIds: [], amount: 10000 });
+  });
+  it.each(['unknown-product', 'unknown-offer', 'inactive', 'expired', 'off-sale', 'malformed'])('%s: mahsulot tanloviga qaytadi', async (state) => {
+    let parameter = checkoutStartParameter(state === 'unknown-product' ? 'other' : 'p', state === 'unknown-offer' ? 'other' : 'o');
+    if (state === 'inactive') m.products.mockResolvedValue([{ ...product, offers: [{ ...offer, isActive: false }] }]);
+    if (state === 'expired') m.products.mockResolvedValue([{ ...product, offers: [{ ...offer, untilDate: now }] }]);
+    if (state === 'off-sale') m.products.mockResolvedValue([]);
+    if (state === 'malformed') parameter = 'buy_p_bad_value';
+    await command(`/start ${parameter}`);
+    expect(m.create).not.toHaveBeenCalled(); expect(m.transaction).not.toHaveBeenCalled();
+    expect(messages().at(-1)?.text).not.toContain('INVALID');
+  });
+  it('variant keyin nofaol bo‘lsa fan callback’i ham mahsulot tanloviga qaytadi', async () => {
+    await command(`/start ${checkoutStartParameter('p', 'o')}`);
+    const data = messages().at(-1)!.reply_markup!.inline_keyboard[0][0].callback_data!;
+    m.products.mockResolvedValue([{ ...product, offers: [] }]);
+    await callback(data); expect(m.create).not.toHaveBeenCalled();
+    expect(messages().at(-1)?.reply_markup?.inline_keyboard).toEqual([]);
   });
 });
 

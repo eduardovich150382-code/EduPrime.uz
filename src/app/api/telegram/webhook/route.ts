@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { recordPurchase } from '@/lib/purchases';
 import { logger } from '@/lib/logger';
-import { handleCheckoutCallback, handleCheckoutReceipt, showCheckoutProducts } from '@/lib/telegram-category-checkout';
+import { handleCheckoutCallback, handleCheckoutReceipt, showCheckoutProducts, startSelectedCheckout } from '@/lib/telegram-category-checkout';
 import { processLegacySubscription } from '@/lib/subscription-payments';
 import uzMessages from '@/messages/uz.json';
 
@@ -144,7 +144,7 @@ async function sendSubscriptionPrompt(chatId: number) {
 }
 
 // Handle /start command
-async function handleStart(chatId: number, userId: number, username: string, firstName: string, param: string) {
+async function handleStart(chatId: number, userId: number, username: string, firstName: string, param: string, languageCode?: string) {
   // Handle single-test purchase: buy_test_<testId> — must be checked before the
   // generic 'buy_' prefix below, which would otherwise misparse "test" as a
   // plan name and show the wrong (Ustoz/Premium) price instead of this test's.
@@ -259,8 +259,12 @@ async function handleStart(chatId: number, userId: number, username: string, fir
   }
 
   // Eski pricing havolalari ham yangi mahsulot tanloviga olib keladi.
+  if (param.startsWith('buy_p_')) {
+    await startSelectedCheckout(chatId, { id: userId, username, first_name: firstName, language_code: languageCode }, param, checkoutTransport());
+    return;
+  }
   if (param === 'buy' || param === 'obuna' || param.startsWith('buy_')) {
-    await showCheckoutProducts(chatId, checkoutTransport());
+    await showCheckoutProducts(chatId, checkoutTransport(), languageCode);
     return;
   }
 
@@ -928,7 +932,7 @@ export async function POST(request: NextRequest) {
 
       if (text.startsWith('/start')) {
         const param = text.replace('/start', '').trim();
-        await handleStart(chatId, userId, username, firstName, param);
+        await handleStart(chatId, userId, username, firstName, param, msg.from.language_code);
       } else if (text === '/login') {
         await handleLogin(chatId, userId, username, firstName);
       } else if (text === '/premium' || text === '/ustoz' || text === '/obuna') {

@@ -42,3 +42,13 @@ export function checkoutCallback(step: 'p' | 's' | 'o', productId: string, subje
   if (Buffer.byteLength(value, 'utf8') > 64) throw new Error('INVALID_SELECTION');
   return value;
 }
+
+// Id tarkibi va uzunligidan qat'i nazar start parametri 27 ta ruxsatli belgi.
+export function checkoutStartParameter(productId: string, offerId: string): string {
+  return `buy_p_${checkoutKey(productId)}_${checkoutKey(offerId)}`;
+}
+
+export function parseCheckoutStart(value: string): { productKey: string; offerKey: string } | null {
+  const match = /^buy_p_([a-f0-9]{10})_([a-f0-9]{10})$/.exec(value);
+  return match ? { productKey: match[1], offerKey: match[2] } : null;
+}

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Settings, Save, CreditCard, MessageCircle, DollarSign,
-  Megaphone, Loader2, Check, AlertCircle, Crown, GraduationCap,
+  Megaphone, Loader2, Check, AlertCircle,
   Users, Bell, Bot, Award, CalendarDays, Clock,
 } from 'lucide-react';
 import BackButton from '@/components/ui/BackButton';
@@ -13,16 +13,6 @@ interface SettingsForm {
   // To'lov ma'lumotlari
   payment_card_number: string;
   payment_card_owner: string;
-  // Premium narxlari
-  premium_price_1_month: string;
-  premium_price_3_months: string;
-  premium_price_6_months: string;
-  premium_price_1_year: string;
-  // Ustoz tarifi narxlari
-  teacher_price_1_month: string;
-  teacher_price_3_months: string;
-  teacher_price_6_months: string;
-  teacher_price_1_year: string;
   // Boshqa sozlamalar
   telegram_support_username: string;
   site_announcement: string;
@@ -55,28 +45,6 @@ const settingsGroups: SettingsGroup[] = [
     fields: [
       { key: 'payment_card_number', label: 'Karta raqami', placeholder: '8600 1234 5678 9012', icon: CreditCard },
       { key: 'payment_card_owner', label: 'Karta egasi', placeholder: 'ALISHER KARIMOV', icon: CreditCard },
-    ],
-  },
-  {
-    title: 'Premium tarif narxlari',
-    icon: Crown,
-    description: "Premium obuna narxlari (so'mda). O'zgarishlar tarif sahifasida darhol ko'rinadi",
-    fields: [
-      { key: 'premium_price_1_month', label: '1 oylik', placeholder: '29000', icon: DollarSign, type: 'number', suffix: "so'm" },
-      { key: 'premium_price_3_months', label: '3 oylik', placeholder: '79000', icon: DollarSign, type: 'number', suffix: "so'm" },
-      { key: 'premium_price_6_months', label: '6 oylik', placeholder: '150000', icon: DollarSign, type: 'number', suffix: "so'm" },
-      { key: 'premium_price_1_year', label: '1 yillik', placeholder: '270000', icon: DollarSign, type: 'number', suffix: "so'm" },
-    ],
-  },
-  {
-    title: 'Ustoz tarifi narxlari',
-    icon: GraduationCap,
-    description: "O'qituvchilar uchun tarif narxlari (so'mda). O'zgarishlar tarif sahifasida darhol ko'rinadi",
-    fields: [
-      { key: 'teacher_price_1_month', label: '1 oylik', placeholder: '49000', icon: DollarSign, type: 'number', suffix: "so'm" },
-      { key: 'teacher_price_3_months', label: '3 oylik', placeholder: '129000', icon: DollarSign, type: 'number', suffix: "so'm" },
-      { key: 'teacher_price_6_months', label: '6 oylik', placeholder: '240000', icon: DollarSign, type: 'number', suffix: "so'm" },
-      { key: 'teacher_price_1_year', label: '1 yillik', placeholder: '430000', icon: DollarSign, type: 'number', suffix: "so'm" },
     ],
   },
   {
@@ -133,14 +101,6 @@ export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<SettingsForm>({
     payment_card_number: '',
     payment_card_owner: '',
-    premium_price_1_month: '29000',
-    premium_price_3_months: '79000',
-    premium_price_6_months: '150000',
-    premium_price_1_year: '270000',
-    teacher_price_1_month: '49000',
-    teacher_price_3_months: '129000',
-    teacher_price_6_months: '240000',
-    teacher_price_1_year: '430000',
     telegram_support_username: '',
     site_announcement: '',
     referral_friends_required: '3',

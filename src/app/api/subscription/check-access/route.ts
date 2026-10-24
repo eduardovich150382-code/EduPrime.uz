@@ -61,11 +61,13 @@ export async function GET(request: NextRequest) {
     }
 
     // No access
+    const category = await db.testCategory.findUnique({ where: { id: test.categoryId }, select: { type: true } });
     return NextResponse.json({
       hasAccess: false,
       accessType: test.accessType,
       price: test.price,
       testTitle: test.titleUz,
+      categoryType: category?.type ?? null,
     });
   } catch (error) {
     logger.error('GET /api/subscription/check-access error:', { error });

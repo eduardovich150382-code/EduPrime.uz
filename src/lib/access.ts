@@ -1,4 +1,5 @@
 import { db } from './db';
+import { loadSubscriptionDetails, type DetailedEntitlements } from './subscription-details';
 import { canAccessByEntitlements, isFreeTest, type TestAccessContext, type TestAccessInfo, type UserEntitlements } from './entitlements';
 
 export { canAccessByEntitlements, hasAnyActiveSubscription } from './entitlements';
@@ -6,7 +7,10 @@ export type { TestAccessContext, TestAccessInfo, UserEntitlements } from './enti
 
 // Obunalar va ruxsatlar foydalanuvchi uchun bir martadan olinadi. Mahsulot
 // sotuvdan olinsa ham oldin sotib olingan obuna huquqi saqlanadi.
-export async function loadUserEntitlements(userId: string, now = new Date()): Promise<UserEntitlements> {
+export function loadUserEntitlements(userId: string, now: Date, mode: 'pricing'): Promise<DetailedEntitlements>;
+export function loadUserEntitlements(userId: string, now?: Date): Promise<UserEntitlements>;
+export async function loadUserEntitlements(userId: string, now = new Date(), mode?: 'pricing'): Promise<UserEntitlements> {
+  if (mode === 'pricing') return loadSubscriptionDetails(userId, now);
   const [subscriptions, permissions] = await Promise.all([
     db.subscription.findMany({
       where: { userId, isActive: true, endDate: { gte: now } },

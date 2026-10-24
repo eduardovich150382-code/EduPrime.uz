@@ -117,6 +117,8 @@ describe('admin atomik tasdiqlash', () => {
     Object.assign(payment, { productId: null, offerId: null, subjectIds: [], plan: 'PREMIUM', duration: 'THREE_MONTHS' });
     expect((await confirm()).status).toBe(200);
     expect(subscriptions[0]).toMatchObject({ plan: 'PREMIUM', duration: 'THREE_MONTHS', startDate: now, endDate: new Date('2027-01-24T07:00:00Z') });
+    expect(payment.amount).toBe(7500);
+    expect(m.setting).not.toHaveBeenCalled();
   });
   it('eski webhook holati bir marta iste’mol qilinadi, admin tasdiqlagan Payment qayta yaratilmaydi', async () => {
     Object.assign(payment, { productId: null, offerId: null, subjectIds: [], plan: 'TEACHER_PLAN', duration: 'ONE_MONTH' });
