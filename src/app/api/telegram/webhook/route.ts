@@ -144,7 +144,7 @@ async function sendSubscriptionPrompt(chatId: number) {
 }
 
 // Handle /start command
-async function handleStart(chatId: number, userId: number, username: string, firstName: string, param: string, languageCode?: string) {
+async function handleStart(chatId: number, userId: number, username: string, firstName: string, param: string) {
   // Handle single-test purchase: buy_test_<testId> — must be checked before the
   // generic 'buy_' prefix below, which would otherwise misparse "test" as a
   // plan name and show the wrong (Ustoz/Premium) price instead of this test's.
@@ -260,11 +260,11 @@ async function handleStart(chatId: number, userId: number, username: string, fir
 
   // Eski pricing havolalari ham yangi mahsulot tanloviga olib keladi.
   if (param.startsWith('buy_p_')) {
-    await startSelectedCheckout(chatId, { id: userId, username, first_name: firstName, language_code: languageCode }, param, checkoutTransport());
+    await startSelectedCheckout(chatId, { id: userId, username, first_name: firstName }, param, checkoutTransport());
     return;
   }
   if (param === 'buy' || param === 'obuna' || param.startsWith('buy_')) {
-    await showCheckoutProducts(chatId, checkoutTransport(), languageCode);
+    await showCheckoutProducts(chatId, checkoutTransport());
     return;
   }
 
@@ -932,11 +932,11 @@ export async function POST(request: NextRequest) {
 
       if (text.startsWith('/start')) {
         const param = text.replace('/start', '').trim();
-        await handleStart(chatId, userId, username, firstName, param, msg.from.language_code);
+        await handleStart(chatId, userId, username, firstName, param);
       } else if (text === '/login') {
         await handleLogin(chatId, userId, username, firstName);
       } else if (text === '/premium' || text === '/ustoz' || text === '/obuna') {
-        await showCheckoutProducts(chatId, checkoutTransport(), msg.from.language_code);
+        await showCheckoutProducts(chatId, checkoutTransport());
       } else if (text === '/help') {
         await handleHelp(chatId, userId);
       } else if (text === '/stats') {

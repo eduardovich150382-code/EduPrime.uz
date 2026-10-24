@@ -22,6 +22,11 @@ interface ReceiptMessage { chat: { id: number }; from: CheckoutUser; message_id:
 
 const dictionaries = { uz: uz.checkout, ru: ru.checkout, en: en.checkout };
 const language = (value?: string): Lang => value === 'ru' || value === 'en' ? value : 'uz';
+async function checkoutLanguage(telegramId: number): Promise<Lang> {
+  // Telegram ilovasi tili foydalanuvchining saytdagi til tanlovini almashtirmasin.
+  const user = await db.user.findUnique({ where: { telegramId: String(telegramId) }, select: { lang: true } });
+  return language(user?.lang);
+}
 const escape = (value: string) => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 function name(row: { nameUz: string; nameRu: string; nameEn: string }, lang: Lang) { return row[lang === 'uz' ? 'nameUz' : lang === 'ru' ? 'nameRu' : 'nameEn']; }
 function label(row: { labelUz: string; labelRu: string; labelEn: string }, lang: Lang) { return row[lang === 'uz' ? 'labelUz' : lang === 'ru' ? 'labelRu' : 'labelEn']; }
@@ -30,8 +35,8 @@ async function catalog() {
   return db.product.findMany({ where: { isOnSale: true }, include: { offers: { where: { isActive: true }, orderBy: [{ order: 'asc' }, { id: 'asc' }] } }, orderBy: [{ order: 'asc' }, { id: 'asc' }] });
 }
 
-export async function showCheckoutProducts(chatId: number, transport: Transport, langValue?: string) {
-  const lang = language(langValue), t = dictionaries[lang];
+export async function showCheckoutProducts(chatId: number, transport: Transport) {
+  const lang = await checkoutLanguage(chatId), t = dictionaries[lang];
   const products = await catalog();
   const rows = products.filter((p) => p.offers.some((o) => o.untilDate === null || o.untilDate > new Date()));
   await transport.send(chatId, rows.length ? t.chooseProduct : t.noProducts, { reply_markup: { inline_keyboard: rows.map((p) => [{ text: name(p, lang), callback_data: checkoutCallback('p', p.id) }]) } });
@@ -39,7 +44,7 @@ export async function showCheckoutProducts(chatId: number, transport: Transport,
 
 export async function startSelectedCheckout(chatId: number, from: CheckoutUser, parameter: string, transport: Transport) {
   const keys = parseCheckoutStart(parameter);
-  if (!keys) { await showCheckoutProducts(chatId, transport, from.language_code); return; }
+  if (!keys) { await showCheckoutProducts(chatId, transport); return; }
   await handleCheckoutCallback(chatId, from, `co:p:${keys.productKey}::${keys.offerKey}`, transport);
 }
 
@@ -56,7 +61,7 @@ async function details(paymentId: string, lang: Lang) {
 
 export async function handleCheckoutCallback(chatId: number, from: CheckoutUser, data: string, transport: Transport): Promise<boolean> {
   if (!data.startsWith('co:') && !data.startsWith('cp:')) return false;
-  const lang = language(from.language_code), t = dictionaries[lang];
+  const lang = await checkoutLanguage(from.id), t = dictionaries[lang];
   try {
     if (data.startsWith('cp:')) {
       if (!transport.adminIds.includes(String(from.id))) { await transport.send(chatId, t.adminOnly); return true; }
@@ -72,7 +77,7 @@ export async function handleCheckoutCallback(chatId: number, from: CheckoutUser,
       return true;
     }
     if (chatId !== from.id) throw new Error('INVALID_SELECTION');
-    if (data === 'co:list') { await showCheckoutProducts(chatId, transport, lang); return true; }
+    if (data === 'co:list') { await showCheckoutProducts(chatId, transport); return true; }
     const [, step, productKey, chosenKeys = '', offerKey] = data.split(':');
     if (!['p', 's', 'o'].includes(step)) throw new Error('INVALID_SELECTION');
     const product = resolveCheckoutKey(await catalog(), productKey);
@@ -124,7 +129,7 @@ export async function handleCheckoutCallback(chatId: number, from: CheckoutUser,
     logger.error('Category checkout error', { error });
     // Saytdan kelgan variant sotuvdan olingan bo'lsa tanlovni qayta ochamiz.
     if (data.startsWith('co:') && data.split(':')[4]) {
-      await showCheckoutProducts(chatId, transport, lang);
+      await showCheckoutProducts(chatId, transport);
       return true;
     }
     await transport.send(chatId, error instanceof Error && error.message === 'EXPIRED_OFFER' ? t.expired : t.invalid);
