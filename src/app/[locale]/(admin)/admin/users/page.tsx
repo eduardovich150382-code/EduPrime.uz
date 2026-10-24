@@ -7,6 +7,7 @@ import {
   Mail, MessageCircle, Loader2, RefreshCw, Eye, Ban, X, BookOpen, Clock,
 } from 'lucide-react';
 import BackButton from '@/components/ui/BackButton';
+import SubscriptionSummary from '@/components/ui/SubscriptionSummary';
 
 interface UserData {
   id: string;
@@ -332,13 +333,7 @@ export default function AdminUsersPage() {
                   {/* Subscriptions */}
                   {profileData.subscriptions.length > 0 && (
                     <div>
-                      <h4 className="text-sm font-semibold text-text-primary mb-2">Aktiv obunalar</h4>
-                      {profileData.subscriptions.map((s: any, i: number) => (
-                        <div key={i} className="flex items-center justify-between p-2.5 rounded-lg bg-purple-50 text-xs mb-1">
-                          <span className="font-medium text-purple-700">{s.plan === 'PREMIUM' ? 'Premium' : 'Ustoz'}</span>
-                          <span className="text-text-secondary">gacha: {new Date(s.endDate).toLocaleDateString('uz-UZ')}</span>
-                        </div>
-                      ))}
+                      <SubscriptionSummary subscriptions={profileData.subscriptions} showPeriod />
                     </div>
                   )}
                   {/* Test history */}

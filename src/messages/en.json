@@ -1,4 +1,22 @@
 {
+  "subscriptionUi": {
+    "active": "Active subscriptions",
+    "until": "until {date}",
+    "more": "{count} more",
+    "subscribe": "Subscribe",
+    "offer": "Choose a subscription for your goal and subject",
+    "renew": "Renew",
+    "close": "Close",
+    "expires": "Your {subscription} subscription expires in {days, plural, one {# day} other {# days}}. End date: {date}.",
+    "expiresToday": "Your {subscription} subscription expires today. End date: {date}.",
+    "expired": "Your {subscription} subscription has expired. End date: {date}.",
+    "alertTitle": "Subscription expiry reminder",
+    "cronRenew": "Renew: {url}",
+    "productStats": "Active subscriptions by product",
+    "legacyPremium": "Premium",
+    "legacyTeacher": "Teacher",
+    "subscription": "Subscription"
+  },
   "common": {
     "siteName": "EduPrime",
     "login": "Login",

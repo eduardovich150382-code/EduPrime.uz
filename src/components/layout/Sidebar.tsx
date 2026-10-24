@@ -26,6 +26,8 @@ import { signOut } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import { usePathname as useFullPathname } from 'next/navigation';
 import { loginHref } from '@/lib/safe-return-path';
+import SubscriptionSummary from '@/components/ui/SubscriptionSummary';
+import { useSubscriptionStatus } from '@/components/ui/useSubscriptionStatus';
 
 interface SidebarProps {
   // `null` — kirmagan foydalanuvchi ((public) guruhidagi sahifalar).
@@ -38,37 +40,14 @@ export default function Sidebar({ role, mobileOpen, setMobileOpen }: SidebarProp
   const t = useTranslations('nav');
   const tCommon = useTranslations('common');
   const tAdmin = useTranslations('adminProducts');
+  const tSubscription = useTranslations('subscriptionUi');
   const pathname = usePathname();
   // callbackUrl uchun locale prefiksli yo'l (Header'dagi bilan bir xil sabab).
   const fullPathname = useFullPathname();
   const isGuest = role === null;
   const [collapsed, setCollapsed] = useState(false);
-  const [userPlan, setUserPlan] = useState<string>('Bepul');
-  const [planColor, setPlanColor] = useState<string>('text-text-secondary bg-gray-100');
-
-  // Fetch real subscription status
-  useEffect(() => {
-    // Mehmonda tarif yo'q — so'rov baribir 401 qaytarardi.
-    if (isGuest) return;
-    fetch('/api/subscription/status')
-      .then(r => r.json())
-      .then(data => {
-        if (data.plan === 'PREMIUM_TEACHER') {
-          setUserPlan('Premium+Ustoz');
-          setPlanColor('text-indigo-600 bg-indigo-50');
-        } else if (data.plan === 'PREMIUM') {
-          setUserPlan('Premium');
-          setPlanColor('text-purple-600 bg-purple-50');
-        } else if (data.plan === 'TEACHER_PLAN') {
-          setUserPlan('Ustoz');
-          setPlanColor('text-blue-600 bg-blue-50');
-        } else {
-          setUserPlan('Bepul');
-          setPlanColor('text-text-secondary bg-gray-100');
-        }
-      })
-      .catch(() => {});
-  }, [isGuest]);
+  const status = useSubscriptionStatus(!isGuest);
+  const showOffer = (isGuest || !!status && !status.hasAnyScope && !status.subscriptions.length) && role !== 'ADMIN';
 
   // Close mobile sidebar on route change
   useEffect(() => {
@@ -122,14 +101,9 @@ export default function Sidebar({ role, mobileOpen, setMobileOpen }: SidebarProp
   const sidebarContent = (
     <>
       {/* Tarif ko'rsatish */}
-      {!collapsed && !isGuest && (
-        <div className="p-3 border-b border-border">
-          <div className="flex items-center gap-2 px-3 py-2">
-            <span className="text-xs text-text-secondary">Tarifingiz:</span>
-            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${planColor}`}>
-              {userPlan}
-            </span>
-          </div>
+      {!collapsed && !!status?.subscriptions.length && (
+        <div className="max-h-[35vh] overflow-y-auto p-3 border-b border-border">
+          <SubscriptionSummary subscriptions={status.subscriptions} limit={3} />
         </div>
       )}
       {/* Navigation */}
@@ -159,10 +133,11 @@ export default function Sidebar({ role, mobileOpen, setMobileOpen }: SidebarProp
         })}
       </nav>
 
-      {/* Premium CTA (only in mobile sidebar for free users) */}
-      <div className="md:hidden p-3 border-t border-border">
+      {/* Obunasiz foydalanuvchi uchun taklif. */}
+      {showOffer && <div className="p-3 border-t border-border">
         <Link
           href="/pricing"
+          aria-label={tSubscription('subscribe')}
           className="flex items-center gap-3 px-3 py-3 rounded-xl bg-gradient-to-r from-primary-50 to-purple-50 border border-primary-200 transition-all hover:shadow-sm"
         >
           <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary-500 to-purple-500 flex items-center justify-center flex-shrink-0">
@@ -170,12 +145,12 @@ export default function Sidebar({ role, mobileOpen, setMobileOpen }: SidebarProp
           </div>
           {!collapsed && (
             <div>
-              <p className="text-sm font-semibold text-primary-700">Premium oling</p>
-              <p className="text-xs text-text-secondary">Barcha testlar cheksiz</p>
+              <p className="text-sm font-semibold text-primary-700">{tSubscription('subscribe')}</p>
+              <p className="text-xs text-text-secondary">{tSubscription('offer')}</p>
             </div>
           )}
         </Link>
-      </div>
+      </div>}
 
       {/* Language switcher (mobile only) */}
       <div className="md:hidden p-3 border-t border-border">

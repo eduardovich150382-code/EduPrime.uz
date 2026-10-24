@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/api-auth';
 import { logger } from '@/lib/logger';
+import { loadSubscriptionDetails } from '@/lib/subscription-details';
+import { subscriptionView } from '@/lib/subscription-display';
 
 // GET /api/admin/users/[id] — foydalanuvchi batafsil ma'lumotlari + test tarixi
 export async function GET(
@@ -42,10 +44,8 @@ export async function GET(
     }
 
     // Get active subscriptions
-    const subscriptions = await db.subscription.findMany({
-      where: { userId: id, isActive: true, endDate: { gte: new Date() } },
-      select: { plan: true, endDate: true, startDate: true },
-    });
+    const details = await loadSubscriptionDetails(id, new Date());
+    const subscriptions = details.subscriptions.map(subscriptionView);
 
     // Get recent test results (last 20)
     const testResults = await db.testResult.findMany({

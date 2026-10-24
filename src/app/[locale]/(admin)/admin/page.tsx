@@ -3,6 +3,9 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
+import { useLocale, useTranslations } from 'next-intl';
+import { localizedName } from '@/lib/pricing';
+import type { LocalizedName } from '@/lib/subscription-details';
 import {
   Users, BookOpen, CreditCard, TrendingUp, Shield,
   Clock, Crown, UserPlus, CheckCircle, XCircle,
@@ -10,6 +13,7 @@ import {
 } from 'lucide-react';
 
 interface DashboardData {
+  subscriptionProducts: { id: string; name: LocalizedName; count: number }[];
   stats: {
     todayNewUsers: number;
     todayTestsCompleted: number;
@@ -27,6 +31,7 @@ interface DashboardData {
     telegramUsername: string | null;
     userImage: string | null;
     plan: string;
+    name: LocalizedName;
     amount: number;
     status: string;
     createdAt: string;
@@ -40,6 +45,8 @@ interface DashboardData {
 }
 
 export default function AdminDashboard() {
+  const locale = useLocale();
+  const tSubscription = useTranslations('subscriptionUi');
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -122,6 +129,15 @@ export default function AdminDashboard() {
           <p className="text-xs text-text-secondary">Jami test</p>
         </div>
       </motion.div>
+
+      <section className="card min-w-0 space-y-3 p-4">
+        <h2 className="text-sm font-semibold">{tSubscription('productStats')}</h2>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {data.subscriptionProducts.map((product) => <div key={product.id} className="flex min-w-0 items-start justify-between gap-3 rounded-lg bg-background p-3 text-sm">
+            <span className="min-w-0 break-words [overflow-wrap:anywhere]">{localizedName(product.name, locale)}</span><strong>{product.count}</strong>
+          </div>)}
+        </div>
+      </section>
 
       {/* S20a — sifat halqasi ko'rsatkichi: yozma/AI (mualliflikka
           ko'tarilgan) yechimi bor savollar ulushi. Bu raqam pastga
@@ -234,7 +250,7 @@ export default function AdminDashboard() {
                     {p.userName || p.telegramUsername || 'Nomsiz'}
                   </p>
                   <p className="text-xs text-text-secondary">
-                    {p.plan === 'PREMIUM' ? 'Premium' : 'Ustoz'} — {p.amount.toLocaleString()} so&apos;m
+                    {localizedName(p.name, locale)} — {p.amount.toLocaleString()} so&apos;m
                   </p>
                 </div>
                 <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
