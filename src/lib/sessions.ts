@@ -10,6 +10,9 @@ import {
   type RelaxationStep,
 } from './item-picker';
 import { consumeBuiltTest } from './quota';
+import { loadFeatureEntitlements } from './access';
+import { scopeSubjectSelect, sessionFeatureScope } from './feature-context';
+import type { ScopeSubject } from './entitlements';
 import { getRegeneratedHints, toLang } from './paramgen/regenerate';
 
 /**
@@ -36,7 +39,7 @@ export interface SessionQuestion extends GradableQuestion {
   explanation: string | null;
   explanationImages: string[];
   videoUrl: string | null;
-  subject: { nameUz: string; nameRu: string; nameEn: string };
+  subject: ScopeSubject & { nameUz: string; nameRu: string; nameEn: string };
   // S20a — Item o'zi `why`/`hints` saqlamaydi (Question'dan farqli) —
   // natija/yechish sahifalari shu ikkitasidan `paramgen/regenerate.ts`
   // orqali qayta hosil qiladi (qarang `toPresentedQuestions` va
@@ -56,7 +59,7 @@ export async function loadSessionItems(
       id: true, text: true, images: true, options: true, correctAnswer: true, type: true,
       explanation: true, explanationImages: true, videoUrl: true,
       templateId: true, variantSig: true, lang: true,
-      subject: { select: { nameUz: true, nameRu: true, nameEn: true } },
+      subject: { select: { ...scopeSubjectSelect, nameUz: true, nameRu: true, nameEn: true } },
     },
   });
   const byId = new Map(items.map((it) => [it.id, it]));
@@ -245,8 +248,14 @@ export async function createSessionFromSpec(params: CreateSessionParams): Promis
   // chiqib 404 qaytadigan urinish kvotani sarflamasligi uchun shu tekshiruv
   // havza tasdiqlangandan KEYIN, lekin sessiya haqiqatan yaratilishidan
   // OLDIN turibdi.
+  const items = await loadSessionItems(itemIds);
+  let builtQuotaCharged = false;
   if (countsAgainstQuota) {
-    const quota = await consumeBuiltTest(userId);
+    const entitlements = await loadFeatureEntitlements(userId);
+    const quota = await consumeBuiltTest(userId, {
+      entitlements, scopes: items.map((it) => sessionFeatureScope(spec, it.subject)),
+    });
+    builtQuotaCharged = quota.allowed && quota.limit !== null;
     if (!quota.allowed) {
       return {
         ok: false,
@@ -266,7 +275,7 @@ export async function createSessionFromSpec(params: CreateSessionParams): Promis
     data: {
       userId,
       title,
-      spec: spec as Prisma.InputJsonValue,
+      spec: { ...spec, builtQuotaCharged } as Prisma.InputJsonValue,
       itemIds,
       seed,
       mode,
@@ -276,7 +285,6 @@ export async function createSessionFromSpec(params: CreateSessionParams): Promis
     },
   });
 
-  const items = await loadSessionItems(testSession.itemIds);
   const questions = toPresentedQuestions(items, testSession.seed, sessionPreserveOrder(spec));
 
   return {
@@ -432,8 +440,15 @@ export async function createSessionFromSections(
   }
 
   // Kvota — sessiya YARATILGANDA hisoblanadi (createSessionFromSpec bilan bir xil qoida).
+  const spec = { sections, itemPoints };
+  const items = await loadSessionItems(itemIds, itemPoints);
+  let builtQuotaCharged = false;
   if (countsAgainstQuota) {
-    const quota = await consumeBuiltTest(userId);
+    const entitlements = await loadFeatureEntitlements(userId);
+    const quota = await consumeBuiltTest(userId, {
+      entitlements, scopes: items.map((it) => sessionFeatureScope(spec, it.subject)),
+    });
+    builtQuotaCharged = quota.allowed && quota.limit !== null;
     if (!quota.allowed) {
       return {
         ok: false,
@@ -448,13 +463,12 @@ export async function createSessionFromSections(
     }
   }
 
-  const spec = { sections, itemPoints };
   const now = new Date();
   const testSession = await db.testSession.create({
     data: {
       userId,
       title,
-      spec: spec as unknown as Prisma.InputJsonValue,
+      spec: { ...spec, builtQuotaCharged } as unknown as Prisma.InputJsonValue,
       itemIds,
       seed,
       mode,
@@ -464,7 +478,6 @@ export async function createSessionFromSections(
     },
   });
 
-  const items = await loadSessionItems(testSession.itemIds, itemPoints);
   const questions = toPresentedQuestions(items, testSession.seed, sessionPreserveOrder(spec));
 
   return {

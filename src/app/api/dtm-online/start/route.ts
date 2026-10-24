@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAuth } from '@/lib/api-auth';
-import { hasActiveSubscription } from '@/lib/access';
-import { generateDtmOnlineExam, getDtmSpecialtySubjects } from '@/lib/dtm-online';
+import { loadFeatureEntitlements } from '@/lib/access';
+import { coversAllFeatureScopes } from '@/lib/entitlements';
+import { testFeatureScope } from '@/lib/feature-context';
+import { generateDtmOnlineExam, getDtmMandatorySubjects, getDtmSpecialtySubjects } from '@/lib/dtm-online';
 import { daysSince } from '@/lib/date';
 import { logger } from '@/lib/logger';
 
@@ -37,8 +39,12 @@ export async function POST(request: NextRequest) {
 
     let isFreeTier = false;
     if (user.role !== 'ADMIN') {
-      const { premium, teacher } = await hasActiveSubscription(user.id);
-      if (!premium && !teacher) {
+      const [entitlements, mandatory] = await Promise.all([
+        loadFeatureEntitlements(user.id, user.role),
+        getDtmMandatorySubjects(validSubjects[0].categoryId),
+      ]);
+      const examSubjects = [...validSubjects.filter((s) => s.id === specialty1SubjectId || s.id === specialty2SubjectId), ...mandatory];
+      if (!coversAllFeatureScopes({ entitlements, scopes: examSubjects.map((s) => testFeatureScope({ categoryId: s.categoryId, subjectId: s.id })) })) {
         isFreeTier = true;
         const dbUser = await db.user.findUnique({ where: { id: user.id }, select: { dtmOnlineFreeUsedAt: true } });
         if (dbUser?.dtmOnlineFreeUsedAt && daysSince(dbUser.dtmOnlineFreeUsedAt) < FREE_TIER_COOLDOWN_DAYS) {

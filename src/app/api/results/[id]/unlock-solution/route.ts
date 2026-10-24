@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { consumeSolution, resolveUnlockKey } from '@/lib/quota';
+import { loadFeatureEntitlements } from '@/lib/access';
+import { scopeSubjectSelect, sessionFeatureScope, testFeatureScope } from '@/lib/feature-context';
+import type { FeatureScope } from '@/lib/entitlements';
 import { resolveSolutionVisibility } from '@/lib/solution-visibility';
 import { logger } from '@/lib/logger';
 
@@ -56,26 +59,33 @@ export async function POST(
     // natija orqali BOSHQA joydagi pullik yechimni ochtirib olishi mumkin
     // edi (ai-explain'dagi bir xil himoya naqshi).
     let belongsToResult = false;
+    let scope: FeatureScope = { kind: 'discipline', disciplineKey: null };
     let raw: { explanation: string | null; explanationImages: string[]; videoUrl: string | null } | null = null;
     const isTestNetwork = !!result.testId;
     if (isTestNetwork) {
       const question = await db.question.findUnique({
         where: { id: questionId },
-        select: { testId: true, explanation: true, explanationImages: true, videoUrl: true },
+        select: { testId: true, explanation: true, explanationImages: true, videoUrl: true,
+          test: { select: { categoryId: true, subjectId: true } } },
       });
       belongsToResult = !!question && question.testId === result.testId;
-      if (question) raw = question;
+      if (question) {
+        raw = question;
+        if (question.test) scope = testFeatureScope(question.test);
+      }
     } else if (result.sessionId) {
       const testSession = await db.testSession.findUnique({
         where: { id: result.sessionId },
-        select: { itemIds: true },
+        select: { itemIds: true, spec: true },
       });
       belongsToResult = !!testSession && testSession.itemIds.includes(questionId);
       if (belongsToResult) {
-        raw = await db.item.findUnique({
+        const item = await db.item.findUnique({
           where: { id: questionId },
-          select: { explanation: true, explanationImages: true, videoUrl: true },
+          select: { explanation: true, explanationImages: true, videoUrl: true, subject: { select: scopeSubjectSelect } },
         });
+        raw = item;
+        if (item) scope = sessionFeatureScope(testSession?.spec, item.subject);
       }
     }
 
@@ -115,7 +125,8 @@ export async function POST(
       );
     }
 
-    const quota = await consumeSolution(userId, unlockKey);
+    const entitlements = await loadFeatureEntitlements(userId, role);
+    const quota = await consumeSolution(userId, unlockKey, { entitlements, scopes: [scope] });
 
     if (!quota.allowed) {
       return NextResponse.json(

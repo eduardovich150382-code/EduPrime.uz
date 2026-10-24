@@ -1,6 +1,8 @@
 import type { ImportStatus, Prisma } from '@prisma/client';
 import { db } from './db';
-import { hasActiveSubscription } from './access';
+import { loadFeatureEntitlements } from './access';
+import { coversAllFeatureScopes, hasAnyScope, hasGlobalFeatureScope, type FeatureQuotaContext } from './entitlements';
+import { wasBuiltQuotaCharged } from './feature-context';
 import { tashkentDateKey, tashkentDayRangeUtc } from './date';
 import { FREE_DAILY_IMPORTS } from './import/constants';
 import type { UserRole } from '@/types';
@@ -29,17 +31,10 @@ function dailyUsageDate(dateKey: string): Date {
   return new Date(`${dateKey}T00:00:00.000Z`);
 }
 
-/** Faol PREMIUM/TEACHER_PLAN obunachi — kvota cheklovi yo'q. */
-async function hasUnlimitedSubscription(userId: string): Promise<boolean> {
-  const { premium, teacher } = await hasActiveSubscription(userId);
-  return premium || teacher;
-}
-
-/** ADMIN yoki faol PREMIUM/TEACHER_PLAN obunachi — kvota cheklovi yo'q. */
-async function isUnlimited(userId: string): Promise<boolean> {
-  const user = await db.user.findUnique({ where: { id: userId }, select: { role: true } });
-  if (user?.role === 'ADMIN') return true;
-  return hasUnlimitedSubscription(userId);
+// Kontekst yo'qolishi yangi obunani tasodifan barcha fanlarga yoymasin.
+// Faqat import ataylab hasAnyScope qoidasidan foydalanadi.
+async function isUnlimited(userId: string, context?: FeatureQuotaContext): Promise<boolean> {
+  return context ? coversAllFeatureScopes(context) : hasGlobalFeatureScope(await loadFeatureEntitlements(userId));
 }
 
 type QuotaField = 'builtTests' | 'dtmOnline' | 'solutionsUnlocked' | 'tutorMessages' | 'imports';
@@ -82,8 +77,8 @@ export interface ConsumeQuotaResult {
  * testlari bu funksiyani UMUMAN chaqirmaydi — shuning uchun ular kvotaga
  * kirmaydi (chaqiruvchi tomonidan hal qilinadi, bu yerda maxsus holat yo'q).
  */
-export async function consumeBuiltTest(userId: string): Promise<ConsumeQuotaResult> {
-  if (await isUnlimited(userId)) {
+export async function consumeBuiltTest(userId: string, context?: FeatureQuotaContext): Promise<ConsumeQuotaResult> {
+  if (await isUnlimited(userId, context)) {
     return { allowed: true, usedToday: 0, limit: null };
   }
   const dateKey = tashkentDateKey();
@@ -123,9 +118,10 @@ const REFUND_WINDOW_MS = 2 * 60 * 1000;
 export async function refundBuiltTest(sessionId: string): Promise<void> {
   const testSession = await db.testSession.findUnique({
     where: { id: sessionId },
-    select: { userId: true, startedAt: true },
+    select: { userId: true, startedAt: true, spec: true },
   });
   if (!testSession) return;
+  if (wasBuiltQuotaCharged(testSession.spec) === false) return;
   if (Date.now() - testSession.startedAt.getTime() >= REFUND_WINDOW_MS) return;
 
   const date = dailyUsageDate(tashkentDateKey(testSession.startedAt));
@@ -142,8 +138,8 @@ export async function refundBuiltTest(sessionId: string): Promise<void> {
  * (chaqiruvchi — `POST /api/results/[id]/ai-explain` — avval keshni
  * tekshiradi). Premium/Teacher/ADMIN uchun cheklovsiz.
  */
-export async function consumeTutorMessage(userId: string): Promise<ConsumeQuotaResult> {
-  if (await isUnlimited(userId)) {
+export async function consumeTutorMessage(userId: string, context?: FeatureQuotaContext): Promise<ConsumeQuotaResult> {
+  if (await isUnlimited(userId, context)) {
     return { allowed: true, usedToday: 0, limit: null };
   }
   const dateKey = tashkentDateKey();
@@ -168,7 +164,7 @@ export async function consumeTutorMessage(userId: string): Promise<ConsumeQuotaR
  * tashlaydi. Bu esa `DailyUsage.imports` bilan birga zaxirada qoldirilgan.
  */
 export async function consumeImport(userId: string): Promise<ConsumeQuotaResult> {
-  const unlimited = await isUnlimited(userId);
+  const unlimited = hasAnyScope(await loadFeatureEntitlements(userId));
   // Cheklovsiz foydalanuvchi uchun ham hisoblagich oshiriladi — `DailyUsage`
   // faqat to'sish uchun emas, "bugun nechta import bo'ldi" metrikasi uchun
   // ham o'qiladi. Ilgari bu yerdan darhol qaytilardi va admin (ya'ni
@@ -253,7 +249,7 @@ export async function checkImportQuota(
   role: UserRole,
 ): Promise<ConsumeQuotaResult> {
   // ADMIN uchun obuna so'rovi umuman yuborilmaydi — natija baribir bir xil.
-  const unlimited = role === 'ADMIN' || (await hasUnlimitedSubscription(userId));
+  const unlimited = hasAnyScope(await loadFeatureEntitlements(userId, role));
 
   const { start, end } = tashkentDayRangeUtc(0);
   const jobs = await db.importJob.findMany({
@@ -287,7 +283,7 @@ export interface ConsumeSolutionResult {
  * savol yana tekin/tez "allaqachon ochilgan" deb topilishi uchun, garchi
  * ularga bu ahamiyatsiz bo'lsa ham izchillik uchun).
  */
-export async function consumeSolution(userId: string, itemId: string): Promise<ConsumeSolutionResult> {
+export async function consumeSolution(userId: string, itemId: string, context?: FeatureQuotaContext): Promise<ConsumeSolutionResult> {
   const existing = await db.solutionUnlock.findUnique({
     where: { userId_itemId: { userId, itemId } },
   });
@@ -295,7 +291,7 @@ export async function consumeSolution(userId: string, itemId: string): Promise<C
     return { allowed: true, alreadyUnlocked: true, usedToday: 0, limit: FREE_DAILY_SOLUTIONS };
   }
 
-  if (await isUnlimited(userId)) {
+  if (await isUnlimited(userId, context)) {
     await createSolutionUnlockIfMissing(userId, itemId);
     return { allowed: true, alreadyUnlocked: false, usedToday: 0, limit: null };
   }
@@ -349,12 +345,12 @@ async function createSolutionUnlockIfMissing(userId: string, itemId: string): Pr
  * qulfni talab qiladi, lekin uni ochish (`consumeSolution`) faqat
  * "Yechimni ochish" tugmasi orqali sodir bo'ladi — bu yerda ochish yo'q.
  */
-export async function isSolutionUnlocked(userId: string, itemId: string): Promise<boolean> {
+export async function isSolutionUnlocked(userId: string, itemId: string, context?: FeatureQuotaContext): Promise<boolean> {
   const existing = await db.solutionUnlock.findUnique({
     where: { userId_itemId: { userId, itemId } },
   });
   if (existing) return true;
-  return isUnlimited(userId);
+  return isUnlimited(userId, context);
 }
 
 /**
@@ -413,8 +409,8 @@ export interface SolutionQuotaStatus {
 }
 
 /** Natijalar sahifasidagi "Bugun N/10 bepul yechim qoldi" hisoblagichi uchun — kvotani sarflamaydi. */
-export async function getSolutionQuotaStatus(userId: string): Promise<SolutionQuotaStatus> {
-  if (await isUnlimited(userId)) return { usedToday: 0, limit: null };
+export async function getSolutionQuotaStatus(userId: string, context?: FeatureQuotaContext): Promise<SolutionQuotaStatus> {
+  if (await isUnlimited(userId, context)) return { usedToday: 0, limit: null };
   const date = dailyUsageDate(tashkentDateKey());
   const row = await db.dailyUsage.findUnique({
     where: { userId_date: { userId, date } },

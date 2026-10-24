@@ -1,9 +1,10 @@
 import { db } from './db';
 import { gradeSubmission } from './grading';
 import { loadSessionItems, sessionPreserveOrder } from './sessions';
-import { hasActiveSubscription } from './access';
+import { loadFeatureEntitlements } from './access';
+import { sessionFeatureScope } from './feature-context';
 import { isSolutionUnlocked } from './quota';
-import { resolveSolutionVisibility } from './solution-visibility';
+import { resolveSolutionTiers, resolveSolutionVisibility } from './solution-visibility';
 import { getDistractorWhy, toLang } from './paramgen/regenerate';
 
 /**
@@ -79,9 +80,10 @@ export async function checkPracticeAnswer(params: PracticeCheckParams): Promise<
   // `SolutionUnlock.itemId` — bu oqim har doim Item.id bilan ishlaydi
   // (loadSessionItems), Test tarmog'idagi eski Question.id'dan farqli hech
   // qanday `resolveUnlockKey` normallashtirish shart emas.
-  const { premium, teacher } = await hasActiveSubscription(userId);
-  const writtenUnlocked =
-    role === 'ADMIN' || premium || teacher || (await isSolutionUnlocked(userId, item.id));
+  const entitlements = await loadFeatureEntitlements(userId, role);
+  const context = { entitlements, scopes: [sessionFeatureScope(testSession.spec, item.subject)] };
+  const tiers = resolveSolutionTiers(role, entitlements, context.scopes[0]);
+  const writtenUnlocked = tiers.writtenUnlimited || await isSolutionUnlocked(userId, item.id, context);
   const visibility = resolveSolutionVisibility({
     explanation: item.explanation,
     explanationImages: item.explanationImages,

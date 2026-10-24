@@ -1,7 +1,9 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAuth } from '@/lib/api-auth';
-import { hasActiveSubscription } from '@/lib/access';
+import { loadFeatureEntitlements } from '@/lib/access';
+import { coversAllFeatureScopes } from '@/lib/entitlements';
+import { scopeSubjectSelect } from '@/lib/feature-context';
 import { computeTopicStats, classifyTopics, generatePracticeSession, buildGrowthSchedule } from '@/lib/mastery';
 import { generateGrowthPlanTips } from '@/lib/gemini';
 import { daysSince } from '@/lib/date';
@@ -13,12 +15,15 @@ const FREE_TIER_COOLDOWN_DAYS = 30;
 // shaxsiy o'sish rejasi. Premium/Ustoz tarifida cheksiz, bepul tarifda
 // oyiga faqat 1 marta (User.masteryMapFreeViewedAt orqali belgilanadi —
 // oxirgi ko'rishdan FREE_TIER_COOLDOWN_DAYS kun o'tgach yana ochiladi).
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const { user, error } = await requireAuth();
     if (error) return error;
 
-    const { stats, totalAttempts } = await computeTopicStats(user.id);
+    const subjectId = request.nextUrl.searchParams.get('subjectId');
+    const computed = await computeTopicStats(user.id);
+    const stats = subjectId ? computed.stats.filter((s) => s.subjectId === subjectId) : computed.stats;
+    const totalAttempts = subjectId ? stats.reduce((sum, s) => sum + s.attempts, 0) : computed.totalAttempts;
 
     // Hali hech narsa yo'q bo'lsa — tarif cheklovini sarflamasdan, shunchaki
     // bo'sh holatni qaytaramiz (talaba birinchi testni yechishi kerak).
@@ -28,8 +33,14 @@ export async function GET() {
 
     let isFreeTierView = false;
     if (user.role !== 'ADMIN') {
-      const { premium, teacher } = await hasActiveSubscription(user.id);
-      if (!premium && !teacher) {
+      const [entitlements, subjects] = await Promise.all([
+        loadFeatureEntitlements(user.id, user.role),
+        db.subject.findMany({
+          where: { id: { in: subjectId ? [subjectId] : [...new Set(stats.map((s) => s.subjectId))] } },
+          select: scopeSubjectSelect,
+        }),
+      ]);
+      if (!coversAllFeatureScopes({ entitlements, scopes: subjects.map((s) => ({ kind: 'discipline', disciplineKey: s.disciplineKey })) })) {
         const dbUser = await db.user.findUnique({
           where: { id: user.id },
           select: { masteryMapFreeViewedAt: true },

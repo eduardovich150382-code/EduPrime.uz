@@ -41,6 +41,7 @@ const {
 
 vi.mock("@/lib/db", () => ({
   db: {
+    userPermission: { findMany: async () => [] },
     testResult: { findUnique: (...args: unknown[]) => findUniqueResultMock(...args) },
     question: { findUnique: (...args: unknown[]) => findUniqueQuestionMock(...args) },
     item: { findUnique: (...args: unknown[]) => itemFindUniqueMock(...args) },
@@ -209,7 +210,7 @@ describe("POST /api/results/[id]/ai-explain", () => {
       findUniqueQuestionMock.mockResolvedValue(
         baseQuestion({ explanation: null, videoUrl: "https://youtube.com/watch?v=x" })
       );
-      subscriptionFindManyMock.mockResolvedValue([{ plan: "PREMIUM" }]);
+      subscriptionFindManyMock.mockResolvedValue([{ plan: "PREMIUM", isActive: true, endDate: new Date('2099-01-01') }]);
 
       const response = await callPost({ questionId: "q1" });
       const data = await response.json();
@@ -371,7 +372,7 @@ describe("POST /api/results/[id]/ai-explain", () => {
 
     it("PREMIUM obunachi uchun kvota cheklovsiz (upsert chaqirilmaydi)", async () => {
       findUniqueQuestionMock.mockResolvedValue(baseQuestion());
-      subscriptionFindManyMock.mockResolvedValue([{ plan: "PREMIUM" }]);
+      subscriptionFindManyMock.mockResolvedValue([{ plan: "PREMIUM", isActive: true, endDate: new Date('2099-01-01') }]);
 
       const response = await callPost({ questionId: "q1" });
       expect(response.status).toBe(200);

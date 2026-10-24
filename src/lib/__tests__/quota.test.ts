@@ -64,6 +64,7 @@ const { fakeDb, testSessions, items, importJobs } = vi.hoisted(() => {
   };
 
   const fakeDb = {
+    userPermission: { findMany: async () => [] },
     __users: users,
     __subscriptions: subscriptions,
     __dailyUsage: dailyUsage,
@@ -105,7 +106,7 @@ const { fakeDb, testSessions, items, importJobs } = vi.hoisted(() => {
           .filter((s) => s.userId === where.userId)
           .filter((s) => s.isActive === where.isActive)
           .filter((s) => s.endDate.getTime() >= where.endDate.gte.getTime())
-          .map((s) => ({ plan: s.plan })),
+          .map((s) => ({ ...s, categoryId: null, subjectIds: [], product: null })),
     },
     dailyUsage: {
       upsert: async ({

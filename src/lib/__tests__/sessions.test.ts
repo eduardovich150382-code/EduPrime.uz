@@ -21,6 +21,10 @@ vi.mock("../quota", () => ({
   consumeBuiltTest: (...args: unknown[]) => consumeBuiltTestMock(...args),
 }));
 
+vi.mock("../access", () => ({
+  loadFeatureEntitlements: async () => ({ now: new Date(), subscriptions: [], permissions: [] }),
+}));
+
 import {
   createSessionFromSections,
   extractItemPoints,

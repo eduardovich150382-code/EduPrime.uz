@@ -8,6 +8,7 @@ const {
   subscriptionFindManyMock,
   dailyUsageUpsertMock,
   dailyUsageUpdateManyMock,
+  subjectFindManyMock,
 } = vi.hoisted(() => ({
   findManyItemMock: vi.fn(),
   createSessionMock: vi.fn(),
@@ -16,10 +17,13 @@ const {
   subscriptionFindManyMock: vi.fn(),
   dailyUsageUpsertMock: vi.fn(),
   dailyUsageUpdateManyMock: vi.fn(),
+  subjectFindManyMock: vi.fn(),
 }));
 
 vi.mock("@/lib/db", () => ({
   db: {
+    userPermission: { findMany: async () => [] },
+    subject: { findMany: (...args: unknown[]) => subjectFindManyMock(...args) },
     testSession: { create: (...args: unknown[]) => createSessionMock(...args) },
     item: { findMany: (...args: unknown[]) => findManyItemMock(...args) },
     // consumeBuiltTest (lib/quota.ts) — bepul foydalanuvchi, kvota ostida
@@ -46,11 +50,11 @@ function pickableItem(id: string, difficulty = 3) {
   return { id, templateId: null, difficulty };
 }
 
-function fullItem(id: string) {
+function fullItem(id: string, disciplineKey: string | null = null) {
   return {
     id, text: `Savol ${id}`, images: [], options: [{ label: "A", text: "x", image: null }],
     correctAnswer: "A", type: "MULTIPLE_CHOICE", explanation: null, explanationImages: [], videoUrl: null,
-    subject: { nameUz: "Matematika", nameRu: "Математика", nameEn: "Math" },
+    subject: { id: `pool-${disciplineKey}`, categoryId: 'pool', disciplineKey, nameUz: "Fan", nameRu: "Предмет", nameEn: "Subject" },
   };
 }
 
@@ -70,6 +74,7 @@ describe("POST /api/sessions", () => {
     userFindUniqueMock.mockResolvedValue({ role: "USER" });
     subscriptionFindManyMock.mockResolvedValue([]);
     dailyUsageUpsertMock.mockResolvedValue({ builtTests: 1 });
+    subjectFindManyMock.mockResolvedValue([{ id: 'att-physics', categoryId: 'att', disciplineKey: 'fizika' }]);
   });
 
   it("limit noto'g'ri bo'lsa 400 qaytaradi", async () => {
@@ -148,6 +153,47 @@ describe("POST /api/sessions", () => {
 
     expect(status).toBe(429);
     expect(data.code).toBe("BUILT_TEST_QUOTA_EXCEEDED");
+    expect(createSessionMock).not.toHaveBeenCalled();
+  });
+
+  function wireScopedBuild(disciplines: (string | null)[]) {
+    subscriptionFindManyMock.mockResolvedValue([{
+      plan: 'CATEGORY', categoryId: 'att', subjectIds: ['att-physics'], product: { subjectRule: 'ONE' },
+      isActive: true, endDate: new Date('2099-01-01'),
+    }]);
+    findManyItemMock.mockImplementation((args: { select?: Record<string, unknown> }) => {
+      if (args.select && 'text' in args.select) return Promise.resolve(disciplines.map((key, i) => fullItem(`item${i}`, key)));
+      return Promise.resolve(disciplines.map((_, i) => pickableItem(`item${i}`)));
+    });
+    createSessionMock.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({ id: 'session1', ...data }));
+  }
+
+  it('fanni so‘rov bilmasa ham haqiqiy Item fizikada bo‘lsa cheklovsiz', async () => {
+    wireScopedBuild(['fizika', 'fizika']);
+    dailyUsageUpsertMock.mockResolvedValue({ builtTests: 4 });
+    expect((await callPost({ limit: 2, durationMin: 30 })).status).toBe(200);
+    expect(dailyUsageUpsertMock).not.toHaveBeenCalled();
+    expect(createSessionMock).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ spec: expect.objectContaining({ builtQuotaCharged: false }) }),
+    }));
+    expect(subscriptionFindManyMock).toHaveBeenCalledTimes(1);
+    expect(subjectFindManyMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('aralash fizika/kimyo sessiyasi aynan bitta kvota sarflaydi va belgini server yozadi', async () => {
+    wireScopedBuild(['fizika', 'kimyo']);
+    expect((await callPost({ limit: 2, durationMin: 30, builtQuotaCharged: false })).status).toBe(200);
+    expect(dailyUsageUpsertMock).toHaveBeenCalledTimes(1);
+    expect(createSessionMock).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ spec: expect.objectContaining({ builtQuotaCharged: true }) }),
+    }));
+  });
+
+  it('kalitsiz Item yoki mijoz yozgan fan/kvota belgisi cheklovni chetlab o‘tmaydi', async () => {
+    wireScopedBuild([null]);
+    dailyUsageUpsertMock.mockResolvedValue({ builtTests: 4 });
+    const { status } = await callPost({ limit: 1, durationMin: 30, subjectIds: ['att-physics'], builtQuotaCharged: false });
+    expect(status).toBe(429);
     expect(createSessionMock).not.toHaveBeenCalled();
   });
 });
