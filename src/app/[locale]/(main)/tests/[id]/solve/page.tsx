@@ -13,6 +13,7 @@ import BackButton from '@/components/ui/BackButton';
 import { Link } from '@/i18n/routing';
 import { withReturnTo, sanitizeReturnPath } from '@/lib/safe-return-path';
 import { AlertCircle, Loader2 } from 'lucide-react';
+import type { TestType } from '@prisma/client';
 
 interface QuestionData {
   id: string;
@@ -51,7 +52,7 @@ export default function TestSolvePage() {
 
   const [test, setTest] = useState<TestData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [accessDenied, setAccessDenied] = useState<{ accessType: string; price?: number; testTitle?: string } | null>(null);
+  const [accessDenied, setAccessDenied] = useState<{ accessType: string; price?: number; testTitle?: string; categoryType?: TestType | null } | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [showFinishDialog, setShowFinishDialog] = useState(false);
@@ -185,6 +186,7 @@ export default function TestSolvePage() {
             accessType: accessData.accessType,
             price: accessData.price,
             testTitle: accessData.testTitle,
+            categoryType: accessData.categoryType,
           });
           setLoading(false);
           return;
@@ -359,7 +361,7 @@ export default function TestSolvePage() {
           ) : (
             // Link til prefiksini qo'yadi — oddiy <a href="/pricing"> ruscha
             // foydalanuvchini o'zbekcha tariflar sahifasiga otardi.
-            <Link href="/pricing" className="btn-primary inline-flex items-center gap-2">
+            <Link href={{ pathname: '/pricing', query: accessDenied.categoryType ? { goal: accessDenied.categoryType } : {} }} className="btn-primary inline-flex items-center gap-2">
               {exam('locked.pricing')}
             </Link>
           )}

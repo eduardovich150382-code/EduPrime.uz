@@ -46,6 +46,7 @@ export async function AttestationHero({
   locale: string;
 }) {
   const t = await getTranslations('attestation');
+  const pricing = await getTranslations('pricing');
   const days = daysUntil(date);
 
   return (
@@ -64,7 +65,7 @@ export async function AttestationHero({
           </h1>
           <p className="mt-3 text-sm text-[#ddd6fe] sm:text-base">{t('hero.subtitle')}</p>
 
-          <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             {hero && (
               <Link
                 href={hero.href}
@@ -85,6 +86,9 @@ export async function AttestationHero({
               <ListChecks size={16} aria-hidden />
               {t('hero.ctaStructure')}
             </a>
+            <Link href="/pricing?goal=ATTESTATION" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-white/30 px-5 py-2 text-sm font-semibold text-white hover:bg-white/10">
+              {pricing('viewSubscription')}
+            </Link>
           </div>
         </div>
 

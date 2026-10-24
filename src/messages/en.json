@@ -86,58 +86,6 @@
         "description": "35 test + 20 open questions = 55 questions"
       }
     },
-    "pricing": {
-      "title": "Pricing",
-      "subtitle": "Choose the right plan for you",
-      "free": {
-        "title": "Free",
-        "price": "0",
-        "period": "UZS",
-        "features": [
-          "Open DTM tests (limited)",
-          "Open school tests (limited)",
-          "Free video/written solutions",
-          "General rating",
-          "Profile and statistics"
-        ],
-        "cta": "Start free"
-      },
-      "premium": {
-        "title": "Premium",
-        "price": "29,000",
-        "period": "UZS/mo",
-        "popular": true,
-        "features": [
-          "DTM tests — unlimited",
-          "School tests — unlimited",
-          "National certificate tests",
-          "Video and written solutions",
-          "Detailed analysis",
-          "No ads"
-        ],
-        "cta": "Buy now",
-        "discount6": "6 months — 150,000 UZS",
-        "discount12": "1 year — 270,000 UZS",
-        "discount3": "3 months — 79 000 soʻm"
-      },
-      "ustoz": {
-        "title": "Teacher",
-        "price": "29,000",
-        "period": "UZS/mo",
-        "features": [
-          "Attestation tests (selected subjects)",
-          "SAT tests — unlimited",
-          "GRE Physics — unlimited",
-          "National certificate tests",
-          "Video and written solutions",
-          "Detailed analysis"
-        ],
-        "cta": "Buy now",
-        "discount6": "6 months — 150,000 UZS",
-        "discount12": "1 year — 270,000 UZS",
-        "discount3": "3 months — 129 000 soʻm"
-      }
-    },
     "howItWorks": {
       "title": "How it works?",
       "subtitle": "Start in 3 simple steps",
@@ -940,5 +888,44 @@
     "noReceipt": "No receipt submitted",
     "alreadyProcessed": "This payment was already processed.",
     "invalidReplacement": "Only an expired offer can be replaced with an active offer for the same product."
+  },
+  "pricing": {
+    "meta": {
+      "title": "Subscriptions and pricing",
+      "description": "Choose a subscription for your goal: subjects, durations and current prices."
+    },
+    "title": "A subscription for your goal",
+    "subtitle": "Choose a category and duration. Select your subjects and complete payment in the Telegram bot.",
+    "landing": {
+      "title": "A subscription for your goal",
+      "body": "Explore available categories, subjects and subscription durations.",
+      "cta": "View subscriptions"
+    },
+    "scope": {
+      "ONE": "All tests and mock exams for one subject of your choice",
+      "DTM_BLOCK": "2 main subjects + 3 compulsory subjects",
+      "NONE": "All tests in the category",
+      "BUNDLE": "Tests and mock exams across all categories and subjects"
+    },
+    "subjects": "Available subjects",
+    "testCount": "{count} tests",
+    "subjectInBot": "You do not need to choose a subject here — the Telegram bot will ask you.",
+    "secondSubjectDiscount": "Second subject — {percent}% off",
+    "untilDate": "Until: {date} (Tashkent time)",
+    "months": "{count} months",
+    "price": "{amount} UZS",
+    "buy": "Buy",
+    "activeSubscriptions": "Your active subscriptions",
+    "legacyPremium": "Premium",
+    "legacyTeacher": "Teacher",
+    "subscription": "Subscription",
+    "expires": "until {date}",
+    "empty": "Subscriptions coming soon",
+    "emptyBody": "Subscriptions will appear here when they go on sale.",
+    "noOffers": "Duration options for this product will be available soon.",
+    "paymentNote": "Payment is completed through the Telegram bot. The final amount is shown in the bot after you choose your subjects.",
+    "chooseGoal": "Choose your goal",
+    "viewSubscription": "View subscription",
+    "back": "Return to the previous page"
   }
 }

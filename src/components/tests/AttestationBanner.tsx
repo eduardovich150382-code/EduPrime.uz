@@ -13,6 +13,7 @@ interface AttestationBannerProps {
 
 export function AttestationBanner({ attestationDate }: AttestationBannerProps) {
   const t = useTranslations('tests.banner');
+  const pricing = useTranslations('pricing');
   const days = daysUntil(attestationDate);
 
   return (
@@ -24,7 +25,7 @@ export function AttestationBanner({ attestationDate }: AttestationBannerProps) {
         <h2 className="mt-3 text-xl sm:text-2xl font-bold text-white">{t('title')}</h2>
         <p className="mt-2 text-sm sm:text-base text-[#ddd6fe]">{t('body')}</p>
       </div>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center md:shrink-0">
+      <div className="flex flex-col gap-4 sm:items-center md:shrink-0">
         {days !== null && (
           <div className="flex items-baseline gap-2 text-white sm:flex-col sm:items-center sm:gap-0">
             <span className="text-3xl sm:text-4xl font-bold tabular-nums leading-none">{days}</span>
@@ -36,6 +37,9 @@ export function AttestationBanner({ attestationDate }: AttestationBannerProps) {
           className="inline-flex min-h-11 w-full md:w-auto items-center justify-center rounded-xl bg-[#fbbf24] px-5 text-sm font-semibold text-[#451a03] transition-colors hover:bg-[#f59e0b]"
         >
           {t('cta')}
+        </Link>
+        <Link href="/pricing?goal=ATTESTATION" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-white/30 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-white/10">
+          {pricing('viewSubscription')}
         </Link>
       </div>
     </section>

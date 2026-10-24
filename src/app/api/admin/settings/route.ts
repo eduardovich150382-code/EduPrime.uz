@@ -8,16 +8,6 @@ import { hasAttestationKeys, validateAttestationSettings } from '@/lib/attestati
 const DEFAULT_SETTINGS = [
   { key: 'payment_card_number', value: '' },
   { key: 'payment_card_owner', value: '' },
-  // Premium narxlari
-  { key: 'premium_price_1_month', value: '29000' },
-  { key: 'premium_price_3_months', value: '79000' },
-  { key: 'premium_price_6_months', value: '150000' },
-  { key: 'premium_price_1_year', value: '270000' },
-  // Ustoz tarifi narxlari
-  { key: 'teacher_price_1_month', value: '49000' },
-  { key: 'teacher_price_3_months', value: '129000' },
-  { key: 'teacher_price_6_months', value: '240000' },
-  { key: 'teacher_price_1_year', value: '430000' },
   // Boshqa sozlamalar
   { key: 'telegram_support_username', value: '' },
   { key: 'site_announcement', value: '' },
@@ -58,6 +48,7 @@ export async function GET() {
       settingsMap[def.key] = def.value;
     }
     for (const s of settings) {
+      if (/^(premium|teacher)_price_/.test(s.key)) continue;
       settingsMap[s.key] = s.value;
     }
 
@@ -103,7 +94,7 @@ export async function PUT(request: NextRequest) {
     // Upsert each setting
     const results = [];
     for (const [key, value] of entries) {
-      if (typeof value !== 'string') continue;
+      if (typeof value !== 'string' || /^(premium|teacher)_price_/.test(key)) continue;
 
       const result = await db.systemSetting.upsert({
         where: { key },

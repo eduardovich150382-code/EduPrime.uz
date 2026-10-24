@@ -15,13 +15,13 @@ describe('isProtectedPath', () => {
   });
 
   it('qolgan himoyalangan bo\'limlar avvalgidek yopiq', () => {
-    for (const path of ['/dashboard', '/ru/results/r1', '/courses', '/rating', '/profile', '/pricing', '/teacher/tests', '/admin']) {
+    for (const path of ['/dashboard', '/ru/results/r1', '/courses', '/rating', '/profile', '/teacher/tests', '/admin']) {
       expect(isProtectedPath(path), path).toBe(true);
     }
   });
 
   it('ochiq sahifalar ochiq qoladi', () => {
-    for (const path of ['/', '/ru', '/login', '/attestation', '/ru/attestation', '/share/x', '/certificate/x']) {
+    for (const path of ['/', '/ru', '/login', '/attestation', '/ru/attestation', '/share/x', '/certificate/x', '/pricing', '/ru/pricing', '/en/pricing?goal=ATTESTATION']) {
       expect(isProtectedPath(path), path).toBe(false);
     }
   });
