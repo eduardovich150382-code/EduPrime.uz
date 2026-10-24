@@ -19,6 +19,9 @@ vi.mock('@/lib/subscription-payments', () => ({ paymentTransaction: m.transactio
 vi.mock('@/lib/logger', () => ({ logger: { error: vi.fn() } }));
 import { POST } from '../route';
 import { checkoutCallback, checkoutStartParameter } from '@/lib/category-checkout';
+import uz from '@/messages/uz.json';
+import ru from '@/messages/ru.json';
+import en from '@/messages/en.json';
 
 const now = new Date('2026-10-24T07:00:00Z');
 const offer = { id: 'o', productId: 'p', labelUz: '1 oy', labelRu: '1 месяц', labelEn: '1 month', price: 10000, durationMonths: 1, untilDate: null, isActive: true };
@@ -32,7 +35,7 @@ const tx = { product: { findUniqueOrThrow: m.freshProduct }, productOffer: { fin
   user: { upsert: m.upsertUser }, payment: { findFirst: m.pending, create: m.create }, subscription: { findMany: m.current } };
 const request = (body: unknown, secret = 'test-webhook') => new NextRequest('http://localhost/api/telegram/webhook', { method: 'POST', headers: { 'x-telegram-bot-api-secret-token': secret }, body: JSON.stringify(body) });
 const callback = (data: string, sender = from) => POST(request({ callback_query: { id: 'cb', from: sender, message: { chat: { id: sender.id } }, data } }));
-const command = (text: string) => POST(request({ message: { text, chat: { id: 123 }, from } }));
+const command = (text: string, sender = from) => POST(request({ message: { text, chat: { id: sender.id }, from: sender } }));
 const finalSelection = () => callback(checkoutCallback('o', 'p', ['physics'], 'o'));
 type Sent = { chat_id: number; text: string; reply_markup?: { inline_keyboard: { text: string; callback_data?: string }[][] } };
 function messages(): Sent[] { return vi.mocked(fetch).mock.calls.filter(([url]) => String(url).endsWith('/sendMessage')).map(([, init]) => JSON.parse(String(init?.body)) as Sent); }
@@ -122,6 +125,57 @@ describe('webhook mahsulot checkout', () => {
   it('boshqa yoki nashr etilmagan fanni callback bilan kiritib bo‘lmaydi', async () => {
     await callback(checkoutCallback('o', 'p', ['draft'], 'o')); expect(m.create).not.toHaveBeenCalled();
     await callback(checkoutCallback('o', 'p', ['unknown'], 'o')); expect(m.create).not.toHaveBeenCalled();
+  });
+});
+
+describe('checkout tili', () => {
+  const englishTelegram = { ...from, language_code: 'en' };
+
+  it.each(['/obuna', '/premium', '/ustoz', '/start buy', '/start buy_teacher_1month'])('%s Telegram inglizcha bo‘lsa ham profil tilida ochiladi', async (text) => {
+    await command(text, englishTelegram);
+    expect(messages().at(-1)?.text).toBe(uz.checkout.chooseProduct);
+    expect(messages().at(-1)?.reply_markup?.inline_keyboard[0][0].text).toBe('Attestatsiya');
+  });
+
+  it.each([null, { ...user, lang: 'unknown' }])('profil tili mavjud bo‘lmasa o‘zbekcha ishlaydi: %j', async (profile) => {
+    m.user.mockResolvedValue(profile);
+    await command('/obuna', englishTelegram);
+    expect(messages().at(-1)?.text).toBe(uz.checkout.chooseProduct);
+    await callback(checkoutCallback('o', 'p', ['physics'], 'o'), englishTelegram);
+    expect(messages().at(-1)?.text).toContain(uz.checkout.card);
+    expect(m.upsertUser).toHaveBeenCalledWith(expect.objectContaining({ create: expect.objectContaining({ lang: 'uz' }) }));
+  });
+
+  it.each([
+    { lang: 'uz', dictionary: uz.checkout, productName: 'Attestatsiya', offerName: '1 oy' },
+    { lang: 'ru', dictionary: ru.checkout, productName: 'Аттестация', offerName: '1 месяц' },
+    { lang: 'en', dictionary: en.checkout, productName: 'Attestation', offerName: '1 month' },
+  ])('$lang profil tili tarifdan to‘lovgacha saqlanadi', async ({ lang, dictionary, productName, offerName }) => {
+    m.user.mockResolvedValue({ ...user, lang });
+    const sender = { ...from, language_code: lang === 'en' ? 'uz' : 'en' };
+    m.subjects.mockResolvedValue([{ ...subject('physics'), nameUz: 'Fizika', nameRu: 'Физика', nameEn: 'Physics' }]);
+    await command('/obuna', sender);
+    expect(messages().at(-1)?.text).toBe(dictionary.chooseProduct);
+    expect(messages().at(-1)?.reply_markup?.inline_keyboard[0][0].text).toBe(productName);
+    await callback(checkoutCallback('p', 'p'), sender);
+    expect(messages().at(-1)?.text).toBe(dictionary.chooseSubject);
+    expect(messages().at(-1)?.reply_markup?.inline_keyboard[0][0].text).toBe(lang === 'uz' ? 'Fizika' : lang === 'ru' ? 'Физика' : 'Physics');
+    await callback(checkoutCallback('s', 'p', ['physics']), sender);
+    expect(messages().at(-1)?.text).toBe(dictionary.chooseOffer);
+    expect(messages().at(-1)?.reply_markup?.inline_keyboard[0][0].text).toContain(offerName);
+    await callback(checkoutCallback('o', 'p', ['physics'], 'o'), sender);
+    expect(messages().at(-1)?.text).toContain(dictionary.card);
+    expect(messages().at(-1)?.text).toContain(productName);
+    await callback('co:list', sender);
+    expect(messages().at(-1)?.text).toBe(dictionary.chooseProduct);
+  });
+
+  it('saytdan kelgan havola va eskirgan variantdan qaytish profil tilini saqlaydi', async () => {
+    await command(`/start ${checkoutStartParameter('p', 'o')}`, englishTelegram);
+    expect(messages().at(-1)?.text).toBe(uz.checkout.chooseSubject);
+    m.products.mockResolvedValue([{ ...product, offers: [] }]);
+    await callback(checkoutCallback('s', 'p', ['physics'], 'o'), englishTelegram);
+    expect(messages().at(-1)?.text).toBe(uz.checkout.noProducts);
   });
 });
 
