@@ -34,6 +34,7 @@ const {
 
 vi.mock("@/lib/db", () => ({
   db: {
+    userPermission: { findMany: async () => [] },
     testResult: {
       findUnique: (...args: unknown[]) => findUniqueResultMock(...args),
       count: (...args: unknown[]) => resultCountMock(...args),
@@ -170,7 +171,7 @@ describe("GET /api/results/[id]", () => {
         },
         session: null,
       });
-      subscriptionFindManyMock.mockResolvedValue([{ plan: "PREMIUM" }]);
+      subscriptionFindManyMock.mockResolvedValue([{ plan: "PREMIUM", isActive: true, endDate: new Date('2099-01-01') }]);
 
       const { data } = await callGet();
       expect(data.result.test.questions[0].videoUrl).toBe("https://youtube.com/watch?v=x");
@@ -203,7 +204,7 @@ describe("GET /api/results/[id]", () => {
 
       it("premium foydalanuvchida ikkala maydon qiymati bilan", async () => {
         mockResultWithTestSolutions();
-        subscriptionFindManyMock.mockResolvedValue([{ plan: "PREMIUM" }]);
+        subscriptionFindManyMock.mockResolvedValue([{ plan: "PREMIUM", isActive: true, endDate: new Date('2099-01-01') }]);
         const { data } = await callGet();
         expect(data.result.test.videoSolution).toBe("https://youtube.com/watch?v=test");
         expect(data.result.test.writtenSolution).toBe("Testning to'liq yechimi");
@@ -211,7 +212,7 @@ describe("GET /api/results/[id]", () => {
 
       it("Teacher obunasi — savol darajasidagidek: yozma ochiq, video yopiq", async () => {
         mockResultWithTestSolutions();
-        subscriptionFindManyMock.mockResolvedValue([{ plan: "TEACHER_PLAN" }]);
+        subscriptionFindManyMock.mockResolvedValue([{ plan: "TEACHER_PLAN", isActive: true, endDate: new Date('2099-01-01') }]);
         const { data } = await callGet();
         expect(data.result.test.videoSolution).toBeNull();
         expect(data.result.test.writtenSolution).toBe("Testning to'liq yechimi");

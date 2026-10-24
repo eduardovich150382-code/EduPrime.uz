@@ -26,6 +26,7 @@ const {
 
 vi.mock("@/lib/db", () => ({
   db: {
+    userPermission: { findMany: async () => [] },
     testResult: { findUnique: (...args: unknown[]) => findUniqueResultMock(...args) },
     question: { findUnique: (...args: unknown[]) => findUniqueQuestionMock(...args) },
     testSession: { findUnique: (...args: unknown[]) => findUniqueTestSessionMock(...args) },

@@ -3,7 +3,8 @@ import type { Prisma } from '@prisma/client';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { extractItemPoints, loadSessionItems } from '@/lib/sessions';
-import { hasActiveSubscription } from '@/lib/access';
+import { loadFeatureEntitlements } from '@/lib/access';
+import { sessionFeatureScope, testFeatureScope } from '@/lib/feature-context';
 import { getSolutionQuotaStatus, getUnlockedItemIds, resolveUnlockKeys } from '@/lib/quota';
 import { resolveSolutionTiers, resolveSolutionVisibility, type RawSolutionData } from '@/lib/solution-visibility';
 import { getDistractorWhy, toLang } from '@/lib/paramgen/regenerate';
@@ -83,8 +84,7 @@ export async function GET(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const { writtenUnlimited, videoUnlocked } = resolveSolutionTiers(role, await hasActiveSubscription(userId));
-    const solutionQuota = await getSolutionQuotaStatus(userId);
+    const entitlements = await loadFeatureEntitlements(userId, role);
 
     // S20a — distraktor izohi har doim bepul (S17 dagi "bir qatorli sabab"
     // darajasi, yechim qulfiga kirmaydi), shuning uchun yuqoridagi
@@ -92,6 +92,9 @@ export async function GET(
     const answers = (result.answers as { questionId: string; answer: string; isCorrect: boolean }[] | null) ?? [];
 
     if (result.test) {
+      const scope = testFeatureScope(result.test);
+      const { writtenUnlimited, videoUnlocked } = resolveSolutionTiers(role, entitlements, scope);
+      const solutionQuota = await getSolutionQuotaStatus(userId, { entitlements, scopes: [scope] });
       const [category, attempts] = await Promise.all([
         // Test'da category relation yo'q (faqat categoryId) — GET /api/tests
         // dagi kabi alohida o'qiladi. "Testlarga qaytish" shu tur bo'yicha
@@ -153,14 +156,15 @@ export async function GET(
     }
 
     const items = await loadSessionItems(result.session.itemIds, extractItemPoints(result.session.spec));
+    const scopes = items.map((it) => sessionFeatureScope(result.session?.spec, it.subject));
+    const tiers = new Map(items.map((it, index) => [it.id, resolveSolutionTiers(role, entitlements, scopes[index])]));
+    const solutionQuota = await getSolutionQuotaStatus(userId, { entitlements, scopes });
     const distinctSubjects = new Set(items.map((it) => it.subject.nameUz));
     const subject = distinctSubjects.size === 1
       ? items[0]?.subject
       : { nameUz: 'Turli fanlar', nameRu: 'Разные предметы', nameEn: 'Various subjects' };
 
-    const unlockedIds = writtenUnlimited
-      ? null
-      : await getUnlockedItemIds(userId, items.map((it) => it.id));
+    const unlockedIds = await getUnlockedItemIds(userId, items.filter((it) => !tiers.get(it.id)?.writtenUnlimited).map((it) => it.id));
 
     return NextResponse.json({
       result: {
@@ -194,8 +198,8 @@ export async function GET(
                   lang: it.lang,
                 },
                 {
-                  writtenUnlocked: writtenUnlimited || (unlockedIds?.has(it.id) ?? false),
-                  videoUnlocked,
+                  writtenUnlocked: !!tiers.get(it.id)?.writtenUnlimited || unlockedIds.has(it.id),
+                  videoUnlocked: !!tiers.get(it.id)?.videoUnlocked,
                 }
               ),
               answers

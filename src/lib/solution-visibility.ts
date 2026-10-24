@@ -12,6 +12,8 @@
  * `POST /api/results/[id]/ai-explain` ikkalasi ham shu orqali AYNAN bir
  * xil qulfni qo'llaydi (CLAUDE.md — paywall har joyda bir xil tekshirilsin).
  */
+import { coversFeatureScope, hasLegacyPlan, withoutLegacyPlans, type FeatureScope, type UserEntitlements } from './entitlements';
+
 export type SolutionKind = 'none' | 'video' | 'written';
 
 export interface RawSolutionData {
@@ -23,7 +25,7 @@ export interface RawSolutionData {
 export interface SolutionVisibilityInput extends RawSolutionData {
   /** `SolutionUnlock` bor YOKI foydalanuvchi Premium/Teacher/ADMIN (cheklovsiz). */
   writtenUnlocked: boolean;
-  /** Faol PREMIUM obuna YOKI ADMIN — video yechim faqat shularga ochiladi (Teacher emas). */
+  /** Yangi doira yoki eski PREMIUM/ADMIN; eski Teacher videoni o'zi ochmaydi. */
   videoUnlocked: boolean;
 }
 
@@ -63,9 +65,9 @@ export function resolveSolutionVisibility(input: SolutionVisibilityInput): Solut
 }
 
 export interface SolutionTiers {
-  /** Kvotasiz yozma yechim: Premium, Teacher yoki ADMIN. Qolganlarga — `SolutionUnlock` orqali, savolma-savol. */
+  /** Kvotasiz yozma yechim: yangi doira yoki eski Premium/Teacher/ADMIN. */
   writtenUnlimited: boolean;
-  /** Video yechim: faqat Premium yoki ADMIN. */
+  /** Video yechim: yangi doira yoki eski Premium/ADMIN. */
   videoUnlocked: boolean;
 }
 
@@ -77,11 +79,15 @@ export interface SolutionTiers {
  */
 export function resolveSolutionTiers(
   role: string | undefined,
-  subscription: { premium: boolean; teacher: boolean }
+  subscription: UserEntitlements,
+  scope: FeatureScope,
 ): SolutionTiers {
-  const isAdmin = role === 'ADMIN';
+  const scoped = coversFeatureScope(withoutLegacyPlans(subscription), scope);
+  const premium = hasLegacyPlan(subscription, 'PREMIUM');
+  const teacher = hasLegacyPlan(subscription, 'TEACHER_PLAN');
+  const isAdmin = role === 'ADMIN' || subscription.isAdmin;
   return {
-    writtenUnlimited: isAdmin || subscription.premium || subscription.teacher,
-    videoUnlocked: isAdmin || subscription.premium,
+    writtenUnlimited: !!isAdmin || premium || teacher || scoped,
+    videoUnlocked: !!isAdmin || premium || scoped,
   };
 }

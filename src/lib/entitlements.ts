@@ -15,6 +15,7 @@ export interface SubscriptionEntitlement {
   subjectRule: SubjectRule | null;
   isActive: boolean;
   endDate: Date;
+  startDate?: Date;
 }
 
 export interface PermissionEntitlement {
@@ -28,6 +29,83 @@ export interface UserEntitlements {
   now: Date;
   subscriptions: readonly SubscriptionEntitlement[];
   permissions: readonly PermissionEntitlement[];
+  isAdmin?: boolean;
+  subjects?: readonly ScopeSubject[];
+}
+
+export interface ScopeSubject {
+  id: string;
+  categoryId: string;
+  disciplineKey: string | null;
+}
+
+export type FeatureScope =
+  | { kind: 'test'; categoryId: string; subjectId: string }
+  | { kind: 'discipline'; disciplineKey: string | null };
+
+export interface FeatureQuotaContext {
+  entitlements: UserEntitlements;
+  scopes: readonly FeatureScope[];
+}
+
+export function isActiveEntitlement(s: SubscriptionEntitlement, now: Date): boolean {
+  return s.isActive && s.endDate >= now
+    && (s.plan === 'PREMIUM' || s.plan === 'TEACHER_PLAN' || !s.startDate || s.startDate <= now);
+}
+
+export function hasLegacyPlan(ent: UserEntitlements, plan: 'PREMIUM' | 'TEACHER_PLAN'): boolean {
+  return ent.subscriptions.some((s) => s.plan === plan && isActiveEntitlement(s, ent.now));
+}
+
+export function hasBundle(ent: UserEntitlements): boolean {
+  return ent.subscriptions.some((s) => s.plan === 'BUNDLE' && isActiveEntitlement(s, ent.now));
+}
+
+export function hasGlobalFeatureScope(ent: UserEntitlements): boolean {
+  return !!ent.isAdmin || hasBundle(ent) || hasLegacyPlan(ent, 'PREMIUM') || hasLegacyPlan(ent, 'TEACHER_PLAN');
+}
+
+function activePermission(p: PermissionEntitlement, now: Date): boolean {
+  return p.isActive && (p.expiresAt === null || p.expiresAt >= now);
+}
+
+// Eski tariflarning umumiy funksiya huquqi test paywall'iga ko'chirilmaydi:
+// canAccessByEntitlements eski accessType qoidalarini alohida saqlaydi.
+export function inScope(ent: UserEntitlements, scope: { categoryId: string; subjectId: string }): boolean {
+  if (hasGlobalFeatureScope(ent)) return true;
+  if (!scope.categoryId || !scope.subjectId) return false;
+  return ent.subscriptions.some((s) => isActiveEntitlement(s, ent.now) && s.plan === 'CATEGORY'
+    && s.categoryId === scope.categoryId && (s.subjectRule === 'NONE'
+      || ((s.subjectRule === 'ONE' || s.subjectRule === 'DTM_BLOCK') && s.subjectIds.includes(scope.subjectId))))
+    || ent.permissions.some((p) => activePermission(p, ent.now) && p.categoryId === scope.categoryId
+      && (p.subjectId === null || p.subjectId === scope.subjectId));
+}
+
+export function hasAnyScope(ent: UserEntitlements): boolean {
+  return hasGlobalFeatureScope(ent)
+    || ent.subscriptions.some((s) => isActiveEntitlement(s, ent.now) && s.plan === 'CATEGORY' && !!s.categoryId
+      && (s.subjectRule === 'NONE' || ((s.subjectRule === 'ONE' || s.subjectRule === 'DTM_BLOCK') && s.subjectIds.length > 0)))
+    || ent.permissions.some((p) => activePermission(p, ent.now) && !!p.categoryId);
+}
+
+export function inDisciplineScope(ent: UserEntitlements, disciplineKey: string | null): boolean {
+  if (hasGlobalFeatureScope(ent)) return true;
+  if (!disciplineKey) return false;
+  return (ent.subjects ?? []).some((s) => s.disciplineKey === disciplineKey
+    && inScope(ent, { categoryId: s.categoryId, subjectId: s.id }));
+}
+
+export function coversFeatureScope(ent: UserEntitlements, scope: FeatureScope): boolean {
+  return scope.kind === 'test' ? inScope(ent, scope) : inDisciplineScope(ent, scope.disciplineKey);
+}
+
+export function coversAllFeatureScopes(context: FeatureQuotaContext): boolean {
+  return hasGlobalFeatureScope(context.entitlements)
+    || (context.scopes.length > 0 && context.scopes.every((scope) => coversFeatureScope(context.entitlements, scope)));
+}
+
+export function withoutLegacyPlans(ent: UserEntitlements): UserEntitlements {
+  return { ...ent, subscriptions: ent.subscriptions.filter((s) => s.plan !== 'PREMIUM' && s.plan !== 'TEACHER_PLAN') };
 }
 
 export interface TestAccessContext extends UserEntitlements {
@@ -37,7 +115,7 @@ export interface TestAccessContext extends UserEntitlements {
 }
 
 export function hasAnyActiveSubscription(ent: UserEntitlements): boolean {
-  return ent.subscriptions.some((s) => s.isActive && s.endDate >= ent.now);
+  return ent.subscriptions.some((s) => isActiveEntitlement(s, ent.now));
 }
 
 export function isFreeTest(test: TestAccessInfo): boolean {
@@ -51,7 +129,7 @@ export function canAccessByEntitlements(test: TestAccessInfo, ent: TestAccessCon
   if (!ent) return false;
   if (ent.isAdmin) return true;
 
-  const active = ent.subscriptions.filter((s) => s.isActive && s.endDate >= ent.now);
+  const active = ent.subscriptions.filter((s) => isActiveEntitlement(s, ent.now));
   if (active.some((s) => s.plan === 'BUNDLE')) return true;
   if (active.some((s) => s.plan === 'CATEGORY' && s.categoryId === test.categoryId && (
     s.subjectRule === 'NONE' || (

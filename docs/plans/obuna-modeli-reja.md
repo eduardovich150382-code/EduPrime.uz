@@ -1,17 +1,18 @@
 # Obuna modeli: kategoriya va fan bo'yicha obunalar — reja va Claude Code sessiyalari
 
-Holat: 2026-10-23 da kelishilgan. O1 kodi ushbu PR da tayyorlanmoqda; merge va prod migratsiyasi hali bajarilmagan.
+Holat: 2026-10-23 da kelishilgan. 2026-10-24 yangilanishi: O1–O4 merge qilingan; O5a kirish/kvota va O5b UI qismlariga ajratildi. Prod migratsiyalarini loyiha egasi qo'llaydi.
 Ishga tushirish sharti: **ikkinchi fanning attestatsiya kontenti chiqishidan oldin**. Kuzgi attestatsiya mavsumi (26-oktabr – 11-noyabr, fizika) hozirgi tarif bilan o'tadi: hozirgi ustoz tarifi amalda "Attestatsiya — Fizika", chunki attestatsiyada faqat fizika bor.
 
 Tartib: **O1 → O2 → O3 → O4 → O5**. Har sessiya = bitta branch = bitta PR (CLAUDE.md). Har promptni yangi Claude Code sessiyasiga to'liq nusxalang.
 
 | # | Sessiya | Migratsiya | Hajm | Holat |
 |---|---|---|---|---|
-| O1 | Ma'lumot modeli + kirish mantig'i (`access.ts`) | ha (additive) | katta | PR da |
-| O2 | Admin: mahsulotlar, narx va muddatlar, ruxsatlar, majburiy fanlar | ha (UserPermission unique indeksi) | o'rta | |
-| O3 | Telegram bot to'lov oqimi + admin tasdiqlash | ehtimol (Payment ustunlari) | katta | |
-| O4 | `/pricing` sahifasi | yo'q | o'rta | |
-| O5 | Funksiyalarni obuna doirasiga bog'lash (kvota, DTM Online, Bilim xaritasi, AI, yechimlar, kurslar) | yo'q | o'rta | |
+| O1 | Ma'lumot modeli + kirish mantig'i (`access.ts`) | ha (additive) | katta | merge |
+| O2 | Admin: mahsulotlar, narx va muddatlar, ruxsatlar, majburiy fanlar | ha (UserPermission unique indeksi) | o'rta | merge |
+| O3 | Telegram bot to'lov oqimi + admin tasdiqlash | ha (Payment ustunlari) | katta | merge |
+| O4 | `/pricing` sahifasi | yo'q | o'rta | merge |
+| O5a | Funksiyalarni obuna doirasiga bog'lash (kvota, DTM Online, Bilim xaritasi, AI, yechimlar, kurslar) | ha (Subject.disciplineKey) | katta | ushbu sessiya |
+| O5b | Status, Sidebar/banner, cron va admin ko'rsatkichlari | rejalashtiriladi | o'rta | O5a merge'dan keyin |
 
 ---
 
@@ -163,6 +164,12 @@ Git'da untracked fayllar bor — git add -A emas, faqat o'zgargan fayllarni nomm
 ---
 
 ## O5 — Funksiyalarni obuna doirasiga bog'lash
+
+**2026-10-24 yangilanish:** O1–O4 merge qilingan. O5 ikkiga bo'lindi:
+O5a — `feat/entitlement-scope` (kirish, kvota, disciplineKey migratsiyasi);
+O5b — `feat/entitlement-ui` (O5a merge bo'lgach alohida reja).
+Quyidagi dastlabki promptning aniqlashtirilgan qamrovi va audit jadvallari:
+[O5a tasdiqlangan reja](entitlement-scope-reja.md).
 
 ```
 Vazifa: hasActiveSubscription ga tayangan funksiyalarni yangi obuna modeliga o'tkazish — har qanday faol obuna funksiyalarni o'z kategoriyasi va fanlari doirasida ochadi. O1–O4 merge qilingan.

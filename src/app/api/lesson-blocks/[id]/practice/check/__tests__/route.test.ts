@@ -46,7 +46,14 @@ vi.mock("@/lib/api-auth", () => ({
 }));
 
 vi.mock("@/lib/access", () => ({
-  hasActiveSubscription: (...args: unknown[]) => hasActiveSubscriptionMock(...args),
+  loadFeatureEntitlements: async (...args: unknown[]) => {
+    const flags = await hasActiveSubscriptionMock(...args) as { premium: boolean; teacher: boolean };
+    return {
+      now: new Date(), permissions: [],
+      subscriptions: [flags.premium ? 'PREMIUM' : null, flags.teacher ? 'TEACHER_PLAN' : null]
+        .filter((plan) => plan !== null).map((plan) => ({ plan, isActive: true, endDate: new Date('2099-01-01') })),
+    };
+  },
 }));
 
 vi.mock("@/lib/quota", () => ({
@@ -255,7 +262,7 @@ describe("POST /api/lesson-blocks/[id]/practice/check", () => {
       const { data } = await callCheck({ sessionId: "session1", questionId: "item1", answer: studentLabel });
 
       expect(data.explanation).toBe("2+2 hisoblash");
-      expect(isSolutionUnlockedMock).toHaveBeenCalledWith("user1", "item1");
+      expect(isSolutionUnlockedMock).toHaveBeenCalledWith("user1", "item1", expect.objectContaining({ scopes: expect.any(Array) }));
     });
 
     it("Premium obunachiga explanation cheklovsiz qaytadi", async () => {

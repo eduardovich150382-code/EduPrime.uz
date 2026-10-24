@@ -3,9 +3,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { streamExplainQuestion } from '@/lib/gemini';
-import { hasActiveSubscription } from '@/lib/access';
+import { loadFeatureEntitlements } from '@/lib/access';
+import { scopeSubjectSelect, sessionFeatureScope, testFeatureScope } from '@/lib/feature-context';
+import type { FeatureScope } from '@/lib/entitlements';
 import { consumeTutorMessage, isSolutionUnlocked } from '@/lib/quota';
-import { resolveSolutionVisibility } from '@/lib/solution-visibility';
+import { resolveSolutionTiers, resolveSolutionVisibility } from '@/lib/solution-visibility';
 import { parseFillBlankAnswer } from '@/lib/fill-blank';
 import { parseMatchingAnswer, parseMatchingPairs } from '@/lib/matching';
 import { logger } from '@/lib/logger';
@@ -140,6 +142,7 @@ export async function POST(
     // bo'lsa, `null` qoladi va javob chaqiriladi, lekin KESHLANMAYDI.
     let cacheItemId: string | null = null;
     let belongsToResult = false;
+    let scope: FeatureScope = { kind: 'discipline', disciplineKey: null };
     const isTestNetwork = !!result.testId;
 
     if (isTestNetwork) {
@@ -148,11 +151,13 @@ export async function POST(
         select: {
           testId: true, text: true, options: true, correctAnswer: true, type: true,
           explanation: true, explanationImages: true, videoUrl: true,
+          test: { select: { categoryId: true, subjectId: true } },
         },
       });
       belongsToResult = !!question && question.testId === result.testId;
       if (question) {
         raw = question;
+        if (question.test) scope = testFeatureScope(question.test);
         const item = await db.item.findUnique({
           where: { legacyQuestionId: questionId },
           select: { id: true },
@@ -162,7 +167,7 @@ export async function POST(
     } else if (result.sessionId) {
       const testSession = await db.testSession.findUnique({
         where: { id: result.sessionId },
-        select: { itemIds: true },
+        select: { itemIds: true, spec: true },
       });
       belongsToResult = !!testSession && testSession.itemIds.includes(questionId);
       if (belongsToResult) {
@@ -171,10 +176,12 @@ export async function POST(
           select: {
             text: true, options: true, correctAnswer: true, type: true,
             explanation: true, explanationImages: true, videoUrl: true,
+            subject: { select: scopeSubjectSelect },
           },
         });
         if (item) {
           raw = item;
+          scope = sessionFeatureScope(testSession?.spec, item.subject);
           cacheItemId = questionId; // sessiya tarmog'ida questionId allaqachon Item.id
         }
       }
@@ -189,10 +196,11 @@ export async function POST(
     // `cacheItemId` xuddi shu qiymat, shuning uchun qayta so'rov shart emas.
     const unlockKey = isTestNetwork ? (cacheItemId ?? questionId) : questionId;
 
-    const { premium, teacher } = await hasActiveSubscription(userId);
-    const writtenUnlocked =
-      role === 'ADMIN' || premium || teacher || (await isSolutionUnlocked(userId, unlockKey));
-    const videoUnlocked = role === 'ADMIN' || premium;
+    const entitlements = await loadFeatureEntitlements(userId, role);
+    const context = { entitlements, scopes: [scope] };
+    const tiers = resolveSolutionTiers(role, entitlements, scope);
+    const writtenUnlocked = tiers.writtenUnlimited || await isSolutionUnlocked(userId, unlockKey, context);
+    const videoUnlocked = tiers.videoUnlocked;
 
     const visibility = resolveSolutionVisibility({
       explanation: raw.explanation,
@@ -258,7 +266,7 @@ export async function POST(
     }
 
     if (role !== 'ADMIN') {
-      const quota = await consumeTutorMessage(userId);
+      const quota = await consumeTutorMessage(userId, context);
       if (!quota.allowed) {
         return NextResponse.json(
           {

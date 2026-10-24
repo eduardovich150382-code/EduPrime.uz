@@ -1,6 +1,7 @@
 import { db } from './db';
 import { loadSubscriptionDetails, type DetailedEntitlements } from './subscription-details';
 import { canAccessByEntitlements, isFreeTest, type TestAccessContext, type TestAccessInfo, type UserEntitlements } from './entitlements';
+import { hasBundle, hasLegacyPlan, inScope, withoutLegacyPlans } from './entitlements';
 
 export { canAccessByEntitlements, hasAnyActiveSubscription } from './entitlements';
 export type { TestAccessContext, TestAccessInfo, UserEntitlements } from './entitlements';
@@ -15,7 +16,7 @@ export async function loadUserEntitlements(userId: string, now = new Date(), mod
     db.subscription.findMany({
       where: { userId, isActive: true, endDate: { gte: now } },
       select: {
-        plan: true, categoryId: true, subjectIds: true, isActive: true, endDate: true,
+        plan: true, categoryId: true, subjectIds: true, isActive: true, startDate: true, endDate: true,
         product: { select: { subjectRule: true } },
       },
     }),
@@ -29,6 +30,26 @@ export async function loadUserEntitlements(userId: string, now = new Date(), mod
     subscriptions: subscriptions.map(({ product, ...s }) => ({ ...s, subjectRule: product?.subjectRule ?? null })),
     permissions,
   };
+}
+
+// Doira metama'lumoti fanlar sonidan qat'i nazar bitta so'rovda olinadi.
+// Eski tarif yonidagi yangi obuna videoni ham ochishi mumkin; bunday
+// aralash holatda discipline metama'lumotini tashlab ketmaymiz.
+export async function loadFeatureEntitlements(userId: string, role?: string): Promise<UserEntitlements> {
+  const userRole = role ?? (await db.user.findUnique({ where: { id: userId }, select: { role: true } }))?.role;
+  if (userRole === 'ADMIN') return { now: new Date(), subscriptions: [], permissions: [], isAdmin: true };
+  const ent = await loadUserEntitlements(userId);
+  if (hasBundle(ent)) return ent;
+  const categoryIds = [...new Set([
+    ...ent.subscriptions.filter((s) => s.plan === 'CATEGORY' && s.categoryId).map((s) => s.categoryId as string),
+    ...ent.permissions.map((p) => p.categoryId),
+  ])];
+  if (!categoryIds.length) return ent;
+  const subjects = await db.subject.findMany({
+    where: { categoryId: { in: categoryIds } },
+    select: { id: true, categoryId: true, disciplineKey: true },
+  });
+  return { ...ent, subjects };
 }
 
 export async function checkTestAccess(
@@ -107,16 +128,23 @@ export async function loadTestAccessContext(
  */
 export async function checkCourseAccess(
   userId: string,
-  course: { id: string; accessType: string },
+  course: { id: string; accessType: string; subjectId?: string },
   role: string | undefined
 ): Promise<boolean> {
   if (role === 'ADMIN') return true;
 
-  const { premium, teacher } = await hasActiveSubscription(userId);
+  const ent = await loadUserEntitlements(userId);
+  const premium = hasLegacyPlan(ent, 'PREMIUM');
+  const teacher = hasLegacyPlan(ent, 'TEACHER_PLAN');
 
+  if (hasBundle(ent)) return true;
   if (course.accessType === 'premium' && premium) return true;
   if (course.accessType === 'teacher' && teacher) return true;
   if (course.accessType === 'premium_teacher' && (premium || teacher)) return true;
+  if (['premium', 'teacher', 'premium_teacher', 'subscription'].includes(course.accessType) && course.subjectId) {
+    const subject = await db.subject.findUnique({ where: { id: course.subjectId }, select: { categoryId: true } });
+    if (subject && inScope(withoutLegacyPlans(ent), { categoryId: subject.categoryId, subjectId: course.subjectId })) return true;
+  }
 
   if (course.accessType === 'paid') {
     const purchase = await db.purchase.findUnique({

@@ -20,6 +20,14 @@ export { DTM_TITLE_PREFIX };
 
 export const DTM_MANDATORY_SUBJECTS = ['Matematika', "Ona tili va adabiyot", 'Tarix'] as const;
 
+// Generator va kirish tekshiruvi aynan bir xil jismoniy fanlarni ko'rsin.
+export function getDtmMandatorySubjects(categoryId: string) {
+  return db.subject.findMany({
+    where: { categoryId, nameUz: { in: [...DTM_MANDATORY_SUBJECTS] } },
+    select: { id: true, categoryId: true, nameUz: true },
+  });
+}
+
 export const DTM_TOTAL_QUESTIONS = 90;
 export const DTM_DURATION_MINUTES = 180;
 export const DTM_MAX_SCORE = 189; // 30*3.1 + 30*2.1 + 30*1.1 (3x10*1.1)
@@ -58,10 +66,7 @@ export async function generateDtmOnlineExam(params: {
   if (!category) return { ok: false, error: { code: 'CATEGORY_NOT_FOUND' } };
 
   const [mandatorySubjects, specialty1, specialty2] = await Promise.all([
-    db.subject.findMany({
-      where: { categoryId: category.id, nameUz: { in: [...DTM_MANDATORY_SUBJECTS] } },
-      select: { id: true, nameUz: true },
-    }),
+    getDtmMandatorySubjects(category.id),
     db.subject.findUnique({ where: { id: specialty1SubjectId }, select: { id: true, nameUz: true } }),
     db.subject.findUnique({ where: { id: specialty2SubjectId }, select: { id: true, nameUz: true } }),
   ]);
@@ -146,7 +151,7 @@ export async function getDtmSpecialtySubjects() {
   if (!category) return [];
   return db.subject.findMany({
     where: { categoryId: category.id },
-    select: { id: true, nameUz: true, icon: true },
+    select: { id: true, categoryId: true, nameUz: true, icon: true },
     orderBy: { order: 'asc' },
   });
 }
