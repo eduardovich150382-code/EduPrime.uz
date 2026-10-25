@@ -8,16 +8,15 @@ import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import { useRouter } from 'next/navigation';
-import LatexRenderer from '@/components/ui/LatexRenderer';
 import type { AIImportedQuestion, QuestionCoreFields } from '@/types';
 import {
   ArrowLeft, Plus, Trash2, Bot,
   Save, FileUp, CheckCircle, Loader2, Send, Eye, Clock,
-  Library, BookmarkPlus, X, ShieldAlert,
+  Library, BookmarkPlus, ShieldAlert,
 } from 'lucide-react';
 import ImageUploadButton from '@/components/ui/ImageUploadButton';
-import { parseFillBlankCorrectAnswer } from '@/lib/fill-blank';
-import { parseMatchingPairs } from '@/lib/matching';
+import QuestionBankPicker from '@/components/teacher/QuestionBankPicker';
+import { bankQuestionsToDrafts, type BankQuestionChoice } from '@/lib/question/bank-selection';
 import { isQuestionValid, mapQuestionForBank, applyServerQuestionIds } from '@/lib/question-form';
 import { mapQuestionForApi } from '@/lib/question/map-for-api';
 import { applyDefaultTopic } from '@/lib/question/default-topic';
@@ -113,8 +112,6 @@ export default function CreateTestPage() {
   // DUBLIKAT TEST yaratishi mumkin edi.
   const draftTestIdRef = useRef<string | null>(null);
   const [bankPickerOpen, setBankPickerOpen] = useState(false);
-  const [bankQuestions, setBankQuestions] = useState<any[]>([]);
-  const [bankLoading, setBankLoading] = useState(false);
   const [savingToBank, setSavingToBank] = useState(false);
   const [savingAllToBank, setSavingAllToBank] = useState(false);
   // Saqlashdan oldingi dublikat ogohlantirishi — ustoz javob berguncha saqlash kutib turadi
@@ -141,51 +138,15 @@ export default function CreateTestPage() {
   };
 
   // Savollar bazasidan tanlash uchun ro'yxatni yuklaydi (test fani bo'yicha filtrlaydi)
-  const openBankPicker = async () => {
+  const openBankPicker = () => {
     setBankPickerOpen(true);
-    setBankLoading(true);
-    try {
-      const params = new URLSearchParams();
-      if (testInfo.subjectId) params.set('subjectId', testInfo.subjectId);
-      const res = await fetch(`/api/teacher/question-bank?${params.toString()}`);
-      const data = await res.json();
-      setBankQuestions(data.questions || []);
-    } catch {
-      setBankQuestions([]);
-    }
-    setBankLoading(false);
   };
 
-  const insertFromBank = (bq: any) => {
-    const isFillBlank = bq.type === 'FILL_BLANK';
-    const isMatching = bq.type === 'MATCHING';
-    const bankPairs = isMatching ? parseMatchingPairs(bq.options) : null;
-    const imported: QuestionForm = {
-      text: bq.text || '',
-      images: bq.images || [],
-      options: (bq.type === 'OPEN_ENDED' || isFillBlank || isMatching) ? [...emptyQuestion.options] : (bq.options?.length ? bq.options : [...emptyQuestion.options]),
-      correctAnswer: (isFillBlank || isMatching) ? '' : (bq.correctAnswer || ''),
-      explanation: bq.explanation || '',
-      explanationImages: [],
-      videoUrl: '',
-      type: bq.type || 'MULTIPLE_CHOICE',
-      points: 1,
-      topic: bq.topic || '',
-      bloomLevel: bq.bloomLevel || '',
-      difficulty: bq.difficulty || null,
-      blankAnswers: isFillBlank
-        ? parseFillBlankCorrectAnswer(bq.correctAnswer).map((accepted) => accepted.join(', '))
-        : [''],
-      matchingPairs: bankPairs && bankPairs.left.length >= 2
-        ? bankPairs.left.map((left, i) => ({ left, right: bankPairs.right[i] }))
-        : [{ left: '', right: '' }, { left: '', right: '' }],
-    };
-    setQuestions((prev) => {
-      const isOnlyEmpty = prev.length === 1 && !prev[0].text;
-      const next = isOnlyEmpty ? [imported] : [...prev, imported];
-      setActiveQuestion(next.length - 1);
-      return next;
-    });
+  const insertFromBank = (selected: BankQuestionChoice[]) => {
+    if (selected.length === 0) return;
+    const imported = bankQuestionsToDrafts(selected, emptyQuestion.options);
+    setActiveQuestion((isPristineDraft(questions) ? 0 : questions.length) + imported.length - 1);
+    setQuestions((prev) => mergeImported(prev, imported, isPristineDraft(prev) ? 'replace' : 'append'));
     setBankPickerOpen(false);
   };
 
@@ -1039,53 +1000,7 @@ export default function CreateTestPage() {
 
       {/* Bank picker modal */}
       {bankPickerOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setBankPickerOpen(false)}>
-          <motion.div
-            initial={{ opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl"
-          >
-            <div className="flex items-center justify-between p-4 border-b border-border">
-              <h3 className="font-semibold text-text-primary flex items-center gap-2">
-                <Library size={18} className="text-primary-600" /> Savollar bazasidan tanlash
-              </h3>
-              <button onClick={() => setBankPickerOpen(false)} className="p-1.5 rounded-lg hover:bg-gray-100 text-text-secondary">
-                <X size={18} />
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-4 space-y-2">
-              {bankLoading ? (
-                <div className="flex items-center justify-center py-10"><Loader2 size={24} className="animate-spin text-primary-600" /></div>
-              ) : bankQuestions.length === 0 ? (
-                <div className="text-center py-10 text-sm text-text-secondary">
-                  <p>Bazada {testInfo.subjectId ? 'shu fan bo\'yicha' : ''} savol topilmadi.</p>
-                  <Link href="/teacher/question-bank" className="text-primary-600 hover:underline text-sm mt-2 inline-block">
-                    Savollar bazasiga o&apos;tish
-                  </Link>
-                </div>
-              ) : (
-                bankQuestions.map((bq) => (
-                  <div key={bq.id} className="flex items-start justify-between gap-3 p-3 rounded-xl border border-border hover:border-primary-200 transition-colors">
-                    <div className="flex-1 min-w-0">
-                      {bq.topic && <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 mr-1.5">{bq.topic}</span>}
-                      <div className="text-sm text-text-primary mt-1">
-                        <LatexRenderer content={bq.text} />
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => insertFromBank(bq)}
-                      className="flex-shrink-0 p-2 rounded-lg bg-primary-50 text-primary-600 hover:bg-primary-100 transition-colors"
-                      title="Testga qo'shish"
-                    >
-                      <Plus size={16} />
-                    </button>
-                  </div>
-                ))
-              )}
-            </div>
-          </motion.div>
-        </div>
+        <QuestionBankPicker subjectId={testInfo.subjectId} onAdd={insertFromBank} onClose={() => setBankPickerOpen(false)} />
       )}
     </div>
   );

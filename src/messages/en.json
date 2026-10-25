@@ -1,4 +1,25 @@
 {
+  "questionBankPicker": {
+    "title": "Select from question bank",
+    "close": "Close",
+    "search": "Search questions or topics",
+    "selectVisible": "Select displayed ({count})",
+    "selectOne": "Select question: {text}",
+    "selected": "Selected: {count}",
+    "add": "Add selected ({count})",
+    "loading": "Loading questions",
+    "empty": "No questions match this search.",
+    "error": "Could not load questions.",
+    "retry": "Try again"
+  },
+  "questionBankBulk": {
+    "selectVisible": "Select displayed questions ({count})",
+    "selectOne": "Select question: {text}",
+    "remove": "Delete selected ({count})",
+    "confirm": "Delete the selected {count} questions from the bank? This cannot be undone.",
+    "deleted": "Deleted {count} questions.",
+    "error": "Could not delete the questions. Please try again."
+  },
   "imageUpload": {
     "formats": "PNG, JPEG, WebP, AVIF or SVG. Large PNG/JPEG/WebP images are compressed automatically."
   },
@@ -497,6 +518,8 @@
     "jsonPasteHint": "Ask the chat to return the questions as JSON and paste it here. This mode does not call the AI — no quota, no length limit.",
     "jsonPastePlaceholder": "Paste the JSON from your chat here...",
     "jsonApply": "Read JSON",
+    "jsonUploadingImages": "Uploading images to UploadThing…",
+    "jsonImageUploadError": "Could not upload images to UploadThing. No questions were added. Please try again.",
     "jsonCopyInstruction": "Copy chat instruction",
     "jsonCopied": "Instruction copied — paste it into the chat.",
     "jsonCopyFailed": "Could not copy. Select the text manually.",
