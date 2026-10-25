@@ -20,7 +20,11 @@ interface ImageUploadButtonProps {
  * bo'lsa base64 data URL'ga qaytadi). ImageUploadButton ham, drag-drop/paste
  * handlerlari ham shu funksiyani ishlatadi — yuklash mantig'i bitta joyda.
  */
-export async function uploadImageFile(file: File, endpoint: ImageUploadEndpoint): Promise<string> {
+export async function uploadImageFile(
+  file: File,
+  endpoint: ImageUploadEndpoint,
+  options: { allowDataUrlFallback?: boolean } = {},
+): Promise<string> {
   file = normalizeImageFile(file);
   const maxSize = endpoint === 'optionImage' ? 1 * 1024 * 1024 : 2 * 1024 * 1024;
   // Juda katta fayl telefon xotirasini band qilmasin; odatiy rasm avval siqiladi.
@@ -45,6 +49,9 @@ export async function uploadImageFile(file: File, endpoint: ImageUploadEndpoint)
   } catch {
     // fall through to base64 fallback below
   }
+
+  // JSON importi yana base64 saqlab, bazani og'irlashtirib qo'ymasligi kerak.
+  if (options.allowDataUrlFallback === false) throw new Error('IMAGE_UPLOAD_FAILED');
 
   // Fallback: convert to base64 data URL for local preview
   return new Promise((resolve, reject) => {

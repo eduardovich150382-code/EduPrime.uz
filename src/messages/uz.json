@@ -1,4 +1,25 @@
 {
+  "questionBankPicker": {
+    "title": "Savollar bazasidan tanlash",
+    "close": "Yopish",
+    "search": "Savol yoki mavzu bo‘yicha qidirish",
+    "selectVisible": "Ko‘rsatilganlarni tanlash ({count})",
+    "selectOne": "Savolni tanlash: {text}",
+    "selected": "Tanlangan: {count}",
+    "add": "Tanlanganlarni qo‘shish ({count})",
+    "loading": "Savollar yuklanmoqda",
+    "empty": "Bu qidiruv bo‘yicha savol topilmadi.",
+    "error": "Savollarni yuklab bo‘lmadi.",
+    "retry": "Qayta urinish"
+  },
+  "questionBankBulk": {
+    "selectVisible": "Ko‘rsatilgan savollarni tanlash ({count})",
+    "selectOne": "Savolni tanlash: {text}",
+    "remove": "Tanlanganlarni o‘chirish ({count})",
+    "confirm": "Tanlangan {count} ta savolni savollar bazasidan o‘chirasizmi? Bu amalni qaytarib bo‘lmaydi.",
+    "deleted": "{count} ta savol o‘chirildi.",
+    "error": "Savollarni o‘chirib bo‘lmadi. Qayta urinib ko‘ring."
+  },
   "imageUpload": {
     "formats": "PNG, JPEG, WebP, AVIF yoki SVG. Katta PNG/JPEG/WebP rasmlar avtomatik siqiladi."
   },
@@ -497,6 +518,8 @@
     "jsonPasteHint": "Savollarni chatda JSON qilib so’ratib oling va shu yerga qo’ying. Bu rejimda AI chaqirilmaydi — kvota ham, uzunlik chegarasi ham yo’q.",
     "jsonPastePlaceholder": "Chatdan olingan JSON ni shu yerga qo’ying...",
     "jsonApply": "JSON ni o’qish",
+    "jsonUploadingImages": "Rasmlar UploadThing’ga yuklanmoqda…",
+    "jsonImageUploadError": "Rasmlarni UploadThing’ga yuklab bo‘lmadi. Savollar qo‘shilmadi. Qayta urinib ko‘ring.",
     "jsonCopyInstruction": "Chat uchun ko’rsatmani nusxalash",
     "jsonCopied": "Ko’rsatma nusxalandi — chatga qo’ying.",
     "jsonCopyFailed": "Nusxalab bo’lmadi. Matnni qo’lda belgilab nusxalang.",

@@ -9,6 +9,8 @@ import { CHAT_JSON_SCHEMA } from '@/lib/import/chat-schema';
 import { MAX_PASTED_QUESTIONS, type PastedParseResult } from '@/lib/import/pasted-json';
 import { MAX_OPTIONS, MIN_OPTIONS } from '@/lib/import/option-labels';
 import { submitImport } from '@/lib/import/submit-import';
+import { uploadInlineImages } from '@/lib/import/upload-inline-images';
+import { uploadImageFile } from '@/components/ui/ImageUploadButton';
 
 /** Shundan past ishonchlilikdagi savollar "tekshiring" deb ajratiladi — teacher e'tibori shu tomonga yo'naltirilsin. */
 export const LOW_CONFIDENCE_THRESHOLD = 0.85;
@@ -65,6 +67,9 @@ export default function AiImportPanel({
   const [mode, setMode] = useState<'ai' | 'json'>('ai');
   const [jsonText, setJsonText] = useState('');
   const [jsonResult, setJsonResult] = useState<PastedParseResult | null>(null);
+  const [jsonUploading, setJsonUploading] = useState(false);
+  const [jsonUploadError, setJsonUploadError] = useState(false);
+  const imageCache = useRef(new Map<string, string>());
   const [copyNote, setCopyNote] = useState<string | null>(null);
   const aiImageInputRef = useRef<HTMLInputElement | null>(null);
   const aiFileInputRef = useRef<HTMLInputElement | null>(null);
@@ -113,11 +118,26 @@ export default function AiImportPanel({
   };
 
   const handleJsonImport = async () => {
+    if (jsonUploading) return;
     setCopyNote(null);
-    // Server chaqirilmaydi — natija darhol keladi.
-    const result = await submitImport({ mode: 'json', text: jsonText }, { fetchFn: fetch });
-    setJsonResult(result as PastedParseResult & typeof result);
-    if (result.questions.length > 0) onImported(result.questions);
+    setJsonResult(null);
+    setJsonUploadError(false);
+    setJsonUploading(true);
+    try {
+      // Gemini kerak emas; faqat ichki rasmlar UploadThing'ga yuboriladi.
+      const result = await submitImport({ mode: 'json', text: jsonText }, { fetchFn: fetch });
+      if (result.questions.length > 0) {
+        const questions = await uploadInlineImages(result.questions,
+          (file, endpoint) => uploadImageFile(file, endpoint, { allowDataUrlFallback: false }),
+          imageCache.current);
+        onImported(questions);
+      }
+      setJsonResult(result as PastedParseResult & typeof result);
+    } catch {
+      setJsonUploadError(true);
+    } finally {
+      setJsonUploading(false);
+    }
   };
 
   const copyInstruction = async () => {
@@ -204,6 +224,7 @@ ${CHAT_JSON_SCHEMA}`);
         <button
           type="button"
           onClick={() => switchMode('ai')}
+          disabled={jsonUploading}
           className={`flex-1 min-h-11 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors ${
             mode === 'ai' ? 'bg-white shadow-sm text-text-primary' : 'text-text-secondary'
           }`}
@@ -349,6 +370,7 @@ ${CHAT_JSON_SCHEMA}`);
 
           <textarea
             value={jsonText}
+            disabled={jsonUploading}
             onChange={(e) => setJsonText(e.target.value)}
             placeholder={t('jsonPastePlaceholder')}
             rows={12}
@@ -358,12 +380,15 @@ ${CHAT_JSON_SCHEMA}`);
           <div className="flex justify-end">
             <button
               onClick={handleJsonImport}
-              disabled={!jsonText.trim()}
+              disabled={!jsonText.trim() || jsonUploading}
               className="btn-primary flex items-center gap-2 min-h-11 disabled:opacity-50"
             >
-              <Braces size={16} /> {t('jsonApply')}
+              {jsonUploading ? <Loader2 size={16} className="animate-spin" /> : <Braces size={16} />}
+              {jsonUploading ? t('jsonUploadingImages') : t('jsonApply')}
             </button>
           </div>
+
+          {jsonUploadError && <p role="alert" className="text-sm text-red-700">{t('jsonImageUploadError')}</p>}
 
           {/* Muammolar — hech bir savol qo'shilmagan. `getAiImportStatus` bu
               yerda ishlatilmaydi: uning kirishi `AIImportResult`, bu yerda

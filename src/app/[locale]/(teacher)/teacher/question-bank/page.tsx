@@ -16,6 +16,7 @@ import AiImportPanel, { LOW_CONFIDENCE_THRESHOLD } from '@/components/teacher/Ai
 import ImportImageAttach from '@/components/teacher/ImportImageAttach';
 import QuestionPreviewList from '@/components/teacher/QuestionPreviewList';
 import ImportMergeDialog from '@/components/teacher/ImportMergeDialog';
+import QuestionBankBulkDelete, { BankQuestionCheckbox } from '@/components/teacher/QuestionBankBulkDelete';
 import { toImportedCore } from '@/lib/import/imported-question';
 import { incomingDuplicates, isPristineDraft, mergeImported, type ImportMergeMode } from '@/lib/import/merge-imported';
 
@@ -430,9 +431,11 @@ export default function QuestionBankPage() {
         </div>
       ) : (
         <div className="space-y-3">
+          <QuestionBankBulkDelete questions={questions} onDeleted={fetchQuestions}>
           {questions.map((q) => (
             <div key={q.id} className="card p-4">
               <div className="flex items-start justify-between gap-3">
+                <BankQuestionCheckbox id={q.id} text={q.text} />
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-1.5 mb-2">
                     <span className="text-xs px-2 py-0.5 rounded-full bg-primary-50 text-primary-700 font-medium">
@@ -464,6 +467,7 @@ export default function QuestionBankPage() {
               </div>
             </div>
           ))}
+          </QuestionBankBulkDelete>
         </div>
       )}
 
