@@ -5,6 +5,7 @@ import { db } from '@/lib/db';
 import { MAX_IMPORT_ASSET_BYTES } from '@/lib/import/constants';
 import { requireOwnedJob } from '@/lib/import-jobs';
 import { logger } from '@/lib/logger';
+import { IMPORT_IMAGE_TYPES, normalizeImageFile } from '@/lib/image-formats';
 
 const utapi = new UTApi();
 
@@ -16,12 +17,6 @@ const utapi = new UTApi();
  * yuboradi), S7 da ustoz draftni asl sahifa bilan yonma-yon ko'radi.
  */
 const ASSET_KINDS = ['FIGURE', 'OPTION', 'SKIPPED', 'PAGE'];
-
-/**
- * PNG — skript shunday yozadi. JPEG — 2 MB dan oshgan rasmni klient qayta
- * kodlaydi (lib/import/manifest-client.ts#fitAsset).
- */
-const ASSET_TYPES = ['image/png', 'image/jpeg'];
 
 /** Prisma unique-constraint xatosi (quota.ts dagi bilan bir xil naqsh). */
 function isUniqueConstraintError(err: unknown): boolean {
@@ -59,12 +54,13 @@ export async function POST(
     if (error) return error;
 
     const formData = await request.formData();
-    const file = formData.get('file');
-    if (!(file instanceof File)) {
+    const input = formData.get('file');
+    if (!(input instanceof File)) {
       return NextResponse.json({ error: 'file majburiy' }, { status: 400 });
     }
-    if (!ASSET_TYPES.includes(file.type)) {
-      return NextResponse.json({ error: 'Faqat PNG yoki JPEG qabul qilinadi' }, { status: 400 });
+    const file = normalizeImageFile(input);
+    if (!IMPORT_IMAGE_TYPES.includes(file.type)) {
+      return NextResponse.json({ error: 'Unsupported image format' }, { status: 400 });
     }
     if (file.size > MAX_IMPORT_ASSET_BYTES) {
       return NextResponse.json({ error: 'Rasm 2 MB dan oshmasligi kerak' }, { status: 400 });

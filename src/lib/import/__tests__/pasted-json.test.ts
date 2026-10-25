@@ -67,6 +67,19 @@ describe("parsePastedQuestions — chat shakli", () => {
 });
 
 describe("parsePastedQuestions — yechim rasmlari", () => {
+  it.each(['webp', 'avif', 'svg+xml'])('%s data URI savol, variant va yechimda saqlanadi', (format) => {
+    const image = `data:image/${format};base64,YWJj`;
+    const raw = apiItem({
+      images: [image], explanationImages: [image],
+      options: [{ text: 'A', image }, { text: 'B', image: null }],
+    });
+    const result = parsePastedQuestions(JSON.stringify([raw]));
+    expect(result.problems).toEqual([]);
+    expect(result.questions[0].images).toEqual([image]);
+    expect(result.questions[0].options[0].image).toBe(image);
+    expect(result.questions[0].explanationImages).toEqual([image]);
+  });
+
   it("explanationImages ni o'tkazadi, satr bo'lmaganlarini tashlaydi", () => {
     const raw = JSON.stringify([
       chatItem({ images: ["/savol-rasm/a.svg"], explanationImages: ["/savol-rasm/a-yechim.svg", 5] }),

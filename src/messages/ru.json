@@ -1,4 +1,7 @@
 {
+  "imageUpload": {
+    "formats": "PNG, JPEG, WebP, AVIF или SVG. Большие изображения PNG/JPEG/WebP сжимаются автоматически."
+  },
   "subscriptionUi": {
     "active": "Активные подписки",
     "until": "до {date}",

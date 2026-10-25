@@ -2,6 +2,9 @@
 
 import { useState, useRef } from 'react';
 import { Image, X, Loader2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { normalizeImageFile } from '@/lib/image-formats';
+import { compactImageFile } from '@/lib/image-compression';
 
 type ImageUploadEndpoint = 'questionImage' | 'optionImage' | 'solutionImage';
 
@@ -18,7 +21,10 @@ interface ImageUploadButtonProps {
  * handlerlari ham shu funksiyani ishlatadi — yuklash mantig'i bitta joyda.
  */
 export async function uploadImageFile(file: File, endpoint: ImageUploadEndpoint): Promise<string> {
+  file = normalizeImageFile(file);
   const maxSize = endpoint === 'optionImage' ? 1 * 1024 * 1024 : 2 * 1024 * 1024;
+  // Juda katta fayl telefon xotirasini band qilmasin; odatiy rasm avval siqiladi.
+  if (file.size <= 16 * 1024 * 1024) file = await compactImageFile(file);
   if (file.size > maxSize) {
     throw new Error(`Rasm hajmi ${endpoint === 'optionImage' ? '1' : '2'} MB dan oshmasligi kerak`);
   }
@@ -55,7 +61,8 @@ export function extractPastedImageFile(e: React.ClipboardEvent): File | null {
   if (!items) return null;
   for (let i = 0; i < items.length; i++) {
     if (items[i].type.startsWith('image/')) {
-      return items[i].getAsFile();
+      const file = items[i].getAsFile();
+      return file ? normalizeImageFile(file) : null;
     }
   }
   return null;
@@ -63,7 +70,8 @@ export function extractPastedImageFile(e: React.ClipboardEvent): File | null {
 
 /** Sudrab tashlangan rasm faylini oladi (drag & drop uchun) */
 export function extractDroppedImageFile(e: React.DragEvent): File | null {
-  const file = e.dataTransfer?.files?.[0];
+  const original = e.dataTransfer?.files?.[0];
+  const file = original ? normalizeImageFile(original) : null;
   return file && file.type.startsWith('image/') ? file : null;
 }
 
@@ -78,11 +86,13 @@ export default function ImageUploadButton({
   label = 'Rasm',
 }: ImageUploadButtonProps) {
   const [uploading, setUploading] = useState(false);
+  const t = useTranslations('imageUpload');
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const original = e.target.files?.[0];
+    if (!original) return;
+    const file = normalizeImageFile(original);
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
@@ -110,7 +120,7 @@ export default function ImageUploadButton({
       <input
         ref={inputRef}
         type="file"
-        accept="image/*"
+        accept="image/*,.webp,.avif,.svg"
         onChange={handleFileChange}
         className="hidden"
       />
@@ -119,7 +129,7 @@ export default function ImageUploadButton({
         onClick={() => inputRef.current?.click()}
         disabled={uploading}
         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200 transition-all disabled:opacity-50"
-        title={`${label} yuklash`}
+        title={t('formats')}
       >
         {uploading ? (
           <Loader2 size={14} className="animate-spin" />

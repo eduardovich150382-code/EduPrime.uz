@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { UTApi } from 'uploadthing/server';
 import { logger } from '@/lib/logger';
+import { normalizeImageFile } from '@/lib/image-formats';
 
 const utapi = new UTApi();
 
@@ -19,7 +20,8 @@ export async function POST(request: NextRequest) {
     }
 
     const formData = await request.formData();
-    const file = formData.get('file') as File | null;
+    const input = formData.get('file');
+    const file = input instanceof File ? normalizeImageFile(input) : null;
     const endpoint = request.nextUrl.searchParams.get('endpoint');
 
     if (!file) {

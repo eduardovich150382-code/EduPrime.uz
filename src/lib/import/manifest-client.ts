@@ -1,4 +1,5 @@
 import { unzipSync } from 'fflate';
+import { compactImageBlob } from '@/lib/image-compression';
 import { ASSET_JPEG_QUALITY, MAX_IMPORT_ASSET_BYTES } from './constants';
 import { shrinkPlan, type PixelSize } from './image-budget';
 import type { UploadGroup } from './grouping';
@@ -126,7 +127,7 @@ async function encodeJpeg(bitmap: ImageBitmap, size: PixelSize): Promise<Blob | 
 }
 
 /**
- * PNG'ni `/assets` chegarasiga sig'diradi: sig'sa o'zicha, aks holda JPEG,
+ * PNG avval ixcham WebP ga o'tadi; sig'masa JPEG,
  * keyin `shrinkPlan` bo'yicha kichraytirish. Sig'masa `null` — chaqiruvchi
  * o'tkazib yuboradi va yakunda aytadi.
  */
@@ -134,8 +135,9 @@ export async function fitAsset(bytes: Uint8Array): Promise<FittedImage | null> {
   const png = toBlob(bytes, 'image/png');
   const bitmap = await createImageBitmap(png);
   try {
-    if (png.size <= MAX_IMPORT_ASSET_BYTES) {
-      return { blob: png, widthPx: bitmap.width, heightPx: bitmap.height };
+    const compact = await compactImageBlob(png, bitmap);
+    if (compact.size <= MAX_IMPORT_ASSET_BYTES) {
+      return { blob: compact, widthPx: bitmap.width, heightPx: bitmap.height };
     }
     for (const size of shrinkPlan(bitmap.width, bitmap.height)) {
       const jpeg = await encodeJpeg(bitmap, size);
@@ -171,7 +173,7 @@ export async function uploadAsset(
   input: { page: number; bbox: BBox; image: FittedImage; kind: ManifestAssetKind },
 ): Promise<string | null> {
   const { page, bbox, image, kind } = input;
-  const ext = image.blob.type === 'image/jpeg' ? 'jpg' : 'png';
+  const ext = image.blob.type === 'image/webp' ? 'webp' : image.blob.type === 'image/jpeg' ? 'jpg' : 'png';
   const form = new FormData();
   form.set('file', new File([image.blob], `p${page}.${ext}`, { type: image.blob.type }));
   form.set('page', String(page));

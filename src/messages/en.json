@@ -1,4 +1,7 @@
 {
+  "imageUpload": {
+    "formats": "PNG, JPEG, WebP, AVIF or SVG. Large PNG/JPEG/WebP images are compressed automatically."
+  },
   "subscriptionUi": {
     "active": "Active subscriptions",
     "until": "until {date}",
