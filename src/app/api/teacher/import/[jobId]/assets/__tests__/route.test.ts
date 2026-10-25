@@ -169,7 +169,7 @@ describe("POST /api/teacher/import/[jobId]/assets", () => {
     await expect(response.json()).resolves.toMatchObject({ assetId: "asset-race", deduped: true });
   });
 
-  it("PNG yoki JPEG bo'lmagan faylni rad etadi", async () => {
+  it("importda qo'llanmaydigan GIF faylni rad etadi", async () => {
     const gif = new File([PNG_BYTES], "x.gif", { type: "image/gif" });
 
     const response = await POST(post(gif), { params });
@@ -185,6 +185,16 @@ describe("POST /api/teacher/import/[jobId]/assets", () => {
 
     expect(response.status).toBe(200);
     expect(uploadFilesMock).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    ['webp', 'image/webp'], ['avif', 'image/avif'], ['svg', 'image/svg+xml'],
+  ])('%s rasmini o\'zgartirmasdan saqlaydi', async (extension, type) => {
+    const file = new File(['image bytes'], `figure.${extension}`, { type });
+    const response = await POST(post(file), { params });
+    expect(response.status).toBe(200);
+    expect(uploadFilesMock.mock.calls[0][0].type).toBe(type);
+    expect(await uploadFilesMock.mock.calls[0][0].text()).toBe('image bytes');
   });
 
   it("sahifa aksini PAGE turi bilan saqlaydi", async () => {

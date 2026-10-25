@@ -1,4 +1,7 @@
 {
+  "imageUpload": {
+    "formats": "PNG, JPEG, WebP, AVIF yoki SVG. Katta PNG/JPEG/WebP rasmlar avtomatik siqiladi."
+  },
   "subscriptionUi": {
     "active": "Faol obunalar",
     "until": "{date}gacha",
