@@ -10,6 +10,7 @@ import { isPhysicsSubject, shufflePresentedQuestions } from '@/lib/exam-presenta
 import { CLOCK_KEY_PREFIX, DRAFT_KEY_PREFIX, getDraftResumeMode, restoreTestDraft } from '@/lib/test-draft';
 import ExpiredDraftNotice from '@/components/test/ExpiredDraftNotice';
 import TestLockedNotice, { type TestAccessDenied } from '@/components/test/TestLockedNotice';
+import PracticeSolve from '@/components/test/PracticeSolve';
 import BackButton from '@/components/ui/BackButton';
 import { withReturnTo, sanitizeReturnPath } from '@/lib/safe-return-path';
 import { AlertCircle, Loader2 } from 'lucide-react';
@@ -38,7 +39,20 @@ interface TestData {
   subject: { nameUz: string };
 }
 
+// `?practice=<resultId>` — xatolar ustida mashq. Alohida komponent: asosiy
+// oqimdagi soat (`test_clock_`), qoralama (`test_progress_`) va muddati o'tgan
+// qoralama ekrani mashqda umuman ishga tushmaydi.
 export default function TestSolvePage() {
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const practiceResultId = searchParams.get('practice');
+  if (practiceResultId) {
+    return <PracticeSolve key={practiceResultId} testId={params.id as string} resultId={practiceResultId} returnTo={sanitizeReturnPath(searchParams.get('returnTo'))} />;
+  }
+  return <TestSolveExam />;
+}
+
+function TestSolveExam() {
   const exam = useTranslations('exam');
   const router = useRouter();
   const params = useParams();

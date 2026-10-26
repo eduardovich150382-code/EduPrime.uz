@@ -13,6 +13,8 @@ export interface TestAccessDenied {
 }
 
 // Pullik test kirish huquqisiz ochilganda ko'rsatiladigan "Test yopiq" ekrani.
+// Xatolar ustida mashq ham shuni ko'rsatadi — obuna tugagan bo'lsa mashq
+// orqali ham kirib bo'lmaydi.
 export default function TestLockedNotice({ testId, accessDenied }: { testId: string; accessDenied: TestAccessDenied }) {
   const exam = useTranslations('exam');
   // Jumla to'liq holda tarjima qilinadi — ruschada so'z tartibi boshqa,

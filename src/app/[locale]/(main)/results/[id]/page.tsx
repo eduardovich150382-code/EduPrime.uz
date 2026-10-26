@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { useSession } from 'next-auth/react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import LatexRenderer from '@/components/ui/LatexRenderer';
@@ -14,6 +15,7 @@ import ResultAnswerReview from '@/components/test/ResultAnswerReview';
 import ResultRetakeFooter, { RETAKE_BUTTON_CLASS, SECONDARY_BUTTON_CLASS } from '@/components/test/ResultRetakeFooter';
 import { buildAttemptHistory, testsHrefForType, type AttemptHistory } from '@/lib/result-attempts';
 import { hasExamAnswer, restoreQuestionOrder } from '@/lib/exam-presentation';
+import { getPracticeLink } from '@/lib/retake-wrong';
 import QuotaUpsellDialog from '@/components/premium/QuotaUpsellDialog';
 import { AttestationMessage, AttestationRings, type AttestationResultInfo } from '@/components/attestation/AttestationResult';
 import { DTM_TITLE_PREFIX } from '@/lib/dtm-online-shared';
@@ -23,7 +25,7 @@ import {
   Video, FileText, ArrowLeft, Share2, RotateCcw,
   Loader2, AlertCircle, Play,
   X, Copy, ExternalLink, Filter, Bookmark, BarChart3, Bot,
-  Lock, Unlock, Crown, Sparkles, ThumbsUp, ThumbsDown, TrendingUp, BookOpen,
+  Lock, Unlock, Crown, Sparkles, Target, ThumbsUp, ThumbsDown, TrendingUp, BookOpen,
 } from 'lucide-react';
 
 interface QuestionOption {
@@ -97,6 +99,7 @@ export default function ResultPage() {
   const t = useTranslations('results');
   const exam = useTranslations('exam');
   const reduceMotion = useReducedMotion();
+  const { data: session } = useSession();
   // Kurs darsidagi testdan kelingan bo'lsa (qarang `tests/[id]/solve`),
   // "ortga" tugmasi aynan shu darsga qaytsin — tekshirilgan holda.
   const returnTo = sanitizeReturnPath(searchParams.get('returnTo'));
@@ -427,6 +430,13 @@ export default function ResultPage() {
   const backLabel = returnTo ? t('backToLesson') : (result.sessionId ? (isDtmResult ? t('backToDtm') : t('backToBuild')) : t('backToTests'));
   // Darsdan kelingan bo'lsa qayta yechishdan keyin ham natija darsga qaytara olsin
   const retakeHref = result.testId ? withReturnTo(`/tests/${result.testId}/solve`, returnTo) : null;
+  // N xaritadagi "Xato + Javob berilmagan" bilan bir manbadan: shu sahifadagi savollar va javoblar.
+  const practice = getPracticeLink({
+    resultId: result.id, testId: result.testId, resultUserId: result.userId, viewerId: session?.user?.id,
+    answers: result.answers, testQuestionIds: result.test.questions.map(q => q.id), returnTo,
+  });
+  const practiceHref = practice?.href ?? null;
+  const practiceCount = practice?.count ?? 0;
 
   return (
     <div className="mx-auto w-full min-w-0 max-w-7xl space-y-6">
@@ -472,6 +482,12 @@ export default function ResultPage() {
               <Link href={retakeHref} className={RETAKE_BUTTON_CLASS}>
                 <RotateCcw size={20} aria-hidden="true" />
                 {t('retake')}
+              </Link>
+            )}
+            {practiceHref && (
+              <Link href={practiceHref} className={SECONDARY_BUTTON_CLASS}>
+                <Target size={16} aria-hidden="true" />
+                {t('retakeWrongOnly', { count: practiceCount })}
               </Link>
             )}
             <button
@@ -1043,7 +1059,7 @@ export default function ResultPage() {
       </motion.div>
 
       {retakeHref && (
-        <ResultRetakeFooter retakeHref={retakeHref} backHref={backHref} backLabel={backLabel}
+        <ResultRetakeFooter retakeHref={retakeHref} practiceHref={practiceHref} practiceCount={practiceCount} backHref={backHref} backLabel={backLabel}
           history={attempts} currentId={result.id} returnTo={returnTo} />
       )}
 

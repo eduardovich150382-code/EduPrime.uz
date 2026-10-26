@@ -240,6 +240,7 @@
     "distractorWhyLabel": "Почему этот ответ неверный:",
     "wasHelpful": "Это было полезно?",
     "retake": "Пройти заново",
+    "retakeWrongOnly": "Перерешать только ошибки ({count})",
     "retakeTitle": "Хотите улучшить результат?",
     "retakeSubtitle": "Разберите ошибки и пройдите тест заново.",
     "attempt": "Попытка {number}",
@@ -648,7 +649,20 @@
     },
     "legendCorrect": "Верно ({count})",
     "legendIncorrect": "Неверно ({count})",
-    "legendUnanswered": "Без ответа ({count})"
+    "legendUnanswered": "Без ответа ({count})",
+    "practice": {
+      "badge": "Работа над ошибками · {count, plural, one {# вопрос} few {# вопроса} many {# вопросов} other {# вопроса}}",
+      "note": "Это тренировка: основной результат, рейтинг и статистика не изменятся.",
+      "loading": "Загрузка тренировки…",
+      "loadError": "Не удалось загрузить тренировку.",
+      "nothingToPractice": "В этом результате не осталось вопросов для повторного решения.",
+      "checkError": "Не удалось проверить ответы. Попробуйте ещё раз.",
+      "resultTitle": "Результат тренировки",
+      "summary": "Верно {correct} из {total}",
+      "retryRemaining": "Перерешать оставшиеся ошибки ({count})",
+      "backToResult": "Вернуться к результату",
+      "moreOnResult": "Объяснение ИИ и закрытые решения — на странице результата."
+    }
   },
   "tests": {
     "title": "Тесты",

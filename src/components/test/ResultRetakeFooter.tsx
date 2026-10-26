@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { ArrowLeft, RotateCcw } from 'lucide-react';
+import { ArrowLeft, RotateCcw, Target } from 'lucide-react';
 import { Link } from '@/i18n/routing';
 import { withReturnTo } from '@/lib/safe-return-path';
 import type { AttemptHistory } from '@/lib/result-attempts';
@@ -16,8 +16,11 @@ export const SECONDARY_BUTTON_CLASS =
 
 // Uzun tahlilni o'qib bo'lgan foydalanuvchi qayta yechish uchun tepaga
 // qaytmasin — shu blok savollar tahlilidan keyin turadi.
-export default function ResultRetakeFooter({ retakeHref, backHref, backLabel, history, currentId, returnTo }: {
+export default function ResultRetakeFooter({ retakeHref, practiceHref = null, practiceCount = 0, backHref, backLabel, history, currentId, returnTo }: {
   retakeHref: string;
+  /** "Faqat xatolarni qayta yechish" — ikkinchi darajali, asosiy tugma bilan raqobatlashmaydi. */
+  practiceHref?: string | null;
+  practiceCount?: number;
   backHref: string;
   backLabel: string;
   history: AttemptHistory | null;
@@ -48,12 +51,17 @@ export default function ResultRetakeFooter({ retakeHref, backHref, backLabel, hi
         <p className="mt-1 text-sm text-text-secondary">{t('retakeSubtitle')}</p>
       )}
     </div>
-    {/* Mobilda asosiy tugma tepada (birinchi ko'rinadi), desktopda o'ngda */}
-    <div className="mt-4 flex flex-col-reverse gap-3 sm:mt-0 sm:w-auto sm:shrink-0 sm:flex-row sm:items-center">
+    {/* Mobilda asosiy tugma tepada (birinchi ko'rinadi), desktopda o'ngda.
+        Mashq tugmasi bilan uchta tugma planshetda sig'masa — keyingi qatorga o'tadi. */}
+    <div className={`mt-4 flex flex-col-reverse gap-3 sm:mt-0 sm:w-auto sm:flex-row sm:items-center ${practiceHref ? 'sm:min-w-0 sm:flex-wrap sm:justify-end' : 'sm:shrink-0'}`}>
       <Link href={backHref} className={`${SECONDARY_BUTTON_CLASS} sm:min-h-14 sm:w-auto`}>
         <ArrowLeft size={16} aria-hidden="true" />
         {backLabel}
       </Link>
+      {practiceHref && <Link href={practiceHref} className={`${SECONDARY_BUTTON_CLASS} sm:min-h-14 sm:w-auto`}>
+        <Target size={16} aria-hidden="true" />
+        {t('retakeWrongOnly', { count: practiceCount })}
+      </Link>}
       <Link href={retakeHref} className={`${RETAKE_BUTTON_CLASS} sm:w-auto`}>
         <RotateCcw size={20} aria-hidden="true" />
         {t('retake')}

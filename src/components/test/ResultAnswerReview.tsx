@@ -23,7 +23,9 @@ export interface ReviewQuestion {
 }
 
 // Bitta savol bo'yicha foydalanuvchi javobi va to'g'ri javobni tur bo'yicha
-// (FILL_BLANK, OPEN_ENDED, MATCHING, variantli) chizadi.
+// (FILL_BLANK, OPEN_ENDED, MATCHING, variantli) chizadi. Natija sahifasi va
+// xatolar ustida mashq natijasi shu bitta komponentni ishlatadi — ko'rinish
+// ikki joyda alohida yashab, vaqt o'tib bir-biridan uzoqlashmasin.
 export default function ResultAnswerReview({ question, userAnswer, isCorrect, isSkipped }: {
   question: ReviewQuestion;
   userAnswer: string;

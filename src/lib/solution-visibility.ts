@@ -92,7 +92,11 @@ export function resolveSolutionTiers(
   };
 }
 
-/** `explanation`/`explanationImages`/`videoUrl`ni qulf holatiga qarab almashtiradi, qolgan maydonlarga tegmaydi. */
+/**
+ * `explanation`/`explanationImages`/`videoUrl`ni qulf holatiga qarab almashtiradi, qolgan maydonlarga tegmaydi.
+ * `GET /api/results/[id]` va xatolar ustida mashq tekshiruvi (`practice-check`) shu bitta funksiyani
+ * chaqiradi — mashq natija sahifasida ko'rinadigandan ortiq yechim ochmasligi shu bilan kafolatlanadi.
+ */
 export function applySolutionVisibility<T extends RawSolutionData>(
   question: T,
   opts: { writtenUnlocked: boolean; videoUnlocked: boolean }

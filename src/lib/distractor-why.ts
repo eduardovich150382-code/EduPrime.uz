@@ -5,7 +5,8 @@ import { getDistractorWhy, toLang } from './paramgen/regenerate';
  * qo'shadi. Faqat parametrik savolda (`templateId`+`variantSig` bor) VA
  * foydalanuvchi shu savolga NOTO'G'RI javob bergan bo'lsa hisoblanadi —
  * to'g'ri javob/javobsiz holatda va oddiy (mualliflik) savollarda `null`.
- * Bepul — `applySolutionVisibility`dagi qulfga bog'liq emas.
+ * Bepul — `applySolutionVisibility`dagi qulfga bog'liq emas. Natija sahifasi va
+ * xatolar ustida mashq (`practice-check`) bir xil qoida bilan chaqiradi.
  */
 export function attachDistractorWhy<
   T extends { id: string; templateId?: string | null; variantSig?: string | null; lang?: string | null }
