@@ -244,6 +244,7 @@ model Test {
   videoSolution   String?      // URL
   writtenSolution String?      // LaTeX text
   isPublished     Boolean      @default(false)
+  isMock          Boolean      @default(false)
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 

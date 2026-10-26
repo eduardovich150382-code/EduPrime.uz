@@ -1,4 +1,4 @@
-import { getQuestionSection, groupBySection, SECTION_KEYS, type SectionKey } from './question-sections';
+import { getQuestionSection, SECTION_KEYS, type SectionKey } from './question-sections';
 
 // /attestation sahifasidagi "Sizning tayyorgarligingiz" paneli uchun sof
 // hisob-kitoblar. Kirish ma'lumoti serverda (lib/attestation-page.ts)
@@ -113,26 +113,17 @@ export function pickNextMock(tests: { id: string }[], latest: Map<string, Latest
 }
 
 /**
- * ATTESTATION kategoriyasidagi testlarni ikkiga ajratadi (migratsiyasiz,
- * S13 teglariga tayanib): **mock** — barcha savollarida `section:` tegi bor
- * test (`groupBySection` null emas), **mavzu testi** — qolganlari (bitta
- * bob, faqat fizika, tegsiz). Savolsiz test ham mavzu testi: bo'sh testni
- * mock deb ko'rsatish "50 savol" va'dasini buzardi. Kirish tartibi saqlanadi.
+ * Bo'lim tegi savolning mazmunini bildiradi, test turini emas. Fizika
+ * bobidagi hamma savolda teg bo'lishi uni to'liq mock qilib qo'ymasligi
+ * uchun faqat ustoz tasdiqlagan belgi olinadi. Kirish tartibi saqlanadi.
  */
-export function classifyAttestationTests<T extends { id: string }>(
+export function classifyAttestationTests<T extends { id: string; isMock?: boolean }>(
   tests: T[],
-  questions: { testId: string; tags: unknown }[],
 ): { mocks: T[]; topics: T[] } {
-  const byTest = new Map<string, { tags: unknown }[]>();
-  for (const q of questions) {
-    const list = byTest.get(q.testId) ?? [];
-    list.push({ tags: q.tags });
-    byTest.set(q.testId, list);
-  }
   const mocks: T[] = [];
   const topics: T[] = [];
   for (const test of tests) {
-    (groupBySection(byTest.get(test.id) ?? []) ? mocks : topics).push(test);
+    (test.isMock === true ? mocks : topics).push(test);
   }
   return { mocks, topics };
 }

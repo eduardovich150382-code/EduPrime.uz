@@ -55,6 +55,12 @@ async function callDuplicate() {
 }
 
 describe("POST /api/teacher/tests/[id]/duplicate", () => {
+  it.each([true, false])('mock belgisi %s nusxada saqlanadi', async (isMock) => {
+    findTestMock.mockResolvedValue({ id: 't1', titleUz: 'Attestatsiya', teacherId: 'teacher1', isMock, questions: [] });
+    expect((await callDuplicate()).status).toBe(200);
+    expect(createTestMock.mock.calls[0][0].data.isMock).toBe(isMock);
+  });
+
   it("savollarning teglari (attestatsiya bo'limlari) nusxaga ko'chadi", async () => {
     findTestMock.mockResolvedValue({
       id: "t1",

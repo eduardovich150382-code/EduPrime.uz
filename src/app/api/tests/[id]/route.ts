@@ -178,6 +178,10 @@ export async function PUT(
     }
 
     const updateData: Prisma.TestUncheckedUpdateInput = {};
+    if (body.isMock !== undefined) {
+      if (typeof body.isMock !== 'boolean') return NextResponse.json({ error: 'Invalid isMock' }, { status: 400 });
+      updateData.isMock = body.isMock;
+    }
     if (body.subjectId !== undefined) {
       const parsedSubjectId = subjectIdSchema.safeParse(body.subjectId);
       if (!parsedSubjectId.success) {

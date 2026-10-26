@@ -89,6 +89,7 @@ function localizedTitle(test: { titleUz: string; titleRu: string | null; titleEn
 
 const TEST_SELECT = {
   id: true,
+  isMock: true,
   titleUz: true,
   titleRu: true,
   titleEn: true,
@@ -138,7 +139,7 @@ export async function loadAttestationPage(
       ])
     : [[], [], null];
 
-  const { mocks, topics: topicTests } = classifyAttestationTests(tests, questions);
+  const { mocks, topics: topicTests } = classifyAttestationTests(tests);
 
   const brief: BriefResult[] = results.flatMap((r) =>
     r.testId
@@ -201,7 +202,7 @@ export async function loadAttestationPage(
   const topicAnswers = latestAnswers(topicTests);
 
   const meta = new Map<string, QuestionMeta>(questions.map((q) => [q.id, { tags: q.tags, topic: q.topic }]));
-  // Bo'limlar faqat mock javoblaridan — mavzu testlarida `section:` tegi yo'q.
+  // Bo'lim statistikasi mock javoblaridan: mavzu testida ham bo'lim tegi bo'lishi mumkin.
   const sections: SectionStat[] | null = mockAnswers.length ? computeSectionStats(mockAnswers, meta) : null;
   const topicStats: TopicStat[] | null =
     mockAnswers.length || topicAnswers.length ? computeTopicStats({ mock: mockAnswers, topic: topicAnswers }, meta) : null;

@@ -140,7 +140,11 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { titleUz, titleRu, titleEn, subjectId, duration, isFree, price, accessType, difficulty, questions, videoSolution, coverImage, isPublished } = body;
+    const { titleUz, titleRu, titleEn, subjectId, duration, isFree, price, accessType, difficulty, questions, videoSolution, coverImage, isPublished, isMock } = body;
+
+    if (isMock !== undefined && typeof isMock !== 'boolean') {
+      return NextResponse.json({ error: 'Invalid isMock' }, { status: 400 });
+    }
 
     if (!titleUz || !subjectId || !duration) {
       return NextResponse.json({ error: 'titleUz, subjectId, duration required' }, { status: 400 });
@@ -185,6 +189,7 @@ export async function POST(request: NextRequest) {
         difficulty: difficulty || 3,
         questionCount: questions?.length || 0,
         isPublished: isPublished || false,
+        isMock: isMock === true,
         coverImage: coverImage || null,
         videoSolution: videoSolution || null,
         questions: questions?.length ? {

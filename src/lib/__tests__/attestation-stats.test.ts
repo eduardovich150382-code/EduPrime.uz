@@ -301,37 +301,22 @@ describe('parsePositiveInt', () => {
 });
 
 describe('classifyAttestationTests', () => {
-  const tests = [{ id: 'a' }, { id: 'b' }, { id: 'c' }, { id: 'd' }];
-  const tag = (k: string) => [`section:${k}`];
+  const tests = [{ id: 'a' }, { id: 'b', isMock: false }, { id: 'c' }, { id: 'd', isMock: false }];
 
-  it("mock yo'q — hamma mavzu testi (tegsiz, qisman tegli, savolsiz)", () => {
-    const { mocks, topics } = classifyAttestationTests(tests, [
-      { testId: 'a', tags: [] },
-      { testId: 'b', tags: tag('fizika') },
-      { testId: 'b', tags: [] },
-      { testId: 'c', tags: ['boshqa'] },
-    ]);
+  it("belgi yo'q yoki false — hamma mavzulashtirilgan test", () => {
+    const { mocks, topics } = classifyAttestationTests(tests);
     expect(mocks).toEqual([]);
     expect(topics.map((t) => t.id)).toEqual(['a', 'b', 'c', 'd']);
   });
 
-  it("faqat mock — barcha savollarda section: tegi", () => {
-    const { mocks, topics } = classifyAttestationTests(tests.slice(0, 2), [
-      { testId: 'a', tags: tag('fizika') },
-      { testId: 'a', tags: tag('pedagogika') },
-      { testId: 'b', tags: tag('kasb-standarti') },
-    ]);
+  it("faqat ustoz tasdiqlagan belgi mock qiladi", () => {
+    const { mocks, topics } = classifyAttestationTests(tests.slice(0, 2).map((test) => ({ ...test, isMock: true })));
     expect(mocks.map((t) => t.id)).toEqual(['a', 'b']);
     expect(topics).toEqual([]);
   });
 
-  it("aralash — kirish tartibi saqlanadi, noma'lum section kaliti mock emas", () => {
-    const { mocks, topics } = classifyAttestationTests(tests, [
-      { testId: 'a', tags: [] },
-      { testId: 'b', tags: tag('fizika') },
-      { testId: 'c', tags: tag('nomalum') },
-      { testId: 'd', tags: tag('pedagogika') },
-    ]);
+  it("aralash — kirish tartibi saqlanadi", () => {
+    const { mocks, topics } = classifyAttestationTests(tests.map((test) => ({ ...test, isMock: ['b', 'd'].includes(test.id) })));
     expect(mocks.map((t) => t.id)).toEqual(['b', 'd']);
     expect(topics.map((t) => t.id)).toEqual(['a', 'c']);
   });

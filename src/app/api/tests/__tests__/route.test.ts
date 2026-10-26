@@ -337,10 +337,10 @@ describe("POST /api/tests", () => {
     createTestMock.mockResolvedValue({ id: "t-new", titleUz: "Attestatsiya" });
   });
 
-  async function callPost(questions: unknown[], accessType?: string) {
+  async function callPost(questions: unknown[], accessType?: string, isMock?: unknown) {
     const request = new NextRequest("http://localhost/api/tests", {
       method: "POST",
-      body: JSON.stringify({ titleUz: "Attestatsiya", subjectId: "s1", duration: 120, questions, accessType }),
+      body: JSON.stringify({ titleUz: "Attestatsiya", subjectId: "s1", duration: 120, questions, accessType, isMock }),
     });
     return POST(request);
   }
@@ -360,6 +360,17 @@ describe("POST /api/tests", () => {
     const response = await callPost([{ text: "a", correctAnswer: "A" }], "subscription");
     expect(response.status).toBe(201);
     expect(createTestMock.mock.calls[0][0].data.accessType).toBe("subscription");
+  });
+
+  it.each([undefined, false, true])('isMock=%s — faqat tasdiqlangan belgi saqlanadi', async (isMock) => {
+    const response = await callPost([{ text: 'Elektrostatika', correctAnswer: 'A', tags: ['section:fizika'] }], undefined, isMock);
+    expect(response.status).toBe(201);
+    expect(createTestMock.mock.calls[0][0].data.isMock).toBe(isMock === true);
+  });
+
+  it.each(['false', 'true', 1, null])('noto\'g\'ri isMock=%j yozilmaydi', async (isMock) => {
+    expect((await callPost([], undefined, isMock)).status).toBe(400);
+    expect(createTestMock).not.toHaveBeenCalled();
   });
 
   it.each([-1, 1.5, '1000', 2147483648])('noto‘g‘ri narxni rad etadi: %s', async (price) => {

@@ -237,21 +237,18 @@ interface AttestationResultInfo {
 
 /**
  * Faqat attestatsiya **mock**ida ball va toifa — mock qoidasi /attestation
- * ro'yxati bilan aynan bir (`classifyAttestationTests`: barcha savollarida
- * `section:` tegi). Mavzu testi, boshqa tur va sessiya natijalarida `null`,
+ * ro'yxati bilan aynan bir (`classifyAttestationTests`: `isMock` belgisi).
+ * Mavzu testi, boshqa tur va sessiya natijalarida `null`,
  * natija sahifasi avvalgidek qoladi. `isPublished` ga bog'liq emas.
  */
 async function loadAttestationResult(
   categoryType: string | undefined,
-  test: { id: string; questions: { tags: string[] }[] },
+  test: { id: string; isMock: boolean; questions: { tags: string[] }[] },
   score: number,
   maxScore: number,
 ): Promise<AttestationResultInfo | null> {
   if (categoryType !== 'ATTESTATION') return null;
-  const { mocks } = classifyAttestationTests(
-    [test],
-    test.questions.map((q) => ({ testId: test.id, tags: q.tags })),
-  );
+  const { mocks } = classifyAttestationTests([test]);
   if (mocks.length === 0) return null;
   const { tiers } = await loadAttestationSettings();
   const ball = attestationScore(score, maxScore);

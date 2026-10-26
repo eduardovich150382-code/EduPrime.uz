@@ -1,6 +1,7 @@
 'use client';
 
 import TestAccessFields from '@/components/teacher/TestAccessFields';
+import AttestationMockField from '@/components/teacher/AttestationMockField';
 import { normalizeTestAccess } from '@/lib/test-access-form';
 
 import { useState, useEffect, useRef } from 'react';
@@ -91,6 +92,7 @@ export default function CreateTestPage() {
     difficulty: 3,
     videoSolution: '',
     coverImage: '',
+    isMock: false,
     accessType: 'free' as 'free' | 'subscription' | 'premium' | 'teacher' | 'premium_teacher' | 'paid',
   });
   const [questions, setQuestions] = useState<QuestionForm[]>([{ ...emptyQuestion }]);
@@ -315,7 +317,7 @@ export default function CreateTestPage() {
         // Only restore if less than 24 hours old
         if (parsed.timestamp && Date.now() - parsed.timestamp < 86400000) {
           if (parsed.testInfo && !testInfo.titleUz) {
-            setTestInfo(parsed.testInfo);
+            setTestInfo({ ...parsed.testInfo, isMock: parsed.testInfo.isMock === true });
             if (parsed.draftTestId) applyDraftTestId(parsed.draftTestId);
           }
           if (parsed.questions && parsed.questions.length > 0 && questions.length === 1 && !questions[0].text) {
@@ -649,7 +651,7 @@ export default function CreateTestPage() {
               <label className="text-sm font-medium text-text-primary block mb-2">Kategoriya turi *</label>
               <select
                 value={testInfo.categoryType}
-                onChange={(e) => setTestInfo({ ...testInfo, categoryType: e.target.value, subjectId: '' })}
+                onChange={(e) => setTestInfo({ ...testInfo, categoryType: e.target.value, subjectId: '', isMock: false })}
                 className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all"
               >
                 <option value="">Kategoriya turini tanlang...</option>
@@ -729,6 +731,7 @@ export default function CreateTestPage() {
           </div>
 
           {/* Access type / Tarif selector */}
+          {testInfo.categoryType === 'ATTESTATION' && <AttestationMockField checked={testInfo.isMock} onChange={(isMock) => setTestInfo({ ...testInfo, isMock })} />}
           <TestAccessFields value={testInfo.accessType} price={testInfo.price} onChange={(accessType, price) => setTestInfo({ ...testInfo, accessType, isFree: accessType === 'free', price })} />
 
           {/* General video solution */}

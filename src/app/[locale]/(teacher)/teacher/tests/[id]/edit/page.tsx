@@ -1,6 +1,7 @@
 'use client';
 
 import TestAccessFields from '@/components/teacher/TestAccessFields';
+import AttestationMockField from '@/components/teacher/AttestationMockField';
 import { normalizeTestAccess } from '@/lib/test-access-form';
 
 import { useState, useEffect, useRef } from 'react';
@@ -135,6 +136,7 @@ export default function EditTestPage() {
     videoSolution: '',
     coverImage: '',
     isPublished: false,
+    isMock: false,
   });
   const [questions, setQuestions] = useState<QuestionForm[]>([{ ...emptyQuestion }]);
   const [currentStep, setCurrentStep] = useState<'info' | 'questions'>('info');
@@ -188,6 +190,7 @@ export default function EditTestPage() {
           videoSolution: test.videoSolution || '',
           coverImage: test.coverImage || '',
           isPublished: test.isPublished || false,
+          isMock: test.isMock === true,
         });
         if (test.questions && test.questions.length > 0) {
           const loadedQuestions: QuestionForm[] = test.questions.map((q: any) => ({
@@ -386,6 +389,7 @@ export default function EditTestPage() {
           difficulty: testInfo.difficulty,
           coverImage: testInfo.coverImage || null,
           isPublished: publish,
+          isMock: isAttestation && testInfo.isMock,
         }),
       });
 
@@ -573,6 +577,7 @@ export default function EditTestPage() {
               />
             </div>
           </div>
+          {isAttestation && <AttestationMockField checked={testInfo.isMock} onChange={(isMock) => setTestInfo({ ...testInfo, isMock })} />}
           <TestAccessFields value={testInfo.accessType} price={testInfo.price} onChange={(accessType, price) => setTestInfo({ ...testInfo, accessType, isFree: accessType === 'free', price })} />
 
           <div>

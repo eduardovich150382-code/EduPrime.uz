@@ -406,7 +406,7 @@ describe("GET /api/results/[id]", () => {
   });
 
   describe("attestatsiya mock'i — ball va toifa", () => {
-    function attestationResult(tags: string[][], score: number, maxScore: number) {
+    function attestationResult(tags: string[][], score: number, maxScore: number, isMock = true) {
       return {
         id: "result1",
         userId: "user1",
@@ -417,6 +417,7 @@ describe("GET /api/results/[id]", () => {
         test: {
           id: "test1",
           categoryId: "cat1",
+          isMock,
           questions: tags.map((t, i) => baseQuestion({ id: `q${i}`, tags: t })),
           subject: {},
         },
@@ -424,7 +425,7 @@ describe("GET /api/results/[id]", () => {
       };
     }
 
-    it("barcha savollari section: tegli ATTESTATION testida ball va toifa qaytadi", async () => {
+    it("belgilangan ATTESTATION mock testida ball va toifa qaytadi", async () => {
       categoryFindUniqueMock.mockResolvedValue({ type: "ATTESTATION" });
       findUniqueResultMock.mockResolvedValue(attestationResult([["section:fizika"], ["section:pedagogika"]], 84, 100));
 
@@ -451,9 +452,9 @@ describe("GET /api/results/[id]", () => {
       expect(data.attestation.tier).toBe("tier1");
     });
 
-    it("mavzu testi (teg yetishmaydi) — attestation: null, sozlama o'qilmaydi", async () => {
+    it("hamma savolda section:fizika bo'lsa ham belgisiz mavzu testi — attestation: null", async () => {
       categoryFindUniqueMock.mockResolvedValue({ type: "ATTESTATION" });
-      findUniqueResultMock.mockResolvedValue(attestationResult([["section:fizika"], []], 84, 100));
+      findUniqueResultMock.mockResolvedValue(attestationResult([["section:fizika"], ["section:fizika"]], 84, 100, false));
 
       const { data } = await callGet();
       expect(data.attestation).toBeNull();
