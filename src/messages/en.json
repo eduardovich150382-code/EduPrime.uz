@@ -967,7 +967,17 @@
     "subscriptionCommand": "/obuna — Buy a subscription",
     "noReceipt": "No receipt submitted",
     "alreadyProcessed": "This payment was already processed.",
-    "invalidReplacement": "Only an expired offer can be replaced with an active offer for the same product."
+    "invalidReplacement": "Only an expired offer can be replaced with an active offer for the same product.",
+    "intentExpired": "This link has expired. Tap “Buy” on the website again or choose below.",
+    "intentReceiptPrompt": "Send the receipt here. It is usually activated within 15 minutes.",
+    "activated": "Your subscription is active — {scope}, until {date}",
+    "openSite": "Open on the website",
+    "telegramMismatch": "⚠️ This Telegram account is linked to another user",
+    "intentConflict": "⚠️ Website payment: the Telegram account is linked to another user. The payment was recorded on the website account; accounts were not merged.",
+    "intentConflictSite": "Website account",
+    "intentConflictHolder": "Telegram owner",
+    "holderHasData": "has payments, subscriptions or results",
+    "holderEmpty": "no payments, subscriptions or results"
   },
   "pricing": {
     "meta": {
@@ -1002,7 +1012,15 @@
     "paymentNote": "Payment is completed through the Telegram bot. The final amount is shown in the bot after you choose your subjects.",
     "chooseGoal": "Choose your goal",
     "viewSubscription": "View subscription",
-    "back": "Return to the previous page"
+    "back": "Return to the previous page",
+    "chooseSubjectTitle": "Choose a subject",
+    "chooseTwoTitle": "Choose two main subjects",
+    "continueToTelegram": "Pay in Telegram",
+    "cancel": "Cancel",
+    "opening": "Opening…",
+    "checkoutOpened": "Payment details are open in Telegram. Send the receipt to the bot — this page will refresh once the subscription is active.",
+    "checkoutError": "Could not create the payment link. Refresh the page and try again.",
+    "checkoutExpired": "This option is no longer on sale. Refresh the page."
   },
   "referral": {
     "subtitle": "Invite friends and get free days of access (attestation not included)!",

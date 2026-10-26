@@ -5,7 +5,7 @@ import type { LocalizedName } from './subscription-details';
 export interface PricingOffer { id: string; label: string; price: number; durationMonths: number | null; untilDate: string | null; buyHref: string }
 export interface PricingProduct {
   id: string; kind: ProductKind; goal: TestType | null; name: string; subjectRule: SubjectRule;
-  secondSubjectDiscountPct: number; subjects: { id: string; name: string; testCount: number }[]; offers: PricingOffer[];
+  secondSubjectDiscountPct: number; subjects: { id: string; name: string; testCount: number; isMandatory: boolean }[]; offers: PricingOffer[];
 }
 
 export function localizedName(row: LocalizedName, locale: string): string {

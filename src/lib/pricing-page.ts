@@ -25,7 +25,7 @@ export async function loadPricingPage(userId: string | null, locale: string, now
     products: products.map((product) => ({
       id: product.id, kind: product.kind, goal: product.category?.type ?? null,
       name: localizedName(product, locale), subjectRule: product.subjectRule, secondSubjectDiscountPct: product.secondSubjectDiscountPct,
-      subjects: (product.category?.subjects ?? []).map((subject) => ({ id: subject.id, name: localizedName(subject, locale), testCount: subject._count.tests })),
+      subjects: (product.category?.subjects ?? []).map((subject) => ({ id: subject.id, name: localizedName(subject, locale), testCount: subject._count.tests, isMandatory: subject.isMandatory })),
       offers: product.offers.map((offer) => ({
         id: offer.id, label: offer[locale === 'ru' ? 'labelRu' : locale === 'en' ? 'labelEn' : 'labelUz'], price: offer.price,
         durationMonths: offer.durationMonths, untilDate: offer.untilDate?.toISOString() ?? null,

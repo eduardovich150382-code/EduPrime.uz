@@ -3,6 +3,8 @@ import { db } from '@/lib/db';
 import { recordPurchase } from '@/lib/purchases';
 import { logger } from '@/lib/logger';
 import { handleCheckoutCallback, handleCheckoutReceipt, showCheckoutProducts, startSelectedCheckout } from '@/lib/telegram-category-checkout';
+import { startIntentCheckout } from '@/lib/telegram-intent-checkout';
+import { parseIntentStart } from '@/lib/checkout-intent';
 import { processLegacySubscription } from '@/lib/subscription-payments';
 import uzMessages from '@/messages/uz.json';
 
@@ -33,7 +35,7 @@ async function getSettings() {
 }
 
 function checkoutTransport() {
-  return { send: sendMessage, forward: forwardMessage, fileUrl: getFileUrl, settings: getSettings, adminIds: ADMIN_IDS };
+  return { send: sendMessage, forward: forwardMessage, fileUrl: getFileUrl, settings: getSettings, adminIds: ADMIN_IDS, appUrl: APP_URL };
 }
 
 // Get Telegram file URL (for photos and documents)
@@ -126,8 +128,14 @@ async function checkChannelSubscription(userId: number): Promise<boolean> {
   }
 }
 
+// Saytdan kelgan checkout niyati kanal tekshiruvida yo'qolmasin — obuna
+// tasdiqlangach to'lov ma'lumoti fan/variant so'ralmasdan davom etadi.
+function subscriptionCheckData(startParam?: string): string {
+  return startParam && parseIntentStart(startParam) ? `check_subscription:${startParam}` : 'check_subscription';
+}
+
 // Send subscription prompt to user
-async function sendSubscriptionPrompt(chatId: number) {
+async function sendSubscriptionPrompt(chatId: number, startParam?: string) {
   await sendMessage(chatId,
     `📢 <b>Kanalga obuna bo'ling!</b>\n\n` +
     `Botdan foydalanish uchun avval <b>@EduPrimeuz</b> kanaliga obuna bo'lishingiz kerak.\n\n` +
@@ -136,7 +144,7 @@ async function sendSubscriptionPrompt(chatId: number) {
       reply_markup: {
         inline_keyboard: [
           [{ text: "📢 Kanalga obuna bo'lish", url: CHANNEL_LINK }],
-          [{ text: "✅ Obuna bo'ldim — Tasdiqlash", callback_data: 'check_subscription' }],
+          [{ text: "✅ Obuna bo'ldim — Tasdiqlash", callback_data: subscriptionCheckData(startParam) }],
         ]
       }
     }
@@ -255,6 +263,12 @@ async function handleStart(chatId: number, userId: number, username: string, fir
       `📎 To'lov qilganingizdan keyin <b>chek screenshot yoki PDF</b>ini shu yerga yuboring.\n\n` +
       `⏱ Chek yuborilgandan keyin 24 soat ichida admin tasdiqlaydi.`
     );
+    return;
+  }
+
+  // Saytdan kirgan foydalanuvchi: tanlov serverda qotirilgan, to'lov sayt akkauntiga yoziladi.
+  if (param.startsWith('ci_')) {
+    await startIntentCheckout(chatId, { id: userId, username, first_name: firstName }, param, checkoutTransport());
     return;
   }
 
@@ -513,12 +527,17 @@ async function handleCallbackQuery(callbackQuery: any) {
   }
 
   // Handle subscription check callback
-  if (data === 'check_subscription') {
+  if (data === 'check_subscription' || data.startsWith('check_subscription:')) {
+    const resumeParam = data.slice('check_subscription:'.length);
     const isSubscribed = await checkChannelSubscription(userId);
     if (isSubscribed) {
       await sendMessage(chatId,
         `✅ <b>Obuna tasdiqlandi!</b>\n\nRahmat! Endi botdan to'liq foydalanishingiz mumkin. 🎉`
       );
+      if (parseIntentStart(resumeParam)) {
+        await handleStart(chatId, userId, username, firstName, resumeParam);
+        return;
+      }
       // Send start/welcome message
       const adminText = isAdmin(userId) ? '\n\n🔐 <b>Admin buyruqlar:</b>\n/admin — Admin panel\n/broadcast — Barchaga xabar\n/users — Foydalanuvchilar soni' : '';
       await sendMessage(chatId,
@@ -550,7 +569,7 @@ async function handleCallbackQuery(callbackQuery: any) {
           reply_markup: {
             inline_keyboard: [
               [{ text: "📢 Kanalga obuna bo'lish", url: CHANNEL_LINK }],
-              [{ text: "✅ Obuna bo'ldim — Tasdiqlash", callback_data: 'check_subscription' }],
+              [{ text: "✅ Obuna bo'ldim — Tasdiqlash", callback_data: subscriptionCheckData(resumeParam) }],
             ]
           }
         }
@@ -925,7 +944,7 @@ export async function POST(request: NextRequest) {
       if (!isAdminCommand && !isAdmin(userId)) {
         const isSubscribed = await checkChannelSubscription(userId);
         if (!isSubscribed) {
-          await sendSubscriptionPrompt(chatId);
+          await sendSubscriptionPrompt(chatId, text.startsWith('/start') ? text.replace('/start', '').trim() : undefined);
           return NextResponse.json({ ok: true });
         }
       }

@@ -1,33 +1,38 @@
 import { db } from './db';
-import { checkoutCallback, checkoutPrice, parseCheckoutStart, resolveCheckoutKey } from './category-checkout';
-import { buildSubjectIds, computeEndDate } from './product-offers';
+import { checkoutCallback, parseCheckoutStart, resolveCheckoutKey } from './category-checkout';
+import { buildSubjectIds, requiredSubjectCount } from './product-offers';
 import { paymentTransaction, processSubscriptionPayment } from './subscription-payments';
+import { assertOfferOnSale, checkoutSubjects, createCheckoutPayment, hasEnoughSubjects } from './checkout-selection';
+import { readPaymentChat, readTelegramPayment } from './checkout-intent';
+import { formatTashkentDate } from './date';
+import { localizedPath } from './safe-return-path';
 import uz from '@/messages/uz.json';
 import ru from '@/messages/ru.json';
 import en from '@/messages/en.json';
 import { logger } from './logger';
 
-type Lang = 'uz' | 'ru' | 'en';
-type Button = { text: string; callback_data: string };
+export type Lang = 'uz' | 'ru' | 'en';
+type Button = { text: string; callback_data: string } | { text: string; url: string };
 type Options = { reply_markup?: { inline_keyboard: Button[][] } };
-interface Transport {
+export interface Transport {
   send: (chatId: number, text: string, options?: Options) => Promise<unknown>;
   forward: (chatId: number, fromChatId: number, messageId: number) => Promise<void>;
   fileUrl: (fileId: string) => Promise<string | null>;
   settings: () => Promise<{ cardNumber: string; cardOwner: string }>;
   adminIds: string[];
+  appUrl?: string;
 }
 export interface CheckoutUser { id: number; username?: string; first_name?: string; language_code?: string }
 interface ReceiptMessage { chat: { id: number }; from: CheckoutUser; message_id: number; reply_to_message?: { message_id: number }; photo?: { file_id: string }[]; document?: { file_id: string; mime_type?: string } }
 
-const dictionaries = { uz: uz.checkout, ru: ru.checkout, en: en.checkout };
-const language = (value?: string): Lang => value === 'ru' || value === 'en' ? value : 'uz';
+export const dictionaries = { uz: uz.checkout, ru: ru.checkout, en: en.checkout };
+export const language = (value?: string | null): Lang => value === 'ru' || value === 'en' ? value : 'uz';
 async function checkoutLanguage(telegramId: number): Promise<Lang> {
   // Telegram ilovasi tili foydalanuvchining saytdagi til tanlovini almashtirmasin.
   const user = await db.user.findUnique({ where: { telegramId: String(telegramId) }, select: { lang: true } });
   return language(user?.lang);
 }
-const escape = (value: string) => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+export const escape = (value: string) => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 function name(row: { nameUz: string; nameRu: string; nameEn: string }, lang: Lang) { return row[lang === 'uz' ? 'nameUz' : lang === 'ru' ? 'nameRu' : 'nameEn']; }
 function label(row: { labelUz: string; labelRu: string; labelEn: string }, lang: Lang) { return row[lang === 'uz' ? 'labelUz' : lang === 'ru' ? 'labelRu' : 'labelEn']; }
 
@@ -59,6 +64,30 @@ async function details(paymentId: string, lang: Lang) {
   return { payment, text };
 }
 
+export async function sendPaymentInstructions(chatId: number, paymentId: string, lang: Lang, transport: Transport, prompt: string) {
+  const t = dictionaries[lang];
+  const { cardNumber, cardOwner } = await transport.settings();
+  const summary = await details(paymentId, lang);
+  const sent = await transport.send(chatId, `${summary.text}\n\n${t.card}: <code>${escape(cardNumber)}</code>\n${t.owner}: ${escape(cardOwner)}\n\n${prompt}`);
+  if (typeof sent === 'object' && sent !== null && 'result' in sent && typeof sent.result === 'object' && sent.result !== null && 'message_id' in sent.result) {
+    await db.payment.update({ where: { id: paymentId }, data: { telegramMsgId: String(sent.result.message_id) } });
+  }
+}
+
+// Foydalanuvchi qaysi doira ochilganini va qachongacha ekanini darhol ko'rsin,
+// saytga qaytish tugmasi esa o'sha kategoriya sahifasiga olib borsin.
+async function activationMessage(paymentId: string, lang: Lang, appUrl?: string): Promise<{ text: string; options?: Options }> {
+  const t = dictionaries[lang];
+  const subscription = await db.subscription.findFirst({ where: { paymentId }, include: { product: true, category: { select: { type: true } } } });
+  if (!subscription?.product) return { text: t.confirmed };
+  const subjects = subscription.subjectIds.length ? await db.subject.findMany({ where: { id: { in: subscription.subjectIds } }, orderBy: [{ order: 'asc' }, { id: 'asc' }] }) : [];
+  const scope = [name(subscription.product, lang), ...(subjects.length ? [subjects.map((s) => name(s, lang)).join(', ')] : [])].join(' · ');
+  const text = t.activated.replace('{scope}', escape(scope)).replace('{date}', formatTashkentDate(subscription.endDate, lang));
+  if (!appUrl) return { text };
+  const path = subscription.category?.type === 'ATTESTATION' ? '/attestation' : '/dashboard';
+  return { text, options: { reply_markup: { inline_keyboard: [[{ text: t.openSite, url: `${appUrl}${localizedPath(path, lang)}` }]] } } };
+}
+
 export async function handleCheckoutCallback(chatId: number, from: CheckoutUser, data: string, transport: Transport): Promise<boolean> {
   if (!data.startsWith('co:') && !data.startsWith('cp:')) return false;
   const lang = await checkoutLanguage(from.id), t = dictionaries[lang];
@@ -73,7 +102,13 @@ export async function handleCheckoutCallback(chatId: number, from: CheckoutUser,
       const result = await processSubscriptionPayment(paymentId, action === 'c' ? 'confirm' : 'reject', admin?.id ?? null);
       const text = action === 'c' ? t.confirmed : t.rejected;
       await transport.send(chatId, result.alreadyProcessed ? t.alreadyProcessed : text);
-      if (!result.alreadyProcessed && target.user.telegramId) await transport.send(Number(target.user.telegramId), dictionaries[language(target.user.lang)][action === 'c' ? 'confirmed' : 'rejected']);
+      // Sayt niyatidan kelgan to'lovda chek yuborgan chat Payment egasining telegramId'sidan farq qilishi mumkin.
+      const notifyChat = await readPaymentChat(paymentId) ?? target.user.telegramId;
+      if (!result.alreadyProcessed && notifyChat) {
+        const userLang = language(target.user.lang);
+        const message = action === 'c' ? await activationMessage(paymentId, userLang, transport.appUrl) : { text: dictionaries[userLang].rejected };
+        await transport.send(Number(notifyChat), message.text, message.options);
+      }
       return true;
     }
     if (chatId !== from.id) throw new Error('INVALID_SELECTION');
@@ -83,15 +118,12 @@ export async function handleCheckoutCallback(chatId: number, from: CheckoutUser,
     const product = resolveCheckoutKey(await catalog(), productKey);
     if (!product.isOnSale) throw new Error('INVALID_SELECTION');
     const selectedOffer = offerKey ? resolveCheckoutKey(product.offers, offerKey) : null;
-    if (selectedOffer && (!selectedOffer.isActive || (selectedOffer.untilDate && selectedOffer.untilDate <= new Date()))) throw new Error('EXPIRED_OFFER');
-    const subjects = product.categoryId ? await db.subject.findMany({ where: { categoryId: product.categoryId },
-      include: { _count: { select: { tests: { where: { isPublished: true, categoryId: product.categoryId } } } } }, orderBy: [{ order: 'asc' }, { id: 'asc' }] }) : [];
-    const available = subjects.filter((s) => s._count.tests > 0 && (product.subjectRule !== 'DTM_BLOCK' || !s.isMandatory));
+    if (selectedOffer) assertOfferOnSale(selectedOffer);
+    const { subjects, available, mandatory } = await checkoutSubjects(product);
     const chosen = chosenKeys ? chosenKeys.split(',').map((key) => resolveCheckoutKey(available, key).id) : [];
-    const needed = product.kind === 'BUNDLE' || product.subjectRule === 'NONE' ? 0 : product.subjectRule === 'ONE' ? 1 : 2;
+    const needed = requiredSubjectCount(product);
     if (new Set(chosen).size !== chosen.length || chosen.length > needed) throw new Error('INVALID_SELECTION');
-    const mandatory = subjects.filter((s) => s.isMandatory);
-    if (available.length < needed || (product.subjectRule === 'DTM_BLOCK' && mandatory.length !== 3)) { await transport.send(chatId, t.noSubjects); return true; }
+    if (!hasEnoughSubjects(product, available, mandatory)) { await transport.send(chatId, t.noSubjects); return true; }
     if (chosen.length < needed) {
       const text = (needed === 2 ? t.chooseTwo : t.chooseSubject) + (chosen.length ? `\n${chosen.map((id) => escape(name(subjects.find((s) => s.id === id)!, lang))).join(', ')}` : '') +
         (needed === 2 ? `\n${t.mandatory}: ${mandatory.map((s) => escape(name(s, lang))).join(', ')}` : '');
@@ -106,25 +138,10 @@ export async function handleCheckoutCallback(chatId: number, from: CheckoutUser,
     }
     const offer = resolveCheckoutKey(product.offers, offerKey);
     const payment = await paymentTransaction(async (tx) => {
-      // Narx ham, chegirma huquqi ham aynan Payment yaratilgan paytda olinadi.
-      const [freshProduct, freshOffer] = await Promise.all([
-        tx.product.findUniqueOrThrow({ where: { id: product.id } }), tx.productOffer.findUniqueOrThrow({ where: { id: offer.id } }),
-      ]);
-      if (!freshProduct.isOnSale || !freshOffer.isActive || freshOffer.productId !== product.id) throw new Error('INVALID_SELECTION');
       const user = await tx.user.upsert({ where: { telegramId: String(from.id) }, update: {}, create: { telegramId: String(from.id), telegramUsername: from.username, name: from.first_name || from.username || 'Telegram User', lang } });
-      const existing = await tx.payment.findFirst({ where: { userId: user.id, productId: product.id, offerId: offer.id, subjectIds: { equals: subjectIds }, status: 'PENDING', receiptPhoto: null }, orderBy: { createdAt: 'desc' } });
-      if (existing) return existing;
-      const now = new Date(); computeEndDate(freshOffer, now);
-      const active = await tx.subscription.findMany({ where: { userId: user.id, productId: product.id, isActive: true, endDate: { gt: now } } });
-      const amount = checkoutPrice(freshOffer.price, freshProduct.secondSubjectDiscountPct, product.id, subjectIds, active, now);
-      return tx.payment.create({ data: { userId: user.id, productId: product.id, offerId: offer.id, subjectIds, amount, plan: product.kind === 'BUNDLE' ? 'BUNDLE' : 'CATEGORY', duration: 'CUSTOM' } });
+      return createCheckoutPayment(tx, { userId: user.id, productId: product.id, offerId: offer.id, subjectIds });
     });
-    const { cardNumber, cardOwner } = await transport.settings();
-    const summary = await details(payment.id, lang);
-    const sent = await transport.send(chatId, `${summary.text}\n\n${t.card}: <code>${escape(cardNumber)}</code>\n${t.owner}: ${escape(cardOwner)}\n\n${t.receiptPrompt}`);
-    if (typeof sent === 'object' && sent !== null && 'result' in sent && typeof sent.result === 'object' && sent.result !== null && 'message_id' in sent.result) {
-      await db.payment.update({ where: { id: payment.id }, data: { telegramMsgId: String(sent.result.message_id) } });
-    }
+    await sendPaymentInstructions(chatId, payment.id, lang, transport, t.receiptPrompt);
   } catch (error) {
     logger.error('Category checkout error', { error });
     // Saytdan kelgan variant sotuvdan olingan bo'lsa tanlovni qayta ochamiz.
@@ -139,28 +156,36 @@ export async function handleCheckoutCallback(chatId: number, from: CheckoutUser,
 
 export async function handleCheckoutReceipt(message: ReceiptMessage, transport: Transport): Promise<boolean> {
   if (message.chat.id !== message.from.id) return false;
-  const user = await db.user.findUnique({ where: { telegramId: String(message.from.id) } });
-  if (!user) return false;
+  const telegramId = String(message.from.id);
+  const [user, intentPaymentId] = await Promise.all([db.user.findUnique({ where: { telegramId } }), readTelegramPayment(telegramId)]);
+  if (!user && !intentPaymentId) return false;
   const replyId = message.reply_to_message?.message_id;
-  const payment = await db.payment.findFirst({ where: { userId: user.id, productId: { not: null }, status: 'PENDING', ...(replyId ? { telegramMsgId: String(replyId) } : {}) }, orderBy: { createdAt: 'desc' } });
+  // Sayt niyatidagi to'lov boshqa akkauntga yozilgan bo'lishi mumkin — u faqat shu chat yo'naltirgichi orqali topiladi.
+  const owners = [...(user ? [{ userId: user.id }] : []), ...(intentPaymentId ? [{ id: intentPaymentId }] : [])];
+  const payment = await db.payment.findFirst({ where: { OR: owners, productId: { not: null }, status: 'PENDING', ...(replyId ? { telegramMsgId: String(replyId) } : {}) }, orderBy: { createdAt: 'desc' } });
   if (!payment) return false;
   if (!replyId) {
     // Bitta-test/kursning mavjud cheki yangi obunaga adashib biriktirilmasin.
     const legacy = await db.systemSetting.findUnique({ where: { key: `pending_payment_${message.from.id}` } });
     if (legacy) { const state: unknown = JSON.parse(legacy.value); if (typeof state === 'object' && state !== null && 'timestamp' in state && Number(state.timestamp) > payment.createdAt.getTime()) return false; }
   }
-  const lang = language(user.lang), t = dictionaries[lang];
+  const owner = user?.id === payment.userId ? user : await db.user.findUnique({ where: { id: payment.userId } });
+  const lang = language(owner?.lang), t = dictionaries[lang];
   if (message.document?.mime_type && !['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(message.document.mime_type)) { await transport.send(message.chat.id, t.receiptPrompt); return true; }
   const fileId = message.document?.file_id ?? message.photo?.at(-1)?.file_id;
   const receiptPhoto = fileId ? await transport.fileUrl(fileId) : null;
   if (!receiptPhoto) { await transport.send(message.chat.id, t.receiptPrompt); return true; }
-  const updated = await db.payment.updateMany({ where: { id: payment.id, userId: user.id, status: 'PENDING' }, data: { receiptPhoto } });
+  const updated = await db.payment.updateMany({ where: { id: payment.id, userId: payment.userId, status: 'PENDING' }, data: { receiptPhoto } });
   if (!updated.count) { await transport.send(message.chat.id, t.alreadyProcessed); return true; }
   const summary = await details(payment.id, 'uz');
+  const payer = summary.payment.user;
+  // Admin to'lov qaysi sayt akkauntini ochishini va chek boshqa Telegram'dan kelganini ko'rsin.
+  const identity = `${escape(payer.name ?? '')} (@${escape(payer.telegramUsername ?? message.from.username ?? '')})` +
+    (payer.email ? `\n${escape(payer.email)}` : '') + (payer.telegramId !== telegramId ? `\n${uz.checkout.telegramMismatch}` : '');
   for (const adminId of transport.adminIds) {
     try {
       await transport.forward(Number(adminId), message.chat.id, message.message_id);
-      await transport.send(Number(adminId), `${uz.checkout.newReceipt}\n${escape(user.name ?? '')} (@${escape(user.telegramUsername ?? '')})\n${summary.text}`, { reply_markup: { inline_keyboard: [[
+      await transport.send(Number(adminId), `${uz.checkout.newReceipt}\n${identity}\n${summary.text}`, { reply_markup: { inline_keyboard: [[
         { text: uz.checkout.confirm, callback_data: `cp:c:${payment.id}` }, { text: uz.checkout.reject, callback_data: `cp:r:${payment.id}` },
       ]] } });
     } catch (error) { logger.error('Category receipt notification error', { error }); }
