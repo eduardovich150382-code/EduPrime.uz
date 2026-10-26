@@ -20,6 +20,7 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import BackButton from '@/components/ui/BackButton';
+import ProfileSubscriptions from '@/components/subscription/ProfileSubscriptions';
 
 interface UserProfile {
   id: string;
@@ -443,6 +444,8 @@ export default function ProfilePage() {
           </div>
         </div>
       </motion.div>
+
+      <ProfileSubscriptions />
 
       {/* Connected Accounts Section */}
       <motion.div

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import BackButton from '@/components/ui/BackButton';
-import PremiumCTA from '@/components/ui/PremiumCTA';
+import SubscribeCTA from '@/components/ui/SubscribeCTA';
 import {
   Compass, TrendingUp, TrendingDown, Minus, Loader2, BookOpen,
   Sparkles, Info, ArrowRight, CalendarDays, CalendarRange, CalendarClock,
@@ -110,10 +110,10 @@ export default function MasteryMapPage() {
           <h1 className="text-xl font-bold text-text-primary mb-2">Bepul ko&apos;rish limiti tugadi</h1>
           <p className="text-text-secondary text-sm mb-6">
             Bilim xaritasidan bepul tarifda faqat 1 marta foydalanish mumkin edi. Cheksiz foydalanish, yangilangan tashxis
-            va shaxsiy o&apos;sish rejasi uchun Premium yoki Ustoz tarifiga o&apos;ting.
+            va shaxsiy o&apos;sish rejasi uchun obuna oling.
           </p>
         </div>
-        <PremiumCTA variant="full" />
+        <SubscribeCTA />
       </div>
     );
   }
@@ -153,7 +153,7 @@ export default function MasteryMapPage() {
       {data.isFreeTierView && (
         <div className="p-3 rounded-xl bg-blue-50 border border-blue-100 flex items-start gap-2 text-sm text-blue-700">
           <Info size={16} className="flex-shrink-0 mt-0.5" />
-          <span>Bu sizning bepul tarifdagi 1 martalik ko&apos;rishingiz edi. Keyingi safar yangilangan xarita uchun Premium yoki Ustoz tarifi kerak bo&apos;ladi.</span>
+          <span>Bu sizning bepul tarifdagi 1 martalik ko&apos;rishingiz edi. Keyingi safar yangilangan xarita uchun obuna kerak bo&apos;ladi.</span>
         </div>
       )}
 

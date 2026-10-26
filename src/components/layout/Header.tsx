@@ -3,11 +3,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link, usePathname as useLocalePathname } from '@/i18n/routing';
-import { Menu, X, LogOut, User, Bell, Crown } from 'lucide-react';
+import { Menu, X, LogOut, User, Bell } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 import LanguageSwitcher from './LanguageSwitcher';
-import PremiumCTA from '@/components/ui/PremiumCTA';
+import HeaderSubscription from './HeaderSubscription';
 import { ATTESTATION_HREF, isAttestationPath } from '@/lib/nav-links';
 import { loginHref } from '@/lib/safe-return-path';
 
@@ -25,7 +25,6 @@ export default function Header() {
 
   const isLoggedIn = status === 'authenticated' && session?.user;
   const userRole = session?.user?.role;
-  const isPremium = false; // Will be enhanced when subscription check is added
 
   // Fetch unread notification count
   useEffect(() => {
@@ -89,9 +88,9 @@ export default function Header() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-primary-100/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between gap-2 h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/" className="flex shrink-0 items-center gap-2">
             <div className="w-9 h-9 bg-gradient-to-br from-primary-600 to-primary-500 rounded-xl flex items-center justify-center">
               <span className="text-white font-bold text-lg">E</span>
             </div>
@@ -130,11 +129,11 @@ export default function Header() {
           <div className="hidden md:flex items-center gap-3">
             <LanguageSwitcher />
 
+            {/* Obunasizga "Obuna olish", obunachiga muddat belgisi. */}
+            <HeaderSubscription />
+
             {isLoggedIn ? (
               <>
-                {/* Premium CTA Button - show only if not premium */}
-                {!isPremium && <PremiumCTA variant="header" />}
-
                 {/* Bell notification icon */}
                 <Link
                   href="/dashboard/notifications"
@@ -226,22 +225,12 @@ export default function Header() {
             )}
           </div>
 
-          {/* Mobile menu button */}
-          <div className="md:hidden flex items-center gap-2">
-            {/* Mobile: Premium CTA + Bell + Menu */}
+          {/* 360px'da logo + obuna belgisi + qo'ng'iroq + menyu sig'ishi uchun
+              guruh qisqarishi mumkin — belgidagi fan nomi kesiladi, kun soni emas. */}
+          <div className="md:hidden flex min-w-0 items-center gap-1">
+            <HeaderSubscription compact />
             {isLoggedIn && (
               <>
-                {!isPremium && (
-                  <Link
-                    href="/pricing"
-                    className="relative group p-2 rounded-lg transition-all"
-                  >
-                    <span className="absolute inset-0 rounded-lg bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 p-[1.5px] animate-gradient-border">
-                      <span className="flex h-full w-full items-center justify-center rounded-[6px] bg-white" />
-                    </span>
-                    <Crown size={18} className="text-purple-600 relative" />
-                  </Link>
-                )}
                 <Link
                   href="/dashboard/notifications"
                   className="relative p-2 rounded-lg hover:bg-primary-50 transition-colors"

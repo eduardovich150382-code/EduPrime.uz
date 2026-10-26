@@ -30,16 +30,16 @@ describe('obuna ko‘rinishi', () => {
     const html = render(<SubscriptionOffer status={{ ...status, plan: 'FREE', subscriptions: [], hasAnyScope: false }} close={() => {}} />);
     expect(html).toContain('Obuna olish'); expect(html).not.toContain('Premium'); expect(html).toContain('href="/pricing"');
   });
-  it('Sidebar: 3 ta obuna + yana N; uzoq nomlar kesilmaydi', () => {
+  it('admin ro‘yxati: 3 ta obuna + yana N, kun soni bilan; uzoq nomlar kesilmaydi', () => {
     const subscriptions = Array.from({ length: 5 }, (_, i) => subscriptionView(sub({ id: `s${i}` })));
     const html = render(<SubscriptionSummary subscriptions={subscriptions} limit={3} />);
     expect(html.match(/Attestatsiya · Fizika/g)).toHaveLength(3);
-    expect(html).toContain('yana 2 ta'); expect(html).toContain('26-oktabrgacha');
+    expect(html).toContain('yana 2 ta'); expect(html).toContain('26-oktabrgacha (1 kun)');
     expect(html).not.toContain('truncate'); expect(html).toContain('overflow-wrap:anywhere');
   });
   it('admin muddati boshlanishi va tugashi bilan; legacy nomi saqlanadi', () => {
     const html = render(<SubscriptionSummary subscriptions={[subscriptionView(sub({ plan: 'TEACHER_PLAN', productId: null, product: null, subjects: [] }))]} showPeriod />);
-    expect(html).toContain('Ustoz'); expect(html).toContain('1-oktabr'); expect(html).toContain('26-oktabr');
+    expect(html).toContain('Ustoz'); expect(html).toContain('1-oktabr, 2026'); expect(html).toContain('26-oktabr, 2026');
   });
   it('davom etadigan obuna uchun banner yo‘q; BUNDLE umumiy pricingga olib boradi', () => {
     expect(render(<SubscriptionExpiry subscription={null} close={() => {}} />)).toBe('');

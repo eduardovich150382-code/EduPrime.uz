@@ -13,13 +13,12 @@ import {
   ArrowRight,
   Clock,
   TrendingUp,
-  Crown,
   Loader2,
   Compass,
   GraduationCap,
   Play,
 } from 'lucide-react';
-import PremiumCTA from '@/components/ui/PremiumCTA';
+import SubscribeCTA from '@/components/ui/SubscribeCTA';
 
 interface RecentResult {
   id: string;
@@ -287,8 +286,8 @@ export default function DashboardPage() {
             </div>
           </motion.div>
 
-          {/* Subscription status - Premium CTA */}
-          <PremiumCTA variant="full" />
+          {/* Obuna taklifi */}
+          <SubscribeCTA />
         </div>
       </div>
     </div>

@@ -1,7 +1,9 @@
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
 import { GOAL_STYLES } from '@/lib/goal-styles';
-import { formatPricingDate, selectPricingProduct, type PricingProduct, type PricingSubscription } from '@/lib/pricing';
+import { formatPricingDate, selectPricingProduct, type PricingProduct } from '@/lib/pricing';
+import type { SubscriptionView } from '@/lib/subscription-display';
+import ActiveSubscriptionCard from '@/components/subscription/ActiveSubscriptionCard';
 
 const card = 'min-w-0 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6';
 
@@ -46,7 +48,7 @@ export function PricingProductCard({ product, locale }: { product: PricingProduc
 }
 
 export function PricingCatalog({ products, subscriptions, goal, locale, returnUrl }: {
-  products: PricingProduct[]; subscriptions: PricingSubscription[]; goal?: string; locale: string; returnUrl?: string;
+  products: PricingProduct[]; subscriptions: SubscriptionView[]; goal?: string; locale: string; returnUrl?: string;
 }) {
   const t = useTranslations('pricing');
   const categories = products.filter((product) => product.kind === 'CATEGORY');
@@ -57,13 +59,9 @@ export function PricingCatalog({ products, subscriptions, goal, locale, returnUr
       {subscriptions.length > 0 && (
         <section className={card}>
           <h2 className="font-semibold text-text-primary">{t('activeSubscriptions')}</h2>
-          <ul className="mt-3 space-y-2 text-sm text-text-secondary">
-            {subscriptions.map((subscription) => <li key={subscription.id} className="wrap-break-word">
-              {subscription.plan === 'PREMIUM' ? t('legacyPremium') : subscription.plan === 'TEACHER_PLAN' ? t('legacyTeacher') : subscription.name ?? t('subscription')}
-              {subscription.subjects.length > 0 && ` · ${subscription.subjects.join(', ')}`}
-              {' — '}{t('expires', { date: formatPricingDate(subscription.endDate, locale) })}
-            </li>)}
-          </ul>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            {subscriptions.map((subscription) => <ActiveSubscriptionCard key={subscription.id} subscription={subscription} />)}
+          </div>
         </section>
       )}
       {products.length === 0 && <div className={`${card} py-10 text-center`}><h2 className="text-xl font-semibold">{t('empty')}</h2><p className="mt-3 text-text-secondary">{t('emptyBody')}</p></div>}

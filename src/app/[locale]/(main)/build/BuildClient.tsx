@@ -6,7 +6,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
 import BackButton from '@/components/ui/BackButton';
 import QuotaUpsellDialog from '@/components/premium/QuotaUpsellDialog';
-import { CheckCircle, Clock, Crown, Wand2 } from 'lucide-react';
+import { CheckCircle, Clock, Sparkles, Wand2 } from 'lucide-react';
 import ChipGroup from './components/ChipGroup';
 import PresetChips from './components/PresetChips';
 import TopicTree, { type TopicTreeNode } from './components/TopicTree';
@@ -410,7 +410,7 @@ export default function BuildClient() {
                   text: t('quotaExceededUsedToday', { usedToday: builtTestQuota.usedToday }),
                 },
                 {
-                  icon: <Crown size={14} className="text-purple-600 flex-shrink-0" />,
+                  icon: <Sparkles size={14} className="text-purple-600 flex-shrink-0" />,
                   text: t('quotaExceededPrice'),
                 },
               ]

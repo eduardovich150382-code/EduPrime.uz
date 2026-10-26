@@ -2,7 +2,7 @@
 
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useRef } from 'react';
-import { ArrowRight, Clock, Crown, X } from 'lucide-react';
+import { ArrowRight, Clock, Sparkles, X } from 'lucide-react';
 import { Link } from '@/i18n/routing';
 import { formatTashkentDate } from '@/lib/date';
 import { subscriptionLabel, subscriptionPricingHref, type SubscriptionStatus } from '@/lib/subscription-display';
@@ -24,7 +24,7 @@ function Banner({ children, href, action, close, urgency }: {
   }, []);
   const color = urgency === undefined ? 'from-primary-600 to-purple-600' : urgency <= 1 ? 'from-red-500 to-red-600'
     : urgency <= 3 ? 'from-orange-500 to-orange-600' : 'from-yellow-500 to-yellow-600';
-  const Icon = urgency === undefined ? Crown : Clock;
+  const Icon = urgency === undefined ? Sparkles : Clock;
   return <div ref={ref} data-subscription-banner className={`fixed top-16 left-0 right-0 bg-gradient-to-r ${color} text-white z-40`}>
     <div className="md:ml-64 flex flex-col flex-wrap items-stretch gap-x-2 gap-y-1 px-4 py-2 sm:flex-row sm:items-center">
       <div className="flex min-w-0 flex-1 items-center gap-2">

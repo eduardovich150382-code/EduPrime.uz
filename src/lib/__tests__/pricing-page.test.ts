@@ -33,14 +33,15 @@ describe('pricing server ma’lumotlari', () => {
       offers: [{ price: 49000, label: 'Сезон', buyHref: `https://t.me/EduPrimeuzbot?start=${checkoutStartParameter('p', 'o')}` }] });
   });
   it('nomlar va fanlar mavjud entitlement yuklovchida bitta SQL orqali olinadi', async () => {
-    m.subscriptions.mockResolvedValue([{ id: 's1', plan: 'CATEGORY', product: names, subjects: [subject], endDate: new Date('2026-11-24T19:30:00Z') }]);
+    m.subscriptions.mockResolvedValue([{ id: 's1', plan: 'CATEGORY', product: names, subjects: [subject], startDate: new Date('2026-10-01T00:00:00Z'), endDate: new Date('2026-11-24T19:30:00Z') }]);
     const result = await loadPricingPage('u1', 'en', now);
     expect(m.subscriptions).toHaveBeenCalledOnce(); expect(m.permissions).not.toHaveBeenCalled();
     const [sql, userIds, sameIds, timeline, startDate, endDate] = m.subscriptions.mock.calls[0];
     expect(sql.join('?')).toContain('LEFT JOIN "Product"'); expect(sql.join('?')).toContain('ANY(s."subjectIds")');
     expect(userIds).toEqual(['u1']); expect(sameIds).toEqual(['u1']); expect(timeline).toBe(false);
     expect(startDate).toBe(now); expect(endDate).toBe(now);
-    expect(result.subscriptions[0]).toMatchObject({ name: 'Attestation', subjects: ['Physics'] });
+    // Kartochka bilan bir xil ko'rinish — nomlar joriy tilga kartochkada o'giriladi.
+    expect(result.subscriptions[0]).toMatchObject({ id: 's1', name: names, subjects: [subject], isLegacy: false, endDate: '2026-11-24T19:30:00.000Z' });
   });
   it('har yuklashda yangi narx olinadi, 0 narx ham saqlanadi', async () => {
     expect((await loadPricingPage(null, 'uz', now)).products[0].offers[0].price).toBe(49000);

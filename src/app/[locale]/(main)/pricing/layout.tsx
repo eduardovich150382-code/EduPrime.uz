@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: "Tariflar — Premium va Ustoz tariflari",
-  description: "EduPrime.uz tariflarini ko'ring. Bepul, Premium (29,000 so'm/oy) va Ustoz tariflari. DTM, maktab, SAT, GRE testlariga cheksiz kirish.",
+  title: "Tariflar — obunalar",
+  description: "EduPrime.uz obunalari: maqsadingiz va faningizga mos obunani tanlang — attestatsiya, DTM, Milliy sertifikat va boshqa testlarga cheksiz kirish.",
   openGraph: {
     title: 'Tariflar — EduPrime.uz',
-    description: "Premium (29,000 so'm/oy) va Ustoz tariflari. DTM, SAT, GRE testlariga cheksiz kirish.",
+    description: "Maqsadingiz va faningizga mos obuna — testlarga cheksiz kirish.",
   },
 };
 

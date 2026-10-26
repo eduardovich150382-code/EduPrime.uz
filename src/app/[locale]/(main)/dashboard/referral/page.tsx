@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useTranslations } from 'next-intl';
 import {
   Gift,
   Copy,
   CheckCircle,
   Users,
-  Crown,
   Share2,
   Loader2,
 } from 'lucide-react';
@@ -24,6 +24,9 @@ interface ReferralData {
 }
 
 export default function ReferralPage() {
+  // Mukofot hozir eski PREMIUM tarifini beradi — u attestatsiyani ochmaydi,
+  // shuning uchun matn "obuna" demaydi va istisnoni ochiq aytadi.
+  const t = useTranslations('referral');
   const [data, setData] = useState<ReferralData | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -149,7 +152,7 @@ export default function ReferralPage() {
           Referral dasturi
         </h1>
         <p className="text-text-secondary mt-1">
-          Do&apos;stlaringizni taklif qiling va bepul Premium oling!
+          {t('subtitle')}
         </p>
       </motion.div>
 
@@ -247,12 +250,12 @@ export default function ReferralPage() {
         {data.hasReward ? (
           <div className="p-4 rounded-xl bg-green-50 border border-green-200">
             <div className="flex items-center gap-2 mb-2">
-              <Crown size={20} className="text-green-600" />
+              <Gift size={20} className="text-green-600" />
               <span className="font-semibold text-green-700">Tabriklaymiz!</span>
             </div>
             <p className="text-sm text-green-600">
               {data.rewardGranted
-                ? `Siz ${rewardDays} kunlik Premium tarifni oldingiz!`
+                ? t('rewardGranted', { days: rewardDays })
                 : `${friendsRequired} ta do'st taklif qildingiz! Mukofotingizni oling.`}
             </p>
             {!data.rewardGranted && (
@@ -277,7 +280,7 @@ export default function ReferralPage() {
               <span className="font-semibold text-primary-700">Mukofot</span>
             </div>
             <p className="text-sm text-text-secondary">
-              {friendsRequired} ta do&apos;stingizni taklif qiling va <strong>{rewardDays} kunlik Premium tarif bepul</strong> oling!
+              {t.rich('rewardOffer', { friends: friendsRequired, days: rewardDays, strong: (chunks) => <strong>{chunks}</strong> })}
               Sizga yana <strong>{data.remainingToReward}</strong> ta do&apos;st taklif qilish kerak.
             </p>
           </div>
@@ -323,7 +326,7 @@ export default function ReferralPage() {
             </div>
             <div>
               <p className="font-medium text-text-primary">Mukofot oling</p>
-              <p className="text-sm text-text-secondary">{friendsRequired} ta do&apos;st = {rewardDays} kunlik bepul Premium tarif</p>
+              <p className="text-sm text-text-secondary">{t('stepReward', { friends: friendsRequired, days: rewardDays })}</p>
             </div>
           </div>
         </div>

@@ -20,11 +20,11 @@ function render(role: string | null = 'USER') {
 beforeEach(() => { m.status.mockReset(); });
 
 describe('Sidebar haqiqiy obuna holati', () => {
-  it('attestatsiya-fizika obunachisi nomi ko‘rinadi, taklif ko‘rinmaydi', () => {
+  it('obunachiga taklif ham, "Faol obunalar" bloki ham yo‘q — muddat header belgisida', () => {
     m.status.mockReturnValue({ subscriptions: [subscriptionView(sub())], hasAnyScope: true });
     const html = render();
-    expect(html).toContain('Attestatsiya · Fizika'); expect(html).toContain('26-oktabrgacha');
-    expect(html).not.toContain('Obuna olish'); expect(html).not.toContain('Premium oling'); expect(html).not.toContain('Bepul');
+    expect(html).not.toContain('Faol obunalar'); expect(html).not.toContain('Attestatsiya · Fizika');
+    expect(html).not.toContain('Obuna olish'); expect(html).not.toContain('Premium'); expect(html).not.toContain('Bepul');
   });
   it('ruxsatda taklif yo‘q; obunasizda pricing taklifi bor; yuklanishda yashirin', () => {
     m.status.mockReturnValue({ subscriptions: [], hasAnyScope: true }); expect(render()).not.toContain('Obuna olish');

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { currentSubscriptions, hasSubscriptionContinuation, nearestExpiringSubscription, subscriptionLabel, subscriptionProductStats, subscriptionView } from '../subscription-display';
+import { currentSubscriptions, hasSubscriptionContinuation, nearestExpiringSubscription, subscriptionDisplayName, subscriptionLabel, subscriptionProductStats, subscriptionView } from '../subscription-display';
 import { subscriptionAlerts } from '../subscription-alerts';
 import { subscriptionFixture as sub, subscriptionNow as now } from './fixtures/subscriptions';
 
@@ -25,6 +25,21 @@ describe('obunani ko‘rsatish va uzaytirish', () => {
   it('uzaytirilgan obunadan keyingi tugayotgan mahsulotni tanlaydi', () => {
     const other = sub({ id: 'other', productId: 'school', endDate: new Date('2026-10-28T18:59:59Z') });
     expect(nearestExpiringSubscription([original, renewal, other], now)).toMatchObject({ id: 'other', daysLeft: 3 });
+  });
+  it('banner faqat oxirgi 3 kunda: 4 kun — yo‘q, 3 kun — bor', () => {
+    const fourDays = sub({ endDate: new Date('2026-10-29T12:00:00+05:00') });
+    const threeDays = sub({ endDate: new Date('2026-10-28T12:00:00+05:00') });
+    expect(nearestExpiringSubscription([fourDays], now)).toBeNull();
+    expect(nearestExpiringSubscription([threeDays], now)?.daysLeft).toBe(3);
+  });
+  it('foydalanuvchiga eski tarif "Eski tarif", Premium/Ustoz emas', () => {
+    for (const plan of ['PREMIUM', 'TEACHER_PLAN'] as const) {
+      const view = subscriptionView(sub({ plan, product: null, productId: null, subjects: [] }));
+      expect(subscriptionDisplayName(view, 'uz')).toBe('Eski tarif');
+      expect(subscriptionLabel(view, 'ru')).toBe('Старый тариф');
+      expect(subscriptionLabel(view, 'en')).toBe('Legacy plan');
+    }
+    expect(subscriptionLabel(subscriptionView(sub()), 'uz')).toBe('Attestatsiya · Fizika');
   });
   it('legacy tarif faqat ayni tarif bilan davom etadi', () => {
     const premium = sub({ plan: 'PREMIUM', product: null, productId: null });

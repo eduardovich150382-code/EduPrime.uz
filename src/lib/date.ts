@@ -7,8 +7,19 @@
 
 const TASHKENT_OFFSET_MS = 5 * 60 * 60 * 1000; // UTC+5, DTM mintaqasida yozgi vaqt yo'q
 
+// Brauzerlarning ICU ma'lumotida uz-UZ oy nomlari yo'q — Intl "M11 24"
+// beradi (Node to'liq ICU bilan "24-noyabr" beradi, shuning uchun testlar
+// buni ko'rmaydi). O'zbekcha sanani shu ro'yxatdan o'zimiz yig'amiz.
+const UZ_MONTHS = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avgust', 'sentabr', 'oktabr', 'noyabr', 'dekabr'];
+
+/** uz: "24-noyabr" / "24-noyabr, 2026"; ru/en — Intl. Kun Toshkent bo'yicha. */
 export function formatTashkentDate(value: Date | string, locale: string, includeYear = false): string {
-  return new Intl.DateTimeFormat(locale === 'ru' ? 'ru-RU' : locale === 'en' ? 'en-US' : 'uz-UZ', {
+  if (locale !== 'ru' && locale !== 'en') {
+    const [year, month, day] = tashkentDateKey(new Date(value)).split('-').map(Number);
+    const date = `${day}-${UZ_MONTHS[month - 1]}`;
+    return includeYear ? `${date}, ${year}` : date;
+  }
+  return new Intl.DateTimeFormat(locale === 'ru' ? 'ru-RU' : 'en-US', {
     day: 'numeric', month: 'long', ...(includeYear ? { year: 'numeric' as const } : {}), timeZone: 'Asia/Tashkent',
   }).format(new Date(value));
 }
@@ -95,4 +106,15 @@ export function tashkentRelativeDay(date: Date | string | number, now: Date = ne
   if (then === null || today === null) return null;
   const days = Math.round((today - then) / DAY_MS);
   return days < 0 ? null : days;
+}
+
+/**
+ * `endDate` gacha qolgan Toshkent kalendar kunlari: 0 — bugun tugaydi,
+ * 1 — ertaga, manfiy — allaqachon tugagan. `daysUntil` dan farqi: o'tgan
+ * sana uchun `null` emas, son — kartochka "Tugagan" holatini shundan oladi.
+ */
+export function daysLeft(endDate: Date | string, now: Date = new Date()): number {
+  const end = dateKeyToUtcMs(tashkentDateKey(new Date(endDate)));
+  const today = dateKeyToUtcMs(tashkentDateKey(now));
+  return end === null || today === null ? 0 : Math.round((end - today) / DAY_MS);
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { formatTashkentDate } from '@/lib/date';
 import {
   GraduationCap,
   Award,
@@ -85,9 +86,7 @@ export default function CertificatePage() {
     );
   }
 
-  const completedDate = new Date(cert.completedAt).toLocaleDateString('uz-UZ', {
-    day: 'numeric', month: 'long', year: 'numeric',
-  });
+  const completedDate = formatTashkentDate(cert.completedAt, 'uz', true);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-50 via-white to-amber-50/40">

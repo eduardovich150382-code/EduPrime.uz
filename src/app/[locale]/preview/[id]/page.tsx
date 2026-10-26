@@ -84,10 +84,9 @@ export default function TestPreviewPage() {
 
   const accessLabel =
     test.accessType === 'free' ? 'Bepul' :
-    test.accessType === 'paid' ? `${test.price.toLocaleString()} so'm` :
+    test.accessType === 'paid' ? card('lockPrice', { price: test.price.toLocaleString() }) :
     test.accessType === 'subscription' ? card('lockSubscription') :
-    test.accessType === 'premium' ? 'Premium tarif' :
-    test.accessType === 'teacher' ? 'Ustoz tarifi' : 'Premium + Ustoz tarifi';
+    test.accessType === 'teacher' ? 'Ustoz tarifi' : card('lockPremium');
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary-50 via-white to-primary-50/30">

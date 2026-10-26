@@ -18,6 +18,7 @@ import {
   Gift,
   X,
   Crown,
+  Sparkles,
   Globe,
   Video,
   Wand2,
@@ -26,7 +27,6 @@ import { signOut } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import { usePathname as useFullPathname } from 'next/navigation';
 import { loginHref } from '@/lib/safe-return-path';
-import SubscriptionSummary from '@/components/ui/SubscriptionSummary';
 import { useSubscriptionStatus } from '@/components/ui/useSubscriptionStatus';
 
 interface SidebarProps {
@@ -100,12 +100,6 @@ export default function Sidebar({ role, mobileOpen, setMobileOpen }: SidebarProp
 
   const sidebarContent = (
     <>
-      {/* Tarif ko'rsatish */}
-      {!collapsed && !!status?.subscriptions.length && (
-        <div className="max-h-[35vh] overflow-y-auto p-3 border-b border-border">
-          <SubscriptionSummary subscriptions={status.subscriptions} limit={3} />
-        </div>
-      )}
       {/* Navigation */}
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {links.map((link) => {
@@ -141,7 +135,7 @@ export default function Sidebar({ role, mobileOpen, setMobileOpen }: SidebarProp
           className="flex items-center gap-3 px-3 py-3 rounded-xl bg-gradient-to-r from-primary-50 to-purple-50 border border-primary-200 transition-all hover:shadow-sm"
         >
           <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary-500 to-purple-500 flex items-center justify-center flex-shrink-0">
-            <Crown size={18} className="text-white" />
+            <Sparkles size={18} className="text-white" />
           </div>
           {!collapsed && (
             <div>
