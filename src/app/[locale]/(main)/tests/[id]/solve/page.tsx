@@ -9,11 +9,10 @@ import { usePracticeClock } from '@/components/test/usePracticeClock';
 import { isPhysicsSubject, shufflePresentedQuestions } from '@/lib/exam-presentation';
 import { CLOCK_KEY_PREFIX, DRAFT_KEY_PREFIX, getDraftResumeMode, restoreTestDraft } from '@/lib/test-draft';
 import ExpiredDraftNotice from '@/components/test/ExpiredDraftNotice';
+import TestLockedNotice, { type TestAccessDenied } from '@/components/test/TestLockedNotice';
 import BackButton from '@/components/ui/BackButton';
-import { Link } from '@/i18n/routing';
 import { withReturnTo, sanitizeReturnPath } from '@/lib/safe-return-path';
 import { AlertCircle, Loader2 } from 'lucide-react';
-import type { TestType } from '@prisma/client';
 
 interface QuestionData {
   id: string;
@@ -52,7 +51,7 @@ export default function TestSolvePage() {
 
   const [test, setTest] = useState<TestData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [accessDenied, setAccessDenied] = useState<{ accessType: string; price?: number; testTitle?: string; categoryType?: TestType | null } | null>(null);
+  const [accessDenied, setAccessDenied] = useState<TestAccessDenied | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [showFinishDialog, setShowFinishDialog] = useState(false);
@@ -328,46 +327,7 @@ export default function TestSolvePage() {
 
   if (!test || test.questions.length === 0) {
     // Access denied — show lock screen
-    if (accessDenied) {
-      // Jumla to'liq holda tarjima qilinadi — ruschada so'z tartibi boshqa,
-      // bo'laklardan yig'ib bo'lmaydi.
-      const title = accessDenied.testTitle ?? '';
-      const price = (accessDenied.price || 0).toLocaleString();
-      const lockedMessage =
-        accessDenied.accessType === 'premium' ? exam('locked.needPremium', { title })
-        : accessDenied.accessType === 'teacher' ? exam('locked.needTeacher', { title })
-        : accessDenied.accessType === 'premium_teacher' ? exam('locked.needPremiumTeacher', { title })
-        : accessDenied.accessType === 'subscription' ? exam('locked.needSubscription', { title })
-        : accessDenied.accessType === 'paid' ? exam('locked.needPaid', { title, price })
-        : exam('locked.needGeneric', { title });
-      return (
-        <div className="max-w-md mx-auto text-center py-16">
-          <div className="w-20 h-20 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <AlertCircle size={36} className="text-primary-600" />
-          </div>
-          <h2 className="text-xl font-bold text-text-primary mb-2">{exam('locked.title')}</h2>
-          <p className="text-text-secondary mb-6">
-            {lockedMessage}
-          </p>
-          {accessDenied.accessType === 'paid' ? (
-            <a
-              href={`https://t.me/EduPrimeuzbot?start=buy_test_${testId}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-primary inline-flex items-center gap-2"
-            >
-              {exam('locked.buy', { price })}
-            </a>
-          ) : (
-            // Link til prefiksini qo'yadi — oddiy <a href="/pricing"> ruscha
-            // foydalanuvchini o'zbekcha tariflar sahifasiga otardi.
-            <Link href={{ pathname: '/pricing', query: accessDenied.categoryType ? { goal: accessDenied.categoryType } : {} }} className="btn-primary inline-flex items-center gap-2">
-              {exam('locked.pricing')}
-            </Link>
-          )}
-        </div>
-      );
-    }
+    if (accessDenied) return <TestLockedNotice testId={testId} accessDenied={accessDenied} />;
 
     return (
       <div className="text-center py-20">
