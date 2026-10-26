@@ -28,6 +28,18 @@ export function tashkentDateInput(date: Date | string): string {
   return tashkentDateKey(new Date(date));
 }
 
+// Aksiya tugashi soatigacha: `datetime-local` qiymati Toshkent vaqti deb o'qiladi.
+export function tashkentDateTime(value: string): Date {
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)) throw new Error('INVALID_DATE');
+  const date = new Date(`${value}:00+05:00`);
+  if (!Number.isFinite(date.getTime()) || tashkentDateTimeInput(date) !== value) throw new Error('INVALID_DATE');
+  return date;
+}
+
+export function tashkentDateTimeInput(date: Date | string): string {
+  return new Date(new Date(date).getTime() + TASHKENT_OFFSET).toISOString().slice(0, 16);
+}
+
 // Qat'iy sana uzaytirilmaydi; oylik variant qolgan pullik muddatni saqlaydi.
 export function resolveStartDate(offer: OfferDuration, now: Date, currentEndDate?: Date | null): Date {
   if (!isValidOfferDuration(offer) || !Number.isFinite(now.getTime())) throw new Error('INVALID_DURATION');

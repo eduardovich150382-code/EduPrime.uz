@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { clearSubscriptionStatusCache, loadSubscriptionStatus } from '@/components/ui/useSubscriptionStatus';
+import { BUY_BUTTON_STYLES, type BuyButtonVariant } from './buy-button-styles';
 
 const POLL_MS = 20_000;
 const POLL_WINDOW_MS = 15 * 60_000;
@@ -11,9 +12,9 @@ const button = 'inline-flex min-h-11 items-center justify-center rounded-xl px-4
 
 type ErrorKey = 'checkoutError' | 'checkoutExpired';
 
-export function BuyOfferButton({ userId, productId, offerId, needed, choices, knownSubscriptionIds }: {
+export function BuyOfferButton({ userId, productId, offerId, needed, choices, knownSubscriptionIds, variant = 'solid' }: {
   userId: string; productId: string; offerId: string; needed: number;
-  choices: { id: string; name: string }[]; knownSubscriptionIds: string[];
+  choices: { id: string; name: string }[]; knownSubscriptionIds: string[]; variant?: BuyButtonVariant;
 }) {
   const t = useTranslations('pricing');
   const router = useRouter();
@@ -98,7 +99,7 @@ export function BuyOfferButton({ userId, productId, offerId, needed, choices, kn
           </div>
         </fieldset>
       ) : (
-        <button type="button" onClick={onBuy} disabled={status === 'loading'} className={`${button} w-full bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50`}>
+        <button type="button" onClick={onBuy} disabled={status === 'loading'} className={`${button} w-full ${BUY_BUTTON_STYLES[variant]} disabled:opacity-50`}>
           {status === 'loading' ? t('opening') : t('buy')}
         </button>
       )}

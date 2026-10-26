@@ -1,64 +1,16 @@
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
 import { GOAL_STYLES } from '@/lib/goal-styles';
-import { formatPricingDate, selectPricingProduct, type PricingProduct } from '@/lib/pricing';
+import { bundleSavings, selectPricingProduct, type PricingProduct } from '@/lib/pricing';
 import type { SubscriptionView } from '@/lib/subscription-display';
 import ActiveSubscriptionCard from '@/components/subscription/ActiveSubscriptionCard';
-import { BuyOfferButton } from './BuyOfferButton';
 import { loginHref, localizedPath } from '@/lib/safe-return-path';
-import { requiredSubjectCount } from '@/lib/product-offers';
+import { OfferCard } from './OfferCard';
+import { BundleAnchorCard } from './BundleAnchorCard';
+import { PricingFaq } from './PricingFaq';
+import type { BuyContext } from './OfferVariant';
 
 const card = 'min-w-0 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6';
-
-interface BuyContext { userId: string | null; loginHref: string; knownSubscriptionIds: string[] }
-
-export function PricingProductCard({ product, locale, buy }: { product: PricingProduct; locale: string; buy: BuyContext }) {
-  const t = useTranslations('pricing');
-  const needed = requiredSubjectCount(product);
-  const choices = needed === 0 ? [] : product.subjects.filter((subject) => product.subjectRule !== 'DTM_BLOCK' || !subject.isMandatory);
-  return (
-    <article id={product.kind === 'BUNDLE' ? `bundle-${product.id}` : undefined} className={`${card} scroll-mt-24 space-y-5`}>
-      <div className="space-y-2">
-        <h2 className="wrap-break-word text-xl font-bold text-text-primary">{product.name}</h2>
-        <p className="text-text-secondary">{t(product.kind === 'BUNDLE' ? 'scope.BUNDLE' : `scope.${product.subjectRule}`)}</p>
-      </div>
-      {product.subjects.length > 0 && (
-        <div>
-          <h3 className="font-semibold text-text-primary">{t('subjects')}</h3>
-          <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-            {product.subjects.map((subject) => (
-              <li key={subject.id} className="flex min-w-0 items-baseline justify-between gap-3 rounded-xl bg-gray-50 px-3 py-2 text-sm">
-                <span className="min-w-0 wrap-break-word">{subject.name}</span>
-                <span className="shrink-0 text-text-secondary">{t('testCount', { count: subject.testCount })}</span>
-              </li>
-            ))}
-          </ul>
-          {!buy.userId && (product.subjectRule === 'ONE' || product.subjectRule === 'DTM_BLOCK') && <p className="mt-3 text-sm text-text-secondary">{t('subjectInBot')}</p>}
-        </div>
-      )}
-      {product.secondSubjectDiscountPct > 0 && <p className="text-sm font-semibold text-primary-700">{t('secondSubjectDiscount', { percent: product.secondSubjectDiscountPct })}</p>}
-      <div className="grid gap-4 sm:grid-cols-2">
-        {product.offers.map((offer) => (
-          <div key={offer.id} className="flex min-w-0 flex-col gap-3 rounded-2xl border border-gray-200 p-4">
-            <h3 className="wrap-break-word font-semibold text-text-primary">{offer.label}</h3>
-            <p className="text-sm text-text-secondary">{offer.untilDate ? t('untilDate', { date: formatPricingDate(offer.untilDate, locale) }) : t('months', { count: offer.durationMonths ?? 0 })}</p>
-            <p className="wrap-break-word text-2xl font-bold text-text-primary">{t('price', { amount: new Intl.NumberFormat(locale).format(offer.price) })}</p>
-            {/* Mehmon avval kiradi: to'lov sayt akkauntiga yozilishi uchun niyat faqat kirgan foydalanuvchiga yaratiladi. */}
-            {buy.userId ? (
-              <BuyOfferButton userId={buy.userId} productId={product.id} offerId={offer.id} needed={needed}
-                choices={choices.map(({ id, name }) => ({ id, name }))} knownSubscriptionIds={buy.knownSubscriptionIds} />
-            ) : (
-              <Link href={buy.loginHref} className="mt-auto inline-flex min-h-11 items-center justify-center rounded-xl bg-primary-600 px-4 py-3 text-center font-semibold text-white hover:bg-primary-700">
-                {t('buy')}
-              </Link>
-            )}
-          </div>
-        ))}
-      </div>
-      {product.offers.length === 0 && <p className="text-text-secondary">{t('noOffers')}</p>}
-    </article>
-  );
-}
 
 export function PricingCatalog({ products, subscriptions, goal, locale, returnUrl, userId = null }: {
   products: PricingProduct[]; subscriptions: SubscriptionView[]; goal?: string; locale: string; returnUrl?: string; userId?: string | null;
@@ -72,7 +24,7 @@ export function PricingCatalog({ products, subscriptions, goal, locale, returnUr
     loginHref: loginHref(localizedPath(selected?.goal ? `/pricing?goal=${encodeURIComponent(selected.goal)}` : '/pricing', locale)),
   };
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {subscriptions.length > 0 && (
         <section className={card}>
           <h2 className="font-semibold text-text-primary">{t('activeSubscriptions')}</h2>
@@ -92,9 +44,9 @@ export function PricingCatalog({ products, subscriptions, goal, locale, returnUr
           </Link>)}
         </nav>
       )}
-      {selected && <PricingProductCard product={selected} locale={locale} buy={buy} />}
-      {bundles.map((product) => <PricingProductCard key={product.id} product={product} locale={locale} buy={buy} />)}
-      {products.length > 0 && <p className="text-sm text-text-secondary">{t('paymentNote')}</p>}
+      {selected && <OfferCard product={selected} locale={locale} buy={buy} />}
+      {bundles.map((product) => <BundleAnchorCard key={product.id} product={product} locale={locale} buy={buy} savings={bundleSavings(product, products)} />)}
+      {products.length > 0 && <PricingFaq />}
     </div>
   );
 }

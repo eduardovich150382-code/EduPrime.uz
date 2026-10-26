@@ -7,14 +7,16 @@ Testlar bo'limini qayta dizayn qilish sessiyalari shu qoidalarga tayanadi.
 - Ikkinchi darajali tugma: border primary-200, fon primary-50, matn primary-800.
 - Fon #fafafa, kartalar oq, chegara #e5e7eb, shrift Inter (mavjud).
 - Kartalarda gradient fon, chap chegarali "accent" (border-l-*) va emoji ishlatilmaydi.
+  Istisno: /pricing dagi "Hammasi" paketining pastdagi langar kartasi — u ataylab boshqa kartalardan ajralib turadi.
 - Maqsad (TestType) belgilari — kichik pill, matn/fon:
   ATTESTATION  #92400e / #fef3c7  — "Attestatsiya"
   CERTIFICATE  #1e40af / #dbeafe  — "Milliy sertifikat"
-  DTM          #9a3412 / #ffedd5  — "Abituriyent (DTM)"
+  DTM          #9f1239 / #ffe4e6  — "Abituriyent (DTM)"
   SCHOOL       #115e59 / #ccfbf1  — "Maktab darsi"
-  PRESIDENT_SCHOOL #3730a3 / #e0e7ff — "Prezident maktabi"
+  PRESIDENT_SCHOOL #86198f / #fae8ff — "Prezident maktabi"
   SAT          #334155 / #e2e8f0  — "SAT"
-  GRE          #155e75 / #cffafe  — "GRE"
+  GRE          #3f6212 / #ecfccb  — "GRE"
+  Kartalar yonma-yon turadi: to'yingan fon tuslari bir-biridan ≥ 30° farq qilsin (SAT kulrangi bundan mustasno).
 - Attestatsiya banneri: fon #2e1065, sarlavha oq, ikkinchi matn #ddd6fe, CTA fon #fbbf24 matn #451a03.
 - Natija holatlari: to'g'ri — fon #dcfce7, matn #166534, chegara #86efac; xato — to'liq #e11d48, oq matn; javob berilmagan — oq fon, uzuq chiziqli chegara #9ca3af. Rang yolg'iz emas — ikonka (Check / X / Minus) ham bo'ladi.
 

@@ -916,8 +916,20 @@
       "SERVER_ERROR": "The request failed. Please try again.",
       "UNAUTHORIZED": "Please sign in.",
       "FORBIDDEN": "Administrator access is required.",
-      "RETRY_REQUIRED": "Another update occurred. Please try again."
-    }
+      "RETRY_REQUIRED": "Another update occurred. Please try again.",
+      "COMPARE_AT_NOT_ABOVE_PRICE": "The old price must be higher than the current price.",
+      "PROMO_NEEDS_COMPARE_AT": "Enter the old price to set a promotion end.",
+      "TOO_MANY_FEATURES": "Up to 8 benefits are allowed."
+    },
+    "compareAtPrice": "Old price (struck through, optional)",
+    "compareAtHelp": "The old price must be higher than the current price. If an end time is set, the old price and countdown hide automatically after it.",
+    "promoUntil": "Promotion ends (Tashkent time)",
+    "badge": "Badge",
+    "badgePlaceholder": "Most popular",
+    "featured": "Featured option (highlighted on the card)",
+    "tagline": "Tagline (one line)",
+    "features": "Benefits",
+    "featuresHelp": "One benefit per line, up to 8. What the subscription unlocks is listed above them automatically."
   },
   "testAccessForm": {
     "title": "Test access",
@@ -991,17 +1003,8 @@
       "body": "Explore available categories, subjects and subscription durations.",
       "cta": "View subscriptions"
     },
-    "scope": {
-      "ONE": "All tests and mock exams for one subject of your choice",
-      "DTM_BLOCK": "2 main subjects + 3 compulsory subjects",
-      "NONE": "All tests in the category",
-      "BUNDLE": "Tests and mock exams across all categories and subjects"
-    },
     "subjects": "Available subjects",
-    "testCount": "{count} tests",
     "subjectInBot": "You do not need to choose a subject here — the Telegram bot will ask you.",
-    "secondSubjectDiscount": "Second subject — {percent}% off",
-    "untilDate": "Until: {date} (Tashkent time)",
     "months": "{count} months",
     "price": "{amount} UZS",
     "buy": "Buy",
@@ -1009,7 +1012,6 @@
     "empty": "Subscriptions coming soon",
     "emptyBody": "Subscriptions will appear here when they go on sale.",
     "noOffers": "Duration options for this product will be available soon.",
-    "paymentNote": "Payment is completed through the Telegram bot. The final amount is shown in the bot after you choose your subjects.",
     "chooseGoal": "Choose your goal",
     "viewSubscription": "View subscription",
     "back": "Return to the previous page",
@@ -1020,7 +1022,66 @@
     "opening": "Opening…",
     "checkoutOpened": "Payment details are open in Telegram. Send the receipt to the bot — this page will refresh once the subscription is active.",
     "checkoutError": "Could not create the payment link. Refresh the page and try again.",
-    "checkoutExpired": "This option is no longer on sale. Refresh the page."
+    "checkoutExpired": "This option is no longer on sale. Refresh the page.",
+    "rule": {
+      "ONE": "You choose one subject",
+      "DTM_BLOCK": "2 main + 3 mandatory subjects",
+      "NONE": "Whole category",
+      "BUNDLE": "All tracks and subjects"
+    },
+    "currency": "UZS",
+    "featuredRibbon": "Best value",
+    "untilDays": "until {date} · {days, plural, one {# day} other {# days}}",
+    "perMonth": "~{amount} UZS per month",
+    "perDay": "~{amount} UZS per day",
+    "youSave": "You save {amount}",
+    "promoEndsIn": "Offer ends in {time}",
+    "daysHours": "{days, plural, one {# day} other {# days}} {hours, plural, one {# hour} other {# hours}}",
+    "hoursMinutes": "{hours, plural, one {# hour} other {# hours}} {minutes, plural, one {# minute} other {# minutes}}",
+    "cheaperThan": "{percent}% cheaper than “{label}”",
+    "personalBadge": "For you −{percent}%",
+    "personalNote": "Price for a new subject. Renewing your current subject — {price}.",
+    "secondSubjectBadge": "Second subject −{percent}%",
+    "statMocks": "{count, plural, one {# mock exam} other {# mock exams}}",
+    "statTopicTests": "{count, plural, one {# topic test} other {# topic tests}}",
+    "statQuestions": "{shown} {count, plural, one {question} other {questions}}",
+    "mandatorySubjects": "Mandatory subjects are added automatically: {names}",
+    "auto": {
+      "allCategories": "Every track: attestation, certificate, DTM and more",
+      "topicTests": "All topic tests",
+      "mockTests": "All mock exams",
+      "solutions": "Step-by-step solutions — no daily limit",
+      "aiExplain": "AI explanations — no daily limit"
+    },
+    "activeUntil": "Active — until {date}",
+    "extend": "Renew",
+    "extendNote": "When you renew, the new period starts after your current subscription ends — remaining days are kept.",
+    "paymentFacts": "Payment via Telegram bot · card transfer · usually active within 15 minutes",
+    "bundleSeparate": "Bought separately",
+    "bundleTogether": "in the bundle",
+    "faq": {
+      "title": "Frequently asked questions",
+      "payment": {
+        "q": "How do I pay?",
+        "a": "The “Buy” button opens the Telegram bot. It shows the amount and the card number — transfer the money and send the receipt photo to the bot."
+      },
+      "activation": {
+        "q": "When is the subscription activated?",
+        "a": "Once the receipt is checked — usually within 15 minutes. The bot sends a message and this page refreshes on its own."
+      },
+      "changeSubject": {
+        "q": "Can I change the chosen subject?",
+        "a": "Yes, through an administrator only. Message the bot or support — the subject is swapped without losing time."
+      },
+      "secondSubject": {
+        "q": "How does the second-subject discount work?",
+        "a": "With an active subscription in this track, another subject is discounted. The discount is applied to the final amount in the bot; renewing the same subject is full price."
+      },
+      "expiry": {
+        "q": "What happens when it expires?",
+        "a": "Paid tests are locked; your results and history are kept. You get a reminder 3 days before — renew in time and no remaining days are lost."
+      }
+    }
   },
   "referral": {
     "subtitle": "Invite friends and get free days of access (attestation not included)!",

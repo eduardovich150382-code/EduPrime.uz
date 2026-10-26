@@ -754,6 +754,13 @@ model Product {
   isOnSale                 Boolean     @default(false)
   secondSubjectDiscountPct Int         @default(0)
   order                    Int         @default(0)
+  // /pricing kartochkasidagi bir qatorli shior va admin yozadigan afzalliklar.
+  taglineUz                String?
+  taglineRu                String?
+  taglineEn                String?
+  featuresUz               String[]    @default([])
+  featuresRu               String[]    @default([])
+  featuresEn               String[]    @default([])
   createdAt                DateTime    @default(now())
   updatedAt                DateTime    @updatedAt
 
@@ -776,6 +783,14 @@ model ProductOffer {
   price          Int
   isActive       Boolean   @default(true)
   order          Int       @default(0)
+  // Faqat ko'rsatish uchun: to'lov summasi doim `price` dan hisoblanadi.
+  compareAtPrice Int?
+  badgeUz        String?
+  badgeRu        String?
+  badgeEn        String?
+  isFeatured     Boolean   @default(false)
+  // O'tgach eski narx va hisoblagich yashiriladi; variant sotuvda qoladi.
+  promoUntil     DateTime?
 
   product       Product        @relation(fields: [productId], references: [id])
   subscriptions Subscription[]

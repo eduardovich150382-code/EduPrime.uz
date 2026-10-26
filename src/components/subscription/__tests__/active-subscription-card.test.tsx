@@ -36,10 +36,15 @@ describe('ActiveSubscriptionCard', () => {
     const html = render(ends.expired);
     expect(html).toContain('Tugagan'); expect(html).toContain('color:#991b1b'); expect(html).toContain('Qayta olish');
   });
-  it('compact: bitta qator "Attestatsiya · Fizika — 10-noyabrgacha (16 kun)" + Uzaytirish', () => {
+  it('compact: bitta qator "Attestatsiya · Fizika — 10-noyabrgacha (16 kun)", havolasiz', () => {
     const html = render(ends[16], 'compact').replace(/<!-- -->/g, '');
     expect(html).toContain('Attestatsiya</span> · Fizika — ');
-    expect(html).toContain('10-noyabrgacha (16 kun)'); expect(html).toContain('Uzaytirish');
+    expect(html).toContain('10-noyabrgacha (16 kun)'); expect(html).not.toContain('Uzaytirish'); expect(html).not.toContain('<a');
+  });
+  it('compact: havola kartochka qoidasida — ≤3 kun "Uzaytirish", tugagach "Qayta olish"', () => {
+    expect(render(ends[5], 'compact')).not.toContain('Uzaytirish');
+    expect(render(ends[2], 'compact')).toContain('Uzaytirish');
+    expect(render(ends.expired, 'compact')).toContain('Qayta olish');
   });
   it('BUNDLE — oltin uslub va "Barcha fanlar"; eski tarif — kulrang "Eski tarif"', () => {
     const bundle = render(ends[2], 'full', { plan: 'BUNDLE', goal: null, subjects: [], product: { nameUz: 'Hammasi', nameRu: 'Всё', nameEn: 'All' } });

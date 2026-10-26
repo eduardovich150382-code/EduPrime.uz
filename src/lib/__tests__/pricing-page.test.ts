@@ -1,19 +1,29 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-const m = vi.hoisted(() => ({ products: vi.fn(), subscriptions: vi.fn(), permissions: vi.fn() }));
+const m = vi.hoisted(() => ({ products: vi.fn(), subscriptions: vi.fn(), counts: vi.fn(), permissions: vi.fn() }));
 vi.mock('server-only', () => ({}));
-vi.mock('@/lib/db', () => ({ db: { product: { findMany: m.products }, $queryRaw: m.subscriptions, userPermission: { findMany: m.permissions } } }));
+// Ikkala agregat ham $queryRaw — SQL matniga qarab ajratiladi.
+vi.mock('@/lib/db', () => ({ db: { product: { findMany: m.products }, userPermission: { findMany: m.permissions },
+  $queryRaw: (sql: TemplateStringsArray, ...values: unknown[]) => (sql.join('?').includes('FROM "Test"') ? m.counts : m.subscriptions)(sql, ...values) } }));
 import { loadPricingPage } from '../pricing-page';
 import { checkoutStartParameter, parseCheckoutStart } from '../category-checkout';
 import { formatPricingDate, selectPricingProduct, type PricingProduct } from '../pricing';
 
 const now = new Date('2026-10-24T19:01:00Z');
 const names = { nameUz: 'Attestatsiya', nameRu: 'Аттестация', nameEn: 'Attestation' };
-const subject = { id: 'physics', nameUz: 'Fizika', nameRu: 'Физика', nameEn: 'Physics', _count: { tests: 12 } };
-const product = { id: 'p', kind: 'CATEGORY', subjectRule: 'ONE', secondSubjectDiscountPct: 25, ...names,
+const subject = { id: 'physics', nameUz: 'Fizika', nameRu: 'Физика', nameEn: 'Physics', isMandatory: false, _count: { tests: 12 } };
+const math = { id: 'math', nameUz: 'Matematika', nameRu: 'Математика', nameEn: 'Maths', isMandatory: false, _count: { tests: 30 } };
+const marketing = { taglineUz: 'Ishonch bilan', taglineRu: null, taglineEn: 'With confidence', featuresUz: ['Jonli tahlil'], featuresRu: [], featuresEn: ['Live review'] };
+const offerMarketing = { compareAtPrice: 70000, badgeUz: 'Eng foydali', badgeRu: null, badgeEn: 'Best', isFeatured: true, promoUntil: null };
+const product = { id: 'p', kind: 'CATEGORY', categoryId: 'att', subjectRule: 'ONE', secondSubjectDiscountPct: 25, ...names, ...marketing,
   category: { type: 'ATTESTATION', subjects: [subject] }, offers: [
-    { id: 'o', labelUz: 'Mavsum', labelRu: 'Сезон', labelEn: 'Season', durationMonths: null, untilDate: new Date('2026-11-25T18:59:59Z'), price: 49000 },
+    { id: 'o', labelUz: 'Mavsum', labelRu: 'Сезон', labelEn: 'Season', durationMonths: null, untilDate: new Date('2026-11-25T18:59:59Z'), price: 49000, ...offerMarketing },
   ] };
-beforeEach(() => { vi.resetAllMocks(); m.products.mockResolvedValue([product]); m.subscriptions.mockResolvedValue([]); });
+const countRows = [
+  { categoryId: 'att', subjectId: 'physics', topicTests: 45, mockTests: 3, questions: 1650 },
+  { categoryId: 'att', subjectId: 'math', topicTests: 20, mockTests: 2, questions: 700 },
+  { categoryId: 'dtm', subjectId: 'physics-dtm', topicTests: 9, mockTests: 0, questions: 90 },
+];
+beforeEach(() => { vi.resetAllMocks(); m.products.mockResolvedValue([product]); m.subscriptions.mockResolvedValue([]); m.counts.mockResolvedValue(countRows); });
 
 describe('pricing server ma’lumotlari', () => {
   it('mehmon: sotuvdagi mahsulot va faol variantlar; obuna so‘rovi yo‘q', async () => {
@@ -43,9 +53,55 @@ describe('pricing server ma’lumotlari', () => {
     // Kartochka bilan bir xil ko'rinish — nomlar joriy tilga kartochkada o'giriladi.
     expect(result.subscriptions[0]).toMatchObject({ id: 's1', name: names, subjects: [subject], isLegacy: false, endDate: '2026-11-24T19:30:00.000Z' });
   });
+  it('kontent sonlari bitta agregat so‘rovda, sotiladigan fan kesimida', async () => {
+    m.products.mockResolvedValue([{ ...product, category: { type: 'ATTESTATION', subjects: [subject, math] } }]);
+    const [result] = (await loadPricingPage(null, 'uz', now)).products;
+    expect(m.counts).toHaveBeenCalledOnce();
+    expect(m.counts.mock.calls[0][0].join('?')).toContain('"isPublished" = true');
+    // ONE: Matematika testlari Fizika soniga qo'shilmaydi, kartada yig'indi yo'q.
+    expect(result.counts).toBeNull();
+    expect(result.subjects.map((s) => s.counts)).toEqual([
+      { topicTests: 45, mockTests: 3, questions: 1650 }, { topicTests: 20, mockTests: 2, questions: 700 },
+    ]);
+  });
+  it('NONE — butun kategoriya, BUNDLE — barcha sotuvdagi kategoriyalar', async () => {
+    m.products.mockResolvedValue([
+      { ...product, subjectRule: 'NONE' },
+      { ...product, id: 'dtm', categoryId: 'dtm', subjectRule: 'DTM_BLOCK', category: { type: 'DTM', subjects: [] } },
+      { ...product, id: 'all', kind: 'BUNDLE', categoryId: null, subjectRule: 'NONE', category: null },
+    ]);
+    const [none, , bundle] = (await loadPricingPage(null, 'uz', now)).products;
+    expect(none.counts).toEqual({ topicTests: 65, mockTests: 5, questions: 2350 });
+    expect(bundle.counts).toEqual({ topicTests: 74, mockTests: 5, questions: 2440 });
+  });
+  it('marketing maydonlari joriy tilda, bo‘sh bo‘lsa o‘zbekchasi', async () => {
+    const [ru] = (await loadPricingPage(null, 'ru', now)).products;
+    expect(ru).toMatchObject({ tagline: 'Ishonch bilan', features: ['Jonli tahlil'] });
+    expect(ru.offers[0]).toMatchObject({ compareAtPrice: 70000, badge: 'Eng foydali', isFeatured: true, promoUntil: null, personalPrice: null });
+    const [en] = (await loadPricingPage(null, 'en', now)).products;
+    expect(en).toMatchObject({ tagline: 'With confidence', features: ['Live review'] }); expect(en.offers[0].badge).toBe('Best');
+  });
+  it('aksiya o‘tgach eski narx va muddat yuborilmaydi; narxdan kichik eski narx ham', async () => {
+    const withOffer = (extra: object) => [{ ...product, offers: [{ ...product.offers[0], ...extra }] }];
+    m.products.mockResolvedValue(withOffer({ promoUntil: new Date(now.getTime() - 1) }));
+    expect((await loadPricingPage(null, 'uz', now)).products[0].offers[0]).toMatchObject({ compareAtPrice: null, promoUntil: null });
+    m.products.mockResolvedValue(withOffer({ promoUntil: new Date(now.getTime() + 60_000) }));
+    expect((await loadPricingPage(null, 'uz', now)).products[0].offers[0]).toMatchObject({ compareAtPrice: 70000, promoUntil: new Date(now.getTime() + 60_000).toISOString() });
+    m.products.mockResolvedValue(withOffer({ compareAtPrice: 49000 }));
+    expect((await loadPricingPage(null, 'uz', now)).products[0].offers[0].compareAtPrice).toBeNull();
+  });
+  it('faol obunachiga ikkinchi fan narxi va shu mahsulotdagi obunasi', async () => {
+    m.subscriptions.mockResolvedValue([{ id: 's1', userId: 'u1', productId: 'p', plan: 'CATEGORY', isActive: true, subjectIds: ['physics'], product: names, subjects: [subject],
+      startDate: new Date('2026-10-01T00:00:00Z'), endDate: new Date('2026-11-24T19:30:00Z') }]);
+    const [result] = (await loadPricingPage('u1', 'uz', now)).products;
+    expect(result.offers[0].personalPrice).toBe(36750);
+    expect(result.activeSubscriptions).toEqual([{ id: 's1', endDate: '2026-11-24T19:30:00.000Z', subjects: ['Fizika'] }]);
+    m.subscriptions.mockResolvedValue([]);
+    expect((await loadPricingPage('u1', 'uz', now)).products[0].offers[0].personalPrice).toBeNull();
+  });
   it('har yuklashda yangi narx olinadi, 0 narx ham saqlanadi', async () => {
     expect((await loadPricingPage(null, 'uz', now)).products[0].offers[0].price).toBe(49000);
-    m.products.mockResolvedValue([{ ...product, offers: [{ ...product.offers[0], price: 0 }] }]);
+    m.products.mockResolvedValue([{ ...product, offers: [{ ...product.offers[0], price: 0, compareAtPrice: null }] }]);
     expect((await loadPricingPage(null, 'uz', now)).products[0].offers[0].price).toBe(0);
   });
   it('bo‘sh katalog xato emas', async () => {

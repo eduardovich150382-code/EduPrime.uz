@@ -9,7 +9,9 @@ import { localName, type AdminProduct } from './product-types';
 export default function ProductEditor({ product, onSaved }: { product: AdminProduct; onSaved: () => Promise<void> }) {
   const t = useTranslations('adminProducts');
   const locale = useLocale();
-  const [form, setForm] = useState({ nameUz: product.nameUz, nameRu: product.nameRu, nameEn: product.nameEn, isOnSale: product.isOnSale, secondSubjectDiscountPct: String(product.secondSubjectDiscountPct), order: String(product.order) });
+  const [form, setForm] = useState({ nameUz: product.nameUz, nameRu: product.nameRu, nameEn: product.nameEn, isOnSale: product.isOnSale, secondSubjectDiscountPct: String(product.secondSubjectDiscountPct), order: String(product.order),
+    taglineUz: product.taglineUz ?? '', taglineRu: product.taglineRu ?? '', taglineEn: product.taglineEn ?? '',
+    featuresUz: product.featuresUz.join('\n'), featuresRu: product.featuresRu.join('\n'), featuresEn: product.featuresEn.join('\n') });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [adding, setAdding] = useState(false);
@@ -17,7 +19,10 @@ export default function ProductEditor({ product, onSaved }: { product: AdminProd
   async function save() {
     setBusy(true); setError('');
     try {
-      await adminFetch(`/api/admin/products/${product.id}`, { method: 'PATCH', body: JSON.stringify({ ...form, secondSubjectDiscountPct: Number(form.secondSubjectDiscountPct), order: Number(form.order) }) });
+      // Afzalliklar textarea'da: har qator — bitta band.
+      const lines = (value: string) => value.split('\n').map((line) => line.trim()).filter(Boolean);
+      await adminFetch(`/api/admin/products/${product.id}`, { method: 'PATCH', body: JSON.stringify({ ...form, secondSubjectDiscountPct: Number(form.secondSubjectDiscountPct), order: Number(form.order),
+        featuresUz: lines(form.featuresUz), featuresRu: lines(form.featuresRu), featuresEn: lines(form.featuresEn) }) });
       await onSaved();
     } catch (error) { setError(errorCode(error)); }
     finally { setBusy(false); }
@@ -29,6 +34,9 @@ export default function ProductEditor({ product, onSaved }: { product: AdminProd
         <fieldset disabled={busy} className="space-y-3">
           <div className="grid gap-3 sm:grid-cols-3">{(['Uz', 'Ru', 'En'] as const).map((lang) => <Field key={lang} label={`${t('name')} (${lang.toLowerCase()})`}><input className={fieldClass} required maxLength={200} value={form[`name${lang}`]} onChange={(e) => setForm({ ...form, [`name${lang}`]: e.target.value })} /></Field>)}</div>
           <div className="grid gap-3 sm:grid-cols-2"><Field label={t('discount')}><input className={fieldClass} type="number" required min={0} max={100} step={1} value={form.secondSubjectDiscountPct} onChange={(e) => setForm({ ...form, secondSubjectDiscountPct: e.target.value })} /></Field><Field label={t('order')}><input className={fieldClass} type="number" required min={0} max={2147483647} step={1} value={form.order} onChange={(e) => setForm({ ...form, order: e.target.value })} /></Field></div>
+          <div className="grid gap-3 sm:grid-cols-3">{(['Uz', 'Ru', 'En'] as const).map((lang) => <Field key={lang} label={`${t('tagline')} (${lang.toLowerCase()})`}><input className={fieldClass} maxLength={120} value={form[`tagline${lang}`]} onChange={(e) => setForm({ ...form, [`tagline${lang}`]: e.target.value })} /></Field>)}</div>
+          <div className="grid gap-3 sm:grid-cols-3">{(['Uz', 'Ru', 'En'] as const).map((lang) => <Field key={lang} label={`${t('features')} (${lang.toLowerCase()})`}><textarea className={`${fieldClass} min-h-28`} rows={4} value={form[`features${lang}`]} onChange={(e) => setForm({ ...form, [`features${lang}`]: e.target.value })} /></Field>)}</div>
+          <p className="text-xs text-text-secondary">{t('featuresHelp')}</p>
           <label className="flex min-h-11 items-center gap-3"><input className="h-5 w-5" type="checkbox" role="switch" checked={form.isOnSale} onChange={(e) => setForm({ ...form, isOnSale: e.target.checked })} />{t('onSale')}</label>
           <div className="rounded-lg bg-gray-50 p-3 text-sm"><p>{t('publishedTests', { count: product.publishedTestCount })}</p>
             {product.subjectRule === 'ONE' && product.subjects.map((subject) => <p key={subject.id}>{localName(subject, locale)}: {subject.publishedTestCount}{form.isOnSale && subject.publishedTestCount === 0 ? ` — ${t('noContent')}` : ''}</p>)}
