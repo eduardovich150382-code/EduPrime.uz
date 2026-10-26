@@ -754,7 +754,16 @@
       "ctaRetake": "Перерешать тест с худшим результатом · №{number}",
       "ctaStructure": "Структура экзамена",
       "ctaTopicStart": "Начать с тестов по темам",
-      "ctaRetakeLowest": "Перерешать тест с худшим результатом"
+      "ctaRetakeLowest": "Перерешать тест с худшим результатом",
+      "ctaOffers": "Варианты подписки"
+    },
+    "offer": {
+      "title": "Подписка на аттестацию",
+      "titleSubject": "Подписка на аттестацию — {subject}",
+      "recommended": "Рекомендуем",
+      "activeTitle": "Ваша подписка активна",
+      "otherSubject": "Подписка на другой предмет",
+      "otherSubjectDiscount": "−{percent}%"
     },
     "countdown": {
       "before": "До аттестации",
@@ -777,7 +786,9 @@
       "start": "Начать",
       "mocksEmpty": "Пробные тесты скоро появятся.",
       "topicsTitle": "Тесты по темам",
-      "lastBall": "Последний результат: {score, plural, one {# балл} few {# балла} other {# баллов}}"
+      "lastBall": "Последний результат: {score, plural, one {# балл} few {# балла} other {# баллов}}",
+      "unlockWithSubscription": "Открывается с подпиской",
+      "mocksFootnote": "Новые пробные тесты добавляются регулярно"
     },
     "filter": {
       "label": "Фильтр тестов",

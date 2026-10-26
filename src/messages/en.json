@@ -754,7 +754,16 @@
       "ctaRetake": "Retake your lowest score · №{number}",
       "ctaStructure": "Exam structure",
       "ctaTopicStart": "Start with topic tests",
-      "ctaRetakeLowest": "Retake your lowest score"
+      "ctaRetakeLowest": "Retake your lowest score",
+      "ctaOffers": "Subscription options"
+    },
+    "offer": {
+      "title": "Attestation subscription",
+      "titleSubject": "Attestation subscription — {subject}",
+      "recommended": "Recommended",
+      "activeTitle": "Your subscription is active",
+      "otherSubject": "Subscribe to another subject",
+      "otherSubjectDiscount": "−{percent}%"
     },
     "countdown": {
       "before": "Attestation in",
@@ -777,7 +786,9 @@
       "start": "Start",
       "mocksEmpty": "Mock tests are coming soon.",
       "topicsTitle": "Tests by topic",
-      "lastBall": "Last score: {score} points"
+      "lastBall": "Last score: {score} points",
+      "unlockWithSubscription": "Unlocks with subscription",
+      "mocksFootnote": "New mock tests are added regularly"
     },
     "filter": {
       "label": "Filter tests",

@@ -14,14 +14,14 @@ export function formatAmount(amount: number, locale: string): string {
   return new Intl.NumberFormat(locale).format(amount);
 }
 
-export function OfferVariant({ product, offer, accent, buy, locale, now, saving }: {
+export function OfferVariant({ product, offer, accent, buy, locale, now, saving, recommended }: {
   product: PricingProduct; offer: PricingOffer; accent: Accent; buy: BuyContext; locale: string; now: Date;
-  saving: { percent: number; label: string } | null;
+  saving: { percent: number; label: string } | null; recommended?: { active: boolean; label: string };
 }) {
   const t = useTranslations('pricing');
   const needed = requiredSubjectCount(product);
   const choices = needed === 0 ? [] : product.subjects.filter((subject) => product.subjectRule !== 'DTM_BLOCK' || !subject.isMandatory);
-  const featured = offer.isFeatured;
+  const featured = recommended ? recommended.active : offer.isFeatured;
   const shown = offer.personalPrice ?? offer.price;
   // Oylik/kunlik narx ko'rsatilgan (shaxsiy chegirmali) narxdan.
   const perMonth = monthlyPrice({ ...offer, price: shown });
@@ -37,7 +37,7 @@ export function OfferVariant({ product, offer, accent, buy, locale, now, saving 
       style={featured ? { borderColor: accent.color } : undefined}>
       {featured && (
         <span className="absolute -top-3 left-4 max-w-[calc(100%-2rem)] truncate rounded-full px-3 py-1 text-xs font-bold text-white" style={{ background: accent.color }}>
-          {offer.badge ?? t('featuredRibbon')}
+          {offer.badge ?? recommended?.label ?? t('featuredRibbon')}
         </span>
       )}
       <div className={`flex min-w-0 flex-wrap items-center gap-2 ${featured ? 'pt-1' : ''}`}>

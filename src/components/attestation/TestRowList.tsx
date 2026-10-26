@@ -20,7 +20,11 @@ const SOLVED_PILL = { color: '#166534', background: '#dcfce7' };
 // bo'sh holat matni va tartib raqami (mavzu testida `number === null`).
 // Faqat server tayyorlagan qatorlarni chizadi — savol yoki javob ma'lumoti
 // bu komponentga hech qachon kelmaydi (lib/attestation-page.ts).
-export function TestRowList({ title, rows, emptyText }: { title: string; rows: MockRow[]; emptyText: string }) {
+// `lockedHref` — obuna kartasi shu sahifada bo'lsa qulflangan qator unga
+// olib boradi (boshqa sahifaga emas). Berilmasa avvalgi havola.
+export function TestRowList({ title, rows, emptyText, lockedHref }: {
+  title: string; rows: MockRow[]; emptyText: string; lockedHref?: string;
+}) {
   const t = useTranslations('attestation');
   const tests = useTranslations('tests.card');
   const [filter, setFilter] = useState<MockFilter>('all');
@@ -113,6 +117,11 @@ export function TestRowList({ title, rows, emptyText }: { title: string; rows: M
                       <RotateCcw size={16} aria-hidden /> {t('list.retake')}
                     </Link>
                   </div>
+                ) : row.locked && lockedHref ? (
+                  <a href={lockedHref} className={`${primaryButton} sm:w-auto sm:min-w-40`}>
+                    <Lock size={16} aria-hidden />
+                    {t('list.unlockWithSubscription')}
+                  </a>
                 ) : (
                   <Link href={row.primaryHref} className={`${primaryButton} sm:w-auto sm:min-w-40`}>
                     {row.locked && <Lock size={16} aria-hidden />}

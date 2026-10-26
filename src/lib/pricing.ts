@@ -27,6 +27,11 @@ export function localizedName(row: LocalizedName, locale: string): string {
   return row[locale === 'ru' ? 'nameRu' : locale === 'en' ? 'nameEn' : 'nameUz'];
 }
 
+// DTM blokida majburiy fanlar avtomatik qo'shiladi — alohida sotilmaydi.
+export function soldSubjects(product: Pick<PricingProduct, 'subjects' | 'subjectRule'>): PricingSubject[] {
+  return product.subjects.filter((subject) => product.subjectRule !== 'DTM_BLOCK' || !subject.isMandatory);
+}
+
 export function selectPricingProduct(products: PricingProduct[], goal?: string): PricingProduct | undefined {
   const categories = products.filter((product) => product.kind === 'CATEGORY');
   return categories.find((product) => product.goal === goal) ?? categories[0];
