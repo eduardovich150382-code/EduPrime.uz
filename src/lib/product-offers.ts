@@ -64,6 +64,11 @@ interface MandatorySubject {
   isMandatory: boolean;
 }
 
+// Sayt kartochkasi, niyat API va bot nechta fan so'rashni bir joydan oladi.
+export function requiredSubjectCount(product: Pick<SubjectProduct, 'kind' | 'subjectRule'>): number {
+  return product.kind === 'BUNDLE' || product.subjectRule === 'NONE' ? 0 : product.subjectRule === 'ONE' ? 1 : 2;
+}
+
 export function buildSubjectIds(product: SubjectProduct, chosenSubjectIds: string[], mandatorySubjects: MandatorySubject[]): string[] {
   if (new Set(chosenSubjectIds).size !== chosenSubjectIds.length) throw new Error('DUPLICATE_SUBJECTS');
   if (product.kind === 'BUNDLE' || product.subjectRule === 'NONE') {

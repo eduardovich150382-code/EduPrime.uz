@@ -967,7 +967,17 @@
     "subscriptionCommand": "/obuna — Obuna sotib olish",
     "noReceipt": "Chek yuborilmagan",
     "alreadyProcessed": "Bu to‘lov oldin qayta ishlangan.",
-    "invalidReplacement": "Faqat muddati o‘tgan variantni shu mahsulotning faol varianti bilan almashtirish mumkin."
+    "invalidReplacement": "Faqat muddati o‘tgan variantni shu mahsulotning faol varianti bilan almashtirish mumkin.",
+    "intentExpired": "Havola eskirgan. Saytda «Sotib olish» tugmasini qayta bosing yoki quyidan tanlang.",
+    "intentReceiptPrompt": "Chekni shu yerga yuboring. Odatda 15 daqiqa ichida faollashadi.",
+    "activated": "Obunangiz faollashdi — {scope}, {date}gacha",
+    "openSite": "Saytda ochish",
+    "telegramMismatch": "⚠️ Telegram akkaunt boshqa foydalanuvchiga bog‘langan",
+    "intentConflict": "⚠️ Saytdan to‘lov: Telegram akkaunt boshqa foydalanuvchiga bog‘langan. To‘lov sayt akkauntiga yozildi, akkauntlar birlashtirilmadi.",
+    "intentConflictSite": "Sayt akkaunti",
+    "intentConflictHolder": "Telegram egasi",
+    "holderHasData": "to‘lov, obuna yoki natijalari bor",
+    "holderEmpty": "to‘lov, obuna va natijalari yo‘q"
   },
   "pricing": {
     "meta": {
@@ -1002,7 +1012,15 @@
     "paymentNote": "To‘lov Telegram bot orqali amalga oshiriladi. Yakuniy summa fan tanlangach botda ko‘rsatiladi.",
     "chooseGoal": "Maqsad tanlash",
     "viewSubscription": "Obunani ko‘rish",
-    "back": "Oldingi sahifaga qaytish"
+    "back": "Oldingi sahifaga qaytish",
+    "chooseSubjectTitle": "Fanni tanlang",
+    "chooseTwoTitle": "Ikkita asosiy fanni tanlang",
+    "continueToTelegram": "Telegram'da to‘lash",
+    "cancel": "Bekor qilish",
+    "opening": "Ochilmoqda…",
+    "checkoutOpened": "Telegram'da to‘lov ma'lumotlari ochildi. Chekni botga yuboring — obuna faollashgach shu sahifa yangilanadi.",
+    "checkoutError": "To‘lov havolasini yaratib bo‘lmadi. Sahifani yangilab, qayta urinib ko‘ring.",
+    "checkoutExpired": "Bu variant sotuvdan olingan. Sahifani yangilang."
   },
   "referral": {
     "subtitle": "Do'stlaringizni taklif qiling va bepul foydalanish kunlarini oling (attestatsiyadan tashqari)!",

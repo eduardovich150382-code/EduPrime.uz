@@ -6,13 +6,13 @@ const m = vi.hoisted(() => {
   process.env.TELEGRAM_BOT_TOKEN = 'test-token'; process.env.ADMIN_TELEGRAM_IDS = '456'; process.env.NEXT_PUBLIC_APP_URL = 'http://localhost';
   return { products: vi.fn(), freshProduct: vi.fn(), freshOffer: vi.fn(), subjects: vi.fn(), user: vi.fn(), upsertUser: vi.fn(),
     pending: vi.fn(), create: vi.fn(), update: vi.fn(), attach: vi.fn(), details: vi.fn(), lookup: vi.fn(), current: vi.fn(), transaction: vi.fn(),
-    setting: vi.fn(), settings: vi.fn(), upsertSetting: vi.fn(), confirm: vi.fn(), legacy: vi.fn(), item: vi.fn(), purchase: vi.fn(), deleteSetting: vi.fn() };
+    setting: vi.fn(), settings: vi.fn(), upsertSetting: vi.fn(), confirm: vi.fn(), legacy: vi.fn(), item: vi.fn(), purchase: vi.fn(), deleteSetting: vi.fn(), subscription: vi.fn() };
 });
 vi.mock('@/lib/db', () => ({ db: {
   product: { findMany: m.products }, subject: { findMany: m.subjects }, user: { findUnique: m.user, findFirst: m.user, upsert: m.upsertUser },
   test: { findUnique: m.item }, course: { findUnique: m.item },
   payment: { findFirst: m.pending, create: m.create, update: m.update, updateMany: m.attach, findUniqueOrThrow: m.details, findUnique: m.lookup },
-  systemSetting: { findUnique: m.setting, findMany: m.settings, upsert: m.upsertSetting, delete: m.deleteSetting },
+  systemSetting: { findUnique: m.setting, findMany: m.settings, upsert: m.upsertSetting, delete: m.deleteSetting }, subscription: { findFirst: m.subscription },
 } }));
 vi.mock('@/lib/purchases', () => ({ recordPurchase: m.purchase }));
 vi.mock('@/lib/subscription-payments', () => ({ paymentTransaction: m.transaction, processSubscriptionPayment: m.confirm, processLegacySubscription: m.legacy }));
@@ -236,6 +236,14 @@ describe('webhook chek va admin tasdiqlashi', () => {
   it('admin tugmasi umumiy atomik tasdiqlashga paymentId yuboradi', async () => {
     await finalSelection(); await callback('cp:c:pay1', { ...from, id: 456 });
     expect(m.confirm).toHaveBeenCalledWith('pay1', 'confirm', 'u1');
+    expect(messages().find((msg) => msg.chat_id === 123 && msg.text === uz.checkout.confirmed)).toBeDefined();
+  });
+  it('bot ichidagi xarid ham tasdiqlangach doira va sanani ko‘rsatadi', async () => {
+    await finalSelection();
+    m.subjects.mockResolvedValue([subject('physics')]);
+    m.subscription.mockResolvedValue({ subjectIds: ['physics'], endDate: new Date('2026-11-24T18:59:59Z'), product, category: { type: 'ATTESTATION' } });
+    await callback('cp:c:pay1', { ...from, id: 456 });
+    expect(messages().at(-1)).toMatchObject({ chat_id: 123, text: 'Obunangiz faollashdi — Attestatsiya · physics, 24-noyabrgacha' });
   });
   it('admin bo‘lmagan tasdiqlay olmaydi', async () => {
     await finalSelection(); await callback('cp:c:pay1'); expect(m.confirm).not.toHaveBeenCalled();

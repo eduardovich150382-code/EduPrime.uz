@@ -36,7 +36,7 @@ export default async function PricingPage({ params, searchParams }: {
         <h1 className="text-2xl font-bold text-text-primary sm:text-3xl">{t('title')}</h1>
         <p className="max-w-2xl text-text-secondary">{t('subtitle')}</p>
       </header>
-      <PricingCatalog {...data} goal={query.goal} locale={locale} returnUrl={returnUrl ?? undefined} />
+      <PricingCatalog {...data} goal={query.goal} locale={locale} returnUrl={returnUrl ?? undefined} userId={session?.user?.id ?? null} />
       {returnUrl && <Link href={returnUrl} className="inline-flex min-h-11 items-center text-primary-700">{t('back')}</Link>}
     </div>
   );
