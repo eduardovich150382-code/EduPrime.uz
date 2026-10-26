@@ -29,6 +29,10 @@ interface ExamWorkspaceProps {
   onFlag: (index: number) => void; onPause: () => void; onResume: () => void; onFinish: () => void;
   showFinish: boolean; onShowFinish: (show: boolean) => void;
   physics: boolean; onFullscreen?: () => void; before?: ReactNode;
+  // Xatolar ustida mashq: rejim yorlig'i o'rnida belgi; taymer, pauza va
+  // "saqlandi" yozuvi yo'q — mashqda vaqt tugab avtomatik topshirish ham,
+  // qoralama ham yo'q.
+  badge?: string; untimed?: boolean;
 }
 
 export default function ExamWorkspace(props: ExamWorkspaceProps) {
@@ -59,13 +63,13 @@ export default function ExamWorkspace(props: ExamWorkspaceProps) {
       {props.before}
       <header ref={toolbarRef} className="exam-toolbar sticky z-30 mb-4 overflow-hidden rounded-[18px] border border-border bg-white shadow-sm sm:mb-6">
         <div className="flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5">
-          <div className="min-w-0 flex-1 basis-[45%] sm:basis-auto"><p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-text-secondary">{t(props.timed ? 'timedMode' : 'practiceMode')}</p><h1 className="text-base font-semibold text-text-primary sm:text-xl">{props.title}</h1><p className="mt-1 text-xs text-text-secondary">{t('answeredCount', { answered: count, total: questions.length })}</p></div>
-          <TestTimer totalSeconds={props.totalSeconds} remainingSeconds={props.remainingSeconds} expiresAt={props.expiresAt} onTimeUp={props.onFinish} />
+          <div className="min-w-0 flex-1 basis-[45%] sm:basis-auto">{props.badge ? <p className="mb-2 inline-flex rounded-full border border-primary-200 bg-primary-50 px-2.5 py-0.5 text-xs font-semibold text-primary-800">{props.badge}</p> : <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-text-secondary">{t(props.timed ? 'timedMode' : 'practiceMode')}</p>}<h1 className="text-base font-semibold text-text-primary sm:text-xl">{props.title}</h1><p className="mt-1 text-xs text-text-secondary">{t('answeredCount', { answered: count, total: questions.length })}</p></div>
+          {!props.untimed && <TestTimer totalSeconds={props.totalSeconds} remainingSeconds={props.remainingSeconds} expiresAt={props.expiresAt} onTimeUp={props.onFinish} />}
           <div className="flex w-full flex-wrap items-center gap-2 xl:w-auto">
             {props.physics && <button type="button" onClick={() => setCalculator(value => !value)} aria-expanded={calculator} aria-controls="exam-calculator" className="exam-control min-w-11"><Calculator size={17} /><span className="sr-only sm:not-sr-only">{t('calculator')}</span></button>}
             {props.onFullscreen && <button type="button" onClick={props.onFullscreen} aria-label={t('fullscreen')} className="exam-control hidden sm:flex"><Maximize size={17} /></button>}
             {props.onFullscreen && <button type="button" onClick={() => setShortcuts(value => !value)} aria-expanded={shortcuts} aria-label={t('shortcuts')} className="exam-control hidden sm:flex"><Keyboard size={17} /></button>}
-            <button type="button" onClick={props.onPause} disabled={submitting} className="exam-control flex-1 sm:flex-none"><Pause size={17} className="hidden sm:block" />{t('pause')}</button>
+            {!props.untimed && <button type="button" onClick={props.onPause} disabled={submitting} className="exam-control flex-1 sm:flex-none"><Pause size={17} className="hidden sm:block" />{t('pause')}</button>}
             <button type="button" onClick={() => props.onShowFinish(true)} disabled={submitting} className="exam-control flex-1 !border-primary-600 !bg-primary-600 !text-white hover:!bg-primary-700 sm:flex-none"><Flag size={17} className="hidden sm:block" />{t('finish')}</button>
           </div>
         </div>
@@ -86,7 +90,7 @@ export default function ExamWorkspace(props: ExamWorkspaceProps) {
         </div>
         <aside className="exam-map order-first min-w-0 lg:order-none"><QuestionNav totalQuestions={questions.length} currentQuestion={current} answers={answers} onNavigate={navigate} flaggedQuestions={flagged} sections={sections} /><p className="mt-3 flex items-start justify-center gap-2 px-2 text-xs text-text-secondary"><Shuffle size={15} className="mt-0.5 shrink-0" /><span>{t('shuffleNote')}<br /><span className="text-[11px]">{t('stableOrder')}</span></span></p></aside>
       </div>
-      <p className="my-4 flex items-center justify-center gap-1.5 text-xs text-text-secondary"><Check size={14} />{t('saved')}</p>
+      {!props.untimed && <p className="my-4 flex items-center justify-center gap-1.5 text-xs text-text-secondary"><Check size={14} />{t('saved')}</p>}
     </div>
     {paused && <ExamDialog title={t('pausedTitle')} onClose={props.onResume}><p className="mb-6 text-sm leading-relaxed text-text-secondary">{t(props.timed ? 'pausedTimed' : 'pausedPractice')}</p><button type="button" className="exam-control w-full !border-primary-600 !bg-primary-600 !text-white" onClick={props.onResume}>{t('resume')}</button></ExamDialog>}
     {props.showFinish && !paused && <ExamDialog title={t('finishTitle')} onClose={() => props.onShowFinish(false)}>

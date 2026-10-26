@@ -240,6 +240,7 @@
     "distractorWhyLabel": "Why this answer is wrong:",
     "wasHelpful": "Was this helpful?",
     "retake": "Retake",
+    "retakeWrongOnly": "Retake only mistakes ({count})",
     "retakeTitle": "Want to improve your score?",
     "retakeSubtitle": "Review your mistakes and take the test again.",
     "attempt": "Attempt {number}",
@@ -648,7 +649,20 @@
     },
     "legendCorrect": "Correct ({count})",
     "legendIncorrect": "Incorrect ({count})",
-    "legendUnanswered": "Unanswered ({count})"
+    "legendUnanswered": "Unanswered ({count})",
+    "practice": {
+      "badge": "Mistakes practice · {count, plural, one {# question} other {# questions}}",
+      "note": "This is practice: your main result, rating and statistics stay the same.",
+      "loading": "Loading practice…",
+      "loadError": "Could not load the practice.",
+      "nothingToPractice": "There are no questions left to retake in this result.",
+      "checkError": "Could not check your answers. Please try again.",
+      "resultTitle": "Practice result",
+      "summary": "{correct} of {total} correct",
+      "retryRemaining": "Retake remaining mistakes ({count})",
+      "backToResult": "Back to result",
+      "moreOnResult": "AI explanations and locked solutions are on the result page."
+    }
   },
   "tests": {
     "title": "Tests",

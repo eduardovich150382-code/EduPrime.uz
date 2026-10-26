@@ -6,8 +6,8 @@ import { extractItemPoints, loadSessionItems } from '@/lib/sessions';
 import { loadFeatureEntitlements } from '@/lib/access';
 import { sessionFeatureScope, testFeatureScope } from '@/lib/feature-context';
 import { getSolutionQuotaStatus, getUnlockedItemIds, resolveUnlockKeys } from '@/lib/quota';
-import { resolveSolutionTiers, resolveSolutionVisibility, type RawSolutionData } from '@/lib/solution-visibility';
-import { getDistractorWhy, toLang } from '@/lib/paramgen/regenerate';
+import { applySolutionVisibility, resolveSolutionTiers } from '@/lib/solution-visibility';
+import { attachDistractorWhy } from '@/lib/distractor-why';
 import { logger } from '@/lib/logger';
 import { classifyAttestationTests } from '@/lib/attestation-stats';
 import { loadAttestationSettings } from '@/lib/attestation-settings';
@@ -272,53 +272,4 @@ async function loadAttempts(userId: string, testId: string, resultId: string, co
     }),
   ]);
   return { total, olderCount, recent };
-}
-
-/** `explanation`/`explanationImages`/`videoUrl`ni qulf holatiga qarab almashtiradi, qolgan maydonlarga tegmaydi. */
-function applySolutionVisibility<T extends RawSolutionData>(
-  question: T,
-  opts: { writtenUnlocked: boolean; videoUnlocked: boolean }
-): T & { solutionKind: 'none' | 'video' | 'written'; solutionUnlocked: boolean } {
-  const visibility = resolveSolutionVisibility({
-    explanation: question.explanation,
-    explanationImages: question.explanationImages,
-    videoUrl: question.videoUrl,
-    writtenUnlocked: opts.writtenUnlocked,
-    videoUnlocked: opts.videoUnlocked,
-  });
-  return {
-    ...question,
-    explanation: visibility.explanation,
-    explanationImages: visibility.explanationImages,
-    videoUrl: visibility.videoUrl,
-    solutionKind: visibility.solutionKind,
-    solutionUnlocked: visibility.unlocked,
-  };
-}
-
-/**
- * S20a — foydalanuvchi tanlagan (noto'g'ri) variantning "nega xato" izohini
- * qo'shadi. Faqat parametrik savolda (`templateId`+`variantSig` bor) VA
- * foydalanuvchi shu savolga NOTO'G'RI javob bergan bo'lsa hisoblanadi —
- * to'g'ri javob/javobsiz holatda va oddiy (mualliflik) savollarda `null`.
- * Bepul — `applySolutionVisibility`dagi qulfga bog'liq emas (qarang GET
- * funksiyasidagi izoh).
- */
-function attachDistractorWhy<
-  T extends { id: string; templateId?: string | null; variantSig?: string | null; lang?: string | null }
->(
-  question: T,
-  answers: { questionId: string; answer: string; isCorrect: boolean }[]
-): T & { distractorWhy: string | null } {
-  if (!question.templateId || !question.variantSig) {
-    return { ...question, distractorWhy: null };
-  }
-  const record = answers.find((a) => a.questionId === question.id);
-  if (!record || !record.answer || record.isCorrect) {
-    return { ...question, distractorWhy: null };
-  }
-  return {
-    ...question,
-    distractorWhy: getDistractorWhy(question.templateId, question.variantSig, toLang(question.lang), record.answer),
-  };
 }

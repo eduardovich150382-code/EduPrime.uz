@@ -91,3 +91,29 @@ export function resolveSolutionTiers(
     videoUnlocked: !!isAdmin || premium || scoped,
   };
 }
+
+/**
+ * `explanation`/`explanationImages`/`videoUrl`ni qulf holatiga qarab almashtiradi, qolgan maydonlarga tegmaydi.
+ * `GET /api/results/[id]` va xatolar ustida mashq tekshiruvi (`practice-check`) shu bitta funksiyani
+ * chaqiradi — mashq natija sahifasida ko'rinadigandan ortiq yechim ochmasligi shu bilan kafolatlanadi.
+ */
+export function applySolutionVisibility<T extends RawSolutionData>(
+  question: T,
+  opts: { writtenUnlocked: boolean; videoUnlocked: boolean }
+): T & { solutionKind: 'none' | 'video' | 'written'; solutionUnlocked: boolean } {
+  const visibility = resolveSolutionVisibility({
+    explanation: question.explanation,
+    explanationImages: question.explanationImages,
+    videoUrl: question.videoUrl,
+    writtenUnlocked: opts.writtenUnlocked,
+    videoUnlocked: opts.videoUnlocked,
+  });
+  return {
+    ...question,
+    explanation: visibility.explanation,
+    explanationImages: visibility.explanationImages,
+    videoUrl: visibility.videoUrl,
+    solutionKind: visibility.solutionKind,
+    solutionUnlocked: visibility.unlocked,
+  };
+}

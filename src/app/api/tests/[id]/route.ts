@@ -8,6 +8,7 @@ import { planQuestionOrder, shuffleTest } from '@/lib/shuffle';
 import { getQuestionSection, groupBySection } from '@/lib/question-sections';
 import { checkTestAccess } from '@/lib/access';
 import { resolveTestVisibility } from '@/lib/test-visibility';
+import { filterPracticeQuestions, getRetakeQuestionIds } from '@/lib/retake-wrong';
 import { logger } from '@/lib/logger';
 
 const subjectIdSchema = z.string().trim().min(1);
@@ -40,6 +41,14 @@ export async function GET(
     const session = await auth();
     const userId = session?.user?.id;
 
+    // Xatolar ustida mashq: `?practice=<resultId>`. Savollar to'plamini server
+    // natijadan o'zi hisoblaydi — URL'da savol id'lari yo'q, begona savol
+    // qo'shib bo'lmaydi. Parametrsiz so'rovda quyidagi yo'l avvalgidek.
+    const practiceResultId = new URL(request.url).searchParams.get('practice');
+    if (practiceResultId !== null && !userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     // Qoralama mavjudligini ham oshkor qilmaymiz — 403 emas, 404.
     const visible = await resolveTestVisibility(
       { id: test.id, isPublished: test.isPublished, ownerUserIds: [test.teacher?.userId, test.userId] },
@@ -69,6 +78,20 @@ export async function GET(
           { status: 403 }
         );
       }
+    }
+
+    let practiceAnswers: unknown = null;
+    if (practiceResultId !== null) {
+      // Boshqa foydalanuvchining yoki boshqa testning natijasi — bir xil 404:
+      // natija mavjudligi ham oshkor qilinmaydi.
+      const practiceResult = await db.testResult.findFirst({
+        where: { id: practiceResultId, userId, testId: id },
+        select: { answers: true },
+      });
+      if (!practiceResult) {
+        return NextResponse.json({ error: 'Result not found' }, { status: 404 });
+      }
+      practiceAnswers = practiceResult.answers;
     }
 
     const rawQuestions = await db.question.findMany({
@@ -128,10 +151,16 @@ export async function GET(
       bySection ? { ...question, section: getQuestionSection(tags) } : question
     );
 
+    // Mashq to'plami TO'LIQ aralashtirishdan keyin ajratiladi — slot (variant
+    // urug'i) va bo'limlar tartibi asosiy test bilan bir xil qoladi.
+    const served = practiceResultId !== null
+      ? filterPracticeQuestions(questions, getRetakeQuestionIds(practiceAnswers, rawQuestions.map((q) => q.id)))
+      : questions;
+
     return NextResponse.json({
       test: {
         ...test,
-        questions,
+        questions: served,
       },
     });
   } catch (error) {

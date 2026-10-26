@@ -21,12 +21,18 @@ const LEGEND_KEY = { correct: 'legendCorrect', incorrect: 'legendIncorrect', una
 
 type MapQuestion = { id: string; tags?: string[]; points?: number | null };
 
-export default function ResultQuestionMap({ questions, answers, onSelect, categoryType }: {
+export default function ResultQuestionMap({ questions, answers, onSelect, categoryType, numberOf }: {
   questions: MapQuestion[];
   answers: { questionId: string; answer: string; isCorrect: boolean }[];
   onSelect: (id: string) => void;
   /** Faqat `ATTESTATION` da bo'limlar bo'yicha guruhlanadi; boshqa turlarda oddiy to'r. */
   categoryType?: string | null;
+  /**
+   * Katakdagi raqam. Berilmasa — `questions` dagi o'rin + 1. Xatolar ustida
+   * mashq natija sahifasidagi asl raqamlarni beradi: qism to'plamda "1, 2, 3"
+   * foydalanuvchini natija sahifasidagi boshqa savollarga adashtirardi.
+   */
+  numberOf?: (id: string) => number;
 }) {
   const t = useTranslations('exam');
   const sectionNames = useTranslations('questionSections');
@@ -37,12 +43,13 @@ export default function ResultQuestionMap({ questions, answers, onSelect, catego
   for (const question of questions) counts[status(question.id)]++;
   // Katak bitta joyda chiziladi: guruhli va oddiy to'r bir xil ko'rinsin.
   // `index` — foydalanuvchi yechishda ko'rgan raqam − 1 (aralashtirilgan tartib).
+  const numberAt = (question: MapQuestion, index: number) => numberOf ? numberOf(question.id) : index + 1;
   const renderCell = (question: MapQuestion, index: number) => {
-    const state = status(question.id), Icon = CELL_ICON[state];
-    return <button key={question.id} type="button" aria-label={`${t('questionStatus', { number: index + 1, status: t(state) })}. ${t('openAnalysis', { number: index + 1 })}`} aria-pressed={selected === question.id}
+    const state = status(question.id), Icon = CELL_ICON[state], number = numberAt(question, index);
+    return <button key={question.id} type="button" aria-label={`${t('questionStatus', { number, status: t(state) })}. ${t('openAnalysis', { number })}`} aria-pressed={selected === question.id}
       onClick={() => { setSelected(question.id); onSelect(question.id); }}
       className={`relative flex min-h-11 min-w-0 items-center justify-center rounded-xl text-sm font-medium tabular-nums transition-shadow focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 ${CELL_STYLE[state]} ${selected === question.id ? 'ring-2 ring-primary-500 ring-offset-2' : 'hover:ring-2 hover:ring-primary-200'}`}>
-      {index + 1}<Icon size={11} aria-hidden="true" className="absolute right-1 top-1" />
+      {number}<Icon size={11} aria-hidden="true" className="absolute right-1 top-1" />
     </button>;
   };
   // Eski (bo'limlashdan oldingi) urinishlarda bo'lim raqamlari uzluksiz
@@ -61,7 +68,9 @@ export default function ResultQuestionMap({ questions, answers, onSelect, catego
     </div>
     {groups ? <div className="space-y-5">
       {groups.map(group => {
-        const range = sectionRange(group.items.map(item => item.index));
+        // Mashqdagi qism to'plamda asl raqamlar odatda uzluksiz emas — shunda
+        // sarlavhada oraliq emas, son chiqadi (sectionRange → null).
+        const range = sectionRange(group.items.map(item => numberAt(item.question, item.index) - 1));
         const name = sectionNames(group.key);
         const { score, max } = sectionScore(group.items, answers);
         return <div key={group.key}>
@@ -77,6 +86,6 @@ export default function ResultQuestionMap({ questions, answers, onSelect, catego
     </div> : <div className="grid grid-cols-5 gap-2 sm:grid-cols-10">
       {questions.map((question, index) => renderCell(question, index))}
     </div>}
-    <p className="mt-4 min-h-5 text-xs text-text-secondary" aria-live="polite">{selected && t('questionStatus', { number: questions.findIndex(question => question.id === selected) + 1, status: t(status(selected)) })}</p>
+    <p className="mt-4 min-h-5 text-xs text-text-secondary" aria-live="polite">{selected && t('questionStatus', { number: numberAt({ id: selected }, questions.findIndex(question => question.id === selected)), status: t(status(selected)) })}</p>
   </section>;
 }

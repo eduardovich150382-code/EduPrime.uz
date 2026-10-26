@@ -240,6 +240,7 @@
     "distractorWhyLabel": "Nega bu javob noto'g'ri:",
     "wasHelpful": "Foydali bo'ldimi?",
     "retake": "Qayta yechish",
+    "retakeWrongOnly": "Faqat xatolarni qayta yechish ({count})",
     "retakeTitle": "Natijangizni yaxshilamoqchimisiz?",
     "retakeSubtitle": "Xatolarni tahlil qilib, testni qayta yeching.",
     "attempt": "{number}-urinish",
@@ -648,7 +649,20 @@
     },
     "legendCorrect": "To‘g‘ri ({count})",
     "legendIncorrect": "Xato ({count})",
-    "legendUnanswered": "Javob berilmagan ({count})"
+    "legendUnanswered": "Javob berilmagan ({count})",
+    "practice": {
+      "badge": "Xatolar ustida mashq · {count} savol",
+      "note": "Bu mashq: asosiy natija, reyting va statistika o'zgarmaydi.",
+      "loading": "Mashq yuklanmoqda…",
+      "loadError": "Mashqni yuklab bo'lmadi.",
+      "nothingToPractice": "Bu natijada qayta yechiladigan savol qolmadi.",
+      "checkError": "Javoblarni tekshirib bo'lmadi. Qayta urinib ko'ring.",
+      "resultTitle": "Mashq natijasi",
+      "summary": "{total} tadan {correct} tasi to'g'ri",
+      "retryRemaining": "Qolgan xatolarni yana yechish ({count})",
+      "backToResult": "Natijaga qaytish",
+      "moreOnResult": "AI tushuntirish va yopiq yechimlar natija sahifasida."
+    }
   },
   "tests": {
     "title": "Testlar",
