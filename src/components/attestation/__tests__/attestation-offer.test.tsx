@@ -17,7 +17,7 @@ vi.mock('next/navigation', async (original) => ({ ...await original<typeof impor
 
 // subscriptionNow — Toshkentda 25-oktabr 00:30.
 const counts = { topicTests: 45, mockTests: 3, questions: 1689 };
-const marketing = { compareAtPrice: null, promoUntil: null, badge: null, isFeatured: false, personalPrice: null, buyHref: '' };
+const marketing = { compareAtPrice: null, promoUntil: null, badge: null, isFeatured: false, personalPrice: null };
 const monthly: PricingOffer = { id: 'month', label: '1 oy', price: 49000, durationMonths: 1, untilDate: null, ...marketing };
 const season: PricingOffer = { id: 'season', label: 'Mavsum davomida', price: 99000, durationMonths: null, untilDate: '2026-12-25T00:00:00+05:00', ...marketing };
 const physics = { id: 'physics', name: 'Fizika', testCount: 12, isMandatory: false, counts };

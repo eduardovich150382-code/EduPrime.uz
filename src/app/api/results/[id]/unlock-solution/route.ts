@@ -120,7 +120,7 @@ export async function POST(
     }
     if (visibility.solutionKind === 'video') {
       return NextResponse.json(
-        { error: "Bu savol uchun faqat video yechim mavjud — uni ochish uchun Premium kerak", code: 'VIDEO_ONLY' },
+        { error: "Bu savol uchun faqat video yechim mavjud — uni ochish uchun obuna kerak", code: 'VIDEO_ONLY' },
         { status: 403 }
       );
     }

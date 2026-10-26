@@ -68,14 +68,6 @@ export function WebApplicationJsonLd() {
         priceCurrency: 'UZS',
         description: "Cheklangan DTM va maktab testlari",
       },
-      {
-        '@type': 'Offer',
-        name: 'Ustoz',
-        price: '29000',
-        priceCurrency: 'UZS',
-        description: "Attestatsiya + SAT + GRE + Sertifikat testlari",
-        billingDuration: 'P1M',
-      },
     ],
     featureList: [
       'DTM testlari',
@@ -87,7 +79,6 @@ export function WebApplicationJsonLd() {
       'Video yechimlar',
       'LaTeX formulalar',
       'Reyting tizimi',
-      'AI bilan test import',
     ],
     inLanguage: ['uz', 'ru', 'en'],
     author: {

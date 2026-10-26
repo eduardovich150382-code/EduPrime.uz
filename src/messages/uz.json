@@ -1015,7 +1015,7 @@
       "cta": "Obunalarni ko‘rish"
     },
     "subjects": "Mavjud fanlar",
-    "subjectInBot": "Fanni bu yerda tanlash shart emas — Telegram botda tanlaysiz.",
+    "subjectInBot": "Fanni kirganingizdan keyin shu yerda tanlaysiz.",
     "months": "{count} oy",
     "price": "{amount} so‘m",
     "buy": "Sotib olish",

@@ -86,19 +86,22 @@ export async function sendInactivityReminder(
 }
 
 /**
- * Send premium expiry warning
+ * Send subscription expiry warning
  */
 export async function sendPremiumExpiryWarning(
   telegramId: string,
   userName: string,
-  daysLeft: number
+  daysLeft: number,
+  subscription: string
 ): Promise<void> {
   const greeting = userName ? `Salom, ${userName}!` : 'Salom!';
+  // Mahsulot nomini admin yozadi; HTML rejimida "<" yoki "&" xabarni Telegram rad etadigan qilmasin.
+  const name = subscription.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
   let text = `<b>${greeting}</b>\n\n`;
-  text += `Sizning Premium tarifingiz tugashiga <b>${daysLeft} kun</b> qoldi.\n\n`;
-  text += `Tarifni uzaytiring va barcha testlarga cheksiz kirish imkoniyatidan foydalanishni davom ettiring.\n\n`;
-  text += `<a href="${SITE_URL}/pricing">Tarifni uzaytirish</a>`;
+  text += `Sizning <b>${name}</b> obunangiz tugashiga <b>${daysLeft} kun</b> qoldi.\n\n`;
+  text += `Obunani uzaytiring va testlarga cheksiz kirish imkoniyatidan foydalanishni davom ettiring.\n\n`;
+  text += `<a href="${SITE_URL}/pricing">Obunani uzaytirish</a>`;
 
   sendTelegramMessage(telegramId, text).catch(() => {});
 }

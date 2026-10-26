@@ -1,7 +1,7 @@
 import 'server-only';
 import { db } from './db';
 import { loadUserEntitlements } from './access';
-import { checkoutStartParameter, secondSubjectOfferPrice } from './category-checkout';
+import { secondSubjectOfferPrice } from './category-checkout';
 import { localizedName, productContentCounts, promoActive, type ContentCountRow, type PricingProduct } from './pricing';
 import { subscriptionView, type SubscriptionView } from './subscription-display';
 import type { SubscriptionDetails } from './subscription-details';
@@ -72,7 +72,6 @@ export async function loadPricingPage(userId: string | null, locale: string, now
         offers: product.offers.map((offer) => ({
           id: offer.id, label: offer[`label${lang(locale)}`], price: offer.price,
           durationMonths: offer.durationMonths, untilDate: offer.untilDate?.toISOString() ?? null,
-          buyHref: `https://t.me/EduPrimeuzbot?start=${checkoutStartParameter(product.id, offer.id)}`,
           compareAtPrice: promoActive(offer, now) && offer.compareAtPrice !== null && offer.compareAtPrice > offer.price ? offer.compareAtPrice : null,
           promoUntil: offer.promoUntil && promoActive(offer, now) ? offer.promoUntil.toISOString() : null,
           badge: localizedText(offer, 'badge', locale), isFeatured: offer.isFeatured,

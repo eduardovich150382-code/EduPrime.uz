@@ -4,7 +4,7 @@ import type { LocalizedName } from './subscription-details';
 
 export interface ContentCounts { topicTests: number; mockTests: number; questions: number }
 export interface PricingOffer {
-  id: string; label: string; price: number; durationMonths: number | null; untilDate: string | null; buyHref: string;
+  id: string; label: string; price: number; durationMonths: number | null; untilDate: string | null;
   // Aksiya o'tgan bo'lsa server null yuboradi; promoUntil — sahifa ochiq turganda tugashi uchun.
   compareAtPrice: number | null; promoUntil: string | null; badge: string | null; isFeatured: boolean;
   // Kirgan foydalanuvchiga ikkinchi fan chegirmasi bilan narx (checkoutPrice hisobidan).

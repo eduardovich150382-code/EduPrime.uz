@@ -6,7 +6,7 @@ import {
 
 const now = new Date('2026-10-26T07:00:00Z'); // Toshkentda 26-oktabr 12:00
 const offer = (id: string, price: number, durationMonths: number | null, untilDate: string | null = null): PricingOffer => ({
-  id, label: id, price, durationMonths, untilDate, buyHref: '', compareAtPrice: null, promoUntil: null, badge: null, isFeatured: false, personalPrice: null,
+  id, label: id, price, durationMonths, untilDate, compareAtPrice: null, promoUntil: null, badge: null, isFeatured: false, personalPrice: null,
 });
 
 describe('chegirma va tejash', () => {

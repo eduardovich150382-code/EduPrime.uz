@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
           return NextResponse.json(
             {
               error: 'LIMIT_REACHED',
-              message: "Bepul tarifda Bilim xaritasidan oyiga faqat 1 marta foydalanish mumkin. Davom etish uchun Premium yoki Ustoz tarifiga o'ting.",
+              message: "Bepul tarifda Bilim xaritasidan oyiga faqat 1 marta foydalanish mumkin. Davom etish uchun obuna oling.",
             },
             { status: 403 }
           );

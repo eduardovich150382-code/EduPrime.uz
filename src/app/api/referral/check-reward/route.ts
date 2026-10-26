@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
       eligible: true,
       alreadyGranted: false,
       subscription,
-      message: `Tabriklaymiz! ${rewardDays} kunlik Premium tarif bepul berildi!`,
+      message: `Tabriklaymiz! ${rewardDays} kun bepul foydalanish huquqi berildi (attestatsiyadan tashqari)!`,
     });
   } catch (error) {
     logger.error('POST /api/referral/check-reward error:', { error });

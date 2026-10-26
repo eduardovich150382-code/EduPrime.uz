@@ -270,7 +270,7 @@ export async function POST(
       if (!quota.allowed) {
         return NextResponse.json(
           {
-            error: `Kunlik bepul AI tushuntirish limiti (${quota.limit} ta) tugadi. Premium tarifda cheksiz foydalanishingiz mumkin.`,
+            error: `Kunlik bepul AI tushuntirish limiti (${quota.limit} ta) tugadi. Obuna bilan cheksiz foydalanishingiz mumkin.`,
             code: 'AI_QUOTA_EXCEEDED',
           },
           { status: 429 }

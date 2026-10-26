@@ -261,7 +261,7 @@ export async function createSessionFromSpec(params: CreateSessionParams): Promis
         ok: false,
         error: {
           status: 429,
-          error: `Bugungi bepul test tuzish limiti (${quota.limit} ta) tugadi. Ertaga yana ${quota.limit} ta bepul bo'ladi, yoki Premium tarifda cheksiz.`,
+          error: `Bugungi bepul test tuzish limiti (${quota.limit} ta) tugadi. Ertaga yana ${quota.limit} ta bepul bo'ladi, yoki obuna bilan cheksiz.`,
           code: 'BUILT_TEST_QUOTA_EXCEEDED',
           usedToday: quota.usedToday,
           limit: quota.limit,
@@ -454,7 +454,7 @@ export async function createSessionFromSections(
         ok: false,
         error: {
           status: 429,
-          error: `Bugungi bepul test tuzish limiti (${quota.limit} ta) tugadi. Ertaga yana ${quota.limit} ta bepul bo'ladi, yoki Premium tarifda cheksiz.`,
+          error: `Bugungi bepul test tuzish limiti (${quota.limit} ta) tugadi. Ertaga yana ${quota.limit} ta bepul bo'ladi, yoki obuna bilan cheksiz.`,
           code: 'BUILT_TEST_QUOTA_EXCEEDED',
           usedToday: quota.usedToday,
           limit: quota.limit,
