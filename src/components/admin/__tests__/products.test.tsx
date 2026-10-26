@@ -21,9 +21,22 @@ function render(child: React.ReactNode, locale = 'uz') {
 const product: AdminProduct = {
   id: 'obuna-attestation', nameUz: 'Attestatsiya', nameRu: 'Аттестация', nameEn: 'Attestation', kind: 'CATEGORY', categoryId: 'att', subjectRule: 'ONE',
   isOnSale: true, secondSubjectDiscountPct: 10, order: 0, publishedTestCount: 4,
+  taglineUz: 'Attestatsiyaga ishonch bilan', taglineRu: null, taglineEn: null, featuresUz: ['Telegram guruh', 'Haftalik jonli tahlil'], featuresRu: [], featuresEn: [],
   subjects: [{ id: 'physics', nameUz: 'Fizika', nameRu: 'Физика', nameEn: 'Physics', isMandatory: false, publishedTestCount: 4 }, { id: 'math', nameUz: 'Matematika', nameRu: 'Математика', nameEn: 'Maths', isMandatory: false, publishedTestCount: 0 }],
-  offers: [{ id: 'o1', labelUz: '1 oy', labelRu: '1 месяц', labelEn: '1 month', durationMonths: 1, untilDate: null, price: 0, isActive: true, order: 0 }],
+  offers: [{ id: 'o1', labelUz: '1 oy', labelRu: '1 месяц', labelEn: '1 month', durationMonths: 1, untilDate: null, price: 0, isActive: true, order: 0,
+    compareAtPrice: 70000, badgeUz: 'Eng foydali', badgeRu: null, badgeEn: null, isFeatured: true, promoUntil: '2026-11-01T13:30:00.000Z' }],
 };
+
+describe('marketing maydonlari', () => {
+  it('shior, afzalliklar (har qatorda bittadan), eski narx, belgi, ajratish va aksiya Toshkent vaqtida', () => {
+    const html = render(React.createElement(ProductEditor, { product, onSaved: async () => {} }));
+    expect(html).toContain('value="Attestatsiyaga ishonch bilan"'); expect(html).toContain('Telegram guruh\nHaftalik jonli tahlil');
+    expect(html).toContain(uz.adminProducts.compareAtPrice); expect(html).toContain('value="70000"');
+    expect(html).toContain('value="Eng foydali"'); expect(html).toContain('type="datetime-local"');
+    // 13:30 UTC = 18:30 Toshkent.
+    expect(html).toContain('value="2026-11-01T18:30"');
+  });
+});
 
 describe('sotuv ogohlantirishlari', () => {
   it('0 narx va bo‘sh fan aniq ko‘rsatiladi, saqlash ochiq qoladi', () => {

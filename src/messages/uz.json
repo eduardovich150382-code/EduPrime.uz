@@ -916,8 +916,20 @@
       "SERVER_ERROR": "So‘rov bajarilmadi. Qayta urinib ko‘ring.",
       "UNAUTHORIZED": "Avval tizimga kiring.",
       "FORBIDDEN": "Admin huquqi talab qilinadi.",
-      "RETRY_REQUIRED": "Parallel o‘zgarish bo‘ldi. Qayta urinib ko‘ring."
-    }
+      "RETRY_REQUIRED": "Parallel o‘zgarish bo‘ldi. Qayta urinib ko‘ring.",
+      "COMPARE_AT_NOT_ABOVE_PRICE": "Eski narx joriy narxdan katta bo‘lishi kerak.",
+      "PROMO_NEEDS_COMPARE_AT": "Aksiya tugashini ko‘rsatish uchun eski narxni ham kiriting.",
+      "TOO_MANY_FEATURES": "Afzalliklar ko‘pi bilan 8 ta bo‘lishi mumkin."
+    },
+    "compareAtPrice": "Eski narx (chizilgan, ixtiyoriy)",
+    "compareAtHelp": "Eski narx joriy narxdan katta bo‘lishi kerak. Aksiya tugashi ko‘rsatilsa, shu vaqtdan keyin eski narx va hisoblagich avtomatik yashiriladi.",
+    "promoUntil": "Aksiya tugashi (Toshkent vaqti)",
+    "badge": "Belgi",
+    "badgePlaceholder": "Eng ommabop",
+    "featured": "Ajratilgan variant (kartada ajratib ko‘rsatiladi)",
+    "tagline": "Shior (bir qator)",
+    "features": "Afzalliklar",
+    "featuresHelp": "Har qatorga bitta afzallik, ko‘pi bilan 8 ta. Obuna avtomatik ochadigan imkoniyatlar ro‘yxati ularning ustida o‘zi chiqadi."
   },
   "testAccessForm": {
     "title": "Testga kirish turi",
@@ -991,17 +1003,8 @@
       "body": "Sotuvdagi yo‘nalishlar, fanlar va obuna muddatlari bilan tanishing.",
       "cta": "Obunalarni ko‘rish"
     },
-    "scope": {
-      "ONE": "Tanlagan bitta faningiz bo‘yicha barcha testlar va mocklar",
-      "DTM_BLOCK": "2 ta asosiy fan + 3 ta majburiy fan",
-      "NONE": "Kategoriyadagi barcha testlar",
-      "BUNDLE": "Barcha kategoriyalar va fanlar bo‘yicha testlar va mocklar"
-    },
     "subjects": "Mavjud fanlar",
-    "testCount": "{count} ta test",
     "subjectInBot": "Fanni bu yerda tanlash shart emas — Telegram botda tanlaysiz.",
-    "secondSubjectDiscount": "Ikkinchi fan — {percent}% chegirma",
-    "untilDate": "Sanagacha: {date} (Toshkent vaqti)",
     "months": "{count} oy",
     "price": "{amount} so‘m",
     "buy": "Sotib olish",
@@ -1009,7 +1012,6 @@
     "empty": "Obuna tez orada",
     "emptyBody": "Obunalar sotuvga chiqqanda shu yerda ko‘rinadi.",
     "noOffers": "Ushbu mahsulot uchun muddat variantlari tez orada qo‘shiladi.",
-    "paymentNote": "To‘lov Telegram bot orqali amalga oshiriladi. Yakuniy summa fan tanlangach botda ko‘rsatiladi.",
     "chooseGoal": "Maqsad tanlash",
     "viewSubscription": "Obunani ko‘rish",
     "back": "Oldingi sahifaga qaytish",
@@ -1020,7 +1022,66 @@
     "opening": "Ochilmoqda…",
     "checkoutOpened": "Telegram'da to‘lov ma'lumotlari ochildi. Chekni botga yuboring — obuna faollashgach shu sahifa yangilanadi.",
     "checkoutError": "To‘lov havolasini yaratib bo‘lmadi. Sahifani yangilab, qayta urinib ko‘ring.",
-    "checkoutExpired": "Bu variant sotuvdan olingan. Sahifani yangilang."
+    "checkoutExpired": "Bu variant sotuvdan olingan. Sahifani yangilang.",
+    "rule": {
+      "ONE": "Bitta fan tanlanadi",
+      "DTM_BLOCK": "2 asosiy + 3 majburiy fan",
+      "NONE": "Butun kategoriya",
+      "BUNDLE": "Barcha yo‘nalishlar va fanlar"
+    },
+    "currency": "so‘m",
+    "featuredRibbon": "Eng foydali",
+    "untilDays": "{date}gacha · {days} kun",
+    "perMonth": "oyiga ~{amount} so‘m",
+    "perDay": "kuniga ~{amount} so‘m",
+    "youSave": "{amount} tejaysiz",
+    "promoEndsIn": "Aksiya tugashiga {time}",
+    "daysHours": "{days} kun {hours} soat",
+    "hoursMinutes": "{hours} soat {minutes} daqiqa",
+    "cheaperThan": "«{label}» variantidan {percent}% arzon",
+    "personalBadge": "Sizga −{percent}%",
+    "personalNote": "Yangi fan uchun narx. Joriy faningizni uzaytirish — {price}.",
+    "secondSubjectBadge": "Ikkinchi fanga −{percent}%",
+    "statMocks": "{count} ta mock",
+    "statTopicTests": "{count} ta mavzu testi",
+    "statQuestions": "{shown} ta savol",
+    "mandatorySubjects": "Majburiy fanlar avtomatik qo‘shiladi: {names}",
+    "auto": {
+      "allCategories": "Barcha yo‘nalishlar: attestatsiya, sertifikat, DTM va boshqalar",
+      "topicTests": "Barcha mavzu testlari",
+      "mockTests": "Barcha mock imtihonlar",
+      "solutions": "Batafsil yechimlar — kunlik limitsiz",
+      "aiExplain": "AI tushuntirish — kunlik limitsiz"
+    },
+    "activeUntil": "Sizda faol — {date}gacha",
+    "extend": "Uzaytirish",
+    "extendNote": "Uzaytirsangiz, yangi muddat joriy obuna tugagan kundan boshlanadi — qolgan kunlar yo‘qolmaydi.",
+    "paymentFacts": "To‘lov Telegram bot orqali · karta o‘tkazmasi · odatda 15 daqiqada faollashadi",
+    "bundleSeparate": "Alohida olsangiz",
+    "bundleTogether": "paketda",
+    "faq": {
+      "title": "Ko‘p beriladigan savollar",
+      "payment": {
+        "q": "To‘lov qanday amalga oshiriladi?",
+        "a": "“Sotib olish” tugmasi Telegram botni ochadi. Bot summani va karta raqamini ko‘rsatadi — karta orqali o‘tkazib, chek rasmini botga yuborasiz."
+      },
+      "activation": {
+        "q": "Obuna qachon faollashadi?",
+        "a": "Chek tekshirilgach — odatda 15 daqiqa ichida. Faollashgach bot xabar yuboradi va bu sahifa o‘zi yangilanadi."
+      },
+      "changeSubject": {
+        "q": "Tanlangan fanni o‘zgartirsa bo‘ladimi?",
+        "a": "Ha, faqat administrator orqali. Botda yoki yordam kanalida yozing — fan muddatni yo‘qotmasdan almashtiriladi."
+      },
+      "secondSubject": {
+        "q": "Ikkinchi fan chegirmasi qanday ishlaydi?",
+        "a": "Shu yo‘nalishda faol obunangiz bo‘lsa, boshqa fanni chegirma bilan olasiz. Chegirma botdagi yakuniy summada avtomatik hisoblanadi; o‘sha fanni uzaytirish — to‘liq narxda."
+      },
+      "expiry": {
+        "q": "Muddat tugasa nima bo‘ladi?",
+        "a": "Pullik testlar yopiladi, natijalaringiz va tarixingiz saqlanib qoladi. Tugashidan 3 kun oldin eslatma chiqadi — muddatida uzaytirsangiz, qolgan kunlar yo‘qolmaydi."
+      }
+    }
   },
   "referral": {
     "subtitle": "Do'stlaringizni taklif qiling va bepul foydalanish kunlarini oling (attestatsiyadan tashqari)!",

@@ -28,6 +28,24 @@ describe('obuna kartochkasi ranglari', () => {
     expect(contrast(fg, bg)).toBeGreaterThanOrEqual(4.5);
   });
 
+  // Kartalar yonma-yon turadi — to'yingan fonlar tusi bo'yicha aniq ajralsin.
+  // SAT ataylab kulrang (to'yinganlik past) — u tus bilan emas, rangsizligi bilan farqlanadi.
+  it('maqsad fonlari tusi bir-biridan kamida 30° farq qiladi', () => {
+    const hsl = (hex: string) => {
+      const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+      const max = Math.max(r, g, b); const min = Math.min(r, g, b); const d = max - min;
+      const hue = d === 0 ? 0 : max === r ? (((g - b) / d) % 6) * 60 : max === g ? ((b - r) / d + 2) * 60 : ((r - g) / d + 4) * 60;
+      return { hue: (hue + 360) % 360, saturation: d === 0 ? 0 : d / (1 - Math.abs(max + min - 1)) };
+    };
+    const saturated = Object.entries(GOAL_STYLES).map(([goal, s]) => [goal, hsl(s.background)] as const).filter(([, c]) => c.saturation > 0.5);
+    expect(saturated.map(([goal]) => goal)).not.toContain('SAT');
+    for (const [a, ca] of saturated) for (const [b, cb] of saturated) {
+      if (a >= b) continue;
+      const distance = Math.min(Math.abs(ca.hue - cb.hue), 360 - Math.abs(ca.hue - cb.hue));
+      expect(distance, `${a} / ${b}`).toBeGreaterThanOrEqual(30);
+    }
+  });
+
   it('muddat holati chegaralari', () => {
     expect([16, 8, 7, 4, 3, 0, -1].map(expiryState)).toEqual(['ok', 'ok', 'soon', 'soon', 'urgent', 'urgent', 'expired']);
   });

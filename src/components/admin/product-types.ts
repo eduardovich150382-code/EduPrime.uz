@@ -3,11 +3,15 @@ export interface AdminSubject extends LocalName { id: string; isMandatory: boole
 export interface AdminOffer {
   id: string; labelUz: string; labelRu: string; labelEn: string;
   durationMonths: number | null; untilDate: string | null; price: number; isActive: boolean; order: number;
+  compareAtPrice: number | null; badgeUz: string | null; badgeRu: string | null; badgeEn: string | null;
+  isFeatured: boolean; promoUntil: string | null;
 }
 export interface AdminProduct extends LocalName {
   id: string; kind: 'BUNDLE' | 'CATEGORY'; categoryId: string | null; subjectRule: 'NONE' | 'ONE' | 'DTM_BLOCK';
   isOnSale: boolean; secondSubjectDiscountPct: number; order: number; offers: AdminOffer[];
   subjects: AdminSubject[]; publishedTestCount: number;
+  taglineUz: string | null; taglineRu: string | null; taglineEn: string | null;
+  featuresUz: string[]; featuresRu: string[]; featuresEn: string[];
 }
 export interface AdminUser { id: string; name: string | null; email: string | null; telegramUsername: string | null }
 

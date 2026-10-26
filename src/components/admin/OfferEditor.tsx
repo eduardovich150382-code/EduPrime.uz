@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { tashkentDateInput } from '@/lib/product-offers';
+import { tashkentDateInput, tashkentDateTimeInput } from '@/lib/product-offers';
 import { adminFetch, buttonClass, ErrorMessage, errorCode, fieldClass, Field } from './AdminFields';
 import type { AdminOffer } from './product-types';
 
@@ -12,6 +12,8 @@ export default function OfferEditor({ productId, offer, onSaved, onCancel }: { p
     labelUz: offer?.labelUz ?? '', labelRu: offer?.labelRu ?? '', labelEn: offer?.labelEn ?? '',
     durationMonths: String(offer?.durationMonths ?? 1), untilDate: offer?.untilDate ? tashkentDateInput(offer.untilDate) : '',
     price: String(offer?.price ?? 0), isActive: offer?.isActive ?? true, order: String(offer?.order ?? 0),
+    compareAtPrice: offer?.compareAtPrice ? String(offer.compareAtPrice) : '', badgeUz: offer?.badgeUz ?? '', badgeRu: offer?.badgeRu ?? '', badgeEn: offer?.badgeEn ?? '',
+    isFeatured: offer?.isFeatured ?? false, promoUntil: offer?.promoUntil ? tashkentDateTimeInput(offer.promoUntil) : '',
   });
   const [durationType, setDurationType] = useState(offer?.untilDate ? 'until' : 'months');
   const [busy, setBusy] = useState(false);
@@ -23,6 +25,7 @@ export default function OfferEditor({ productId, offer, onSaved, onCancel }: { p
       await adminFetch(url, { method: deactivate ? 'DELETE' : offer ? 'PATCH' : 'POST', body: deactivate ? undefined : JSON.stringify({
         ...form, durationMonths: durationType === 'months' ? Number(form.durationMonths) : null,
         untilDate: durationType === 'until' ? form.untilDate : null, price: Number(form.price), order: Number(form.order),
+        compareAtPrice: form.compareAtPrice ? Number(form.compareAtPrice) : null, promoUntil: form.promoUntil || null,
       }) });
       await onSaved();
     } catch (error) { setError(errorCode(error)); }
@@ -38,6 +41,13 @@ export default function OfferEditor({ productId, offer, onSaved, onCancel }: { p
         <Field label={t('price')}><input className={fieldClass} type="number" required min={0} max={2147483647} step={1} value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} /></Field>
         <Field label={t('order')}><input className={fieldClass} type="number" required min={0} max={2147483647} step={1} value={form.order} onChange={(e) => setForm({ ...form, order: e.target.value })} /></Field>
       </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field label={t('compareAtPrice')}><input className={fieldClass} type="number" min={1} max={2147483647} step={1} value={form.compareAtPrice} onChange={(e) => setForm({ ...form, compareAtPrice: e.target.value })} /></Field>
+        <Field label={t('promoUntil')}><input className={fieldClass} type="datetime-local" value={form.promoUntil} onChange={(e) => setForm({ ...form, promoUntil: e.target.value })} /></Field>
+      </div>
+      <p className="text-xs text-text-secondary">{t('compareAtHelp')}</p>
+      <div className="grid gap-3 sm:grid-cols-3">{(['Uz', 'Ru', 'En'] as const).map((lang) => <Field key={lang} label={`${t('badge')} (${lang.toLowerCase()})`}><input className={fieldClass} maxLength={40} placeholder={t('badgePlaceholder')} value={form[`badge${lang}`]} onChange={(e) => setForm({ ...form, [`badge${lang}`]: e.target.value })} /></Field>)}</div>
+      <label className="flex min-h-11 items-center gap-3"><input type="checkbox" className="h-5 w-5" checked={form.isFeatured} onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })} />{t('featured')}</label>
       <label className="flex min-h-11 items-center gap-3"><input type="checkbox" className="h-5 w-5" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} />{t('active')}</label>
       <ErrorMessage error={error} />
       <div className="flex flex-wrap gap-2"><button className="btn-primary min-h-11" type="submit">{busy ? t('saving') : t('save')}</button>

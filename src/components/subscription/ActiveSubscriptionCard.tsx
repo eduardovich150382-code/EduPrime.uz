@@ -1,22 +1,16 @@
 'use client';
 
 import { useLocale, useNow, useTranslations } from 'next-intl';
-import { Archive, Award, FileCheck, Globe, GraduationCap, Landmark, Layers, School, type LucideIcon } from 'lucide-react';
+import { Archive, type LucideIcon } from 'lucide-react';
 import { Link } from '@/i18n/routing';
+import { goalIcon } from './goal-icons';
 import { daysLeft, formatTashkentDate } from '@/lib/date';
 import { EXPIRY_PILL_STYLES, expiryState, subscriptionStyle } from '@/lib/goal-styles';
 import { localizedName } from '@/lib/pricing';
 import { subscriptionDisplayName, subscriptionPricingHref, type SubscriptionView } from '@/lib/subscription-display';
 
-const GOAL_ICONS: Record<string, LucideIcon> = {
-  ATTESTATION: Award, CERTIFICATE: FileCheck, DTM: GraduationCap, SCHOOL: School,
-  PRESIDENT_SCHOOL: Landmark, SAT: Globe, GRE: Globe,
-};
-
 function subscriptionIcon(s: SubscriptionView): LucideIcon {
-  if (s.isLegacy) return Archive;
-  if (s.plan === 'BUNDLE') return Layers;
-  return (s.goal && GOAL_ICONS[s.goal]) || Layers;
+  return s.isLegacy ? Archive : goalIcon(s.goal, s.plan === 'BUNDLE');
 }
 
 // Fanlar ro'yxati; eski tarifda fan yo'q — "Barcha fanlar" deyilsa attestatsiya
@@ -47,6 +41,8 @@ export default function ActiveSubscriptionCard({ subscription: s, variant = 'ful
   const subjects = subscriptionSubjects(s, locale, t('allSubjects'));
   const until = t('until', { date: formatTashkentDate(s.endDate, locale) });
   const href = subscriptionPricingHref(s);
+  // Popover va kartochka bir qoidada: havola faqat oxirgi 3 kunda va tugagach.
+  const action = state === 'urgent' ? t('renew') : state === 'expired' ? t('retake') : null;
 
   if (variant === 'compact') {
     const daysText = days < 0 ? t('expiredLabel') : t('daysShort', { count: Math.max(days, 0) });
@@ -62,9 +58,11 @@ export default function ActiveSubscriptionCard({ subscription: s, variant = 'ful
             {days < 0 ? `${until} (${daysText})` : t('untilDays', { date: formatTashkentDate(s.endDate, locale), days: daysText })}
           </span>
         </p>
-        <Link href={href} className="inline-flex min-h-11 shrink-0 items-center rounded-lg px-2 text-sm font-semibold text-primary-700 hover:bg-primary-50">
-          {days < 0 ? t('retake') : t('renew')}
-        </Link>
+        {action && (
+          <Link href={href} className="inline-flex min-h-11 shrink-0 items-center rounded-lg px-2 text-sm font-semibold text-primary-700 hover:bg-primary-50">
+            {action}
+          </Link>
+        )}
       </li>
     );
   }
@@ -76,7 +74,6 @@ export default function ActiveSubscriptionCard({ subscription: s, variant = 'ful
   // Butun songa yaxlitlanadi — server va brauzer soati millisekundlarda farq
   // qiladi, kasr kenglik hydration nomuvofiqligini berardi.
   const remaining = end > start ? Math.round(Math.min(Math.max((end - now.getTime()) / (end - start), 0), 1) * 100) : null;
-  const action = state === 'urgent' ? t('renew') : state === 'expired' ? t('retake') : null;
 
   return (
     <article className="min-w-0 rounded-2xl border-2 p-4 shadow-sm" style={{ borderColor: style.border, background: style.background }}>

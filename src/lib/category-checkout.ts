@@ -13,6 +13,14 @@ export function checkoutPrice(price: number, discountPct: number, productId: str
   return eligible ? Math.round(price * (100 - discountPct) / 100) : price;
 }
 
+// Sahifa fan tanlanmasdan oldin ko'rsatadi: hozirgi obunalarda yo'q fan
+// to'plami bilan aynan checkoutPrice chaqiriladi — bot hisobidan ajralmasin.
+const OTHER_SUBJECT = ['\u0000other-subject'];
+export function secondSubjectOfferPrice(price: number, discountPct: number, productId: string, subscriptions: CurrentSubscription[], now: Date): number | null {
+  const amount = checkoutPrice(price, discountPct, productId, OTHER_SUBJECT, subscriptions, now);
+  return amount < price ? amount : null;
+}
+
 export function subscriptionFromPayment(product: Pick<Product, 'id' | 'kind' | 'categoryId' | 'subjectRule'>, offer: Pick<ProductOffer, 'id' | 'durationMonths' | 'untilDate'>,
   paidSubjectIds: string[], subjects: { id: string; categoryId: string; isMandatory: boolean }[], now: Date, current: { subjectIds: string[]; endDate: Date }[]) {
   const chosen = product.subjectRule === 'DTM_BLOCK' ? paidSubjectIds.filter((id) => !subjects.some((s) => s.id === id && s.isMandatory)) : paidSubjectIds;

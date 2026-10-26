@@ -62,6 +62,16 @@ describe('mahsulotlar', () => {
     expect((await PATCH(request(product), ctx)).status).toBe(200);
     expect(m.updateProduct).toHaveBeenCalledWith({ where: { id: 'obuna-attestation' }, data: product });
   });
+  it('shior va afzalliklar: bo‘sh qatorlar tashlanadi, bo‘sh shior tozalanadi', async () => {
+    const body = { ...product, taglineUz: '  Ishonch bilan ', taglineRu: '', taglineEn: null, featuresUz: ['Jonli tahlil', ' ', 'Guruh'], featuresRu: [], featuresEn: [] };
+    expect((await PATCH(request(body), ctx)).status).toBe(200);
+    expect(m.updateProduct).toHaveBeenCalledWith({ where: { id: 'obuna-attestation' }, data: { ...product,
+      taglineUz: 'Ishonch bilan', taglineRu: null, taglineEn: null, featuresUz: ['Jonli tahlil', 'Guruh'], featuresRu: [], featuresEn: [] } });
+  });
+  it('9 ta afzallik — aniq xato kodi', async () => {
+    const response = await PATCH(request({ ...product, featuresUz: Array.from({ length: 9 }, (_, i) => `band ${i}`) }), ctx);
+    expect(response.status).toBe(400); expect((await response.json()).error).toBe('TOO_MANY_FEATURES');
+  });
   it.each([{ ...product, secondSubjectDiscountPct: 101 }, { ...product, order: 0.5 }, { ...product, nameRu: '' }, { ...product, categoryId: 'change' }])('noto‘g‘ri mahsulotni yozmaydi', async (body) => {
     expect((await PATCH(request(body), ctx)).status).toBe(400); expect(m.updateProduct).not.toHaveBeenCalled();
   });
@@ -75,6 +85,28 @@ describe('variantlar', () => {
   it('qat’iy sana Toshkent kunining oxiri sifatida saqlanadi', async () => {
     expect((await editOffer(request({ ...offer, durationMonths: null, untilDate: '2027-01-10' }), ctx)).status).toBe(200);
     expect(m.updateOffer).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ durationMonths: null, untilDate: new Date('2027-01-10T18:59:59.999Z') }) }));
+  });
+  it('eski narx, belgi, ajratish va aksiya muddati (Toshkent vaqti) saqlanadi', async () => {
+    const body = { ...offer, compareAtPrice: 15000, badgeUz: ' Eng foydali ', badgeRu: '', badgeEn: 'Best value', isFeatured: true, promoUntil: '2026-11-11T23:59' };
+    expect((await editOffer(request(body), ctx)).status).toBe(200);
+    expect(m.updateOffer).toHaveBeenCalledWith({ where: { id: 'offer1', productId: 'obuna-attestation' }, data: { ...offer,
+      compareAtPrice: 15000, badgeUz: 'Eng foydali', badgeRu: null, badgeEn: 'Best value', isFeatured: true, promoUntil: new Date('2026-11-11T18:59:00.000Z') } });
+  });
+  it('maydonlarni tozalash: null yuborilsa null yoziladi', async () => {
+    expect((await editOffer(request({ ...offer, compareAtPrice: null, promoUntil: null, isFeatured: false }), ctx)).status).toBe(200);
+    expect(m.updateOffer).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ compareAtPrice: null, promoUntil: null, isFeatured: false }) }));
+  });
+  it.each([
+    [{ ...offer, compareAtPrice: 10000 }, 'COMPARE_AT_NOT_ABOVE_PRICE'],
+    [{ ...offer, compareAtPrice: 9000 }, 'COMPARE_AT_NOT_ABOVE_PRICE'],
+    [{ ...offer, promoUntil: '2026-11-11T23:59' }, 'PROMO_NEEDS_COMPARE_AT'],
+    [{ ...offer, compareAtPrice: 15000, promoUntil: '2026-11-11' }, 'INVALID_INPUT'],
+    [{ ...offer, compareAtPrice: 15000, promoUntil: '2026-02-30T10:00' }, 'INVALID_DATE'],
+    [{ ...offer, badgeUz: 'x'.repeat(41) }, 'INVALID_INPUT'],
+  ])('noto‘g‘ri marketing maydonlarini rad etadi: %j', async (body, code) => {
+    const response = await editOffer(request(body), ctx);
+    expect(response.status).toBe(400); expect((await response.json()).error).toBe(code);
+    expect(m.updateOffer).not.toHaveBeenCalled();
   });
   it.each([
     { ...offer, durationMonths: null }, { ...offer, untilDate: '2027-01-01' }, { ...offer, durationMonths: 0 },
