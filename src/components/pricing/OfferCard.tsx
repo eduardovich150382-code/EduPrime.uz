@@ -2,7 +2,7 @@ import { useNow, useTranslations } from 'next-intl';
 import { Check, ClipboardList, ListChecks, Timer } from 'lucide-react';
 import { formatTashkentDate } from '@/lib/date';
 import { GOAL_STYLES, BUNDLE_STYLE, LEGACY_STYLE } from '@/lib/goal-styles';
-import { autoFeatures, longerOfferSaving, roundDownCount, sumCounts, type ContentCounts, type PricingProduct } from '@/lib/pricing';
+import { autoFeatures, longerOfferSaving, roundDownCount, soldSubjects, sumCounts, type ContentCounts, type PricingProduct } from '@/lib/pricing';
 import { goalIcon } from '@/components/subscription/goal-icons';
 import { formatAmount, OfferVariant, type Accent, type BuyContext } from './OfferVariant';
 
@@ -10,12 +10,6 @@ export function productAccent(product: Pick<PricingProduct, 'kind' | 'goal'>): A
   if (product.kind === 'BUNDLE') return BUNDLE_STYLE;
   const goal = product.goal && product.goal in GOAL_STYLES ? GOAL_STYLES[product.goal as keyof typeof GOAL_STYLES] : null;
   return goal ? { ...goal, border: goal.color } : LEGACY_STYLE;
-}
-
-// Fan kesimidagi yoki butun doiradagi sonlar; ONE/DTM da bitta fan sotilsa
-// kartaning o'zida, bir nechta bo'lsa fanlar ro'yxatida chiqadi.
-function soldSubjects(product: PricingProduct) {
-  return product.subjects.filter((subject) => product.subjectRule !== 'DTM_BLOCK' || !subject.isMandatory);
 }
 
 function useStatItems(counts: ContentCounts, locale: string) {
@@ -70,7 +64,13 @@ export function FeatureList({ product, counts, inverted = false, accent }: { pro
   );
 }
 
-export function VariantGrid({ product, accent, buy, locale }: { product: PricingProduct; accent: Accent; buy: BuyContext; locale: string }) {
+// `recommend` berilsa ajratilgan variantni chaqiruvchi tanlaydi (attestatsiya
+// sahifasi) — aks holda admin `isFeatured` belgisi.
+export interface OfferRecommendation { offerId: string | null; label: string }
+
+export function VariantGrid({ product, accent, buy, locale, recommend }: {
+  product: PricingProduct; accent: Accent; buy: BuyContext; locale: string; recommend?: OfferRecommendation;
+}) {
   const t = useTranslations('pricing');
   const now = useNow();
   const saving = longerOfferSaving(product.offers, now);
@@ -80,6 +80,7 @@ export function VariantGrid({ product, accent, buy, locale }: { product: Pricing
       <div className={`grid gap-5 pt-2 ${product.offers.length > 1 ? 'sm:grid-cols-2' : ''}`}>
         {product.offers.map((offer) => (
           <OfferVariant key={offer.id} product={product} offer={offer} accent={accent} buy={buy} locale={locale} now={now}
+            recommended={recommend && { active: recommend.offerId === offer.id, label: recommend.label }}
             saving={saving?.offerId === offer.id ? { percent: saving.percent, label: saving.shorter.label } : null} />
         ))}
       </div>
@@ -113,7 +114,9 @@ function ActiveSubscriptions({ product, locale }: { product: PricingProduct; loc
   );
 }
 
-export function OfferCard({ product, locale, buy }: { product: PricingProduct; locale: string; buy: BuyContext }) {
+export function OfferCard({ product, locale, buy, title, recommend }: {
+  product: PricingProduct; locale: string; buy: BuyContext; title?: string; recommend?: OfferRecommendation;
+}) {
   const t = useTranslations('pricing');
   const accent = productAccent(product);
   const Icon = goalIcon(product.goal, product.kind === 'BUNDLE');
@@ -128,7 +131,7 @@ export function OfferCard({ product, locale, buy }: { product: PricingProduct; l
         <div className="flex min-w-0 items-start gap-3">
           <span aria-hidden className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white shadow-sm" style={{ color: accent.color }}><Icon size={24} /></span>
           <div className="min-w-0">
-            <h2 className="wrap-break-word text-xl font-bold text-[#1f2937] sm:text-2xl">{product.name}</h2>
+            <h2 className="wrap-break-word text-xl font-bold text-[#1f2937] sm:text-2xl">{title ?? product.name}</h2>
             {product.tagline && <p className="mt-0.5 wrap-break-word text-[#1f2937]">{product.tagline}</p>}
           </div>
         </div>
@@ -151,7 +154,7 @@ export function OfferCard({ product, locale, buy }: { product: PricingProduct; l
         {mandatory.length > 0 && <p className="text-sm text-text-secondary">{t('mandatorySubjects', { names: mandatory.map((s) => s.name).join(', ') })}</p>}
         {!buy.userId && (product.subjectRule === 'ONE' || product.subjectRule === 'DTM_BLOCK') && product.kind === 'CATEGORY' && <p className="text-sm text-text-secondary">{t('subjectInBot')}</p>}
         <FeatureList product={product} counts={total} accent={accent} />
-        <VariantGrid product={product} accent={accent} buy={buy} locale={locale} />
+        <VariantGrid product={product} accent={accent} buy={buy} locale={locale} recommend={recommend} />
         <PaymentFacts />
       </div>
     </article>

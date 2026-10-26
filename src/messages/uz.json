@@ -754,7 +754,16 @@
       "ctaRetake": "Eng past natijani qayta yechish · №{number}",
       "ctaStructure": "Imtihon tuzilmasi",
       "ctaTopicStart": "Mavzu testlaridan boshlash",
-      "ctaRetakeLowest": "Eng past natijani qayta yechish"
+      "ctaRetakeLowest": "Eng past natijani qayta yechish",
+      "ctaOffers": "Obuna variantlari"
+    },
+    "offer": {
+      "title": "Attestatsiyaga obuna",
+      "titleSubject": "Attestatsiyaga obuna — {subject}",
+      "recommended": "Tavsiya etiladi",
+      "activeTitle": "Obunangiz faol",
+      "otherSubject": "Boshqa fanga obuna",
+      "otherSubjectDiscount": "−{percent}%"
     },
     "countdown": {
       "before": "Attestatsiyagacha",
@@ -777,7 +786,9 @@
       "start": "Boshlash",
       "mocksEmpty": "Mock testlar tez orada qo'shiladi.",
       "topicsTitle": "Mavzular bo'yicha testlar",
-      "lastBall": "Oxirgi natija: {score} ball"
+      "lastBall": "Oxirgi natija: {score} ball",
+      "unlockWithSubscription": "Obuna bilan ochiladi",
+      "mocksFootnote": "Yangi mock testlar muntazam qo'shiladi"
     },
     "filter": {
       "label": "Testlarni saralash",

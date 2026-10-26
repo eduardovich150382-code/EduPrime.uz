@@ -33,13 +33,15 @@ export async function AttestationHero({
   hero,
   date,
   locale,
+  offersAnchor,
 }: {
   hero: AttestationPageData['hero'];
   date: string | null;
   locale: string;
+  /** Obuna kartasi shu sahifada bo'lsa — unga yakor; obunachida havola yo'q. */
+  offersAnchor: boolean;
 }) {
   const t = await getTranslations('attestation');
-  const pricing = await getTranslations('pricing');
   const days = daysUntil(date);
 
   return (
@@ -79,9 +81,11 @@ export async function AttestationHero({
               <ListChecks size={16} aria-hidden />
               {t('hero.ctaStructure')}
             </a>
-            <Link href="/pricing?goal=ATTESTATION" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-white/30 px-5 py-2 text-sm font-semibold text-white hover:bg-white/10">
-              {pricing('viewSubscription')}
-            </Link>
+            {offersAnchor && (
+              <a href="#obuna" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-white/30 px-5 py-2 text-sm font-semibold text-white hover:bg-white/10">
+                {t('hero.ctaOffers')}
+              </a>
+            )}
           </div>
         </div>
 
