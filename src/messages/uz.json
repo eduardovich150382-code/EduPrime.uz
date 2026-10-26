@@ -1,4 +1,8 @@
 {
+  "attestationMockField": {
+    "label": "Mock test",
+    "hint": "Faqat to‘liq sinov imtihoni uchun belgilang. Belgilanmasa, mavzulashtirilgan test hisoblanadi."
+  },
   "questionBankPicker": {
     "title": "Savollar bazasidan tanlash",
     "close": "Yopish",

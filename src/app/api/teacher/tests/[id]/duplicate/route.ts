@@ -60,6 +60,7 @@ export async function POST(
         videoSolution: original.videoSolution,
         writtenSolution: original.writtenSolution,
         isPublished: false, // Always start as draft
+        isMock: original.isMock,
         questions: {
           create: original.questions.map((q) => ({
             text: q.text,

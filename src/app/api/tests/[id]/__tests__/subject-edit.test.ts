@@ -29,6 +29,17 @@ beforeEach(() => {
 });
 
 describe('test fanini tahrirlash', () => {
+  it.each([true, false])('mock belgisi %s bo\'lib yangilanadi', async (isMock) => {
+    const response = await PUT(request({ isMock }), ctx);
+    expect(response.status).toBe(200);
+    expect(m.update).toHaveBeenCalledExactlyOnceWith({ where: { id: 'test1' }, data: { isMock } });
+  });
+
+  it.each(['false', 0, null])('noto\'g\'ri mock belgisi %j saqlanmaydi', async (isMock) => {
+    expect((await PUT(request({ isMock }), ctx)).status).toBe(400);
+    expect(m.update).not.toHaveBeenCalled();
+  });
+
   it.each(['TEACHER', 'ADMIN'])('%s fan va uning kategoriyasini bitta update bilan saqlaydi', async (role) => {
     m.auth.mockResolvedValue({ user: { id: role === 'ADMIN' ? 'admin1' : 'teacher1', role } });
     const response = await PUT(request({ subjectId: 'new-subject', categoryId: 'forged-category', titleUz: 'Yangi nom' }), ctx);

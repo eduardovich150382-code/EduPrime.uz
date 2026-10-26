@@ -1,4 +1,8 @@
 {
+  "attestationMockField": {
+    "label": "Mock exam",
+    "hint": "Select only for a full mock exam. Otherwise, this is a topic test."
+  },
   "questionBankPicker": {
     "title": "Select from question bank",
     "close": "Close",
