@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
+import { formatTashkentDate } from '@/lib/date';
 import {
   Bell,
   CheckCheck,
@@ -63,11 +64,7 @@ function formatDate(dateStr: string): string {
   if (hours < 24) return `${hours} soat oldin`;
   if (days < 7) return `${days} kun oldin`;
 
-  return date.toLocaleDateString('uz-UZ', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
+  return formatTashkentDate(date, 'uz', true);
 }
 
 export default function NotificationsPage() {

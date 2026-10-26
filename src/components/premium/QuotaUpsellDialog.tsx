@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
-import { Crown, Lock, X } from 'lucide-react';
+import { Lock, Sparkles, X } from 'lucide-react';
 
 export interface QuotaUpsellItem {
   icon: ReactNode;
@@ -89,7 +89,7 @@ export default function QuotaUpsellDialog({
             href={primaryHref}
             className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold min-h-11"
           >
-            <Crown size={16} />
+            <Sparkles size={16} aria-hidden />
             {primaryLabel}
           </Link>
         </div>

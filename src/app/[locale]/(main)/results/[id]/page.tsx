@@ -8,7 +8,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import LatexRenderer from '@/components/ui/LatexRenderer';
 import SecureYouTubePlayer from '@/components/ui/SecureYouTubePlayer';
-import PremiumCTA from '@/components/ui/PremiumCTA';
+import SubscribeCTA from '@/components/ui/SubscribeCTA';
 import ResultScore from '@/components/test/ResultScore';
 import ResultQuestionMap from '@/components/test/ResultQuestionMap';
 import ResultAnswerReview from '@/components/test/ResultAnswerReview';
@@ -25,7 +25,7 @@ import {
   Video, FileText, ArrowLeft, Share2, RotateCcw,
   Loader2, AlertCircle, Play,
   X, Copy, ExternalLink, Filter, Bookmark, BarChart3, Bot,
-  Lock, Unlock, Crown, Sparkles, Target, ThumbsUp, ThumbsDown, TrendingUp, BookOpen,
+  Lock, Unlock, Sparkles, Target, ThumbsUp, ThumbsDown, TrendingUp, BookOpen,
 } from 'lucide-react';
 
 interface QuestionOption {
@@ -614,8 +614,8 @@ export default function ResultPage() {
         </div>
       )}
 
-      {/* Premium CTA */}
-      <PremiumCTA variant="full" />
+      {/* Obuna taklifi */}
+      <SubscribeCTA />
 
       {/* Questions review */}
       <motion.div
@@ -924,7 +924,7 @@ export default function ResultPage() {
                         href="/pricing"
                         className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all min-h-11 bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200"
                       >
-                        <Crown size={16} />
+                        <Lock size={16} aria-hidden />
                         {t('videoLockedPremium')}
                       </Link>
                     )}
@@ -1078,7 +1078,7 @@ export default function ResultPage() {
                   text: t('quotaExceededUsedToday', { usedToday: quotaExceeded.usedToday }),
                 },
                 {
-                  icon: <Crown size={14} className="text-purple-600 flex-shrink-0" />,
+                  icon: <Sparkles size={14} className="text-purple-600 flex-shrink-0" />,
                   text: t('quotaExceededPrice'),
                 },
                 ...(quotaExceeded.limit !== null

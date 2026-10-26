@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import BackButton from '@/components/ui/BackButton';
-import PremiumCTA from '@/components/ui/PremiumCTA';
+import SubscribeCTA from '@/components/ui/SubscribeCTA';
 import {
   GraduationCap, Loader2, Clock, ListChecks, Award, ArrowRight,
   AlertCircle, PlayCircle, CheckCircle2,
@@ -96,10 +96,10 @@ export default function DtmOnlinePage() {
           <GraduationCap size={40} className="text-primary-400 mx-auto mb-4" />
           <h1 className="text-xl font-bold text-text-primary mb-2">Bepul urinish tugadi</h1>
           <p className="text-text-secondary text-sm mb-6">
-            DTM Online&apos;dan bepul tarifda faqat 1 marta foydalanish mumkin edi. Cheksiz urinish uchun Premium yoki Ustoz tarifiga o&apos;ting.
+            DTM Online&apos;dan bepul tarifda faqat 1 marta foydalanish mumkin edi. Cheksiz urinish uchun obuna oling.
           </p>
         </div>
-        <PremiumCTA variant="full" />
+        <SubscribeCTA />
       </div>
     );
   }

@@ -2,10 +2,11 @@ import 'server-only';
 import { db } from './db';
 import { loadUserEntitlements } from './access';
 import { checkoutStartParameter } from './category-checkout';
-import { localizedName, type PricingProduct, type PricingSubscription } from './pricing';
+import { localizedName, type PricingProduct } from './pricing';
+import { subscriptionView, type SubscriptionView } from './subscription-display';
 
 export async function loadPricingPage(userId: string | null, locale: string, now = new Date()): Promise<{
-  products: PricingProduct[]; subscriptions: PricingSubscription[];
+  products: PricingProduct[]; subscriptions: SubscriptionView[];
 }> {
   const [products, entitlements] = await Promise.all([
     db.product.findMany({
@@ -31,9 +32,7 @@ export async function loadPricingPage(userId: string | null, locale: string, now
         buyHref: `https://t.me/EduPrimeuzbot?start=${checkoutStartParameter(product.id, offer.id)}`,
       })),
     })),
-    subscriptions: (entitlements?.subscriptions ?? []).map((subscription) => ({
-      id: subscription.id, plan: subscription.plan, name: subscription.product ? localizedName(subscription.product, locale) : null,
-      subjects: subscription.subjects.map((subject) => localizedName(subject, locale)), endDate: subscription.endDate.toISOString(),
-    })),
+    // Nomlar kartochkada joriy tilga o'giriladi — header popover'i bilan bir xil ko'rinish.
+    subscriptions: (entitlements?.subscriptions ?? []).map(subscriptionView),
   };
 }

@@ -43,7 +43,25 @@
     "productStats": "Mahsulotlar bo‘yicha faol obunalar",
     "legacyPremium": "Premium",
     "legacyTeacher": "Ustoz",
-    "subscription": "Obuna"
+    "subscription": "Obuna",
+    "legacyPlan": "Eski tarif",
+    "daysShort": "{count} kun",
+    "daysLeftLong": "{count} kun qoldi",
+    "endsToday": "Bugun tugaydi",
+    "expiredLabel": "Tugagan",
+    "retake": "Qayta olish",
+    "allSubjects": "Barcha fanlar",
+    "untilDays": "{date}gacha ({days})",
+    "badgeMore": "+{count}",
+    "allSubscriptions": "Barcha obunalar",
+    "subscribeShort": "Obuna",
+    "cta": {
+      "title": "Obuna oling",
+      "subtitle": "Maqsadingiz va faningizga mos",
+      "feature1": "Tanlangan yo'nalishdagi testlarga cheksiz kirish",
+      "feature2": "Batafsil yechimlar va video tushuntirishlar",
+      "feature3": "AI yordamchi va shaxsiy tavsiyalar"
+    }
   },
   "common": {
     "siteName": "EduPrime",
@@ -64,7 +82,7 @@
     "previous": "Oldingi",
     "submit": "Yuborish",
     "free": "Bepul",
-    "premium": "Premium",
+    "premium": "Obuna",
     "teacher": "Ustoz"
   },
   "landing": {
@@ -208,9 +226,9 @@
     "quotaExceededTitle": "Bugungi bepul testlar tugadi",
     "quotaExceededBody": "\"{config}\" konfiguratsiyasi bilan testni boshlash uchun bugungi bepul limit tugadi.",
     "quotaExceededUsedToday": "Bugun {usedToday} ta bepul test tuzdingiz",
-    "quotaExceededPrice": "Premium — kuniga ≈970 so'm, cheksiz testlar bilan",
+    "quotaExceededPrice": "Obuna bilan — cheksiz testlar",
     "quotaExceededSecondary": "Ertaga yana {limit} ta bepul",
-    "quotaExceededCta": "Premium olish",
+    "quotaExceededCta": "Obuna olish",
     "questionCount": "{count} ta savol",
     "difficultyLow": "past qiyinlik",
     "difficultyMedium": "o'rtacha qiyinlik",
@@ -225,17 +243,17 @@
     "backToDtm": "DTM Online'ga qaytish",
     "backToLesson": "Darsga qaytish",
     "solutionQuotaFree": "Bugun {remaining}/{limit} bepul yechim qoldi",
-    "solutionQuotaUnlimited": "Yechimlar cheksiz (Premium)",
+    "solutionQuotaUnlimited": "Yechimlar cheksiz (obuna)",
     "unlockSolution": "Yechimni ochish",
     "unlocking": "Ochilmoqda...",
-    "videoLockedPremium": "Video yechim — faqat Premium",
+    "videoLockedPremium": "Video yechim — obuna bilan",
     "unlockError": "Yechimni ochishda xatolik yuz berdi",
     "quotaExceededTitle": "Bugungi bepul yechimlar tugadi",
     "quotaExceededBody": "\"{question}\" savolining to'liq yechimini ko'rish uchun bugungi bepul limit tugadi.",
     "quotaExceededUsedToday": "Bugun {usedToday} ta yechim ochdingiz",
-    "quotaExceededPrice": "Premium — kuniga ≈970 so'm, cheksiz yechimlar bilan",
+    "quotaExceededPrice": "Obuna bilan — cheksiz yechimlar",
     "quotaExceededTomorrow": "Yoki ertaga yana {limit} ta bepul yechim oling",
-    "quotaExceededCta": "Premium olish",
+    "quotaExceededCta": "Obuna olish",
     "quotaExceededClose": "Yopish",
     "distractorWhyLabel": "Nega bu javob noto'g'ri:",
     "wasHelpful": "Foydali bo'ldimi?",
@@ -363,9 +381,9 @@
     "startLearningButton": "O'rganishni boshlash",
     "buyButton": "Sotib olish — {price} so'm",
     "accessRequiredNote": "Bu kursga kirish uchun {access} kerak.",
-    "accessPremium": "Premium tarifi",
+    "accessPremium": "obuna",
     "accessTeacher": "Ustoz tarifi",
-    "accessPremiumTeacher": "Premium yoki Ustoz tarifi",
+    "accessPremiumTeacher": "obuna",
     "pricingLink": "Tariflar sahifasi",
     "statsLessons": "{count} dars",
     "statsHours": "~{count} soat",
@@ -581,9 +599,9 @@
   "exam": {
     "locked": {
       "title": "Test yopiq",
-      "needPremium": "«{title}» testiga kirish uchun Premium tarif kerak.",
+      "needPremium": "«{title}» testiga kirish uchun obuna kerak.",
       "needTeacher": "«{title}» testiga kirish uchun Ustoz tarif kerak.",
-      "needPremiumTeacher": "«{title}» testiga kirish uchun Premium yoki Ustoz tarif kerak.",
+      "needPremiumTeacher": "«{title}» testiga kirish uchun obuna kerak.",
       "needSubscription": "«{title}» testiga kirish uchun shu kategoriya va fanni qamrab oluvchi obuna kerak.",
       "needPaid": "«{title}» testiga kirish uchun {price} so'm to'lash kerak.",
       "needGeneric": "«{title}» testiga kirish uchun tarif kerak.",
@@ -701,10 +719,10 @@
       "viewResult": "Natijani ko'rish",
       "retake": "Qayta yechish",
       "new": "Yangi",
-      "lockPremium": "Premium",
+      "lockPremium": "Obuna bilan",
       "lockTeacher": "Ustoz tarifi",
       "lockSubscription": "Obuna bilan",
-      "lockPrice": "{price} so'm"
+      "lockPrice": "Obuna bilan yoki alohida — {price} so'm"
     },
     "banner": {
       "pill": "Attestatsiya mavsumi",
@@ -978,10 +996,6 @@
     "price": "{amount} so‘m",
     "buy": "Sotib olish",
     "activeSubscriptions": "Faol obunalaringiz",
-    "legacyPremium": "Premium",
-    "legacyTeacher": "Ustoz",
-    "subscription": "Obuna",
-    "expires": "{date}gacha",
     "empty": "Obuna tez orada",
     "emptyBody": "Obunalar sotuvga chiqqanda shu yerda ko‘rinadi.",
     "noOffers": "Ushbu mahsulot uchun muddat variantlari tez orada qo‘shiladi.",
@@ -989,5 +1003,11 @@
     "chooseGoal": "Maqsad tanlash",
     "viewSubscription": "Obunani ko‘rish",
     "back": "Oldingi sahifaga qaytish"
+  },
+  "referral": {
+    "subtitle": "Do'stlaringizni taklif qiling va bepul foydalanish kunlarini oling (attestatsiyadan tashqari)!",
+    "rewardGranted": "Siz {days} kun bepul foydalanish huquqini oldingiz (attestatsiyadan tashqari)!",
+    "rewardOffer": "{friends} ta do'stingizni taklif qiling va <strong>{days} kun bepul foydalaning</strong> (attestatsiyadan tashqari)!",
+    "stepReward": "{friends} ta do'st = {days} kun bepul foydalanish (attestatsiyadan tashqari)"
   }
 }

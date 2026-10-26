@@ -88,11 +88,11 @@ describe('obuna eslatmasi cron', () => {
     await GET(request());
     expect(m.send).toHaveBeenCalledTimes(2); expect(claimed.size).toBe(2);
   });
-  it('expired legacy tarif nomi saqlanadi, yangi mahsulot Ustoz deyilmaydi', async () => {
+  it('tugagan eski tarif "Eski tarif" deb ataladi (Premium emas), yangi mahsulot Ustoz deyilmaydi', async () => {
     m.rows.mockResolvedValue([sub({ endDate: new Date('2026-10-24T00:00:00+05:00') }), sub({ id: 'legacy', plan: 'PREMIUM', product: null, productId: null, endDate: new Date('2026-10-23') })]);
     await GET(request());
     const data = m.create.mock.calls[0][0].data;
-    expect(data.message).toContain('Premium'); expect(data.message).toContain('Attestatsiya · Fizika');
+    expect(data.message).toContain('Eski tarif'); expect(data.message).not.toContain('Premium'); expect(data.message).toContain('Attestatsiya · Fizika');
     expect(data.type).toBe('warning'); expect(data.message).not.toContain('Ustoz');
   });
 });

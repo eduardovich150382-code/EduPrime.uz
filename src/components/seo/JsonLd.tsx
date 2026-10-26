@@ -70,14 +70,6 @@ export function WebApplicationJsonLd() {
       },
       {
         '@type': 'Offer',
-        name: 'Premium',
-        price: '29000',
-        priceCurrency: 'UZS',
-        description: "DTM + Maktab + Sertifikat testlari — cheksiz",
-        billingDuration: 'P1M',
-      },
-      {
-        '@type': 'Offer',
         name: 'Ustoz',
         price: '29000',
         priceCurrency: 'UZS',
@@ -141,10 +133,10 @@ export function FAQJsonLd() {
       },
       {
         '@type': 'Question',
-        name: "Premium tarif narxi qancha?",
+        name: "Obuna qanday tanlanadi?",
         acceptedAnswer: {
           '@type': 'Answer',
-          text: "Premium tarif oyiga 29,000 so'm. 6 oylik — 150,000 so'm (17% tejash), 1 yillik — 270,000 so'm (22% tejash). To'lov Telegram bot orqali amalga oshiriladi.",
+          text: "Obuna maqsadingiz (attestatsiya, DTM, Milliy sertifikat va boshqalar) va faningizga qarab tanlanadi. Narx va muddatlar Tariflar sahifasida ko'rsatilgan. To'lov Telegram bot orqali amalga oshiriladi.",
         },
       },
     ],

@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { AlertCircle } from 'lucide-react';
+import { Lock } from 'lucide-react';
 import { Link } from '@/i18n/routing';
 import type { TestType } from '@prisma/client';
 
@@ -31,7 +31,7 @@ export default function TestLockedNotice({ testId, accessDenied }: { testId: str
   return (
     <div className="max-w-md mx-auto text-center py-16">
       <div className="w-20 h-20 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-        <AlertCircle size={36} className="text-primary-600" />
+        <Lock size={36} aria-hidden className="text-primary-600" />
       </div>
       <h2 className="text-xl font-bold text-text-primary mb-2">{exam('locked.title')}</h2>
       <p className="text-text-secondary mb-6">

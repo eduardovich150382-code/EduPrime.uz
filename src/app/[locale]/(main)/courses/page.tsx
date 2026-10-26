@@ -47,9 +47,9 @@ const categoryTypeOptions = [
 
 const ACCESS_LABELS: Record<string, { label: string; color: string }> = {
   free: { label: 'Bepul', color: 'bg-green-50 text-green-600' },
-  premium: { label: 'Premium', color: 'bg-purple-50 text-purple-600' },
+  premium: { label: 'Obuna', color: 'bg-purple-50 text-purple-600' },
   teacher: { label: 'Ustoz', color: 'bg-blue-50 text-blue-600' },
-  premium_teacher: { label: 'Premium/Ustoz', color: 'bg-indigo-50 text-indigo-600' },
+  premium_teacher: { label: 'Obuna', color: 'bg-indigo-50 text-indigo-600' },
   paid: { label: 'Narxli', color: 'bg-orange-50 text-orange-600' },
 };
 

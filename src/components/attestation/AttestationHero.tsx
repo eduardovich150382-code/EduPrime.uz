@@ -1,22 +1,15 @@
 import { getTranslations } from 'next-intl/server';
 import { ChevronRight, ListChecks, Play, RotateCcw } from 'lucide-react';
 import { Link } from '@/i18n/routing';
-import { daysUntil } from '@/lib/date';
+import { daysUntil, formatTashkentDate } from '@/lib/date';
 import type { AttestationPageData } from '@/lib/attestation-page';
 
-const INTL_LOCALES: Record<string, string> = { uz: 'uz-UZ', ru: 'ru-RU', en: 'en-US' };
-
-// `YYYY-MM-DD` kalitini UTC'da formatlaymiz — mahalliy vaqt zonasida
-// Date(…) kunni bir kunga surib yuborishi mumkin. Sana `daysUntil` dan
+// `YYYY-MM-DD` kaliti UTC yarim tuni — Toshkentda shu kunning 05:00 i,
+// shuning uchun formatTashkentDate kunni surmaydi. Sana `daysUntil` dan
 // o'tgan (to'g'ri), shuning uchun bu yerda qayta tekshirish shart emas.
 function formatDateKey(key: string, locale: string): string {
   const [y, m, d] = key.split('-').map(Number);
-  return new Intl.DateTimeFormat(INTL_LOCALES[locale] ?? locale, {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    timeZone: 'UTC',
-  }).format(new Date(Date.UTC(y, m - 1, d)));
+  return formatTashkentDate(new Date(Date.UTC(y, m - 1, d)), locale, true);
 }
 
 // "№N" faqat mock uchun — mavzu testlarida tartib raqami ko'rsatilmaydi.

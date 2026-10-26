@@ -43,12 +43,21 @@ export function nearestExpiringSubscription(rows: readonly SubscriptionDetails[]
   const s = currentSubscriptions(rows, now).find((row) => !hasSubscriptionContinuation(row, rows));
   if (!s) return null;
   const daysLeft = daysUntil(tashkentDateKey(s.endDate), now);
-  return daysLeft !== null && daysLeft <= 7 ? { ...subscriptionView(s), daysLeft } : null;
+  // Banner faqat oxirgi 3 kunda va tugash kunida — undan oldin header
+  // belgisi kun sonini ko'rsatib turadi, banner sahifani band qilmasin.
+  return daysLeft !== null && daysLeft <= 3 ? { ...subscriptionView(s), daysLeft } : null;
 }
 
-export function subscriptionLabel(s: Pick<SubscriptionView, 'name' | 'subjects'>, locale: string): string {
+// Foydalanuvchiga eski PREMIUM/TEACHER_PLAN "Eski tarif" bo'lib ko'rinadi —
+// "Premium" endi sotilmaydi. Admin ro'yxatlari aniq rejani `subscriptionName`
+// orqali ko'rsatishda davom etadi.
+export function subscriptionDisplayName(s: Pick<SubscriptionView, 'name' | 'isLegacy'>, locale: string): string {
+  return s.isLegacy ? subscriptionMessages(locale).legacyPlan : localizedName(s.name, locale);
+}
+
+export function subscriptionLabel(s: Pick<SubscriptionView, 'name' | 'subjects' | 'isLegacy'>, locale: string): string {
   const subjects = s.subjects.map((subject) => localizedName(subject, locale));
-  return [localizedName(s.name, locale), ...subjects].join(' · ');
+  return [subscriptionDisplayName(s, locale), ...subjects].join(' · ');
 }
 
 export function subscriptionPricingHref(s: { goal: SubscriptionDetails['goal']; plan: string }): string {

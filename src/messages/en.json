@@ -43,7 +43,25 @@
     "productStats": "Active subscriptions by product",
     "legacyPremium": "Premium",
     "legacyTeacher": "Teacher",
-    "subscription": "Subscription"
+    "subscription": "Subscription",
+    "legacyPlan": "Legacy plan",
+    "daysShort": "{count, plural, one {# day} other {# days}}",
+    "daysLeftLong": "{count, plural, one {# day left} other {# days left}}",
+    "endsToday": "Ends today",
+    "expiredLabel": "Expired",
+    "retake": "Buy again",
+    "allSubjects": "All subjects",
+    "untilDays": "until {date} ({days})",
+    "badgeMore": "+{count}",
+    "allSubscriptions": "All subscriptions",
+    "subscribeShort": "Subscribe",
+    "cta": {
+      "title": "Get a subscription",
+      "subtitle": "Matched to your goal and subject",
+      "feature1": "Unlimited access to tests in your chosen track",
+      "feature2": "Detailed solutions and video explanations",
+      "feature3": "AI assistant and personal recommendations"
+    }
   },
   "common": {
     "siteName": "EduPrime",
@@ -64,7 +82,7 @@
     "previous": "Previous",
     "submit": "Submit",
     "free": "Free",
-    "premium": "Premium",
+    "premium": "Subscription",
     "teacher": "Teacher"
   },
   "landing": {
@@ -208,9 +226,9 @@
     "quotaExceededTitle": "Today's free tests are used up",
     "quotaExceededBody": "To start a test with \"{config}\", today's free limit is used up.",
     "quotaExceededUsedToday": "You've created {usedToday} free tests today",
-    "quotaExceededPrice": "Premium — about 970 UZS/day, unlimited tests",
+    "quotaExceededPrice": "With a subscription — unlimited tests",
     "quotaExceededSecondary": "{limit} more free tomorrow",
-    "quotaExceededCta": "Get Premium",
+    "quotaExceededCta": "Subscribe",
     "questionCount": "{count} questions",
     "difficultyLow": "low difficulty",
     "difficultyMedium": "medium difficulty",
@@ -225,17 +243,17 @@
     "backToDtm": "Back to DTM Online",
     "backToLesson": "Back to lesson",
     "solutionQuotaFree": "{remaining}/{limit} free solutions left today",
-    "solutionQuotaUnlimited": "Unlimited solutions (Premium)",
+    "solutionQuotaUnlimited": "Unlimited solutions (subscription)",
     "unlockSolution": "Unlock solution",
     "unlocking": "Unlocking...",
-    "videoLockedPremium": "Video solution — Premium only",
+    "videoLockedPremium": "Video solution — with a subscription",
     "unlockError": "Failed to unlock the solution",
     "quotaExceededTitle": "Today's free solutions are used up",
     "quotaExceededBody": "To see the full solution for \"{question}\", today's free limit is used up.",
     "quotaExceededUsedToday": "You've unlocked {usedToday} solutions today",
-    "quotaExceededPrice": "Premium — about 970 UZS/day, unlimited solutions",
+    "quotaExceededPrice": "With a subscription — unlimited solutions",
     "quotaExceededTomorrow": "Or get {limit} more free solutions tomorrow",
-    "quotaExceededCta": "Get Premium",
+    "quotaExceededCta": "Subscribe",
     "quotaExceededClose": "Close",
     "distractorWhyLabel": "Why this answer is wrong:",
     "wasHelpful": "Was this helpful?",
@@ -363,9 +381,9 @@
     "startLearningButton": "Start learning",
     "buyButton": "Buy — {price} so'm",
     "accessRequiredNote": "This course requires {access}.",
-    "accessPremium": "the Premium plan",
+    "accessPremium": "a subscription",
     "accessTeacher": "the Teacher plan",
-    "accessPremiumTeacher": "the Premium or Teacher plan",
+    "accessPremiumTeacher": "a subscription",
     "pricingLink": "Pricing page",
     "statsLessons": "{count} lessons",
     "statsHours": "~{count} hours",
@@ -581,9 +599,9 @@
   "exam": {
     "locked": {
       "title": "Test locked",
-      "needPremium": "The “{title}” test requires the Premium plan.",
+      "needPremium": "The “{title}” test requires a subscription.",
       "needTeacher": "The “{title}” test requires the Teacher plan.",
-      "needPremiumTeacher": "The “{title}” test requires the Premium or Teacher plan.",
+      "needPremiumTeacher": "The “{title}” test requires a subscription.",
       "needSubscription": "Access to “{title}” requires a subscription covering this category and subject.",
       "needPaid": "The “{title}” test requires a payment of {price} UZS.",
       "needGeneric": "The “{title}” test requires a plan.",
@@ -701,10 +719,10 @@
       "viewResult": "View result",
       "retake": "Retake",
       "new": "New",
-      "lockPremium": "Premium",
+      "lockPremium": "With subscription",
       "lockTeacher": "Teacher plan",
       "lockSubscription": "Subscription",
-      "lockPrice": "{price} UZS"
+      "lockPrice": "With subscription or {price} UZS separately"
     },
     "banner": {
       "pill": "Attestation season",
@@ -978,10 +996,6 @@
     "price": "{amount} UZS",
     "buy": "Buy",
     "activeSubscriptions": "Your active subscriptions",
-    "legacyPremium": "Premium",
-    "legacyTeacher": "Teacher",
-    "subscription": "Subscription",
-    "expires": "until {date}",
     "empty": "Subscriptions coming soon",
     "emptyBody": "Subscriptions will appear here when they go on sale.",
     "noOffers": "Duration options for this product will be available soon.",
@@ -989,5 +1003,11 @@
     "chooseGoal": "Choose your goal",
     "viewSubscription": "View subscription",
     "back": "Return to the previous page"
+  },
+  "referral": {
+    "subtitle": "Invite friends and get free days of access (attestation not included)!",
+    "rewardGranted": "You got {days, plural, one {# day} other {# days}} of free access (attestation not included)!",
+    "rewardOffer": "Invite {friends, plural, one {# friend} other {# friends}} and <strong>get {days, plural, one {# day} other {# days}} free</strong> (attestation not included)!",
+    "stepReward": "{friends, plural, one {# friend} other {# friends}} = {days, plural, one {# day} other {# days}} of free access (attestation not included)"
   }
 }

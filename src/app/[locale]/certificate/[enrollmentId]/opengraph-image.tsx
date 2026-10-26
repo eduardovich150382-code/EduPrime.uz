@@ -1,4 +1,5 @@
 import { ImageResponse } from 'next/og';
+import { formatTashkentDate } from '@/lib/date';
 
 export const runtime = 'edge';
 export const alt = 'EduPrime.uz — Sertifikat';
@@ -26,7 +27,7 @@ export default async function Image({ params }: { params: Promise<{ enrollmentId
   const courseTitle = certificate?.course?.titleUz || 'Kurs';
   const teacherName = certificate?.course?.teacherName || '';
   const completedDate = certificate?.completedAt
-    ? new Date(certificate.completedAt).toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long', year: 'numeric' })
+    ? formatTashkentDate(certificate.completedAt, 'uz', true)
     : '';
 
   return new ImageResponse(

@@ -43,7 +43,25 @@
     "productStats": "Активные подписки по продуктам",
     "legacyPremium": "Premium",
     "legacyTeacher": "Учитель",
-    "subscription": "Подписка"
+    "subscription": "Подписка",
+    "legacyPlan": "Старый тариф",
+    "daysShort": "{count, plural, one {# день} few {# дня} other {# дней}}",
+    "daysLeftLong": "{count, plural, one {остался # день} few {осталось # дня} other {осталось # дней}}",
+    "endsToday": "Заканчивается сегодня",
+    "expiredLabel": "Истекла",
+    "retake": "Оформить снова",
+    "allSubjects": "Все предметы",
+    "untilDays": "до {date} ({days})",
+    "badgeMore": "+{count}",
+    "allSubscriptions": "Все подписки",
+    "subscribeShort": "Подписка",
+    "cta": {
+      "title": "Оформите подписку",
+      "subtitle": "Под вашу цель и предмет",
+      "feature1": "Безлимитный доступ к тестам выбранного направления",
+      "feature2": "Подробные решения и видеоразборы",
+      "feature3": "AI-помощник и персональные рекомендации"
+    }
   },
   "common": {
     "siteName": "EduPrime",
@@ -64,7 +82,7 @@
     "previous": "Назад",
     "submit": "Отправить",
     "free": "Бесплатно",
-    "premium": "Премиум",
+    "premium": "Подписка",
     "teacher": "Учитель"
   },
   "landing": {
@@ -208,9 +226,9 @@
     "quotaExceededTitle": "Бесплатные тесты на сегодня закончились",
     "quotaExceededBody": "Чтобы начать тест с конфигурацией «{config}», сегодняшний бесплатный лимит исчерпан.",
     "quotaExceededUsedToday": "Сегодня вы создали {usedToday} бесплатных тестов",
-    "quotaExceededPrice": "Premium — от ≈970 сум в день, тесты без ограничений",
+    "quotaExceededPrice": "С подпиской — тесты без ограничений",
     "quotaExceededSecondary": "Ещё {limit} бесплатных завтра",
-    "quotaExceededCta": "Получить Premium",
+    "quotaExceededCta": "Оформить подписку",
     "questionCount": "{count} вопросов",
     "difficultyLow": "низкая сложность",
     "difficultyMedium": "средняя сложность",
@@ -225,17 +243,17 @@
     "backToDtm": "Вернуться в DTM Online",
     "backToLesson": "Вернуться к уроку",
     "solutionQuotaFree": "Сегодня осталось {remaining}/{limit} бесплатных решений",
-    "solutionQuotaUnlimited": "Решения без ограничений (Premium)",
+    "solutionQuotaUnlimited": "Решения без ограничений (подписка)",
     "unlockSolution": "Открыть решение",
     "unlocking": "Открывается...",
-    "videoLockedPremium": "Видеорешение — только для Premium",
+    "videoLockedPremium": "Видеорешение — по подписке",
     "unlockError": "Ошибка при открытии решения",
     "quotaExceededTitle": "Бесплатные решения на сегодня закончились",
     "quotaExceededBody": "Чтобы увидеть полное решение вопроса «{question}», сегодняшний бесплатный лимит исчерпан.",
     "quotaExceededUsedToday": "Сегодня вы открыли {usedToday} решений",
-    "quotaExceededPrice": "Premium — от ≈970 сум в день, решения без ограничений",
+    "quotaExceededPrice": "С подпиской — решения без ограничений",
     "quotaExceededTomorrow": "Или получите ещё {limit} бесплатных решений завтра",
-    "quotaExceededCta": "Получить Premium",
+    "quotaExceededCta": "Оформить подписку",
     "quotaExceededClose": "Закрыть",
     "distractorWhyLabel": "Почему этот ответ неверный:",
     "wasHelpful": "Это было полезно?",
@@ -363,9 +381,9 @@
     "startLearningButton": "Начать обучение",
     "buyButton": "Купить — {price} сум",
     "accessRequiredNote": "Для доступа к этому курсу нужен {access}.",
-    "accessPremium": "тариф Premium",
+    "accessPremium": "доступ по подписке",
     "accessTeacher": "тариф Устоз",
-    "accessPremiumTeacher": "тариф Premium или Устоз",
+    "accessPremiumTeacher": "доступ по подписке",
     "pricingLink": "Страница тарифов",
     "statsLessons": "{count} уроков",
     "statsHours": "~{count} ч.",
@@ -581,9 +599,9 @@
   "exam": {
     "locked": {
       "title": "Тест закрыт",
-      "needPremium": "Для доступа к тесту «{title}» нужен тариф Premium.",
+      "needPremium": "Для доступа к тесту «{title}» нужна подписка.",
       "needTeacher": "Для доступа к тесту «{title}» нужен тариф Ustoz.",
-      "needPremiumTeacher": "Для доступа к тесту «{title}» нужен тариф Premium или Ustoz.",
+      "needPremiumTeacher": "Для доступа к тесту «{title}» нужна подписка.",
       "needSubscription": "Для доступа к тесту «{title}» нужна подписка на эту категорию и предмет.",
       "needPaid": "Для доступа к тесту «{title}» нужно оплатить {price} сум.",
       "needGeneric": "Для доступа к тесту «{title}» нужен тариф.",
@@ -701,10 +719,10 @@
       "viewResult": "Смотреть результат",
       "retake": "Решить заново",
       "new": "Новый",
-      "lockPremium": "Premium",
+      "lockPremium": "По подписке",
       "lockTeacher": "Тариф Ustoz",
       "lockSubscription": "По подписке",
-      "lockPrice": "{price} сум"
+      "lockPrice": "По подписке или отдельно — {price} сум"
     },
     "banner": {
       "pill": "Сезон аттестации",
@@ -978,10 +996,6 @@
     "price": "{amount} сум",
     "buy": "Купить",
     "activeSubscriptions": "Ваши активные подписки",
-    "legacyPremium": "Premium",
-    "legacyTeacher": "Для учителя",
-    "subscription": "Подписка",
-    "expires": "до {date}",
     "empty": "Подписки скоро появятся",
     "emptyBody": "Здесь появятся подписки, когда они поступят в продажу.",
     "noOffers": "Варианты срока для этого продукта скоро появятся.",
@@ -989,5 +1003,11 @@
     "chooseGoal": "Выбор цели",
     "viewSubscription": "Посмотреть подписку",
     "back": "Вернуться на предыдущую страницу"
+  },
+  "referral": {
+    "subtitle": "Приглашайте друзей и получайте дни бесплатного доступа (кроме аттестации)!",
+    "rewardGranted": "Вы получили {days, plural, one {# день} few {# дня} other {# дней}} бесплатного доступа (кроме аттестации)!",
+    "rewardOffer": "Пригласите {friends, plural, one {# друга} other {# друзей}} и <strong>пользуйтесь бесплатно {days, plural, one {# день} few {# дня} other {# дней}}</strong> (кроме аттестации)!",
+    "stepReward": "{friends, plural, one {# друг} few {# друга} other {# друзей}} = {days, plural, one {# день} few {# дня} other {# дней}} бесплатного доступа (кроме аттестации)"
   }
 }

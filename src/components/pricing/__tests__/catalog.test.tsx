@@ -4,7 +4,9 @@ import { NextIntlClientProvider } from 'next-intl';
 import { describe, expect, it } from 'vitest';
 import { PricingCatalog } from '../PricingCatalog';
 import PricingSection from '@/components/landing/PricingSection';
-import type { PricingProduct, PricingSubscription } from '@/lib/pricing';
+import type { PricingProduct } from '@/lib/pricing';
+import { subscriptionView, type SubscriptionView } from '@/lib/subscription-display';
+import { subscriptionFixture as sub } from '@/lib/__tests__/fixtures/subscriptions';
 import uz from '@/messages/uz.json';
 import ru from '@/messages/ru.json';
 import en from '@/messages/en.json';
@@ -16,7 +18,7 @@ const product: PricingProduct = {
     { id: 'o2', label: 'Mavsum', price: 99000, durationMonths: null, untilDate: '2026-11-24T19:30:00Z', buyHref: 'https://t.me/EduPrimeuzbot?start=buy_p_1234567890_abcdef1235' },
   ],
 };
-function render(products = [product], locale = 'uz', subscriptions: PricingSubscription[] = [], goal?: string) {
+function render(products = [product], locale = 'uz', subscriptions: SubscriptionView[] = [], goal?: string) {
   return renderToStaticMarkup(<NextIntlClientProvider locale={locale} messages={locale === 'ru' ? ru : locale === 'en' ? en : uz} timeZone="Asia/Tashkent" now={new Date('2026-10-24')}>
     <PricingCatalog products={products} subscriptions={subscriptions} locale={locale} goal={goal} />
   </NextIntlClientProvider>);
@@ -38,11 +40,18 @@ describe('pricing ko‘rinishi', () => {
     expect(render([product, { ...product, id: 'all', kind: 'BUNDLE', goal: null, name: 'Hammasi', subjectRule: 'NONE' }])).toContain('id="bundle-all"');
     expect(render([])).toContain('Obuna tez orada');
   });
-  it('yangi obuna mahsulot/fan bilan, eski obunalar eski nomlari bilan chiqadi', () => {
-    const subscriptions = ['CATEGORY', 'BUNDLE', 'PREMIUM', 'TEACHER_PLAN'].map((plan) => ({ id: plan, plan, name: plan === 'BUNDLE' ? 'Hammasi' : 'Attestatsiya', subjects: plan === 'CATEGORY' ? ['Fizika'] : [], endDate: '2026-11-24T19:30:00Z' }));
+  it('faol obunalar kartochkada; eski tarif "Eski tarif", Premium/Ustoz emas', () => {
+    const endDate = new Date('2026-11-24T19:30:00Z');
+    const subscriptions = [
+      sub({ id: 'cat', endDate }),
+      sub({ id: 'all', plan: 'BUNDLE', goal: null, product: { nameUz: 'Hammasi', nameRu: 'Всё', nameEn: 'All' }, subjects: [], endDate }),
+      sub({ id: 'old', plan: 'PREMIUM', productId: null, product: null, subjects: [], endDate }),
+      sub({ id: 'teacher', plan: 'TEACHER_PLAN', productId: null, product: null, subjects: [], endDate }),
+    ].map(subscriptionView);
     const html = render([product], 'uz', subscriptions);
-    expect(html).toContain('Attestatsiya · Fizika — 25-noyabr, 2026gacha');
-    expect(html).toContain('Hammasi —'); expect(html).toContain('Premium —'); expect(html).toContain('Ustoz —');
+    expect(html).toContain('Faol obunalaringiz'); expect(html).toContain('Attestatsiya'); expect(html).toContain('Fizika');
+    expect(html).toContain('25-noyabrgacha'); expect(html).toContain('Hammasi'); expect(html).toContain('Barcha fanlar');
+    expect(html.match(/Eski tarif/g)).toHaveLength(2); expect(html).not.toContain('Premium'); expect(html).not.toContain('Ustoz');
   });
   it.each(['uz', 'ru', 'en'])('%s matnlari to‘liq', (locale) => { expect(render([product], locale)).not.toContain('pricing.'); });
   it('landing faqat matn va locale saqlaydigan havola ko‘rsatadi', () => {
