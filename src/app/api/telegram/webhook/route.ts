@@ -7,6 +7,9 @@ import { startIntentCheckout } from '@/lib/telegram-intent-checkout';
 import { parseIntentStart } from '@/lib/checkout-intent';
 import { processLegacySubscription } from '@/lib/subscription-payments';
 import uzMessages from '@/messages/uz.json';
+import { handleMenuAction, menuActionFor, sendWelcome, setupBotMenu } from '@/lib/telegram-bot-menu';
+import { parseReferralStart } from '@/lib/telegram-bot-links';
+import { linkReferral } from '@/lib/referral-code';
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || '';
@@ -130,8 +133,36 @@ async function checkChannelSubscription(userId: number): Promise<boolean> {
 
 // Saytdan kelgan checkout niyati kanal tekshiruvida yo'qolmasin — obuna
 // tasdiqlangach to'lov ma'lumoti fan/variant so'ralmasdan davom etadi.
+// Taklif havolasi (ref_) ham shunday — aks holda yangi do'st kanalga obuna
+// bo'lguncha taklif qilgan odamga bog'lanmay qolardi.
+function isResumableStart(startParam: string): boolean {
+  return Boolean(parseIntentStart(startParam) || parseReferralStart(startParam));
+}
+
 function subscriptionCheckData(startParam?: string): string {
-  return startParam && parseIntentStart(startParam) ? `check_subscription:${startParam}` : 'check_subscription';
+  return startParam && isResumableStart(startParam) ? `check_subscription:${startParam}` : 'check_subscription';
+}
+
+function adminCommandsText(userId: number): string {
+  return isAdmin(userId) ? '\n\n🔐 <b>Admin buyruqlar:</b>\n/admin — Admin panel\n/broadcast [xabar] — Barchaga xabar\n/users — Foydalanuvchilar soni' : '';
+}
+
+// Do'st havolasi bilan kelgan foydalanuvchi: faqat bazada hali YO'Q bo'lsa
+// yaratib, taklif qilganga bog'laymiz — mavjud foydalanuvchi bog'lanmaydi.
+async function registerBotReferral(userId: number, username: string, firstName: string, code: string): Promise<boolean> {
+  try {
+    const telegramId = userId.toString();
+    const existing = await db.user.findUnique({ where: { telegramId }, select: { id: true } });
+    if (existing) return false;
+    const created = await db.user.create({
+      data: { telegramId, telegramUsername: username || undefined, name: firstName || username || 'Telegram User', role: 'USER' },
+      select: { id: true },
+    });
+    return await linkReferral(created.id, code);
+  } catch (error) {
+    logger.error('Bot referral error:', { error });
+    return false;
+  }
 }
 
 // Send subscription prompt to user
@@ -319,30 +350,10 @@ async function handleStart(chatId: number, userId: number, username: string, fir
     return;
   }
 
-  // Default /start — show welcome with website button
-  const adminText = isAdmin(userId) ? '\n\n🔐 <b>Admin buyruqlar:</b>\n/admin — Admin panel\n/broadcast — Barchaga xabar\n/users — Foydalanuvchilar soni' : '';
-
-  await sendMessage(chatId,
-    `🎓 <b>EduPrime.uz</b> — Test Platformasi\n\n` +
-    `Salom, ${firstName}! Xush kelibsiz! 👋\n\n` +
-    `📚 Bu bot orqali:\n` +
-    `• Saytga kirish\n` +
-    `• Obuna sotib olish\n` +
-    `• Yangiliklar olish\n\n` +
-    `<b>Buyruqlar:</b>\n` +
-    `/login — Saytga kirish\n` +
-    `${uzMessages.checkout.subscriptionCommand}\n` +
-    `/help — Yordam` +
-    adminText,
-    {
-      reply_markup: {
-        inline_keyboard: [
-          [{ text: '🌐 Saytga kirish', url: APP_URL }],
-          [{ text: '📚 Testlar', url: `${APP_URL}/tests` }, { text: '💰 Tariflar', url: `${APP_URL}/pricing` }],
-        ]
-      }
-    }
-  );
+  // Default /start — salomlashish, Mini App tugmasi va pastki menyu.
+  const referralCode = parseReferralStart(param);
+  const referred = referralCode ? await registerBotReferral(userId, username, firstName, referralCode) : false;
+  await sendWelcome(chatId, { firstName, adminText: adminCommandsText(userId), referred }, { send: sendMessage });
 }
 
 // Handle /login
@@ -370,32 +381,6 @@ async function handleLogin(chatId: number, userId: number, username: string, fir
         inline_keyboard: [
           [{ text: '✅ Saytga kirish', url: authUrl }],
           [{ text: '📚 Testlar', url: `${APP_URL}/tests` }, { text: '📊 Dashboard', url: `${APP_URL}/dashboard` }],
-        ]
-      }
-    }
-  );
-}
-
-// Handle /help
-async function handleHelp(chatId: number, userId: number) {
-  const adminText = isAdmin(userId)
-    ? '\n\n🔐 <b>Admin buyruqlar:</b>\n/admin — Admin panel\n/broadcast [xabar] — Barchaga xabar\n/users — Foydalanuvchilar soni'
-    : '';
-
-  await sendMessage(chatId,
-    `🤖 <b>EduPrime Bot — Yordam</b>\n\n` +
-    `<b>Asosiy buyruqlar:</b>\n` +
-    `/start — Botni boshlash\n` +
-    `/login — Saytga kirish havolasi\n` +
-    `${uzMessages.checkout.subscriptionCommand}\n` +
-    `/stats — Statistikani ko'rish\n` +
-    `/help — Shu yordam` +
-    adminText +
-    `\n\n❓ Savollar uchun: @EduPrimeuz_Admin`,
-    {
-      reply_markup: {
-        inline_keyboard: [
-          [{ text: '🌐 Saytga kirish', url: APP_URL }],
         ]
       }
     }
@@ -534,33 +519,11 @@ async function handleCallbackQuery(callbackQuery: any) {
       await sendMessage(chatId,
         `✅ <b>Obuna tasdiqlandi!</b>\n\nRahmat! Endi botdan to'liq foydalanishingiz mumkin. 🎉`
       );
-      if (parseIntentStart(resumeParam)) {
+      if (isResumableStart(resumeParam)) {
         await handleStart(chatId, userId, username, firstName, resumeParam);
         return;
       }
-      // Send start/welcome message
-      const adminText = isAdmin(userId) ? '\n\n🔐 <b>Admin buyruqlar:</b>\n/admin — Admin panel\n/broadcast — Barchaga xabar\n/users — Foydalanuvchilar soni' : '';
-      await sendMessage(chatId,
-        `🎓 <b>EduPrime.uz</b> — Test Platformasi\n\n` +
-        `Salom, ${firstName}! Xush kelibsiz! 👋\n\n` +
-        `📚 Bu bot orqali:\n` +
-        `• Saytga kirish\n` +
-        `• Obuna sotib olish\n` +
-        `• Yangiliklar olish\n\n` +
-        `<b>Buyruqlar:</b>\n` +
-        `/login — Saytga kirish\n` +
-        `${uzMessages.checkout.subscriptionCommand}\n` +
-        `/help — Yordam` +
-        adminText,
-        {
-          reply_markup: {
-            inline_keyboard: [
-              [{ text: '🌐 Saytga kirish', url: APP_URL }],
-              [{ text: '📚 Testlar', url: `${APP_URL}/tests` }, { text: '💰 Tariflar', url: `${APP_URL}/pricing` }],
-            ]
-          }
-        }
-      );
+      await sendWelcome(chatId, { firstName, adminText: adminCommandsText(userId) }, { send: sendMessage });
     } else {
       await sendMessage(chatId,
         `❌ <b>Obuna topilmadi!</b>\n\n` +
@@ -956,17 +919,6 @@ export async function POST(request: NextRequest) {
         await handleLogin(chatId, userId, username, firstName);
       } else if (text === '/premium' || text === '/ustoz' || text === '/obuna') {
         await showCheckoutProducts(chatId, checkoutTransport());
-      } else if (text === '/help') {
-        await handleHelp(chatId, userId);
-      } else if (text === '/stats') {
-        await sendMessage(chatId, `📊 <b>Statistikangiz</b>\n\nSaytda ko'rish uchun:`, {
-          reply_markup: {
-            inline_keyboard: [
-              [{ text: '📊 Dashboard', url: `${APP_URL}/dashboard` }],
-              [{ text: '🏆 Reyting', url: `${APP_URL}/rating` }],
-            ]
-          }
-        });
       } else if (text === '/admin') {
         await handleAdmin(chatId, userId);
       } else if (text === '/users') {
@@ -974,6 +926,13 @@ export async function POST(request: NextRequest) {
       } else if (text.startsWith('/broadcast ')) {
         const broadcastMsg = text.replace('/broadcast ', '').trim();
         await handleBroadcast(chatId, userId, broadcastMsg);
+      } else {
+        // Pastki menyu tugmalari va /natijalar, /reyting, /help kabi buyruqlar.
+        const action = menuActionFor(text);
+        if (action) {
+          await handleMenuAction(action, { chatId, telegramId: userId, username, firstName, adminText: adminCommandsText(userId) },
+            { send: sendMessage }, () => showCheckoutProducts(chatId, checkoutTransport()));
+        }
       }
     }
 
@@ -1031,10 +990,13 @@ export async function GET() {
     `https://api.telegram.org/bot${BOT_TOKEN}/setWebhook?url=${encodeURIComponent(webhookUrl)}${secretParam}`
   );
   const data = await response.json();
+  // Menyu tugmasi ("Platformani ochish"), buyruqlar va bot tavsifi ham shu yerda yangilanadi.
+  const menu = await setupBotMenu(BOT_TOKEN, APP_URL);
 
   return NextResponse.json({
     message: 'Webhook setup',
     webhookUrl,
     telegramResponse: data,
+    menu,
   });
 }

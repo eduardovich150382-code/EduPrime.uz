@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { clearSubscriptionStatusCache, loadSubscriptionStatus } from '@/components/ui/useSubscriptionStatus';
 import { BUY_BUTTON_STYLES, type BuyButtonVariant } from './buy-button-styles';
+import { isTelegramMiniApp, openExternalInMiniApp } from '@/lib/telegram-webapp-client';
 
 const POLL_MS = 20_000;
 const POLL_WINDOW_MS = 15 * 60_000;
@@ -27,7 +28,8 @@ export function BuyOfferButton({ userId, productId, offerId, needed, choices, kn
   // aks holda brauzer uni popup deb bloklaydi. Telefonda yangi oyna Telegram
   // ilovasiga o'tishni buzadi — shu tabning o'zi havolaga o'tadi.
   function start(subjectIds: string[]) {
-    const popup = window.matchMedia('(pointer: coarse)').matches ? null : window.open('', '_blank');
+    // Telegram Mini App ichida bo'sh oyna ochilmaydi — bot chati Telegram'ning o'zida ochiladi.
+    const popup = isTelegramMiniApp() || window.matchMedia('(pointer: coarse)').matches ? null : window.open('', '_blank');
     setStatus('loading');
     fetch('/api/checkout/intent', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -40,7 +42,7 @@ export function BuyOfferButton({ userId, productId, offerId, needed, choices, kn
         throw new Error(code === 'EXPIRED_OFFER' ? 'checkoutExpired' : 'checkoutError');
       }
       setStatus('opened'); setPicking(false);
-      if (popup && !popup.closed) { popup.opener = null; popup.location.href = url; } else window.location.href = url;
+      if (popup && !popup.closed) { popup.opener = null; popup.location.href = url; } else if (!openExternalInMiniApp(url)) window.location.href = url;
     }).catch((error: unknown) => {
       popup?.close();
       setErrorKey(error instanceof Error && error.message === 'checkoutExpired' ? 'checkoutExpired' : 'checkoutError');

@@ -2,6 +2,7 @@ import NextAuth from 'next-auth';
 import Google from 'next-auth/providers/google';
 import Credentials from 'next-auth/providers/credentials';
 import { db } from './db';
+import { verifyWebAppInitData, webAppDisplayName } from './telegram-webapp-auth';
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
@@ -81,6 +82,37 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
       },
     }),
+    // Telegram Mini App ichida: Telegram imzolagan initData bilan parolsiz,
+    // bot havolasisiz kirish. Imzo bot tokeni bilan serverda tekshiriladi.
+    Credentials({
+      id: 'telegram-webapp',
+      name: 'Telegram Mini App',
+      credentials: {
+        initData: { label: 'initData', type: 'text' },
+      },
+      async authorize(credentials) {
+        const initData = typeof credentials?.initData === 'string' ? credentials.initData : '';
+        const verified = verifyWebAppInitData(initData, process.env.TELEGRAM_BOT_TOKEN || '');
+        if (!verified) return null;
+
+        const telegramId = String(verified.user.id);
+        const telegramUsername = verified.user.username || null;
+        try {
+          let user = await db.user.findUnique({ where: { telegramId } });
+          if (!user) {
+            user = await db.user.create({
+              data: { telegramId, telegramUsername, name: webAppDisplayName(verified.user), role: 'USER' },
+            });
+          } else if (telegramUsername && user.telegramUsername !== telegramUsername) {
+            user = await db.user.update({ where: { id: user.id }, data: { telegramUsername } });
+          }
+          return { id: user.id, name: user.name, email: user.email, image: user.image };
+        } catch (error) {
+          console.error('[Auth] Telegram Mini App authorize error:', error);
+          return null;
+        }
+      },
+    }),
   ],
   callbacks: {
     async signIn() {
@@ -113,7 +145,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           token.googleId = account.providerAccountId;
           // Mark that we need to sync with DB
           token.needsDbSync = true;
-        } else if (account.provider === 'telegram') {
+        } else if (account.provider === 'telegram' || account.provider === 'telegram-webapp') {
           // Telegram user already created in authorize()
           token.id = user.id;
           token.name = user.name;
