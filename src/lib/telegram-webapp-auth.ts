@@ -6,11 +6,10 @@ import { createHmac, timingSafeEqual } from 'crypto';
 // shu Telegram akkaunti egasi. Tekshiruv faqat serverda (token maxfiy).
 // Algoritm: https://core.telegram.org/bots/webapps#validating-data-received-via-the-mini-app
 
-// initData'ni o'g'irlab keyinroq qayta ishlatish (replay) oynasi. Sessiya
-// 24 soat yashaydi va Mini App ochiq turganda sessiya tugasa jimgina qayta
-// kiritiladi — auth_date ochilish vaqti, shuning uchun bundan qisqa bo'lsa
-// uzoq ochiq turgan oynada qayta kirish yiqiladi.
-export const INIT_DATA_MAX_AGE_SEC = 24 * 60 * 60;
+// initData'ni o'g'irlab keyinroq qayta ishlatish (replay) oynasi. Telegram
+// Mini App har ochilganda yangi initData beradi, kirgach esa 24 soatlik
+// sessiya ishlaydi — shuning uchun qisqa oyna foydalanuvchiga xalal bermaydi.
+export const INIT_DATA_MAX_AGE_SEC = 60 * 60;
 
 // Telegram'ning soati biznikidan biroz oldinda bo'lishi mumkin — kelajakdagi
 // auth_date'ga shuncha bag'rikenglik.

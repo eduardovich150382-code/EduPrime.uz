@@ -144,7 +144,7 @@ function subscriptionCheckData(startParam?: string): string {
 }
 
 function adminCommandsText(userId: number): string {
-  return isAdmin(userId) ? '\n\n🔐 <b>Admin buyruqlar:</b>\n/admin — Admin panel\n/broadcast [xabar] — Barchaga xabar\n/users — Foydalanuvchilar soni' : '';
+  return isAdmin(userId) ? '\n\n🔐 <b>Admin buyruqlar:</b>\n/admin — Admin panel\n/broadcast [xabar] — Barchaga xabar\n/users — Foydalanuvchilar soni\n/setupmenu — Bot menyusini yangilash' : '';
 }
 
 // Do'st havolasi bilan kelgan foydalanuvchi: faqat bazada hali YO'Q bo'lsa
@@ -901,7 +901,7 @@ export async function POST(request: NextRequest) {
       const text = msg.text;
 
       // Admin commands are never blocked
-      const isAdminCommand = text === '/admin' || text === '/users' || text.startsWith('/broadcast ');
+      const isAdminCommand = text === '/admin' || text === '/users' || text === '/setupmenu' || text.startsWith('/broadcast ');
 
       // Check subscription for non-admin users and non-admin commands
       if (!isAdminCommand && !isAdmin(userId)) {
@@ -923,6 +923,16 @@ export async function POST(request: NextRequest) {
         await handleAdmin(chatId, userId);
       } else if (text === '/users') {
         await handleUsers(chatId, userId);
+      } else if (text === '/setupmenu') {
+        // Menyu tugmasi ("Platformani ochish"), buyruqlar va bot tavsifi —
+        // ochiq GET'da emas, faqat admin buyrug'i bilan yangilanadi.
+        if (!isAdmin(userId)) {
+          await sendMessage(chatId, '❌ Bu buyruq faqat adminlar uchun.');
+        } else {
+          const result = await setupBotMenu(BOT_TOKEN, APP_URL);
+          const ok = Object.values(result).every((r) => typeof r === 'object' && r !== null && 'ok' in r && r.ok === true);
+          await sendMessage(chatId, ok ? '✅ Bot menyusi, buyruqlar va tavsif yangilandi.' : '⚠️ Ba\'zi sozlamalar yangilanmadi — loglarni tekshiring.');
+        }
       } else if (text.startsWith('/broadcast ')) {
         const broadcastMsg = text.replace('/broadcast ', '').trim();
         await handleBroadcast(chatId, userId, broadcastMsg);
@@ -990,13 +1000,10 @@ export async function GET() {
     `https://api.telegram.org/bot${BOT_TOKEN}/setWebhook?url=${encodeURIComponent(webhookUrl)}${secretParam}`
   );
   const data = await response.json();
-  // Menyu tugmasi ("Platformani ochish"), buyruqlar va bot tavsifi ham shu yerda yangilanadi.
-  const menu = await setupBotMenu(BOT_TOKEN, APP_URL);
 
   return NextResponse.json({
     message: 'Webhook setup',
     webhookUrl,
     telegramResponse: data,
-    menu,
   });
 }

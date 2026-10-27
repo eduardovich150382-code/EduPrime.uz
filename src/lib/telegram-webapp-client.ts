@@ -27,7 +27,7 @@ export interface TelegramWebApp {
 }
 
 declare global {
-  interface Window { Telegram?: { WebApp?: TelegramWebApp } }
+  interface Window { Telegram?: { WebApp?: TelegramWebApp }; TelegramWebviewProxy?: unknown }
 }
 
 const SDK_URL = 'https://telegram.org/js/telegram-web-app.js';
@@ -59,8 +59,22 @@ export function getLaunchInitData(): string | null {
   return launchInitData;
 }
 
+// Faqat URL'dagi #tgWebAppData ga ishonib bo'lmaydi: hujumchi o'z initData'sini
+// havolaga qo'yib, oddiy brauzerdagi odamni o'z akkauntiga kiritib qo'yishi
+// mumkin edi (keyin u odamning to'lovi hujumchiga yozilardi). Haqiqiy
+// Telegram konteyneri: mobil/desktop ilovalar TelegramWebviewProxy qo'yadi,
+// Telegram Web esa saytni iframe ichida ochadi (SDK ham shunday aniqlaydi).
+function insideTelegramContainer(): boolean {
+  if (window.TelegramWebviewProxy !== undefined) return true;
+  try {
+    return window.parent !== window;
+  } catch {
+    return true;
+  }
+}
+
 export function isTelegramMiniApp(): boolean {
-  return getLaunchInitData() !== null;
+  return typeof window !== 'undefined' && insideTelegramContainer() && getLaunchInitData() !== null;
 }
 
 let sdkPromise: Promise<TelegramWebApp | null> | null = null;
@@ -106,7 +120,7 @@ let sessionPromise: Promise<MiniAppSessionResult> | null = null;
 export function ensureMiniAppSession(): Promise<MiniAppSessionResult> {
   if (sessionPromise) return sessionPromise;
   sessionPromise = (async (): Promise<MiniAppSessionResult> => {
-    const initData = getLaunchInitData();
+    const initData = isTelegramMiniApp() ? getLaunchInitData() : null;
     if (!initData) return 'not-mini-app';
     const telegramId = initDataUserId(initData);
     try {
@@ -115,6 +129,9 @@ export function ensureMiniAppSession(): Promise<MiniAppSessionResult> {
       const user = typeof session === 'object' && session !== null && 'user' in session ? session.user : null;
       const currentTelegramId = typeof user === 'object' && user !== null && 'telegramId' in user ? user.telegramId : null;
       if (user && telegramId && String(currentTelegramId) === telegramId) return 'already';
+      // Boshqa akkaunt sessiyasini jimgina almashtirmaymiz — foydalanuvchi
+      // o'zi chiqib, qayta kirsin. Faqat sessiya yo'q bo'lsa avtomatik kiramiz.
+      if (user) return 'already';
     } catch {
       // Sessiyani bilib bo'lmadi — baribir kirishga urinamiz.
     }

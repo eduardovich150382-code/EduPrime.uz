@@ -59,6 +59,13 @@ export function fill(template: string, values: Record<string, string | number>):
   return template.replace(/\{(\w+)\}/g, (match, key: string) => (key in values ? escapeHtml(String(values[key])) : match));
 }
 
+// Belgi bo'yicha (UTF-16 birligi emas) qisqartirish — emoji yarmidan kesilsa
+// Telegram butun xabarni rad etadi.
+function truncate(value: string, max: number): string {
+  const chars = Array.from(value);
+  return chars.length > max ? `${chars.slice(0, max - 1).join('')}…` : value;
+}
+
 function webApp(text: string, path: string): InlineButton {
   return { text, web_app: { url: miniAppUrl(APP_URL, path) } };
 }
@@ -164,7 +171,7 @@ async function sendResults(chatId: number, telegramId: string, transport: BotTra
 
   const lines = results.map((r) => fill(m.resultsLine, {
     icon: resultIcon(r.percentage),
-    title: (r.test?.titleUz ?? r.session?.title ?? m.practiceTitle).slice(0, 60),
+    title: truncate(r.test?.titleUz ?? r.session?.title ?? m.practiceTitle, 60),
     score: r.score,
     max: r.maxScore,
     percent: Math.round(r.percentage),
@@ -196,7 +203,7 @@ async function sendRating(chatId: number, telegramId: string, transport: BotTran
   const names = new Map(users.map((u) => [u.id, u.name]));
   const lines = top.map((row, index) => fill(m.ratingLine, {
     medal: MEDALS[index],
-    name: (names.get(row.userId) || m.anonymous).slice(0, 30),
+    name: truncate(names.get(row.userId) || m.anonymous, 30),
     score: row._sum.score ?? 0,
   }));
 
