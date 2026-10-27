@@ -136,3 +136,13 @@ describe('handleMenuAction', () => {
     expect(onSubscribe).toHaveBeenCalledOnce();
   });
 });
+
+describe('setupReport', () => {
+  it('xatoni Telegram sababi bilan ko\'rsatadi', async () => {
+    const { setupReport } = await import('../telegram-bot-menu');
+    const text = setupReport({ menuButton: { ok: true }, commands: { ok: false, description: 'Bad Request: <x>' } }, 'https://eduprime.uz');
+    expect(text).toContain('✅ menuButton');
+    expect(text).toContain('❌ commands: Bad Request: &lt;x&gt;');
+    expect(text).toContain('https://eduprime.uz/tg?to=%2Fattestation');
+  });
+});

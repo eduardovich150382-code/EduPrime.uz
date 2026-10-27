@@ -1159,6 +1159,11 @@
     "failedTitle": "Automatic sign-in failed",
     "failedText": "Check your internet connection and try again, or continue as a guest.",
     "retry": "Try again",
-    "continue": "Continue"
+    "continue": "Continue",
+    "desktopTitle": "On a computer it's better in the browser",
+    "desktopText": "The platform opens in your browser on the big screen — already signed in.",
+    "openInBrowser": "🌐 Open in browser",
+    "preparing": "Preparing...",
+    "stayInTelegram": "Continue in Telegram"
   }
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import * as jose from 'jose';
 import { logger } from '@/lib/logger';
+import { sanitizeReturnPath } from '@/lib/safe-return-path';
 
 // Derive encryption key the same way NextAuth v5 / Auth.js does internally
 async function getDerivedEncryptionKey(secret: string, salt: string) {
@@ -39,6 +40,8 @@ export async function GET(request: NextRequest) {
   const username = searchParams.get('username') || '';
   const firstName = searchParams.get('firstName') || '';
   const token = searchParams.get('token');
+  // Kompyuterdagi Mini App'dan kelganda qaysi bo'limga qaytish (faqat ichki yo'l).
+  const next = sanitizeReturnPath(searchParams.get('next')) ?? '/tests';
 
   const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://eduprime-uz.vercel.app';
   const SECRET = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
@@ -134,7 +137,7 @@ export async function GET(request: NextRequest) {
       .encrypt(keyMaterial);
 
     // Set cookie and redirect to tests page
-    const response = NextResponse.redirect(`${APP_URL}/tests`);
+    const response = NextResponse.redirect(`${APP_URL}${next}`);
 
     response.cookies.set(cookieName, jweToken, {
       httpOnly: true,

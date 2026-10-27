@@ -1159,6 +1159,11 @@
     "failedTitle": "Avtomatik kirib bo'lmadi",
     "failedText": "Internet aloqasini tekshirib, qayta urinib ko'ring yoki mehmon sifatida davom eting.",
     "retry": "Qayta urinish",
-    "continue": "Davom etish"
+    "continue": "Davom etish",
+    "desktopTitle": "Kompyuterda brauzerda qulayroq",
+    "desktopText": "Platforma brauzeringizda katta ekranda ochiladi — tizimga avtomatik kirgan holda.",
+    "openInBrowser": "🌐 Brauzerda ochish",
+    "preparing": "Tayyorlanmoqda...",
+    "stayInTelegram": "Telegram ichida davom etish"
   }
 }
