@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
           return NextResponse.json(
             {
               error: 'LIMIT_REACHED',
-              message: "Bepul tarifda DTM Online'dan oyiga faqat 1 marta foydalanish mumkin. Davom etish uchun Premium yoki Ustoz tarifiga o'ting.",
+              message: "Bepul tarifda DTM Online'dan oyiga faqat 1 marta foydalanish mumkin. Davom etish uchun obuna oling.",
             },
             { status: 403 }
           );

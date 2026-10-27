@@ -19,7 +19,7 @@ Bu fayl har sessiyada avtomatik o'qiladi. Har bir vazifa promptida takrorlanmasi
 |---|---|---|
 | Deploy | **Vercel** | `main` ga merge → avtomatik prod deploy |
 | Ma'lumotlar bazasi | **Neon.tech (PostgreSQL)** | Bu **PRODUCTION** baza. Real foydalanuvchi ma'lumotlari bor. |
-| Bot | Telegram (`@EduPrimeuzbot`) | `bot/` papkasi, alohida deploy |
+| Bot | Telegram (`@EduPrimeuzbot`) | Webhook: `src/app/api/telegram/webhook` (Vercel bilan birga) |
 | Cron | `vercel.json` → `/api/cron/*` | `CRON_SECRET` bilan himoyalangan |
 
 ## Ma'lumotlar bazasi qoidalari — QAT'IY
@@ -149,7 +149,7 @@ src/
     paramgen/               # parametrik savol generatori + templates.json
     gemini.ts               # AI import va tushuntirish
 prisma/schema.prisma
-bot/index.ts                # Telegram bot
+src/app/api/telegram/webhook/ # Telegram bot (webhook; polling bot yo'q)
 ```
 
 ## Nozik joylar — ehtiyot bo'ling

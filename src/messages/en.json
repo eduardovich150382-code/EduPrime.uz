@@ -1015,7 +1015,7 @@
       "cta": "View subscriptions"
     },
     "subjects": "Available subjects",
-    "subjectInBot": "You do not need to choose a subject here — the Telegram bot will ask you.",
+    "subjectInBot": "You will choose your subject here after signing in.",
     "months": "{count} months",
     "price": "{amount} UZS",
     "buy": "Buy",

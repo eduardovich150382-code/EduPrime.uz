@@ -6,6 +6,7 @@ import {
   notifyViaTelegram,
 } from '@/lib/telegram-notify';
 import { logger } from '@/lib/logger';
+import { subscriptionDisplayName, subscriptionName } from '@/lib/subscription-display';
 
 // GET /api/cron/notifications — daily cron job for automated notifications
 // Protected by CRON_SECRET header
@@ -36,6 +37,7 @@ export async function GET(request: NextRequest) {
       },
       include: {
         user: { select: { id: true, name: true, telegramId: true } },
+        product: { select: { nameUz: true, nameRu: true, nameEn: true } },
       },
     });
 
@@ -43,13 +45,16 @@ export async function GET(request: NextRequest) {
       const daysLeft = Math.ceil(
         (sub.endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
       );
+      // Eski PREMIUM/TEACHER_PLAN foydalanuvchiga "Eski tarif" bo'lib ko'rinadi — sayt bilan bir xil.
+      const isLegacy = sub.plan === 'PREMIUM' || sub.plan === 'TEACHER_PLAN';
+      const name = subscriptionDisplayName({ name: subscriptionName(sub), isLegacy }, 'uz');
 
       // Create in-app notification
       await db.notification.create({
         data: {
           userId: sub.user.id,
-          title: 'Premium tarifingiz tugamoqda',
-          message: `Sizning Premium tarifingiz tugashiga ${daysLeft} kun qoldi. Tarifni uzaytiring.`,
+          title: 'Obunangiz tugamoqda',
+          message: `"${name}" obunangiz tugashiga ${daysLeft} kun qoldi. Obunani uzaytiring.`,
           type: 'warning',
           link: '/pricing',
         },
@@ -60,7 +65,8 @@ export async function GET(request: NextRequest) {
         sendPremiumExpiryWarning(
           sub.user.telegramId,
           sub.user.name || '',
-          daysLeft
+          daysLeft,
+          name
         );
         premiumWarnings++;
       }

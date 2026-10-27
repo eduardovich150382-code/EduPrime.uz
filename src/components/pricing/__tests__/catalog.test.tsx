@@ -19,8 +19,8 @@ const product: PricingProduct = {
   id: 'p', kind: 'CATEGORY', goal: 'ATTESTATION', name: 'Attestatsiya', subjectRule: 'ONE', secondSubjectDiscountPct: 25,
   tagline: 'Toifangizni ishonch bilan oshiring', features: ['Haftalik jonli tahlil'], counts: null, activeSubscriptions: [],
   subjects: [{ id: 'physics', name: 'Fizika', testCount: 12, isMandatory: false, counts }], offers: [
-    { id: 'o1', label: '1 oy', price: 49000, durationMonths: 1, untilDate: null, buyHref: 'https://t.me/EduPrimeuzbot?start=buy_p_1234567890_abcdef1234', ...marketing },
-    { id: 'o2', label: 'Mavsum', price: 99000, durationMonths: null, untilDate: '2026-11-24T19:30:00Z', buyHref: 'https://t.me/EduPrimeuzbot?start=buy_p_1234567890_abcdef1235', ...marketing },
+    { id: 'o1', label: '1 oy', price: 49000, durationMonths: 1, untilDate: null, ...marketing },
+    { id: 'o2', label: 'Mavsum', price: 99000, durationMonths: null, untilDate: '2026-11-24T19:30:00Z', ...marketing },
   ],
 };
 const promo = (extra: Partial<PricingProduct['offers'][number]>) => ({ ...product, offers: [{ ...product.offers[0], ...extra }, product.offers[1]] });
@@ -81,13 +81,13 @@ describe('pricing ko‘rinishi', () => {
   it('mehmon avval kiradi va shu maqsad sahifasiga qaytadi; bot havolasi yo‘q', () => {
     const html = render();
     expect(html.match(/href="\/login\?callbackUrl=%2Fpricing%3Fgoal%3DATTESTATION"/g)).toHaveLength(2);
-    expect(html).not.toContain('t.me'); expect(html).toContain('Telegram botda tanlaysiz');
+    expect(html).not.toContain('t.me'); expect(html).toContain('Fanni kirganingizdan keyin shu yerda tanlaysiz');
     expect(render([product], 'ru')).toContain('href="/ru/login?callbackUrl=%2Fru%2Fpricing%3Fgoal%3DATTESTATION"');
   });
   it('kirgan foydalanuvchida tugma POST orqali ishlaydi, fan botda so‘ralmaydi', () => {
     const html = render([product], 'uz', [], undefined, 'u1');
     expect(html.match(/<button type="button"[^>]*>Sotib olish<\/button>/g)).toHaveLength(2);
-    expect(html).not.toContain('/login'); expect(html).not.toContain('t.me'); expect(html).not.toContain('Telegram botda tanlaysiz');
+    expect(html).not.toContain('/login'); expect(html).not.toContain('t.me'); expect(html).not.toContain('Fanni kirganingizdan keyin shu yerda tanlaysiz');
   });
   it('ruscha maqsad havolalari locale bilan chiqadi', () => {
     const html = render([product, { ...product, id: 'dtm', goal: 'DTM', name: 'DTM', subjectRule: 'DTM_BLOCK' }], 'ru', [], 'DTM');

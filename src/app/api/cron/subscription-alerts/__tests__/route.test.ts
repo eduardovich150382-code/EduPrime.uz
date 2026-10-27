@@ -2,11 +2,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 import { subscriptionFixture as sub, subscriptionNow as now } from '@/lib/__tests__/fixtures/subscriptions';
 
-const m = vi.hoisted(() => ({ candidates: vi.fn(), rows: vi.fn(), users: vi.fn(), deactivate: vi.fn(), create: vi.fn(), send: vi.fn(), error: vi.fn() }));
+const m = vi.hoisted(() => ({ candidates: vi.fn(), rows: vi.fn(), users: vi.fn(), deactivate: vi.fn(), create: vi.fn(), send: vi.fn(), error: vi.fn(), info: vi.fn(), cleanup: vi.fn() }));
 vi.mock('@/lib/db', () => ({ db: { $queryRaw: m.rows, subscription: { findMany: m.candidates, updateMany: m.deactivate },
   user: { findMany: m.users }, notification: { create: m.create } } }));
 vi.mock('@/lib/subscription-telegram', () => ({ sendSubscriptionTelegram: m.send }));
-vi.mock('@/lib/logger', () => ({ logger: { error: m.error } }));
+vi.mock('@/lib/logger', () => ({ logger: { error: m.error, info: m.info } }));
+vi.mock('@/lib/checkout-cleanup', () => ({ cleanupCheckoutSettings: m.cleanup }));
 import { GET } from '../route';
 
 const request = () => new NextRequest('http://localhost/api/cron/subscription-alerts', { headers: { authorization: 'Bearer test-secret' } });
@@ -20,7 +21,7 @@ beforeEach(() => {
     if (claimed.has(data.id)) throw { code: 'P2002' };
     claimed.add(data.id); return data;
   });
-  m.send.mockResolvedValue(undefined);
+  m.send.mockResolvedValue(undefined); m.cleanup.mockResolvedValue(0);
 });
 afterEach(() => { vi.useRealTimers(); vi.unstubAllEnvs(); });
 
@@ -94,5 +95,30 @@ describe('obuna eslatmasi cron', () => {
     const data = m.create.mock.calls[0][0].data;
     expect(data.message).toContain('Eski tarif'); expect(data.message).not.toContain('Premium'); expect(data.message).toContain('Attestatsiya · Fizika');
     expect(data.type).toBe('warning'); expect(data.message).not.toContain('Ustoz');
+  });
+});
+
+describe('checkout kalitlarini tozalash', () => {
+  it('eslatmalardan keyin bir marta ishlaydi, soni javobda va logda', async () => {
+    m.cleanup.mockResolvedValue(4);
+    const response = await GET(request());
+    expect(response.status).toBe(200); expect((await response.json()).checkoutKeysDeleted).toBe(4);
+    expect(m.cleanup).toHaveBeenCalledOnce();
+    expect(m.cleanup.mock.invocationCallOrder[0]).toBeGreaterThan(m.create.mock.invocationCallOrder[0]);
+    expect(m.info).toHaveBeenCalledWith('Checkout keys cleaned up', { deleted: 4 });
+  });
+  it('obunachi nomzod bo‘lmasa ham ishlaydi', async () => {
+    m.candidates.mockResolvedValue([]); m.cleanup.mockResolvedValue(1);
+    const response = await GET(request());
+    expect(response.status).toBe(200); expect((await response.json()).checkoutKeysDeleted).toBe(1);
+  });
+  it('tozalash xatosi cron’ni yiqitmaydi — eslatmalar yuborilgan, null qaytadi', async () => {
+    m.cleanup.mockRejectedValue(new Error('db down'));
+    const response = await GET(request());
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.checkoutKeysDeleted).toBeNull(); expect(body.alerts1).toBe(1);
+    expect(m.send).toHaveBeenCalledOnce();
+    expect(m.error).toHaveBeenCalledWith('Checkout key cleanup failed', expect.objectContaining({ error: expect.any(Error) }));
   });
 });

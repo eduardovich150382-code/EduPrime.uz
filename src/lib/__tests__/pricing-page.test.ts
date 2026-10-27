@@ -40,7 +40,8 @@ describe('pricing server ma’lumotlari', () => {
     expect(m.subscriptions).not.toHaveBeenCalled(); expect(m.permissions).not.toHaveBeenCalled();
     expect(result.subscriptions).toEqual([]);
     expect(result.products[0]).toMatchObject({ name: 'Аттестация', subjects: [{ id: 'physics', name: 'Физика', testCount: 12 }],
-      offers: [{ price: 49000, label: 'Сезон', buyHref: `https://t.me/EduPrimeuzbot?start=${checkoutStartParameter('p', 'o')}` }] });
+      offers: [{ price: 49000, label: 'Сезон' }] });
+    expect(result.products[0].offers[0]).not.toHaveProperty('buyHref');
   });
   it('nomlar va fanlar mavjud entitlement yuklovchida bitta SQL orqali olinadi', async () => {
     m.subscriptions.mockResolvedValue([{ id: 's1', plan: 'CATEGORY', product: names, subjects: [subject], startDate: new Date('2026-10-01T00:00:00Z'), endDate: new Date('2026-11-24T19:30:00Z') }]);

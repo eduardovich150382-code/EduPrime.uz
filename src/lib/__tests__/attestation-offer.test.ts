@@ -5,7 +5,7 @@ import { subscriptionView } from '../subscription-display';
 import { subscriptionFixture as sub, subscriptionNow as now } from './fixtures/subscriptions';
 
 const counts = { topicTests: 10, mockTests: 3, questions: 500 };
-const marketing = { compareAtPrice: null, promoUntil: null, badge: null, isFeatured: false, personalPrice: null, buyHref: '' };
+const marketing = { compareAtPrice: null, promoUntil: null, badge: null, isFeatured: false, personalPrice: null };
 const monthly: PricingOffer = { id: 'month', label: '1 oy', price: 49000, durationMonths: 1, untilDate: null, ...marketing };
 const season: PricingOffer = { id: 'season', label: 'Mavsum davomida', price: 99000, durationMonths: null, untilDate: '2026-12-25T00:00:00+05:00', ...marketing };
 const physics = { id: 'physics', name: 'Fizika', testCount: 12, isMandatory: false, counts };

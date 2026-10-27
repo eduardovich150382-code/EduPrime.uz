@@ -653,7 +653,7 @@ async function handleCallbackQuery(callbackQuery: any) {
           : payment.plan === 'course_purchase'
           ? `🎉 <b>Tabriklaymiz!</b>\n\n"${payment.courseTitle}" kursi uchun to'lovingiz tasdiqlandi!\n\n🌐 Saytga kiring va kursga yoziling!`
           : `🎉 <b>Tabriklaymiz!</b>\n\n` +
-            `Sizning ${payment.plan === 'premium' ? 'Premium' : 'Ustoz'} tarifingiz aktivlashtirildi!\n` +
+            `Obunangiz aktivlashtirildi!\n` +
             `Muddat: ${DURATION_LABELS[payment.duration]}\n\n` +
             `🌐 Saytga kiring va barcha testlardan foydalaning!`;
 
@@ -784,7 +784,7 @@ async function handleDocument(message: any) {
 function getPaymentLabel(payment: any): string {
   if (payment.plan === 'test_purchase') return `📝 ${payment.testTitle || 'Test'}`;
   if (payment.plan === 'course_purchase') return `🎓 ${payment.courseTitle || 'Kurs'}`;
-  return payment.plan === 'premium' ? '💎 Premium' : '👨‍🏫 Ustoz';
+  return payment.plan === 'premium' ? '💎 Eski tarif' : '👨‍🏫 Eski tarif (Ustoz)';
 }
 
 // Save receipt file URL to Payment record in DB

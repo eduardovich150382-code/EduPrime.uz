@@ -6,6 +6,20 @@ import { subscriptionAlerts, subscriptionAlertMessage, type SubscriptionAlert } 
 import { tashkentDateKey, tashkentDayRangeUtc } from '@/lib/date';
 import { hasPrismaCode } from '@/lib/admin-products-api';
 import { sendSubscriptionTelegram } from '@/lib/subscription-telegram';
+import { cleanupCheckoutSettings } from '@/lib/checkout-cleanup';
+
+// Alohida cron emas — Vercel rejasi cron sonini cheklaydi. Tozalash xatosi
+// asosiy ishni (eslatmalar) yiqitmasin: null qaytadi va logga yoziladi.
+async function cleanupCheckoutKeys(now: Date): Promise<number | null> {
+  try {
+    const deleted = await cleanupCheckoutSettings(now);
+    logger.info('Checkout keys cleaned up', { deleted });
+    return deleted;
+  } catch (error) {
+    logger.error('Checkout key cleanup failed', { error });
+    return null;
+  }
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,7 +34,9 @@ export async function GET(request: NextRequest) {
       select: { userId: true }, distinct: ['userId'],
     });
     const userIds = candidates.map((s) => s.userId);
-    if (!userIds.length) return NextResponse.json({ success: true, ...results, timestamp: now.toISOString() });
+    if (!userIds.length) {
+      return NextResponse.json({ success: true, ...results, checkoutKeysDeleted: await cleanupCheckoutKeys(now), timestamp: now.toISOString() });
+    }
     const [rows, users] = await Promise.all([
       loadSubscriptionRows(userIds, now, true),
       db.user.findMany({ where: { id: { in: userIds } }, select: { id: true, lang: true, telegramId: true } }),
@@ -62,7 +78,7 @@ export async function GET(request: NextRequest) {
         if (alert.days === 1) results.alerts1++;
       }
     }
-    return NextResponse.json({ success: true, ...results, timestamp: now.toISOString() });
+    return NextResponse.json({ success: true, ...results, checkoutKeysDeleted: await cleanupCheckoutKeys(now), timestamp: now.toISOString() });
   } catch (error) {
     logger.error('Cron subscription-alerts error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
