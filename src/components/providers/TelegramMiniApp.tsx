@@ -7,6 +7,7 @@ import { resolveLoginCallback } from '@/lib/safe-return-path';
 import {
   ensureMiniAppSession,
   isTelegramMiniApp,
+  launchPlatformIsDesktop,
   loadTelegramSdk,
   openExternalInMiniApp,
   type TelegramWebApp,
@@ -34,6 +35,14 @@ export default function TelegramMiniApp() {
 
   useEffect(() => {
     if (!isTelegramMiniApp()) return;
+    // Kompyuterda Mini App boshqa sahifadan ochilgan bo'lsa (masalan BotFather'dagi
+    // asosiy Mini App manzili) — "Brauzerda ochish" taklifi uchun /tg ga.
+    // Hash saqlanadi: Telegram parametrlari faqat shu yerda.
+    if (launchPlatformIsDesktop() && getCleanPath(window.location.pathname) !== '/tg') {
+      const to = `${getCleanPath(window.location.pathname)}${window.location.search}`;
+      window.location.replace(`/tg?to=${encodeURIComponent(to)}${window.location.hash}`);
+      return;
+    }
     document.documentElement.dataset.tgMiniapp = '';
     let cancelled = false;
 

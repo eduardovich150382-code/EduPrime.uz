@@ -260,26 +260,55 @@ function commandList(messages: typeof uzMessages.telegramBot.commands): CommandL
  * tugmasi va buyruqlar ro'yxati. Takror chaqirish xavfsiz — Telegram
  * qiymatni shunchaki qayta yozadi. Webhook o'rnatilganda (GET) chaqiriladi.
  */
-export async function setupBotMenu(botToken: string, appUrl: string): Promise<Record<string, unknown>> {
-  const call = async (method: string, body: unknown) => {
-    try {
-      const response = await fetch(`https://api.telegram.org/bot${botToken}/${method}`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
-      });
-      return await response.json();
-    } catch (error) {
-      logger.error(`Telegram ${method} error:`, { error });
-      return { ok: false };
-    }
-  };
+type TelegramReply = { ok: boolean; description?: string };
+
+async function callTelegram(botToken: string, method: string, body: unknown): Promise<TelegramReply> {
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${botToken}/${method}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+    });
+    const data: unknown = await response.json();
+    const record = typeof data === 'object' && data !== null ? data as Record<string, unknown> : {};
+    return { ok: record.ok === true, description: typeof record.description === 'string' ? record.description : undefined };
+  } catch (error) {
+    logger.error(`Telegram ${method} error:`, { error });
+    return { ok: false, description: 'network error' };
+  }
+}
+
+function menuButton(appUrl: string) {
+  return { type: 'web_app', text: m.menuButton, web_app: { url: miniAppUrl(appUrl, '/attestation') } };
+}
+
+/**
+ * Shu chat uchun "Platformani ochish" menyu tugmasi. Umumiy (default)
+ * tugmadan tashqari har /start'da chatning o'ziga ham yoziladi: avval
+ * chatga boshqa tugma (masalan buyruqlar ro'yxati) qo'yilgan bo'lsa, umumiy
+ * sozlama u chatda ko'rinmay qoladi.
+ */
+export async function setChatMenuForUser(botToken: string, appUrl: string, chatId: number): Promise<TelegramReply> {
+  return callTelegram(botToken, 'setChatMenuButton', { chat_id: chatId, menu_button: menuButton(appUrl) });
+}
+
+/**
+ * Botning doimiy ko'rinishi: chap pastdagi "Platformani ochish" menyu
+ * tugmasi, buyruqlar ro'yxati va tavsif. Takror chaqirish xavfsiz —
+ * Telegram qiymatni shunchaki qayta yozadi. Admin /setupmenu bilan chaqiradi.
+ */
+export async function setupBotMenu(botToken: string, appUrl: string): Promise<Record<string, TelegramReply>> {
   return {
-    menuButton: await call('setChatMenuButton', {
-      menu_button: { type: 'web_app', text: m.menuButton, web_app: { url: miniAppUrl(appUrl, '/attestation') } },
-    }),
-    commands: await call('setMyCommands', { commands: commandList(uzMessages.telegramBot.commands) }),
-    commandsRu: await call('setMyCommands', { commands: commandList(ruMessages.telegramBot.commands), language_code: 'ru' }),
-    shortDescription: await call('setMyShortDescription', { short_description: m.shortDescription }),
+    menuButton: await callTelegram(botToken, 'setChatMenuButton', { menu_button: menuButton(appUrl) }),
+    commands: await callTelegram(botToken, 'setMyCommands', { commands: commandList(uzMessages.telegramBot.commands) }),
+    commandsRu: await callTelegram(botToken, 'setMyCommands', { commands: commandList(ruMessages.telegramBot.commands), language_code: 'ru' }),
+    shortDescription: await callTelegram(botToken, 'setMyShortDescription', { short_description: m.shortDescription }),
     // Bo'sh chatda "Start" ustida ko'rinadigan matn — yangi foydalanuvchining birinchi taassuroti.
-    description: await call('setMyDescription', { description: m.description }),
+    description: await callTelegram(botToken, 'setMyDescription', { description: m.description }),
   };
+}
+
+/** /setupmenu javobi: har bir sozlama natijasi, xato bo'lsa Telegram sababi bilan. */
+export function setupReport(result: Record<string, TelegramReply>, appUrl: string): string {
+  const lines = Object.entries(result).map(([name, reply]) =>
+    reply.ok ? `✅ ${name}` : `❌ ${name}: ${escapeHtml(reply.description ?? 'unknown error')}`);
+  return `<b>Bot sozlamalari</b>\n${lines.join('\n')}\n\nMini App: ${escapeHtml(miniAppUrl(appUrl, '/attestation'))}`;
 }

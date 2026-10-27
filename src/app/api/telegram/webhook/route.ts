@@ -7,7 +7,7 @@ import { startIntentCheckout } from '@/lib/telegram-intent-checkout';
 import { parseIntentStart } from '@/lib/checkout-intent';
 import { processLegacySubscription } from '@/lib/subscription-payments';
 import uzMessages from '@/messages/uz.json';
-import { handleMenuAction, menuActionFor, sendWelcome, setupBotMenu } from '@/lib/telegram-bot-menu';
+import { handleMenuAction, menuActionFor, sendWelcome, setChatMenuForUser, setupBotMenu, setupReport } from '@/lib/telegram-bot-menu';
 import { parseReferralStart } from '@/lib/telegram-bot-links';
 import { linkReferral } from '@/lib/referral-code';
 
@@ -354,6 +354,7 @@ async function handleStart(chatId: number, userId: number, username: string, fir
   const referralCode = parseReferralStart(param);
   const referred = referralCode ? await registerBotReferral(userId, username, firstName, referralCode) : false;
   await sendWelcome(chatId, { firstName, adminText: adminCommandsText(userId), referred }, { send: sendMessage });
+  await setChatMenuForUser(BOT_TOKEN, APP_URL, chatId);
 }
 
 // Handle /login
@@ -930,8 +931,8 @@ export async function POST(request: NextRequest) {
           await sendMessage(chatId, '❌ Bu buyruq faqat adminlar uchun.');
         } else {
           const result = await setupBotMenu(BOT_TOKEN, APP_URL);
-          const ok = Object.values(result).every((r) => typeof r === 'object' && r !== null && 'ok' in r && r.ok === true);
-          await sendMessage(chatId, ok ? '✅ Bot menyusi, buyruqlar va tavsif yangilandi.' : '⚠️ Ba\'zi sozlamalar yangilanmadi — loglarni tekshiring.');
+          result.thisChat = await setChatMenuForUser(BOT_TOKEN, APP_URL, chatId);
+          await sendMessage(chatId, setupReport(result, APP_URL));
         }
       } else if (text.startsWith('/broadcast ')) {
         const broadcastMsg = text.replace('/broadcast ', '').trim();

@@ -167,3 +167,34 @@ export function openExternalInMiniApp(url: string): boolean {
   else webApp.openLink(parsed.toString());
   return true;
 }
+
+// Kompyuterdagi Telegram ilovalari va Telegram Web. Ularda sayt tizim
+// brauzerida qulayroq (katta ekran, oddiy oyna), Telegram Web iframe'ida esa
+// sessiya cookie'si umuman saqlanmasligi mumkin.
+const DESKTOP_PLATFORMS = new Set(['tdesktop', 'macos', 'weba', 'webk', 'web', 'unigram']);
+
+export function isDesktopTelegram(webApp: TelegramWebApp | null): boolean {
+  return Boolean(webApp && DESKTOP_PLATFORMS.has(webApp.platform));
+}
+
+/** Ishga tushish URL'idagi platforma (#tgWebAppPlatform) — SDK yuklanmasdan oldin. */
+export function launchPlatformIsDesktop(): boolean {
+  if (typeof window === 'undefined' || !isTelegramMiniApp()) return false;
+  const hash = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : '';
+  return DESKTOP_PLATFORMS.has(new URLSearchParams(hash).get('tgWebAppPlatform') ?? '');
+}
+
+/** Brauzerda tizimga kirgan holda ochiladigan bir martalik havola (5 daqiqa). */
+export async function requestBrowserHandoff(next: string): Promise<string | null> {
+  const initData = isTelegramMiniApp() ? getLaunchInitData() : null;
+  if (!initData) return null;
+  try {
+    const response = await fetch('/api/auth/telegram-webapp/handoff', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ initData, next }),
+    });
+    const body: unknown = response.ok ? await response.json() : null;
+    return typeof body === 'object' && body !== null && 'url' in body && typeof body.url === 'string' ? body.url : null;
+  } catch {
+    return null;
+  }
+}
