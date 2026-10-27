@@ -2,36 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { logger } from '@/lib/logger';
-
-function generateReferralCode(name: string | null): string {
-  const slug = (name || 'user')
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, '')
-    .slice(0, 8);
-  const random = Math.random().toString(36).substring(2, 8);
-  return `${slug}-${random}`;
-}
-
-async function generateUniqueReferralCode(name: string | null): Promise<string> {
-  const maxRetries = 3;
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
-    const code = generateReferralCode(name);
-    const existing = await db.user.findUnique({
-      where: { referralCode: code },
-      select: { id: true },
-    });
-    if (!existing) {
-      return code;
-    }
-  }
-  // Fallback: use longer random string to minimize collision chance
-  const slug = (name || 'user')
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, '')
-    .slice(0, 8);
-  const random = Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 6);
-  return `${slug}-${random}`;
-}
+import { generateUniqueReferralCode } from '@/lib/referral-code';
 
 // GET /api/referral - get user's referral info
 export async function GET(request: NextRequest) {

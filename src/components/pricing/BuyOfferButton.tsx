@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { clearSubscriptionStatusCache, loadSubscriptionStatus } from '@/components/ui/useSubscriptionStatus';
 import { BUY_BUTTON_STYLES, type BuyButtonVariant } from './buy-button-styles';
+import { isTelegramMiniApp, openExternalInMiniApp } from '@/lib/telegram-webapp-client';
 
 const POLL_MS = 20_000;
 const POLL_WINDOW_MS = 15 * 60_000;
@@ -22,12 +23,16 @@ export function BuyOfferButton({ userId, productId, offerId, needed, choices, kn
   const [selected, setSelected] = useState<string[]>([]);
   const [status, setStatus] = useState<'idle' | 'loading' | 'opened' | 'error'>('idle');
   const [errorKey, setErrorKey] = useState<ErrorKey>('checkoutError');
+  // Mini App'da bot havolasi qo'shimcha tugma sifatida ham ko'rinadi: ba'zi
+  // Telegram ilovalari havolani faqat to'g'ridan-to'g'ri bosishda ochadi.
+  const [miniAppUrl, setMiniAppUrl] = useState<string | null>(null);
 
   // Bosish hodisasi ichida chaqiriladi: desktop'da oyna fetch'dan OLDIN ochiladi,
   // aks holda brauzer uni popup deb bloklaydi. Telefonda yangi oyna Telegram
   // ilovasiga o'tishni buzadi — shu tabning o'zi havolaga o'tadi.
   function start(subjectIds: string[]) {
-    const popup = window.matchMedia('(pointer: coarse)').matches ? null : window.open('', '_blank');
+    // Telegram Mini App ichida bo'sh oyna ochilmaydi — bot chati Telegram'ning o'zida ochiladi.
+    const popup = isTelegramMiniApp() || window.matchMedia('(pointer: coarse)').matches ? null : window.open('', '_blank');
     setStatus('loading');
     fetch('/api/checkout/intent', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -40,7 +45,8 @@ export function BuyOfferButton({ userId, productId, offerId, needed, choices, kn
         throw new Error(code === 'EXPIRED_OFFER' ? 'checkoutExpired' : 'checkoutError');
       }
       setStatus('opened'); setPicking(false);
-      if (popup && !popup.closed) { popup.opener = null; popup.location.href = url; } else window.location.href = url;
+      if (isTelegramMiniApp()) setMiniAppUrl(url);
+      if (popup && !popup.closed) { popup.opener = null; popup.location.href = url; } else if (!openExternalInMiniApp(url)) window.location.href = url;
     }).catch((error: unknown) => {
       popup?.close();
       setErrorKey(error instanceof Error && error.message === 'checkoutExpired' ? 'checkoutExpired' : 'checkoutError');
@@ -104,6 +110,9 @@ export function BuyOfferButton({ userId, productId, offerId, needed, choices, kn
         </button>
       )}
       {status === 'opened' && <p role="status" className="rounded-xl bg-primary-50 p-3 text-sm text-primary-800">{t('checkoutOpened')}</p>}
+      {status === 'opened' && miniAppUrl && (
+        <a href={miniAppUrl} className={`${button} w-full bg-[#2AABEE] text-white hover:bg-[#229ED9]`}>{t('continueToTelegram')}</a>
+      )}
       {status === 'error' && <p role="alert" className="text-sm text-red-600">{t(errorKey)}</p>}
     </div>
   );
