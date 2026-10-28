@@ -10,6 +10,7 @@ import LanguageSwitcher from './LanguageSwitcher';
 import HeaderSubscription from './HeaderSubscription';
 import { ATTESTATION_HREF, isAttestationPath } from '@/lib/nav-links';
 import { loginHref } from '@/lib/safe-return-path';
+import { startNotificationPolling } from '@/lib/notification-poll';
 
 export default function Header() {
   const t = useTranslations();
@@ -42,10 +43,7 @@ export default function Header() {
       }
     }
 
-    fetchCount();
-    // Refresh every 30 seconds
-    const interval = setInterval(fetchCount, 30000);
-    return () => clearInterval(interval);
+    return startNotificationPolling(fetchCount);
   }, [isLoggedIn]);
 
   // Click outside to close user dropdown
