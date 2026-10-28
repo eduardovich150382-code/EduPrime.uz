@@ -124,7 +124,13 @@ function MiniAppEntry() {
 
 export default function TelegramEntryPage() {
   return (
-    <Suspense fallback={null}>
+    // Sahifa statik — JS yuklanguncha shu HTML ko'rinadi; bo'sh ekran o'rniga
+    // asosiy holatdagi spinner bilan bir xil joyda.
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center bg-background px-6" role="status">
+        <Loader2 size={32} className="animate-spin text-primary-600" />
+      </div>
+    }>
       <MiniAppEntry />
     </Suspense>
   );

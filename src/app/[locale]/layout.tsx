@@ -1,12 +1,18 @@
 import type { Metadata } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
+import { getMessages, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
 import TelegramMiniApp from '@/components/providers/TelegramMiniApp';
 import '../globals.css';
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://eduprime.uz';
+
+// Locale'lar build vaqtida ma'lum — shusiz next-intl har [locale] sahifani
+// dinamik qiladi va statik bosh sahifa ham har ochilishda serverda render bo'ladi.
+export function generateStaticParams() {
+  return routing.locales.map((locale) => ({ locale }));
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
@@ -55,6 +61,10 @@ export default async function LocaleLayout({
   if (!routing.locales.includes(locale as any)) {
     notFound();
   }
+
+  // Locale sarlavhadan (headers()) emas, URL'dan olinsin — aks holda layout
+  // ostidagi har sahifa dinamik bo'lib qoladi.
+  setRequestLocale(locale);
 
   const messages = await getMessages();
 
