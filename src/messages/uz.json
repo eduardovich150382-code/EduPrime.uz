@@ -1191,5 +1191,24 @@
     "openInBrowser": "🌐 Brauzerda ochish",
     "preparing": "Tayyorlanmoqda...",
     "stayInTelegram": "Telegram ichida davom etish"
+  },
+  "adminAdSources": {
+    "title": "Reklama manbalari",
+    "link": "Reklama",
+    "description": "Oyna ichida birinchi marta /start bosganlar — birinchi manba bo'yicha. Har bosqich shu /start'dan keyin sanaladi.",
+    "adTest": "Bepul test: {title}",
+    "adTestMissing": "Bepul reklama testi sozlanmagan (Sozlamalar → Reklama)",
+    "window": "{days} kun",
+    "error": "Hisobotni yuklab bo'lmadi",
+    "empty": "Bu davrda /start yo'q",
+    "footnote": "web — botsiz, sayt orqali ro'yxatdan o'tganlar. Ma'lumot 5 daqiqagacha keshlanadi.",
+    "columns": {
+      "source": "Manba",
+      "firstStarts": "Birinchi /start",
+      "signedIn": "Saytga kirgan",
+      "adTestStarted": "Testni boshlagan",
+      "adTestFinished": "Testni tugatgan",
+      "paid": "To'lagan"
+    }
   }
 }

@@ -9,7 +9,7 @@ import type { LocalizedName } from '@/lib/subscription-details';
 import {
   Users, BookOpen, CreditCard, TrendingUp, Shield,
   Clock, Crown, UserPlus, CheckCircle, XCircle,
-  ArrowRight, BarChart3, Loader2, Bell, Settings,
+  ArrowRight, BarChart3, Loader2, Bell, Settings, Megaphone,
 } from 'lucide-react';
 
 interface DashboardData {
@@ -47,6 +47,7 @@ interface DashboardData {
 export default function AdminDashboard() {
   const locale = useLocale();
   const tSubscription = useTranslations('subscriptionUi');
+  const tAds = useTranslations('adminAdSources');
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -271,7 +272,7 @@ export default function AdminDashboard() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3"
+        className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3"
       >
         <Link href="/admin/users" className="card p-4 text-center hover:border-primary-200 transition-colors">
           <Users size={20} className="text-blue-600 mx-auto mb-2" />
@@ -296,6 +297,10 @@ export default function AdminDashboard() {
         <Link href="/admin/notifications" className="card p-4 text-center hover:border-primary-200 transition-colors">
           <Bell size={20} className="text-pink-600 mx-auto mb-2" />
           <p className="text-xs font-medium text-text-primary">Xabar yuborish</p>
+        </Link>
+        <Link href="/admin/ad-sources" className="card p-4 text-center hover:border-primary-200 transition-colors">
+          <Megaphone size={20} className="text-primary-600 mx-auto mb-2" />
+          <p className="text-xs font-medium text-text-primary">{tAds('link')}</p>
         </Link>
         <Link href="/admin/settings" className="card p-4 text-center hover:border-primary-200 transition-colors">
           <Settings size={20} className="text-gray-600 mx-auto mb-2" />

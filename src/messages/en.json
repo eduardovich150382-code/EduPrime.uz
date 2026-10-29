@@ -1191,5 +1191,24 @@
     "openInBrowser": "🌐 Open in browser",
     "preparing": "Preparing...",
     "stayInTelegram": "Continue in Telegram"
+  },
+  "adminAdSources": {
+    "title": "Ad sources",
+    "link": "Ads",
+    "description": "People whose first /start was in the period, grouped by first source. Each step is counted after that /start.",
+    "adTest": "Free test: {title}",
+    "adTestMissing": "Free ad test is not configured (Settings → Ads)",
+    "window": "{days} days",
+    "error": "Could not load the report",
+    "empty": "No /start in this period",
+    "footnote": "web — signed up on the site, without the bot. Data is cached for up to 5 minutes.",
+    "columns": {
+      "source": "Source",
+      "firstStarts": "First /start",
+      "signedIn": "Signed in",
+      "adTestStarted": "Started test",
+      "adTestFinished": "Finished test",
+      "paid": "Paid"
+    }
   }
 }

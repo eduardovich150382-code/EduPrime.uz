@@ -26,6 +26,7 @@ Object.assign(fake, {
   user: {
     findUnique: async ({ where }: { where: { telegramId: string } }) => s.users.find((u) => u.telegramId === where.telegramId) ?? null,
     findFirst: async ({ where }: { where: { telegramId: string } }) => s.users.find((u) => u.telegramId === where.telegramId) ?? null,
+    count: async () => s.users.length,
     create: async ({ data }: { data: Record<string, unknown> }) => { const u = { id: `u${s.users.length + 1}`, ...data }; s.users.push(u); return u; },
   },
   botStart: {
@@ -34,7 +35,9 @@ Object.assign(fake, {
       return s.starts.find((b) => b.telegramId === where.telegramId) ?? null;
     },
     create: async ({ data }: { data: Record<string, unknown> }) => { s.starts.push(data); return data; },
+    count: async ({ where }: { where: { isFirst: boolean; createdAt: { gte: Date } } }) => s.starts.filter((b) => b.isFirst === where.isFirst).length,
   },
+  payment: { count: async () => 0 },
   systemSetting: {
     findMany: async () => [],
     upsert: async ({ where, create }: { where: { key: string }; create: { value: string } }) => { s.settings.set(where.key, create.value); return {}; },
@@ -112,5 +115,11 @@ describe('obunasiz /start', () => {
     s.failStart.value = true;
     await command('/start ad_test1');
     expect(sent()[0].text).toBe(AD_START_TEXT);
+  });
+  it('/admin — birinchi /start soni (bugun, 7 kun)', async () => {
+    await command('/start ad_test1');
+    vi.mocked(fetch).mockClear();
+    await POST(request({ message: { text: '/admin', chat: { id: 456 }, from: { id: 456, first_name: 'Admin' } } }));
+    expect(sent()[0].text).toContain('Birinchi /start: bugun <b>1</b> · 7 kun <b>1</b>');
   });
 });
