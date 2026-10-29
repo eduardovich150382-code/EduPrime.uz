@@ -9,7 +9,7 @@ import { loadSubscriptionRows } from '@/lib/subscription-details';
 import { subscriptionProductStats } from '@/lib/subscription-display';
 
 const querySchema = z.object({
-  filter: z.enum(['all', 'premium', 'teacher', 'free', 'expiring', 'category', 'bundle']).default('all'),
+  filter: z.enum(['all', 'premium', 'teacher', 'legacy', 'free', 'expiring', 'category', 'bundle', 'cancelled']).default('all'),
   page: z.coerce.number().int().min(1).max(100000).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(50),
 });
@@ -30,8 +30,12 @@ export async function GET(request: NextRequest) {
       loadSubscriptionRows(null, now),
     ]);
     const plans = { premium: 'PREMIUM', teacher: 'TEACHER_PLAN', category: 'CATEGORY', bundle: 'BUNDLE' } as const;
-    const subscriptionWhere: Prisma.SubscriptionWhereInput = filter === 'expiring' ? expiring : {
-      ...active, ...(filter in plans ? { plan: plans[filter as keyof typeof plans] } : {}),
+    // Cron muddati o'tganlarni ham isActive=false qiladi; muddatidan oldin
+    // yopilgani — qo'lda bekor qilingani va aynan qayta tiklash mumkin bo'lgani.
+    const cancelled: Prisma.SubscriptionWhereInput = { isActive: false, endDate: { gte: now } };
+    const subscriptionWhere: Prisma.SubscriptionWhereInput = filter === 'expiring' ? expiring : filter === 'cancelled' ? cancelled : {
+      ...active,
+      ...(filter === 'legacy' ? { plan: { in: ['PREMIUM', 'TEACHER_PLAN'] } } : filter in plans ? { plan: plans[filter as keyof typeof plans] } : {}),
     };
     const where: Prisma.UserWhereInput = filter === 'all' ? {} : filter === 'free'
       ? { id: { notIn: subscribedUsers.map((s) => s.userId) } }
@@ -40,7 +44,7 @@ export async function GET(request: NextRequest) {
       db.user.count({ where }),
       db.user.findMany({ where, skip: (page - 1) * limit, take: limit, orderBy: { createdAt: 'desc' }, select: {
         id: true, name: true, image: true, email: true, telegramUsername: true,
-        subscriptions: { where: active, include: { product: { select: { nameUz: true, nameRu: true, nameEn: true } }, offer: { select: { labelUz: true, labelRu: true, labelEn: true } } }, orderBy: { endDate: 'desc' } },
+        subscriptions: { where: filter === 'cancelled' ? cancelled : active, include: { product: { select: { nameUz: true, nameRu: true, nameEn: true } }, offer: { select: { labelUz: true, labelRu: true, labelEn: true } } }, orderBy: { endDate: 'desc' } },
       } }),
       db.subject.findMany({ select: { id: true, nameUz: true, nameRu: true, nameEn: true } }),
     ]);

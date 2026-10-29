@@ -914,7 +914,9 @@
       "category": "Kategoriya obunasi",
       "bundle": "Hammasi paketi",
       "free": "Obunasiz",
-      "expiring": "Tugayotgan"
+      "expiring": "Tugayotgan",
+      "legacy": "Eski tarif",
+      "cancelled": "Bekor qilingan"
     },
     "errors": {
       "INVALID_INPUT": "Ma’lumotlarni tekshiring. Narx, chegirma va tartib butun son bo‘lishi kerak.",
@@ -936,7 +938,9 @@
       "RETRY_REQUIRED": "Parallel o‘zgarish bo‘ldi. Qayta urinib ko‘ring.",
       "COMPARE_AT_NOT_ABOVE_PRICE": "Eski narx joriy narxdan katta bo‘lishi kerak.",
       "PROMO_NEEDS_COMPARE_AT": "Aksiya tugashini ko‘rsatish uchun eski narxni ham kiriting.",
-      "TOO_MANY_FEATURES": "Afzalliklar ko‘pi bilan 8 ta bo‘lishi mumkin."
+      "TOO_MANY_FEATURES": "Afzalliklar ko‘pi bilan 8 ta bo‘lishi mumkin.",
+      "SUBSCRIPTION_EXPIRED": "Obuna muddati tugagan — uni qayta tiklab bo‘lmaydi. Yangi obuna bering.",
+      "ACTIVE_SUBSCRIPTION_EXISTS": "Foydalanuvchida shu tarif bo‘yicha boshqa faol obuna bor. Avval uni tekshiring."
     },
     "compareAtPrice": "Eski narx (chizilgan, ixtiyoriy)",
     "compareAtHelp": "Eski narx joriy narxdan katta bo‘lishi kerak. Aksiya tugashi ko‘rsatilsa, shu vaqtdan keyin eski narx va hisoblagich avtomatik yashiriladi.",
@@ -946,7 +950,16 @@
     "featured": "Ajratilgan variant (kartada ajratib ko‘rsatiladi)",
     "tagline": "Shior (bir qator)",
     "features": "Afzalliklar",
-    "featuresHelp": "Har qatorga bitta afzallik, ko‘pi bilan 8 ta. Obuna avtomatik ochadigan imkoniyatlar ro‘yxati ularning ustida o‘zi chiqadi."
+    "featuresHelp": "Har qatorga bitta afzallik, ko‘pi bilan 8 ta. Obuna avtomatik ochadigan imkoniyatlar ro‘yxati ularning ustida o‘zi chiqadi.",
+    "legacyBadge": "Eski tarif",
+    "cancelledBadge": "Bekor qilingan",
+    "cancelSubscription": "Bekor qilish",
+    "restoreSubscription": "Qayta tiklash",
+    "back": "Orqaga",
+    "cancelConfirmTitle": "Obunani bekor qilasizmi?",
+    "cancelConfirmBody": "«{name}» obunasi darhol yopiladi va foydalanuvchi kirish huquqini yo‘qotadi. Yozuv o‘chirilmaydi — {date} gacha qayta tiklash mumkin.",
+    "restoreConfirmTitle": "Obunani qayta tiklaysizmi?",
+    "restoreConfirmBody": "«{name}» obunasi {date} gacha yana faol bo‘ladi."
   },
   "testAccessForm": {
     "title": "Testga kirish turi",

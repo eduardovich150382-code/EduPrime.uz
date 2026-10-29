@@ -129,4 +129,21 @@ describe('obunalar ro‘yxati', () => {
     expect(data.users[0].subscriptions[0].subjects).toEqual([{ id: 'physics', nameUz: 'Fizika' }]);
     expect(data.users[0].subscriptions[0].product.nameUz).toBe('Attestatsiya');
   });
+  it('bekor qilingan filtri muddatidan oldin yopilganlarni oladi, statistika faollarda qoladi', async () => {
+    expect((await GET(new NextRequest('http://localhost/?filter=cancelled'))).status).toBe(200);
+    const cancelled = { isActive: false, endDate: { gte: now } };
+    expect(m.users).toHaveBeenCalledWith(expect.objectContaining({ where: { subscriptions: { some: cancelled } } }));
+    expect(m.users.mock.calls[0][0].select.subscriptions.where).toEqual(cancelled);
+    expect(m.countSubscriptions).toHaveBeenCalledWith({ where: { isActive: true, startDate: { lte: now }, endDate: { gte: now }, plan: 'PREMIUM' } });
+  });
+  it('eski tarif filtri PREMIUM va TEACHER_PLAN ni birga oladi', async () => {
+    await GET(new NextRequest('http://localhost/?filter=legacy'));
+    const active = { isActive: true, startDate: { lte: now }, endDate: { gte: now } };
+    expect(m.users).toHaveBeenCalledWith(expect.objectContaining({ where: { subscriptions: { some: { ...active, plan: { in: ['PREMIUM', 'TEACHER_PLAN'] } } } } }));
+    expect(m.users.mock.calls[0][0].select.subscriptions.where).toEqual(active);
+  });
+  it('standart ko‘rinish faqat faol obunalarni ko‘rsatadi', async () => {
+    await GET(new NextRequest('http://localhost/'));
+    expect(m.users.mock.calls[0][0].select.subscriptions.where).toEqual({ isActive: true, startDate: { lte: now }, endDate: { gte: now } });
+  });
 });

@@ -3,19 +3,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import SubscriptionGrantForm from '@/components/admin/SubscriptionGrantForm';
+import SubscriptionItem, { type AdminSubscription } from '@/components/admin/SubscriptionItem';
 import { adminFetch, buttonClass, ErrorMessage, errorCode } from '@/components/admin/AdminFields';
 import { localName, type AdminUser, type LocalName } from '@/components/admin/product-types';
-import { subscriptionName } from '@/lib/subscription-display';
-import type { SubscriptionPlan } from '@prisma/client';
 
-interface Subscription {
-  id: string; plan: SubscriptionPlan; endDate: string; startDate: string;
-  product: LocalName | null; offer: { labelUz: string; labelRu: string; labelEn: string } | null;
-  subjects: (LocalName & { id: string })[];
-}
-interface SubUser extends AdminUser { subscriptions: Subscription[] }
+interface SubUser extends AdminUser { subscriptions: AdminSubscription[] }
 interface Stats { totalUsers: number; premiumCount: number; teacherCount: number; freeCount: number; expiringCount: number; products: { id: string; name: LocalName; count: number }[] }
-const filters = ['all', 'premium', 'teacher', 'category', 'bundle', 'free', 'expiring'] as const;
+const filters = ['all', 'premium', 'teacher', 'legacy', 'category', 'bundle', 'free', 'expiring', 'cancelled'] as const;
 
 export default function SubscriptionsPage() {
   const t = useTranslations('adminProducts');
@@ -43,7 +37,7 @@ export default function SubscriptionsPage() {
     <SubscriptionGrantForm onSaved={() => reload()} />
     <div className="flex flex-wrap gap-2">{filters.map((key) => <button type="button" key={key} aria-pressed={filter === key} className={`${buttonClass} ${filter === key ? 'bg-primary-50 text-primary-700' : ''}`} onClick={() => { setFilter(key); setPage(1); }}>{t(`filters.${key}`)}</button>)}</div>
     <ErrorMessage error={error} />
-    {loading ? <p role="status">{t('loading')}</p> : !users.length ? <p>{t('noUsers')}</p> : users.map((user) => <div key={user.id} className="card space-y-3 p-4"><div className="break-words"><p className="font-semibold">{user.name || user.id}</p><p className="text-sm text-text-secondary">{user.email || user.telegramUsername}</p></div>{!user.subscriptions.length && <p>{t('filters.free')}</p>}{user.subscriptions.map((sub) => <div key={sub.id} className="min-w-0 break-words [overflow-wrap:anywhere] rounded-lg bg-gray-50 p-3 text-sm"><p className="font-medium">{localName(subscriptionName(sub), locale)}{sub.offer && ` — ${locale === 'ru' ? sub.offer.labelRu : locale === 'en' ? sub.offer.labelEn : sub.offer.labelUz}`}</p><p>{sub.subjects.length ? sub.subjects.map((s) => localName(s, locale)).join(', ') : t(sub.plan === 'BUNDLE' ? 'allSubjects' : 'wholeCategory')}</p><p>{new Date(sub.startDate).toLocaleDateString(locale, { timeZone: 'Asia/Tashkent' })} — {new Date(sub.endDate).toLocaleDateString(locale, { timeZone: 'Asia/Tashkent' })}</p></div>)}</div>)}
+    {loading ? <p role="status">{t('loading')}</p> : !users.length ? <p>{t('noUsers')}</p> : users.map((user) => <div key={user.id} className="card space-y-3 p-4"><div className="break-words"><p className="font-semibold">{user.name || user.id}</p><p className="text-sm text-text-secondary">{user.email || user.telegramUsername}</p></div>{!user.subscriptions.length && <p>{t('filters.free')}</p>}{user.subscriptions.map((sub) => <SubscriptionItem key={sub.id} sub={sub} onChanged={() => reload()} />)}</div>)}
     <div className="flex items-center justify-between gap-3"><button type="button" className={buttonClass} disabled={page === 1 || loading} onClick={() => setPage(page - 1)}>{t('previous')}</button><span>{t('page', { page, total })}</span><button type="button" className={buttonClass} disabled={page * 30 >= total || loading} onClick={() => setPage(page + 1)}>{t('next')}</button></div>
   </div>;
 }

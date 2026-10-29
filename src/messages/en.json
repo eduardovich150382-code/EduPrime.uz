@@ -914,7 +914,9 @@
       "category": "Category",
       "bundle": "All access bundle",
       "free": "Unsubscribed",
-      "expiring": "Expiring"
+      "expiring": "Expiring",
+      "legacy": "Legacy plan",
+      "cancelled": "Cancelled"
     },
     "errors": {
       "INVALID_INPUT": "Check the form. Price, discount and order must be whole numbers.",
@@ -936,7 +938,9 @@
       "RETRY_REQUIRED": "Another update occurred. Please try again.",
       "COMPARE_AT_NOT_ABOVE_PRICE": "The old price must be higher than the current price.",
       "PROMO_NEEDS_COMPARE_AT": "Enter the old price to set a promotion end.",
-      "TOO_MANY_FEATURES": "Up to 8 benefits are allowed."
+      "TOO_MANY_FEATURES": "Up to 8 benefits are allowed.",
+      "SUBSCRIPTION_EXPIRED": "This subscription has expired and can’t be restored. Grant a new one.",
+      "ACTIVE_SUBSCRIPTION_EXISTS": "The user already has another active subscription for this plan. Check it first."
     },
     "compareAtPrice": "Old price (struck through, optional)",
     "compareAtHelp": "The old price must be higher than the current price. If an end time is set, the old price and countdown hide automatically after it.",
@@ -946,7 +950,16 @@
     "featured": "Featured option (highlighted on the card)",
     "tagline": "Tagline (one line)",
     "features": "Benefits",
-    "featuresHelp": "One benefit per line, up to 8. What the subscription unlocks is listed above them automatically."
+    "featuresHelp": "One benefit per line, up to 8. What the subscription unlocks is listed above them automatically.",
+    "legacyBadge": "Legacy plan",
+    "cancelledBadge": "Cancelled",
+    "cancelSubscription": "Cancel",
+    "restoreSubscription": "Restore",
+    "back": "Back",
+    "cancelConfirmTitle": "Cancel this subscription?",
+    "cancelConfirmBody": "“{name}” is closed immediately and the user loses access. The record is kept — it can be restored until {date}.",
+    "restoreConfirmTitle": "Restore this subscription?",
+    "restoreConfirmBody": "“{name}” will be active again until {date}."
   },
   "testAccessForm": {
     "title": "Test access",
