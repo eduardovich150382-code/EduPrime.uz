@@ -112,6 +112,8 @@ export interface TestAccessContext extends UserEntitlements {
   isAdmin: boolean;
   categoryTypes: ReadonlyMap<string, TestType>;
   purchasedTestIds: ReadonlySet<string>;
+  /** Reklama uchun bepul test(lar) — tizimga kirgan har kimga ochiq (lib/ad-free-test.ts). */
+  promoTestIds?: ReadonlySet<string>;
 }
 
 export function hasAnyActiveSubscription(ent: UserEntitlements): boolean {
@@ -128,6 +130,8 @@ export function canAccessByEntitlements(test: TestAccessInfo, ent: TestAccessCon
   if (isFreeTest(test)) return true;
   if (!ent) return false;
   if (ent.isAdmin) return true;
+  // Kontekst faqat tizimga kirgan foydalanuvchi uchun quriladi — mehmon (ent = null) yuqorida qaytdi.
+  if (ent.promoTestIds?.has(test.id)) return true;
 
   const active = ent.subscriptions.filter((s) => isActiveEntitlement(s, ent.now));
   if (active.some((s) => s.plan === 'BUNDLE')) return true;

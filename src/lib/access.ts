@@ -2,6 +2,7 @@ import { db } from './db';
 import { loadSubscriptionDetails, loadSubscriptionRows, type DetailedEntitlements } from './subscription-details';
 import { canAccessByEntitlements, isFreeTest, type TestAccessContext, type TestAccessInfo, type UserEntitlements } from './entitlements';
 import { hasBundle, hasLegacyPlan, inScope, withoutLegacyPlans } from './entitlements';
+import { getAdFreeTestId, isAdFreeTest } from './ad-free-test';
 
 export { canAccessByEntitlements, hasAnyActiveSubscription } from './entitlements';
 export type { TestAccessContext, TestAccessInfo, UserEntitlements } from './entitlements';
@@ -79,10 +80,15 @@ export async function loadFeatureEntitlements(userId: string, role?: string): Pr
 }
 
 export async function checkTestAccess(
-  userId: string,
+  userId: string | null | undefined,
   test: TestAccessInfo,
   role: string | undefined,
 ): Promise<boolean> {
+  // Mehmon: faqat haqiqiy bepul test. Reklama testi ham login talab qiladi —
+  // Mini App kiritadi, natija va attributsiya akkauntga yoziladi.
+  if (!userId) return isFreeTest(test);
+  // Reklama testi — obuna/ruxsat so'rovlarisiz (kesh), qo'nish yo'li yengil bo'lsin.
+  if (await isAdFreeTest(test.id)) return true;
   const ctx = await loadTestAccessContext(userId, role, [test], { includePurchases: false });
   if (canAccessByEntitlements(test, ctx)) return true;
   if (test.accessType !== 'paid') return false;
@@ -125,7 +131,7 @@ export async function loadTestAccessContext(
   const categoryIds = [...new Set(locked.filter((t) => t.accessType === 'subscription').map((t) => t.categoryId))];
   const paidIds = includePurchases ? locked.filter((t) => t.accessType === 'paid').map((t) => t.id) : [];
   const now = new Date();
-  const [ent, categoryTypes, purchases, legacyPayments] = await Promise.all([
+  const [ent, categoryTypes, purchases, legacyPayments, adFreeTestId] = await Promise.all([
     locked.length ? (entitlements ?? loadUserEntitlements(userId, now)) : { now, subscriptions: [], permissions: [] },
     knownCategoryTypes ?? (categoryIds.length
       ? db.testCategory.findMany({ where: { id: { in: categoryIds } }, select: { id: true, type: true } })
@@ -137,6 +143,7 @@ export async function loadTestAccessContext(
     paidIds.length ? db.payment.findMany({
       where: { userId, status: 'CONFIRMED', selectedSubjects: { hasSome: paidIds } }, select: { selectedSubjects: true },
     }) : [],
+    locked.length ? getAdFreeTestId() : null,
   ]);
   const purchasedTestIds = new Set(purchases.map((p) => p.itemId));
   const paidIdSet = new Set(paidIds);
@@ -145,7 +152,8 @@ export async function loadTestAccessContext(
       if (paidIdSet.has(id)) purchasedTestIds.add(id);
     }
   }
-  return { ...ent, isAdmin, purchasedTestIds, categoryTypes };
+  const promoTestIds = new Set(adFreeTestId ? [adFreeTestId] : []);
+  return { ...ent, isAdmin, purchasedTestIds, categoryTypes, promoTestIds };
 }
 
 /**

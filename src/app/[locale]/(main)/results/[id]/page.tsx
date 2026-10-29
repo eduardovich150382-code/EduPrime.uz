@@ -17,6 +17,7 @@ import { buildAttemptHistory, testsHrefForType, type AttemptHistory } from '@/li
 import { hasExamAnswer, restoreQuestionOrder } from '@/lib/exam-presentation';
 import { getPracticeLink } from '@/lib/retake-wrong';
 import QuotaUpsellDialog from '@/components/premium/QuotaUpsellDialog';
+import AdTestOffer from '@/components/results/AdTestOffer';
 import { AttestationMessage, AttestationRings, type AttestationResultInfo } from '@/components/attestation/AttestationResult';
 import { DTM_TITLE_PREFIX } from '@/lib/dtm-online-shared';
 import { sanitizeReturnPath, withReturnTo } from '@/lib/safe-return-path';
@@ -127,6 +128,8 @@ export default function ResultPage() {
   const [attempts, setAttempts] = useState<AttemptHistory | null>(null);
   // Faqat attestatsiya mock'ida (server aniqlaydi) — ball + toifa aylanalari.
   const [attestation, setAttestation] = useState<AttestationResultInfo | null>(null);
+  // Reklama uchun bepul test natijasi — obuna taklifi (server aniqlaydi).
+  const [adOffer, setAdOffer] = useState(false);
 
   // S17 — yechim darajalari
   const [solutionQuota, setSolutionQuota] = useState<SolutionQuota | null>(null);
@@ -146,6 +149,7 @@ export default function ResultPage() {
           if (data.solutionQuota) setSolutionQuota(data.solutionQuota);
           setAttempts(data.attempts ? buildAttemptHistory(data.attempts) : null);
           setAttestation(data.attestation ?? null);
+          setAdOffer(data.adOffer === true);
         } else {
           setError({ serverMessage: data.error, fallback: 'notFound' });
         }
@@ -500,6 +504,8 @@ export default function ResultPage() {
             </button>
           </div>
         </div>
+
+        {adOffer && <AdTestOffer />}
 
         {/* Motivational message — attestatsiya mock'ida toifaga mos tabrik/dalda */}
         {attestation ? <AttestationMessage info={attestation} /> : <div className={`mt-6 p-4 rounded-xl border ${

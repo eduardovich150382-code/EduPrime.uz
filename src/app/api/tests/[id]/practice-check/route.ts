@@ -8,7 +8,8 @@ import { checkTestAccess, loadFeatureEntitlements } from '@/lib/access';
 import { resolveTestVisibility } from '@/lib/test-visibility';
 import { testFeatureScope } from '@/lib/feature-context';
 import { getUnlockedItemIds, resolveUnlockKeys } from '@/lib/quota';
-import { applySolutionVisibility, resolveSolutionTiers } from '@/lib/solution-visibility';
+import { applySolutionVisibility, FULL_SOLUTION_TIERS, resolveSolutionTiers } from '@/lib/solution-visibility';
+import { isAdFreeTest } from '@/lib/ad-free-test';
 import { attachDistractorWhy } from '@/lib/distractor-why';
 import { getOriginalNumbers, getRetakeQuestionIds } from '@/lib/retake-wrong';
 import { gradePracticeSubset } from '@/lib/practice-grading';
@@ -117,8 +118,10 @@ export async function POST(
       questionIds: practiceIds,
     });
 
-    const entitlements = await loadFeatureEntitlements(user.id, user.role);
-    const { writtenUnlimited, videoUnlocked } = resolveSolutionTiers(user.role, entitlements, testFeatureScope(test));
+    // Natija sahifasi bilan bir xil: reklama testida yechimlar to'liq ochiq.
+    const { writtenUnlimited, videoUnlocked } = await isAdFreeTest(test.id)
+      ? FULL_SOLUTION_TIERS
+      : resolveSolutionTiers(user.role, await loadFeatureEntitlements(user.id, user.role), testFeatureScope(test));
     const unlockKeyMap = writtenUnlimited ? new Map<string, string>() : await resolveUnlockKeys(practiceIds);
     const unlockedIds = writtenUnlimited
       ? null

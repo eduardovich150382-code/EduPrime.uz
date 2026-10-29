@@ -327,7 +327,11 @@
     "questionVideoTitle": "Question {number} video solution",
     "aiExplainButton": "Explain with AI",
     "aiExplainTitle": "AI explanation",
-    "aiExplaining": "AI is explaining..."
+    "aiExplaining": "AI is explaining...",
+    "adOffer": {
+      "title": "30+ more mock tests and every solution — Attestation subscription",
+      "button": "💳 Choose a subscription"
+    }
   },
   "sessionSolve": {
     "exitButton": "Exit test",
@@ -729,7 +733,8 @@
       "lockPremium": "With subscription",
       "lockTeacher": "Teacher plan",
       "lockSubscription": "Subscription",
-      "lockPrice": "With subscription or {price} UZS separately"
+      "lockPrice": "With subscription or {price} UZS separately",
+      "free": "Free"
     },
     "banner": {
       "pill": "Attestation season",

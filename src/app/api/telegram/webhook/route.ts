@@ -10,6 +10,7 @@ import { handleMenuAction, menuActionFor, sendWelcome, setChatMenuForUser, setup
 import { parseAdStart, parseReferralStart } from '@/lib/telegram-bot-links';
 import { countFirstStarts, recordBotStart } from '@/lib/bot-start';
 import { sendAdStart } from '@/lib/telegram-ad-start';
+import { getAdFreeTestId } from '@/lib/ad-free-test';
 import { tashkentDayRangeUtc } from '@/lib/date';
 import { linkReferral } from '@/lib/referral-code';
 
@@ -290,7 +291,7 @@ async function handleStart(chatId: number, userId: number, username: string, fir
 
   // Reklama: qisqa xabar va bitta asosiy harakat. Noto'g'ri kod — oddiy welcome.
   if (parseAdStart(param)) {
-    await sendAdStart(chatId, APP_URL, null, { send: sendMessage });
+    await sendAdStart(chatId, APP_URL, await getAdFreeTestId(), { send: sendMessage });
     await setChatMenuForUser(BOT_TOKEN, APP_URL, chatId);
     return;
   }

@@ -17,6 +17,13 @@ const { findFirstMock, findManyMock, purchaseFindUniqueMock } = vi.hoisted(() =>
   purchaseFindUniqueMock: vi.fn(),
 }));
 
+// Reklama testi id'si sozlamadan (kesh) — bu yerda qat'iy "ad-mock".
+const adTest = vi.hoisted(() => ({ id: "ad-mock" as string | null }));
+vi.mock("../ad-free-test", () => ({
+  getAdFreeTestId: async () => adTest.id,
+  isAdFreeTest: async (id: string) => adTest.id !== null && id === adTest.id,
+}));
+
 vi.mock("../db", () => ({
   db: {
     payment: { findFirst: (...args: unknown[]) => findFirstMock(...args) },
@@ -99,6 +106,38 @@ beforeEach(() => {
   setSubscriptions([]);
   setPayments([]);
   setPurchases([]);
+});
+
+describe("reklama uchun bepul test", () => {
+  const mock = (id: string) => ({ categoryId: "att", subjectId: "physics", isFree: false, id, accessType: "premium" });
+
+  it("obunasiz tizimga kirgan foydalanuvchi reklama testiga kiradi, obuna so'ralmaydi", async () => {
+    expect(await checkTestAccess("user-1", mock("ad-mock"), "USER")).toBe(true);
+    expect(findManyMock).not.toHaveBeenCalled();
+  });
+
+  it("boshqa mock testlar obunasiz yopiq qoladi", async () => {
+    expect(await checkTestAccess("user-1", mock("mock-9"), "USER")).toBe(false);
+  });
+
+  it("mehmon (userId yo'q) uchun reklama testi ham yopiq", async () => {
+    expect(await checkTestAccess(null, mock("ad-mock"), undefined)).toBe(false);
+    expect(await checkTestAccess(undefined, mock("ad-mock"), undefined)).toBe(false);
+    expect(await checkTestAccess("", mock("ad-mock"), undefined)).toBe(false);
+  });
+
+  it("mehmon uchun haqiqiy bepul test ochiq", async () => {
+    expect(await checkTestAccess(null, { ...mock("free-1"), accessType: "free" }, undefined)).toBe(true);
+  });
+
+  it("sozlama bo'sh bo'lsa hech bir test ochilmaydi", async () => {
+    adTest.id = null;
+    try {
+      expect(await checkTestAccess("user-1", mock("ad-mock"), "USER")).toBe(false);
+    } finally {
+      adTest.id = "ad-mock";
+    }
+  });
 });
 
 describe("checkTestAccess", () => {

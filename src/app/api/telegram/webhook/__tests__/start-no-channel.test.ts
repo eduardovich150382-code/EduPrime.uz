@@ -16,6 +16,7 @@ vi.mock('@/lib/logger', () => ({ logger: { error: vi.fn() } }));
 vi.mock('@/lib/purchases', () => ({ recordPurchase: vi.fn() }));
 vi.mock('@/lib/subscription-payments', () => ({ processLegacySubscription: vi.fn() }));
 vi.mock('@/lib/telegram-intent-checkout', () => ({ startIntentCheckout: s.intent }));
+vi.mock('@/lib/ad-free-test', () => ({ getAdFreeTestId: async () => 'ad-mock' }));
 vi.mock('@/lib/referral-code', () => ({ linkReferral: s.link, ensureReferralCode: vi.fn() }));
 import { POST } from '../route';
 import uz from '@/messages/uz.json';
@@ -94,6 +95,8 @@ describe('obunasiz /start', () => {
     expect(s.starts).toEqual([{ telegramId: BigInt(777), source: 'ad_test1', isFirst: true }]);
     expect(sent()[0].text).toBe(AD_START_TEXT);
     expect(sent()[0].reply_markup?.inline_keyboard?.[0][0].text).toBe(AD_TEST_BUTTON);
+    // Mini App to'g'ridan-to'g'ri reklama testining yechish sahifasiga.
+    expect(JSON.stringify(sent()[0].reply_markup)).toContain(encodeURIComponent('/tests/ad-mock/solve'));
     await command('/start');
     expect(s.starts[1]).toEqual({ telegramId: BigInt(777), source: 'organic', isFirst: false });
   });

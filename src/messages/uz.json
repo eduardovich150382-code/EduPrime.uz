@@ -327,7 +327,11 @@
     "questionVideoTitle": "{number}-savol videoyechim",
     "aiExplainButton": "AI'dan tushuntirish",
     "aiExplainTitle": "AI tushuntirishi",
-    "aiExplaining": "AI tushuntirmoqda..."
+    "aiExplaining": "AI tushuntirmoqda...",
+    "adOffer": {
+      "title": "Yana 30+ mock test va barcha yechimlar — Attestatsiya obunasi",
+      "button": "💳 Obunani tanlash"
+    }
   },
   "sessionSolve": {
     "exitButton": "Testdan chiqish",
@@ -729,7 +733,8 @@
       "lockPremium": "Obuna bilan",
       "lockTeacher": "Ustoz tarifi",
       "lockSubscription": "Obuna bilan",
-      "lockPrice": "Obuna bilan yoki alohida — {price} so'm"
+      "lockPrice": "Obuna bilan yoki alohida — {price} so'm",
+      "free": "Bepul"
     },
     "banner": {
       "pill": "Attestatsiya mavsumi",

@@ -4,6 +4,7 @@ import { revalidateSettings } from '@/lib/cache-tags';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { logger } from '@/lib/logger';
+import { AD_FREE_TEST_KEY } from '@/lib/ad-free-test';
 import { hasAttestationKeys, validateAttestationSettings } from '@/lib/attestation-tiers';
 
 const DEFAULT_SETTINGS = [
@@ -26,6 +27,8 @@ const DEFAULT_SETTINGS = [
   { key: 'attestation_tier1_min', value: '70' },
   { key: 'attestation_tier_top_min', value: '80' },
   { key: 'attestation_tier_top_bonus_min', value: '86' },
+  // Reklama uchun bepul test (lib/ad-free-test.ts). Bo'sh — nom bo'yicha qidiriladi.
+  { key: AD_FREE_TEST_KEY, value: '' },
 ];
 
 // GET /api/admin/settings — get all settings (ADMIN only)
@@ -111,7 +114,8 @@ export async function PUT(request: NextRequest) {
 
     // Ikkala sahifa hozir dinamik (auth() / client fetch), lekin kesh
     // qo'shilsa ham yangi sana va chegaralar darhol ko'rinsin.
-    if (attestation) {
+    // Reklama testi o'zgarsa ro'yxatlardagi "Bepul" belgisi ham darhol almashsin.
+    if (attestation || AD_FREE_TEST_KEY in settings) {
       revalidatePath('/[locale]/(public)/attestation', 'page');
       revalidatePath('/[locale]/(public)/tests', 'page');
     }

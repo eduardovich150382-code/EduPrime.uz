@@ -327,7 +327,11 @@
     "questionVideoTitle": "Видеорешение вопроса {number}",
     "aiExplainButton": "Объяснение от ИИ",
     "aiExplainTitle": "Объяснение ИИ",
-    "aiExplaining": "ИИ объясняет..."
+    "aiExplaining": "ИИ объясняет...",
+    "adOffer": {
+      "title": "Ещё 30+ пробных тестов и все решения — подписка «Аттестация»",
+      "button": "💳 Выбрать подписку"
+    }
   },
   "sessionSolve": {
     "exitButton": "Выйти из теста",
@@ -729,7 +733,8 @@
       "lockPremium": "По подписке",
       "lockTeacher": "Тариф Ustoz",
       "lockSubscription": "По подписке",
-      "lockPrice": "По подписке или отдельно — {price} сум"
+      "lockPrice": "По подписке или отдельно — {price} сум",
+      "free": "Бесплатно"
     },
     "banner": {
       "pill": "Сезон аттестации",

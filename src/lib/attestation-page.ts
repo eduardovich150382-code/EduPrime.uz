@@ -23,6 +23,7 @@ import { cachedAttestationSettings, loadAttestationCatalog } from './public-cata
 import { attestationScore, getAttestationTier, type AttestationTier } from './attestation-tiers';
 import type { AttestationView } from './attestation-offer';
 import type { UserEntitlements } from './entitlements';
+import { getAdFreeTestId } from './ad-free-test';
 
 // /attestation sahifasining barcha ma'lumoti — bitta joyda, so'rovlar soni
 // testlar sonidan qat'i nazar o'zgarmas (N+1 yo'q).
@@ -109,7 +110,7 @@ export async function loadAttestationPage(
 ): Promise<AttestationPageData> {
   // Katalog va sozlamalar hamma uchun bir xil — keshdan. Natijalar, ruxsat
   // va readiness pastda, faqat shu foydalanuvchi uchun.
-  const [{ categories, tests }, settings] = await Promise.all([loadAttestationCatalog(), cachedAttestationSettings()]);
+  const [{ categories, tests }, settings, adFreeTestId] = await Promise.all([loadAttestationCatalog(), cachedAttestationSettings(), getAdFreeTestId()]);
   const testIds = tests.map((t) => t.id);
 
   // Tasniflash uchun teglar bitta so'rovda (N+1 yo'q). Faqat teg va mavzu —
@@ -144,7 +145,8 @@ export async function loadAttestationPage(
 
   const toRow = (test: (typeof tests)[number], number: number | null): MockRow => {
     const result = latest.get(test.id);
-    const state = getCardState(test, result, resolveTestAccess(test, accessContext));
+    const card = { ...test, promoFree: test.id === adFreeTestId };
+    const state = getCardState(card, result, resolveTestAccess(test, accessContext));
     // Mehmon havolasi (login → solve) /tests kartasi bilan bitta qoidada.
     const links = getCardLinks(test.id, state, user ? undefined : { locale });
     // Eski natijalarda maxScore 0 bo'lishi mumkin — u holda saqlangan foiz
@@ -169,7 +171,7 @@ export async function loadAttestationPage(
       primaryHref: links.primary,
       secondaryHref: links.secondary ?? null,
       locked: state.kind === 'buy' || state.kind === 'upgrade',
-      lockBadge: getLockBadge(test, state),
+      lockBadge: getLockBadge(card, state),
     };
   };
   const mockRows = mocks.map((test, index) => toRow(test, index + 1));

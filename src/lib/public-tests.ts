@@ -3,6 +3,7 @@ import type { TestType } from '@prisma/client';
 import { resolveTestAccess } from './access';
 import { getTestsListPage, normalizeTestsListParams } from './public-catalog';
 import { TESTS_PAGE_SIZE } from './tests-filters';
+import { getAdFreeTestId } from './ad-free-test';
 import type { TestItem } from '@/components/tests/TestCard';
 
 export interface InitialTests { tests: TestItem[]; total: number }
@@ -16,7 +17,7 @@ type ListedTest = NonNullable<Awaited<ReturnType<typeof getTestsListPage>>>['tes
  * `hasAccess` — mehmon qoidasi; kirgan foydalanuvchi uchun klient
  * /api/tests dan qayta oladi.
  */
-export function toPublicTestItem(test: ListedTest, categoryTypes: Map<string, TestType>): TestItem {
+export function toPublicTestItem(test: ListedTest, categoryTypes: Map<string, TestType>, adFreeTestId: string | null = null): TestItem {
   const type = categoryTypes.get(test.categoryId);
   return {
     id: test.id,
@@ -31,6 +32,7 @@ export function toPublicTestItem(test: ListedTest, categoryTypes: Map<string, Te
     createdAt: test.createdAt,
     category: type ? { type } : null,
     hasAccess: resolveTestAccess(test, null),
+    promoFree: test.id === adFreeTestId,
   };
 }
 
@@ -39,8 +41,8 @@ export async function loadInitialTests(): Promise<InitialTests> {
   const params = normalizeTestsListParams({
     category: null, subject: null, type: null, sort: null, page: '1', limit: String(TESTS_PAGE_SIZE),
   });
-  const list = await getTestsListPage(params);
+  const [list, adFreeTestId] = await Promise.all([getTestsListPage(params), getAdFreeTestId()]);
   if (!list) return { tests: [], total: 0 };
   const categoryTypes = new Map(list.categoryTypes);
-  return { tests: list.tests.map((test) => toPublicTestItem(test, categoryTypes)), total: list.total };
+  return { tests: list.tests.map((test) => toPublicTestItem(test, categoryTypes, adFreeTestId)), total: list.total };
 }
