@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 
-const m = vi.hoisted(() => ({ auth: vi.fn(), find: vi.fn(), update: vi.fn() }));
+const m = vi.hoisted(() => ({ auth: vi.fn(), find: vi.fn(), update: vi.fn(), revalidateTag: vi.fn() }));
+vi.mock('next/cache', () => ({ revalidateTag: m.revalidateTag }));
 vi.mock('@/lib/auth', () => ({ auth: m.auth }));
 vi.mock('@/lib/db', () => ({ db: { test: { findUnique: m.find, update: m.update } } }));
 vi.mock('@/lib/logger', () => ({ logger: { error: vi.fn() } }));
@@ -19,6 +20,8 @@ describe('kirish turini qo‘lda saqlash', () => {
     m.auth.mockResolvedValue({ user: { id: role === 'ADMIN' ? 'admin' : 'teacher1', role } });
     expect((await PUT(request({ accessType: 'subscription', isFree: false, price: 0 }), ctx)).status).toBe(200);
     expect(m.update).toHaveBeenCalledWith({ where: { id: 'test1' }, data: { accessType: 'subscription', isFree: false, price: 0 } });
+    // Kirish turi ro'yxatdagi qulf belgisi va pricing sonlarida ko'rinadi.
+    expect(m.revalidateTag.mock.calls).toEqual([['tests-list'], ['pricing']]);
   });
   it('accessType yuborilmaguncha eski qiymat o‘zgarmaydi', async () => {
     await PUT(request({ titleUz: 'Yangi nom' }), ctx);
@@ -32,5 +35,6 @@ describe('kirish turini qo‘lda saqlash', () => {
     m.auth.mockResolvedValue({ user: { id: 'other', role: 'TEACHER' } });
     expect((await PUT(request({ accessType: 'subscription' }), ctx)).status).toBe(403);
     expect(m.update).not.toHaveBeenCalled();
+    expect(m.revalidateTag).not.toHaveBeenCalled();
   });
 });

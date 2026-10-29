@@ -1,7 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { findManyTestMock, countTestMock, findManyCategoryMock, subscriptionMock, purchaseMock, paymentMock, authMock, createTestMock } =
+const { findManyTestMock, countTestMock, findManyCategoryMock, subscriptionMock, purchaseMock, paymentMock, authMock, createTestMock, findManySubjectMock, revalidateTagMock, cacheCalls } =
   vi.hoisted(() => ({
+    findManySubjectMock: vi.fn(),
+    revalidateTagMock: vi.fn(),
+    // `unstable_cache` o'ramining har chaqiruvi: kalit qismlari va argumentlar
+    // (Next ular JSON'idan kesh kalitini yasaydi).
+    cacheCalls: [] as { keyParts: string[]; args: unknown[] }[],
     createTestMock: vi.fn(),
     findManyTestMock: vi.fn(),
     countTestMock: vi.fn(),
@@ -20,7 +25,10 @@ vi.mock("@/lib/db", () => ({
       create: (...args: unknown[]) => createTestMock(...args),
     },
     teacher: { findUnique: () => Promise.resolve({ id: "teacher1" }) },
-    subject: { findUnique: () => Promise.resolve({ categoryId: "cat1" }) },
+    subject: {
+      findUnique: () => Promise.resolve({ categoryId: "cat1" }),
+      findMany: (...args: unknown[]) => findManySubjectMock(...args),
+    },
     testCategory: {
       findMany: (...args: unknown[]) => findManyCategoryMock(...args),
     },
@@ -33,6 +41,12 @@ vi.mock("@/lib/db", () => ({
 
 vi.mock("@/lib/auth", () => ({ auth: (...args: unknown[]) => authMock(...args) }));
 vi.mock("@/lib/telegram-notify", () => ({ notifyViaTelegram: vi.fn() }));
+vi.mock("server-only", () => ({}));
+vi.mock("next/cache", () => ({
+  revalidateTag: revalidateTagMock,
+  unstable_cache: <A extends unknown[], R>(fn: (...args: A) => R, keyParts: string[]) =>
+    (...args: A) => { cacheCalls.push({ keyParts, args }); return fn(...args); },
+}));
 
 import { NextRequest } from "next/server";
 import { GET, POST } from "../route";
@@ -56,7 +70,8 @@ const fullRow = {
   coverImage: null,
   writtenSolution: "\\frac{v^2}{2a} — pullik yechim",
   videoSolution: "https://youtu.be/secret",
-  createdAt: "2026-10-01T00:00:00.000Z",
+  createdAt: new Date("2026-10-01T00:00:00.000Z"),
+  updatedAt: new Date("2026-10-01T00:00:00.000Z"),
   subject: { nameUz: "Fizika", nameRu: "Физика", nameEn: "Physics", icon: null },
   questions: [
     {
@@ -116,20 +131,15 @@ describe("GET /api/tests", () => {
     subscriptionMock.mockResolvedValue([]);
     purchaseMock.mockResolvedValue([]);
     paymentMock.mockResolvedValue([]);
+    findManySubjectMock.mockResolvedValue([
+      { id: "s1", categoryId: "cat1", createdAt: new Date("2026-01-01T00:00:00Z"), category: { nameUz: "DTM", type: "DTM" } },
+    ]);
+    cacheCalls.length = 0;
   });
 
-  it("kategoriya javobini kutayotganda kirish konteksti parallel yuklanadi", async () => {
-    authMock.mockResolvedValue({ user: { id: 'u1', role: 'USER' } });
-    let release!: (value: { id: string; type: string }[]) => void;
-    findManyCategoryMock.mockReturnValue(new Promise((resolve) => { release = resolve; }));
-    const response = callGet('');
-    try {
-      await vi.waitFor(() => expect(subscriptionMock).toHaveBeenCalledTimes(1));
-      expect(findManyCategoryMock).toHaveBeenCalledTimes(1);
-    } finally { release([{ id: 'cat1', type: 'ATTESTATION' }]); }
-    expect((await response).status).toBe(200);
-    expect(findManyCategoryMock).toHaveBeenCalledTimes(1);
-  });
+  // Keshlangan ro'yxat chaqiruvlarining argumentlari (kesh kaliti manbai).
+  const listCacheKeys = () =>
+    cacheCalls.filter((c) => c.keyParts.includes("tests-list")).map((c) => JSON.stringify(c.args));
 
   it("eski chaqiruv ?type= — where/orderBy/skip/take avvalgidek", async () => {
     const { status } = await callGet("?type=ATTESTATION");
@@ -219,15 +229,68 @@ describe("GET /api/tests", () => {
     expect(lastFindManyArgs().orderBy).toEqual([{ results: { _count: "desc" } }, { createdAt: "desc" }]);
   });
 
-  it("sahifalash: page/limit hisoblanadi, limit 50 bilan cheklanadi, xato qiymat standartga tushadi", async () => {
+  it("sahifalash: page/limit hisoblanadi, ruxsat etilmagan limit standartga (20) tushadi", async () => {
     await callGet("?page=3&limit=24");
     expect(lastFindManyArgs()).toMatchObject({ skip: 48, take: 24 });
 
-    await callGet("?limit=1000");
-    expect(lastFindManyArgs()).toMatchObject({ skip: 0, take: 50 });
+    for (const limit of ["1000", "50", "7", "abc"]) {
+      const { data } = await callGet(`?limit=${limit}`);
+      expect(lastFindManyArgs()).toMatchObject({ skip: 0, take: 20 });
+      expect(data.limit).toBe(20);
+    }
 
     await callGet("?page=-2&limit=abc");
     expect(lastFindManyArgs()).toMatchObject({ skip: 0, take: 20 });
+  });
+
+  describe("kesh kaliti chegaralangan", () => {
+    it("parametrsiz so'rov keshlangan ro'yxatdan, normallashtirilgan kalit bilan", async () => {
+      await callGet("");
+      expect(listCacheKeys()).toEqual([
+        JSON.stringify([{ category: null, subject: null, type: null, sort: "newest", page: 1, limit: 20 }]),
+      ]);
+    });
+
+    it("noma'lum limit, sort va bo'sh qiymatlar yangi kalit yaratmaydi", async () => {
+      const queries = ["", "?limit=20", "?limit=7", "?limit=999", "?limit=-5", "?limit=abc", "?limit=20.5",
+        "?sort=xyz", "?sort=newest", "?page=0", "?page=abc", "?category=", "?subject="];
+      for (const q of queries) expect((await callGet(q)).status).toBe(200);
+      // Hammasi bitta kalitga tushadi.
+      expect(new Set(listCacheKeys()).size).toBe(1);
+    });
+
+    it("ruxsat etilgan qiymatlar alohida kalit oladi — faqat 20 va 24 limit", async () => {
+      for (const q of ["?limit=24", "?limit=25", "?limit=100", "?sort=popular", "?subject=s1", "?category=cat1"]) await callGet(q);
+      expect(listCacheKeys().map((k) => JSON.parse(k)[0])).toEqual([
+        expect.objectContaining({ limit: 24 }),
+        expect.objectContaining({ limit: 20 }),
+        expect.objectContaining({ limit: 20 }),
+        expect.objectContaining({ sort: "popular" }),
+        expect.objectContaining({ subject: "s1" }),
+        expect.objectContaining({ category: "cat1" }),
+      ]);
+    });
+
+    it.each([
+      ["50 dan katta sahifa", "?page=51", { skip: 1000, take: 20 }],
+      ["juda katta sahifa", "?page=999999", { skip: 19999960, take: 20 }],
+      ["bazada yo'q fan", "?subject=yoq-fan", { where: { isPublished: true, subjectId: "yoq-fan" } }],
+      ["bazada yo'q kategoriya", "?category=yoq-kat", { where: { isPublished: true, categoryId: "yoq-kat" } }],
+      ["qidiruv", "?q=fizika", { skip: 0 }],
+    ])("%s — keshsiz yo'l, natija to'g'ri, kesh kaliti yo'q", async (_label, query, expected) => {
+      const { status } = await callGet(query);
+      expect(status).toBe(200);
+      expect(lastFindManyArgs()).toMatchObject(expected);
+      expect(listCacheKeys()).toEqual([]);
+    });
+
+    it("keshlangan natijada Date yo'q — miss va hit bir xil shaklda", async () => {
+      findManyTestMock.mockImplementation(async (args: FindManyArgs) => [
+        applyPrismaShape({ ...fullRow, createdAt: new Date("2026-10-01T00:00:00Z"), updatedAt: new Date("2026-10-02T00:00:00Z") }, args),
+      ]);
+      const { data } = await callGet("");
+      expect(data.tests[0]).toMatchObject({ createdAt: "2026-10-01T00:00:00.000Z", updatedAt: "2026-10-02T00:00:00.000Z" });
+    });
   });
 
   it("paywall: javobda savollar, yozma va video yechim yo'q", async () => {
@@ -335,6 +398,14 @@ describe("POST /api/tests", () => {
     vi.clearAllMocks();
     authMock.mockResolvedValue({ user: { id: "user1", role: "TEACHER" } });
     createTestMock.mockResolvedValue({ id: "t-new", titleUz: "Attestatsiya" });
+  });
+
+  it("yangi test ro'yxat va pricing keshini tozalaydi; rad etilgan so'rov tozalamaydi", async () => {
+    expect((await callPost([{ text: "a", correctAnswer: "A" }])).status).toBe(201);
+    expect(revalidateTagMock.mock.calls).toEqual([["tests-list"], ["pricing"]]);
+    revalidateTagMock.mockClear();
+    expect((await callPost([], undefined, "true")).status).toBe(400);
+    expect(revalidateTagMock).not.toHaveBeenCalled();
   });
 
   async function callPost(questions: unknown[], accessType?: string, isMock?: unknown) {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
 import { TestType } from '@prisma/client';
 import { logger } from '@/lib/logger';
+import { getSubjects } from '@/lib/public-catalog';
 
 const VALID_TEST_TYPES: string[] = [
   'DTM',
@@ -30,13 +30,7 @@ export async function GET(request: NextRequest) {
 
     const type = typeParam as TestType | null;
 
-    const subjects = await db.subject.findMany({
-      where: type ? { category: { type } } : undefined,
-      include: {
-        category: { select: { nameUz: true, type: true } },
-      },
-      orderBy: [{ category: { order: 'asc' } }, { order: 'asc' }],
-    });
+    const subjects = await getSubjects(type);
 
     return NextResponse.json({ subjects });
   } catch (error) {

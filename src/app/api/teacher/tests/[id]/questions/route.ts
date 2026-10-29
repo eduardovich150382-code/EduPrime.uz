@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { Prisma, type QuestionType } from '@prisma/client';
 import { auth } from '@/lib/auth';
 import { logger } from '@/lib/logger';
+import { revalidateTestCatalog } from '@/lib/cache-tags';
 import { findDuplicateQuestions } from '@/lib/duplicate-questions';
 
 /**
@@ -183,6 +184,8 @@ export async function PUT(
       // kutish vaqti qo'shiladi.
       { maxWait: 10_000, timeout: 20_000 },
     );
+    // Savol soni pricing kartochkasi va test ro'yxatida ko'rinadi.
+    revalidateTestCatalog();
 
     // `questions` — mijoz ID larni holatida saqlab, keyingi saqlashda ularni
     // qaytarib yuborishi uchun (o'shanda delete+recreate emas, update bo'ladi).

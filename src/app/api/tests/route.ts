@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Prisma, TestType } from '@prisma/client';
+import { TestType } from '@prisma/client';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { notifyViaTelegram } from '@/lib/telegram-notify';
@@ -7,8 +7,9 @@ import { logger } from '@/lib/logger';
 import { MAX_QUERY_LENGTH } from '@/lib/tests-filters';
 import { loadTestAccessContext, resolveTestAccess } from '@/lib/access';
 import { testPriceSchema } from '@/lib/test-price';
+import { canCacheTestsList, getTestsListPage, normalizeTestsListParams, queryTestsListPage } from '@/lib/public-catalog';
+import { revalidateTestCatalog } from '@/lib/cache-tags';
 
-const MAX_LIMIT = 50;
 const TEST_TYPES = new Set<string>(Object.values(TestType));
 
 function isTestType(value: string): value is TestType {
@@ -16,7 +17,8 @@ function isTestType(value: string): value is TestType {
 }
 
 // Javob endi foydalanuvchiga bog'liq (hasAccess) — CDN yoki Next keshi bir
-// foydalanuvchining javobini boshqasiga bermasin.
+// foydalanuvchining javobini boshqasiga bermasin. Umumiy ro'yxat esa
+// `getTestsListPage` da alohida keshlanadi, hasAccess undan keyin.
 export const dynamic = 'force-dynamic';
 
 // GET /api/tests — barcha testlarni olish (published + isFree yoki user ruxsati)
@@ -27,97 +29,44 @@ export async function GET(request: NextRequest) {
   try {
     const session = await auth();
     const searchParams = request.nextUrl.searchParams;
-    const category = searchParams.get('category');
-    const subject = searchParams.get('subject');
     const rawType = searchParams.get('type');
     // Noma'lum qiymat enum filtriga tushsa Prisma 500 berardi. Bo'sh `?type=`
     // esa "Hammasi" — avvalgidek filtrsiz.
     if (rawType && !isTestType(rawType)) {
       return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
     }
-    const type = rawType && isTestType(rawType) ? rawType : null;
-    const q = (searchParams.get('q') ?? '').trim().slice(0, MAX_QUERY_LENGTH);
-    const sort = searchParams.get('sort');
-    // NaN yoki manfiy qiymat skip/take ga tushib Prisma xatosiga (500)
-    // aylanmasin; limit yuqoridan cheklanadi — bitta so'rov butun jadvalni
-    // tortib olmasin.
-    const page = Math.max(1, parseInt(searchParams.get('page') || '1') || 1);
-    const limit = Math.min(MAX_LIMIT, Math.max(1, parseInt(searchParams.get('limit') || '20') || 20));
-
-    const where: Prisma.TestWhereInput = { isPublished: true };
-    if (category) where.categoryId = category;
-    if (subject) where.subjectId = subject;
-    if (q) {
-      // Qidiruv hozircha faqat test va fan nomi bo'yicha. Foydalanuvchi
-      // ruscha/inglizcha nomni ham yozishi mumkin, shuning uchun uchala til.
-      where.OR = [
-        { titleUz: { contains: q, mode: 'insensitive' } },
-        { titleRu: { contains: q, mode: 'insensitive' } },
-        { titleEn: { contains: q, mode: 'insensitive' } },
-        { subject: { nameUz: { contains: q, mode: 'insensitive' } } },
-      ];
-    }
-
-    // Filter by TestCategory type (DTM, SCHOOL, ATTESTATION, SAT, GRE, CERTIFICATE)
-    if (type) {
-      const matchingCategories = await db.testCategory.findMany({
-        where: { type },
-        select: { id: true },
-      });
-      const categoryIds = matchingCategories.map(c => c.id);
-      if (categoryIds.length > 0) {
-        where.categoryId = { in: categoryIds };
-      } else {
-        // No matching category, return empty
-        return NextResponse.json({ tests: [], total: 0, page, limit });
-      }
-    }
-
-    // "Ommabop" — necha marta yechilgani (TestResult soni). Teng bo'lsa
-    // yangisi oldin, aks holda sahifalar orasida tartib sakrab ketadi.
-    const orderBy: Prisma.TestOrderByWithRelationInput | Prisma.TestOrderByWithRelationInput[] =
-      sort === 'popular'
-        ? [{ results: { _count: 'desc' } }, { createdAt: 'desc' }]
-        : { createdAt: 'desc' };
-
-    const tests = await db.test.findMany({
-      where,
-      // Paywall: yozma va video yechim — pullik mahsulot, ro'yxatda ochiq
-      // ketmasin. Ular natija sahifasida, access tekshiruvidan keyin beriladi.
-      omit: { writtenSolution: true, videoSolution: true },
-      include: {
-        subject: { select: { nameUz: true, nameRu: true, nameEn: true, icon: true } },
-      },
-      orderBy,
-      skip: (page - 1) * limit,
-      take: limit,
+    const params = normalizeTestsListParams({
+      category: searchParams.get('category'),
+      subject: searchParams.get('subject'),
+      type: rawType && isTestType(rawType) ? rawType : null,
+      sort: searchParams.get('sort'),
+      page: searchParams.get('page'),
+      limit: searchParams.get('limit'),
     });
+    const q = (searchParams.get('q') ?? '').trim().slice(0, MAX_QUERY_LENGTH);
+    const { page, limit } = params;
 
-    const total = await db.test.count({ where });
+    const list = (await canCacheTestsList(params, q)) ? await getTestsListPage(params) : await queryTestsListPage(params, q);
+    if (!list) {
+      // No matching category, return empty
+      return NextResponse.json({ tests: [], total: 0, page, limit });
+    }
 
-    // Kartadagi maqsad belgisi (Attestatsiya, DTM, ...) uchun. Test'da
-    // category relation yo'q (faqat categoryId) — schema'ga tegmaslik uchun
-    // sahifadagi testlarning kategoriyalari bitta so'rovda olinadi.
-    //
     // hasAccess — kartada qulf ko'rsatish uchun ishora, haqiqiy himoya
     // GET /api/tests/[id] da. Kirmagan foydalanuvchida bazaga qo'shimcha
     // so'rov yo'q: bepul testlar ochiq, qolganlari yopiq.
     const userId = session?.user?.id;
-    const categoryTypesPromise = db.testCategory.findMany({
-      where: { id: { in: [...new Set(tests.map((t) => t.categoryId))] } },
-      select: { id: true, type: true },
-    }).then((categories) => new Map(categories.map((c) => [c.id, c.type])));
-    const [typeByCategory, accessContext] = await Promise.all([
-      categoryTypesPromise,
-      userId ? loadTestAccessContext(userId, session.user.role, tests, { categoryTypes: categoryTypesPromise }) : null,
-    ]);
-    const testsWithType = tests.map((t) => ({
+    const typeByCategory = new Map(list.categoryTypes);
+    const accessContext = userId
+      ? await loadTestAccessContext(userId, session.user.role, list.tests, { categoryTypes: typeByCategory })
+      : null;
+    const testsWithType = list.tests.map((t) => ({
       ...t,
       category: typeByCategory.has(t.categoryId) ? { type: typeByCategory.get(t.categoryId) } : null,
       hasAccess: resolveTestAccess(t, accessContext),
     }));
 
-    const response = NextResponse.json({ tests: testsWithType, total, page, limit });
+    const response = NextResponse.json({ tests: testsWithType, total: list.total, page, limit });
     if (userId) response.headers.set('Cache-Control', 'private, no-store');
     return response;
   } catch (error) {
@@ -219,6 +168,8 @@ export async function POST(request: NextRequest) {
         subject: true,
       },
     });
+
+    revalidateTestCatalog();
 
     // If test is published immediately, notify all users
     if (isPublished) {

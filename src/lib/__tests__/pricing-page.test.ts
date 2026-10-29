@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 const m = vi.hoisted(() => ({ products: vi.fn(), subscriptions: vi.fn(), counts: vi.fn(), permissions: vi.fn() }));
 vi.mock('server-only', () => ({}));
+// Kesh o'zi `public-catalog.test.ts` da; bu yerda katalog har chaqiruvda o'qiladi.
+vi.mock('next/cache', () => ({ unstable_cache: <T>(fn: T) => fn }));
 // Ikkala agregat ham $queryRaw — SQL matniga qarab ajratiladi.
 vi.mock('@/lib/db', () => ({ db: { product: { findMany: m.products }, userPermission: { findMany: m.permissions },
   $queryRaw: (sql: TemplateStringsArray, ...values: unknown[]) => (sql.join('?').includes('FROM "Test"') ? m.counts : m.subscriptions)(sql, ...values) } }));
@@ -31,10 +33,12 @@ describe('pricing server ma’lumotlari', () => {
     expect(m.products).toHaveBeenCalledOnce();
     expect(m.products).toHaveBeenCalledWith(expect.objectContaining({
       where: { isOnSale: true }, orderBy: [{ order: 'asc' }, { id: 'asc' }],
+      // `untilDate` so'rovda emas — kesh `now` ga bog'lanmasin, filtr JS'da.
       include: expect.objectContaining({ offers: {
-        where: { isActive: true, OR: [{ untilDate: null }, { untilDate: { gt: now } }] }, orderBy: [{ order: 'asc' }, { id: 'asc' }],
-      }, category: { include: { subjects: expect.objectContaining({
-        where: { tests: { some: { isPublished: true } } }, include: { _count: { select: { tests: { where: { isPublished: true } } } } },
+        where: { isActive: true }, orderBy: [{ order: 'asc' }, { id: 'asc' }],
+      }, category: { select: { type: true, subjects: expect.objectContaining({
+        where: { tests: { some: { isPublished: true } } },
+        select: expect.objectContaining({ _count: { select: { tests: { where: { isPublished: true } } } } }),
       }) } } }),
     }));
     expect(m.subscriptions).not.toHaveBeenCalled(); expect(m.permissions).not.toHaveBeenCalled();
@@ -100,7 +104,13 @@ describe('pricing server ma’lumotlari', () => {
     m.subscriptions.mockResolvedValue([]);
     expect((await loadPricingPage('u1', 'uz', now)).products[0].offers[0].personalPrice).toBeNull();
   });
-  it('har yuklashda yangi narx olinadi, 0 narx ham saqlanadi', async () => {
+  it('muddati o‘tgan variant joriy vaqt bilan chiqarib tashlanadi', async () => {
+    const until = (date: Date | null) => ({ ...product.offers[0], id: `o-${date?.getTime() ?? 'none'}`, untilDate: date });
+    m.products.mockResolvedValue([{ ...product, offers: [until(new Date(now.getTime() - 1)), until(now), until(new Date(now.getTime() + 1)), until(null)] }]);
+    const [result] = (await loadPricingPage(null, 'uz', now)).products;
+    expect(result.offers.map((o) => o.untilDate)).toEqual([new Date(now.getTime() + 1).toISOString(), null]);
+  });
+  it('katalog qayta o‘qilganda yangi narx olinadi, 0 narx ham saqlanadi', async () => {
     expect((await loadPricingPage(null, 'uz', now)).products[0].offers[0].price).toBe(49000);
     m.products.mockResolvedValue([{ ...product, offers: [{ ...product.offers[0], price: 0, compareAtPrice: null }] }]);
     expect((await loadPricingPage(null, 'uz', now)).products[0].offers[0].price).toBe(0);

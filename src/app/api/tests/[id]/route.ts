@@ -10,6 +10,7 @@ import { checkTestAccess } from '@/lib/access';
 import { resolveTestVisibility } from '@/lib/test-visibility';
 import { filterPracticeQuestions, getRetakeQuestionIds } from '@/lib/retake-wrong';
 import { logger } from '@/lib/logger';
+import { revalidateTestCatalog } from '@/lib/cache-tags';
 
 const subjectIdSchema = z.string().trim().min(1);
 
@@ -244,6 +245,7 @@ export async function PUT(
       where: { id },
       data: updateData,
     });
+    revalidateTestCatalog();
 
     return NextResponse.json({ test: updated });
   } catch (error) {
@@ -280,6 +282,7 @@ export async function DELETE(
     }
 
     await db.test.delete({ where: { id } });
+    revalidateTestCatalog();
     return NextResponse.json({ message: 'Test deleted' });
   } catch (error) {
     logger.error('DELETE /api/tests/[id] error:', { error });
