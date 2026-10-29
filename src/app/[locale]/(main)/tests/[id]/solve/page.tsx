@@ -11,6 +11,7 @@ import { CLOCK_KEY_PREFIX, DRAFT_KEY_PREFIX, getDraftResumeMode, restoreTestDraf
 import ExpiredDraftNotice from '@/components/test/ExpiredDraftNotice';
 import SessionExpiredDialog from '@/components/test/SessionExpiredDialog';
 import TestLockedNotice, { type TestAccessDenied } from '@/components/test/TestLockedNotice';
+import { classifyTestLoad } from '@/lib/test-load-response';
 import PracticeSolve from '@/components/test/PracticeSolve';
 import BackButton from '@/components/ui/BackButton';
 import { withReturnTo, sanitizeReturnPath } from '@/lib/safe-return-path';
@@ -84,6 +85,8 @@ function TestSolveExam() {
   // ExamWorkspace (va TestTimer) render qilinmaydi.
   const [expiredDraft, setExpiredDraft] = useState<{ answered: number; total: number } | null>(null);
   const [sessionExpired, setSessionExpired] = useState(false);
+  // Test ochilishidayoq 401 — sessiya tugagan (sahifa middleware ortida, mehmon bu yerga yetmaydi).
+  const [loginRequired, setLoginRequired] = useState(false);
 
   const clock = usePracticeClock(testId, (test?.duration ?? 0) * 60);
   const submitLock = useRef(false);
@@ -193,25 +196,14 @@ function TestSolveExam() {
   useEffect(() => {
     async function fetchTest() {
       try {
-        // First check access
-        const accessRes = await fetch(`/api/subscription/check-access?testId=${testId}`);
-        const accessData = await accessRes.json();
-
-        if (accessRes.ok && accessData.hasAccess === false) {
-          setAccessDenied({
-            accessType: accessData.accessType,
-            price: accessData.price,
-            testTitle: accessData.testTitle,
-            categoryType: accessData.categoryType,
-          });
-          setLoading(false);
-          return;
-        }
-
-        // If access granted, fetch test
+        // Bitta so'rov: kirish huquqi qarori GET'ning o'zida (401/403) —
+        // oldindan alohida check-access chaqiruvi kerak emas.
         const res = await fetch(`/api/tests/${testId}`);
         const data = await res.json();
-        if (data.test) {
+        const outcome = classifyTestLoad(res.status, data);
+        if (outcome.kind === 'locked') setAccessDenied(outcome.accessDenied);
+        if (outcome.kind === 'login') setLoginRequired(true);
+        if (outcome.kind === 'ok') {
           const rawQuestions: QuestionData[] = data.test.questions;
           let questions = shufflePresentedQuestions(rawQuestions, crypto.getRandomValues(new Uint32Array(1))[0]);
           try {
@@ -353,6 +345,10 @@ function TestSolveExam() {
   if (!test || test.questions.length === 0) {
     // Access denied — show lock screen
     if (accessDenied) return <TestLockedNotice testId={testId} accessDenied={accessDenied} />;
+    if (loginRequired) {
+      const loginQuery = searchParams.toString();
+      return <SessionExpiredDialog returnPath={loginQuery ? `${pathname}?${loginQuery}` : pathname} onClose={() => setLoginRequired(false)} />;
+    }
 
     return (
       <div className="text-center py-20">
