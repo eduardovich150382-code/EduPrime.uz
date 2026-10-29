@@ -58,6 +58,13 @@ describe('pricing server ma’lumotlari', () => {
     // Kartochka bilan bir xil ko'rinish — nomlar joriy tilga kartochkada o'giriladi.
     expect(result.subscriptions[0]).toMatchObject({ id: 's1', name: names, subjects: [subject], isLegacy: false, endDate: '2026-11-24T19:30:00.000Z' });
   });
+  it('tayyor entitlements berilsa obunalar qayta so‘ralmaydi (/api/attestation/me)', async () => {
+    const sub = { id: 's1', plan: 'CATEGORY', productId: 'p', subjectIds: [], product: names, subjects: [subject], startDate: new Date('2026-10-01T00:00:00Z'), endDate: new Date('2026-11-24T19:30:00Z') };
+    const result = await loadPricingPage('u1', 'en', now, { now, permissions: [], subscriptions: [sub] } as unknown as Parameters<typeof loadPricingPage>[3]);
+    expect(m.subscriptions).not.toHaveBeenCalled();
+    expect(result.subscriptions[0]).toMatchObject({ id: 's1', name: names });
+    expect(result.products[0].activeSubscriptions).toEqual([{ id: 's1', endDate: '2026-11-24T19:30:00.000Z', subjects: ['Physics'] }]);
+  });
   it('kontent sonlari bitta agregat so‘rovda, sotiladigan fan kesimida', async () => {
     m.products.mockResolvedValue([{ ...product, category: { type: 'ATTESTATION', subjects: [subject, math] } }]);
     const [result] = (await loadPricingPage(null, 'uz', now)).products;

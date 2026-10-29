@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/api-auth';
+import { loadPersonalEntitlements } from '@/lib/access';
 import { logger } from '@/lib/logger';
 import { loadAttestationPage, type AttestationPersonalData } from '@/lib/attestation-page';
 import { loadPricingPage } from '@/lib/pricing-page';
@@ -20,11 +21,16 @@ export async function GET(request: NextRequest) {
   }
   try {
     const locale = requestLocale(request);
+    const now = new Date();
+    // Obuna va ruxsatlar bir marta: access konteksti ham, pricing ham shundan.
+    // Promise emas, tayyor qiymat uzatiladi — testlar yo'q yoki hammasi bepul
+    // bo'lsa access tarmog'i uni kutmaydi va rad etilish ushlanmay qolardi.
+    const entitlements = await loadPersonalEntitlements(user.id, now);
     // PAYWALL: loadAttestationPage savol matni/variant/javobni qaytarmaydi
     // (lib/attestation-page.ts dagi chegara) — bu yerda faqat tayyor qatorlar.
     const [page, pricing] = await Promise.all([
-      loadAttestationPage({ id: user.id, role: user.role }, locale),
-      loadPricingPage(user.id, locale),
+      loadAttestationPage({ id: user.id, role: user.role }, locale, { entitlements: entitlements.access }),
+      loadPricingPage(user.id, locale, now, entitlements.pricing),
     ]);
     // `userId` — klient ishora bilan sessiyadan oldin so'rasa, javob kimniki
     // ekanini sessiya bilan solishtiradi (lib/personal-data.ts).
@@ -34,7 +40,7 @@ export async function GET(request: NextRequest) {
       topicRows: page.topicRows,
       hero: page.hero,
       readiness: page.readiness,
-      view: buildAttestationView(pricing, { userId: user.id, loginHref: loginHref(localizedPath('/attestation', locale)) }, new Date()),
+      view: buildAttestationView(pricing, { userId: user.id, loginHref: loginHref(localizedPath('/attestation', locale)) }, now),
     };
     return NextResponse.json(body, { headers: PRIVATE });
   } catch (err) {

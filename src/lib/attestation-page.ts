@@ -22,6 +22,7 @@ import type { AttestationSettings } from './attestation-settings';
 import { cachedAttestationSettings, loadAttestationCatalog } from './public-catalog';
 import { attestationScore, getAttestationTier, type AttestationTier } from './attestation-tiers';
 import type { AttestationView } from './attestation-offer';
+import type { UserEntitlements } from './entitlements';
 
 // /attestation sahifasining barcha ma'lumoti — bitta joyda, so'rovlar soni
 // testlar sonidan qat'i nazar o'zgarmas (N+1 yo'q).
@@ -103,6 +104,8 @@ function localizedTitle(test: { titleUz: string; titleRu: string | null; titleEn
 export async function loadAttestationPage(
   user: { id: string; role?: string } | null,
   locale: string,
+  // /api/attestation/me obunalarni pricing bilan birga bir marta yuklaydi.
+  options: { entitlements?: UserEntitlements } = {},
 ): Promise<AttestationPageData> {
   // Katalog va sozlamalar hamma uchun bir xil — keshdan. Natijalar, ruxsat
   // va readiness pastda, faqat shu foydalanuvchi uchun.
@@ -126,7 +129,7 @@ export async function loadAttestationPage(
               select: { id: true, testId: true, score: true, maxScore: true, percentage: true, completedAt: true, answers: true },
             })
           : [],
-        user ? loadTestAccessContext(user.id, user.role, tests, { categoryTypes: new Map(categories.map((c) => [c.id, c.type])) }) : null,
+        user ? loadTestAccessContext(user.id, user.role, tests, { categoryTypes: new Map(categories.map((c) => [c.id, c.type])), entitlements: options.entitlements }) : null,
       ])
     : [[], [], null];
 

@@ -1,5 +1,5 @@
 import { db } from './db';
-import { loadSubscriptionDetails, type DetailedEntitlements } from './subscription-details';
+import { loadSubscriptionDetails, loadSubscriptionRows, type DetailedEntitlements } from './subscription-details';
 import { canAccessByEntitlements, isFreeTest, type TestAccessContext, type TestAccessInfo, type UserEntitlements } from './entitlements';
 import { hasBundle, hasLegacyPlan, inScope, withoutLegacyPlans } from './entitlements';
 
@@ -21,7 +21,7 @@ export async function loadUserEntitlements(userId: string, now = new Date(), mod
       },
     }),
     db.userPermission.findMany({
-      where: { userId, isActive: true, OR: [{ expiresAt: null }, { expiresAt: { gte: now } }] },
+      where: userPermissionWhere(userId, now),
       select: { categoryId: true, subjectId: true, isActive: true, expiresAt: true },
     }),
   ]);
@@ -29,6 +29,32 @@ export async function loadUserEntitlements(userId: string, now = new Date(), mod
     now,
     subscriptions: subscriptions.map(({ product, ...s }) => ({ ...s, subjectRule: product?.subjectRule ?? null })),
     permissions,
+  };
+}
+
+const userPermissionWhere = (userId: string, now: Date) => ({ userId, isActive: true, OR: [{ expiresAt: null }, { expiresAt: { gte: now } }] });
+
+// /me yo'llari bitta so'rovda ham kirish konteksti, ham pricing uchun obuna
+// kerak qiladi — ikki marta yuklamaslik uchun bitta to'plamdan ikkalasi.
+// To'plamlar boshqacha: access startDate'ni so'rovda filtrlamaydi (eski
+// tariflarda u e'tiborsiz, isActiveEntitlement qaror qiladi), pricing esa
+// faqat boshlanganlarini ko'rsatadi. Shu farq bu yerda JS'da saqlanadi.
+// React `cache()` route handler'da so'rov doirasida ishlamaydi — shuning
+// uchun natija qo'lda uzatiladi.
+export async function loadPersonalEntitlements(userId: string, now = new Date()): Promise<{
+  access: UserEntitlements; pricing: DetailedEntitlements;
+}> {
+  const [rows, permissions] = await Promise.all([
+    loadSubscriptionRows([userId], now, true),
+    db.userPermission.findMany({
+      where: userPermissionWhere(userId, now),
+      select: { categoryId: true, subjectId: true, isActive: true, expiresAt: true },
+    }),
+  ]);
+  const current = rows.filter((s) => s.endDate >= now);
+  return {
+    access: { now, subscriptions: current, permissions },
+    pricing: { now, permissions: [], subscriptions: current.filter((s) => s.startDate <= now) },
   };
 }
 
@@ -81,6 +107,8 @@ export function resolveTestAccess(test: TestAccessInfo, ctx: TestAccessContext |
 interface TestAccessOptions {
   includePurchases?: boolean;
   categoryTypes?: TestAccessContext['categoryTypes'] | Promise<TestAccessContext['categoryTypes']>;
+  /** Chaqiruvchi allaqachon yuklagan bo'lsa (`loadPersonalEntitlements`) — qayta so'ralmaydi. */
+  entitlements?: UserEntitlements;
 }
 
 // Testlar sonidan qat'i nazar ko'pi bilan beshta so'rov: obuna, ruxsat,
@@ -91,14 +119,14 @@ export async function loadTestAccessContext(
   tests: TestAccessInfo[],
   options: TestAccessOptions = {},
 ): Promise<TestAccessContext> {
-  const { includePurchases = true, categoryTypes: knownCategoryTypes } = options;
+  const { includePurchases = true, categoryTypes: knownCategoryTypes, entitlements } = options;
   const isAdmin = role === 'ADMIN';
   const locked = isAdmin ? [] : tests.filter((t) => !isFreeTest(t));
   const categoryIds = [...new Set(locked.filter((t) => t.accessType === 'subscription').map((t) => t.categoryId))];
   const paidIds = includePurchases ? locked.filter((t) => t.accessType === 'paid').map((t) => t.id) : [];
   const now = new Date();
   const [ent, categoryTypes, purchases, legacyPayments] = await Promise.all([
-    locked.length ? loadUserEntitlements(userId, now) : { now, subscriptions: [], permissions: [] },
+    locked.length ? (entitlements ?? loadUserEntitlements(userId, now)) : { now, subscriptions: [], permissions: [] },
     knownCategoryTypes ?? (categoryIds.length
       ? db.testCategory.findMany({ where: { id: { in: categoryIds } }, select: { id: true, type: true } })
         .then((categories) => new Map(categories.map((c) => [c.id, c.type])))
