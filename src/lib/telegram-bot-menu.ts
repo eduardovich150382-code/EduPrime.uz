@@ -13,6 +13,7 @@ import ruMessages from '@/messages/ru.json';
 
 const m = uzMessages.telegramBot;
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || '';
+export const CHANNEL_LINK = 'https://t.me/EduPrimeuz';
 
 type InlineButton = { text: string; url?: string; web_app?: { url: string }; callback_data?: string };
 type ReplyMarkup =
@@ -96,6 +97,8 @@ export async function sendWelcome(
       inline_keyboard: [
         [webApp(m.buttons.openPlatform, '/attestation')],
         [webApp(m.buttons.tests, '/tests'), webApp(m.buttons.pricing, '/pricing')],
+        // Kanal endi majburiy emas — faqat taklif sifatida.
+        [{ text: m.buttons.channel, url: CHANNEL_LINK }],
       ],
     },
   });

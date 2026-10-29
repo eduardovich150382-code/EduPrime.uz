@@ -1146,7 +1146,8 @@
       "allResults": "📊 All results",
       "fullRating": "🏆 Full leaderboard",
       "share": "📤 Send to friends",
-      "referralPage": "🎁 Invite page"
+      "referralPage": "🎁 Invite page",
+      "channel": "📢 Our channel"
     },
     "testsText": "📚 <b>Tests</b>\n\nTests by subject and topic — each with a detailed solution. Pick a topic and start! 👇",
     "attestationText": "🎯 <b>Attestation preparation</b>\n\n📝 Topic tests and full mock tests — in the exam format\n🧠 A step-by-step solution for every question\n📈 See which topics are strong and which need work\n\nStart today — walk into the exam with confidence! 💪",

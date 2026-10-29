@@ -1146,7 +1146,8 @@
       "allResults": "📊 Barcha natijalar",
       "fullRating": "🏆 To'liq reyting",
       "share": "📤 Do'stlarga yuborish",
-      "referralPage": "🎁 Taklif sahifasi"
+      "referralPage": "🎁 Taklif sahifasi",
+      "channel": "📢 Kanalimiz"
     },
     "testsText": "📚 <b>Testlar</b>\n\nFanlar va mavzular bo'yicha testlar — har biriga batafsil yechim bilan. Mavzuni tanlang va boshlang! 👇",
     "attestationText": "🎯 <b>Attestatsiyaga tayyorgarlik</b>\n\n📝 Mavzulashtirilgan testlar va to'liq mock testlar — imtihon formatida\n🧠 Har bir savolga bosqichma-bosqich yechim\n📈 Qaysi mavzularda kuchli, qaysilarida bo'sh ekaningizni ko'rasiz\n\nBugun boshlang — imtihonga ishonch bilan kiring! 💪",

@@ -1,0 +1,82 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { NextRequest } from 'next/server';
+
+const s = vi.hoisted(() => {
+  process.env.TELEGRAM_BOT_TOKEN = 'test-token'; process.env.ADMIN_TELEGRAM_IDS = '456'; process.env.NEXT_PUBLIC_APP_URL = 'http://localhost';
+  return { users: [] as Record<string, unknown>[], settings: new Map<string, string>(), intent: vi.fn(), link: vi.fn(async () => true) };
+});
+
+// Kanal tekshiruvi olib tashlangan: har qanday /start getChatMember'siz
+// to'g'ridan-to'g'ri o'z oqimiga tushishi kerak. Checkout va referal
+// modullari bu yerda faqat chaqirilganini ko'rish uchun almashtirilgan.
+const fake = vi.hoisted(() => ({} as Record<string, unknown>));
+vi.mock('@/lib/db', () => ({ db: fake }));
+vi.mock('@/lib/logger', () => ({ logger: { error: vi.fn() } }));
+vi.mock('@/lib/purchases', () => ({ recordPurchase: vi.fn() }));
+vi.mock('@/lib/subscription-payments', () => ({ processLegacySubscription: vi.fn() }));
+vi.mock('@/lib/telegram-intent-checkout', () => ({ startIntentCheckout: s.intent }));
+vi.mock('@/lib/referral-code', () => ({ linkReferral: s.link, ensureReferralCode: vi.fn() }));
+import { POST } from '../route';
+import uz from '@/messages/uz.json';
+
+Object.assign(fake, {
+  user: {
+    findUnique: async ({ where }: { where: { telegramId: string } }) => s.users.find((u) => u.telegramId === where.telegramId) ?? null,
+    findFirst: async ({ where }: { where: { telegramId: string } }) => s.users.find((u) => u.telegramId === where.telegramId) ?? null,
+    create: async ({ data }: { data: Record<string, unknown> }) => { const u = { id: `u${s.users.length + 1}`, ...data }; s.users.push(u); return u; },
+  },
+  systemSetting: {
+    findMany: async () => [],
+    upsert: async ({ where, create }: { where: { key: string }; create: { value: string } }) => { s.settings.set(where.key, create.value); return {}; },
+  },
+});
+
+const tg = { id: 777, username: 'student', first_name: 'Ali' };
+const request = (body: unknown) => new NextRequest('http://localhost/api/telegram/webhook', { method: 'POST', body: JSON.stringify(body) });
+const command = (text: string) => POST(request({ message: { text, chat: { id: tg.id }, from: tg } }));
+type Sent = { chat_id: number; text: string; reply_markup?: { inline_keyboard?: { text: string; url?: string; callback_data?: string }[][] } };
+const urls = () => vi.mocked(fetch).mock.calls.map(([url]) => String(url));
+const sent = (): Sent[] => vi.mocked(fetch).mock.calls.filter(([url]) => String(url).endsWith('/sendMessage')).map(([, init]) => JSON.parse(String(init?.body)) as Sent);
+const noChannelPrompt = () => {
+  expect(urls().some((url) => url.endsWith('/getChatMember'))).toBe(false);
+  expect(sent().some((msg) => msg.text.includes("Kanalga obuna bo'ling"))).toBe(false);
+};
+
+beforeEach(() => {
+  s.users.length = 0; s.settings.clear(); s.intent.mockClear(); s.link.mockClear();
+  // Obunasiz foydalanuvchi: getChatMember chaqirilsa "left" qaytadi.
+  vi.stubGlobal('fetch', vi.fn(async (url: string) => ({ json: async () => ({ ok: true, result: url.endsWith('/getChatMember') ? { status: 'left' } : { message_id: 1 } }) })));
+});
+
+describe('obunasiz /start', () => {
+  it('/start — welcome va ixtiyoriy kanal tugmasi', async () => {
+    await command('/start');
+    noChannelPrompt();
+    const welcome = sent()[0];
+    expect(welcome.text).toContain('Ali');
+    expect(welcome.reply_markup?.inline_keyboard?.flat().find((b) => b.text === uz.telegramBot.buttons.channel)?.url).toBe('https://t.me/EduPrimeuz');
+  });
+  it('/start ci_... — checkout darhol boshlanadi', async () => {
+    await command('/start ci_abc123');
+    noChannelPrompt();
+    expect(s.intent).toHaveBeenCalledWith(777, expect.objectContaining({ id: 777 }), 'ci_abc123', expect.anything());
+  });
+  it('/start ref_... — yangi foydalanuvchi taklif qilganga bog‘lanadi', async () => {
+    await command('/start ref_ali-ab12cd');
+    noChannelPrompt();
+    expect(s.link).toHaveBeenCalledWith('u1', 'ali-ab12cd');
+    expect(sent()[0].text).toContain(uz.telegramBot.referredWelcome);
+  });
+  it('/start login — kirish havolasi', async () => {
+    await command('/start login');
+    noChannelPrompt();
+    expect(s.settings.has('telegram_auth_777')).toBe(true);
+    expect(sent()[0].reply_markup?.inline_keyboard?.[0][0].url).toContain('/api/auth/telegram-callback?telegramId=777');
+  });
+  it('eski check_subscription tugmasi parametrsiz — welcome, xato yo‘q', async () => {
+    const res = await POST(request({ callback_query: { id: 'cb', from: tg, message: { chat: { id: tg.id } }, data: 'check_subscription' } }));
+    expect(res.status).toBe(200);
+    noChannelPrompt();
+    expect(sent()[0].text).toContain('Ali');
+  });
+});
