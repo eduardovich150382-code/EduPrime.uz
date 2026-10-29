@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { AlertCircle, ArrowLeft, Loader2 } from 'lucide-react';
 import { Link } from '@/i18n/routing';
@@ -8,6 +9,7 @@ import BackButton from '@/components/ui/BackButton';
 import ExamWorkspace from './ExamWorkspace';
 import TestLockedNotice, { type TestAccessDenied } from './TestLockedNotice';
 import PracticeResult, { type PracticeReview } from './PracticeResult';
+import SessionExpiredDialog from './SessionExpiredDialog';
 import { useAutoAdvance } from './useAutoAdvance';
 import { isPhysicsSubject, shufflePresentedQuestions } from '@/lib/exam-presentation';
 import { withReturnTo } from '@/lib/safe-return-path';
@@ -25,6 +27,20 @@ interface PracticeTest {
 }
 
 type Phase = 'loading' | 'locked' | 'error' | 'empty' | 'solving' | 'result';
+
+export type PracticeCheckOutcome = { kind: 'expired' } | { kind: 'error' } | { kind: 'ok'; practice: PracticeReview };
+
+// 401 alohida: sessiya tugagani "tekshirib bo'lmadi" xatosi emas — foydalanuvchi
+// qayta kirishi kerak. Boshqa har qanday javob avvalgidek xato.
+export async function readPracticeCheck(res: Response): Promise<PracticeCheckOutcome> {
+  if (res.status === 401) return { kind: 'expired' };
+  try {
+    const data = await res.json();
+    return res.ok && data.practice ? { kind: 'ok', practice: data.practice } : { kind: 'error' };
+  } catch {
+    return { kind: 'error' };
+  }
+}
 
 /**
  * Xatolar ustida mashq (`/tests/[id]/solve?practice=<resultId>`). Asosiy
@@ -49,6 +65,9 @@ export default function PracticeSolve({ testId, resultId, returnTo }: { testId: 
   const [submitting, setSubmitting] = useState(false);
   const [checkError, setCheckError] = useState(false);
   const [review, setReview] = useState<PracticeReview | null>(null);
+  const [sessionExpired, setSessionExpired] = useState(false);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const submitLock = useRef(false);
   const backHref = withReturnTo(`/results/${resultId}`, returnTo);
 
@@ -115,9 +134,10 @@ export default function PracticeSolve({ testId, resultId, returnTo }: { testId: 
           ...(roundIds ? { questionIds: roundIds } : {}),
         }),
       });
-      const data = await res.json();
-      if (!res.ok || !data.practice) throw new Error(data.error);
-      setReview(data.practice);
+      const outcome = await readPracticeCheck(res);
+      if (outcome.kind === 'expired') { setSessionExpired(true); return; }
+      if (outcome.kind === 'error') throw new Error('PRACTICE_CHECK_FAILED');
+      setReview(outcome.practice);
       setPhase('result');
       window.scrollTo({ top: 0 });
     } catch {
@@ -161,6 +181,8 @@ export default function PracticeSolve({ testId, resultId, returnTo }: { testId: 
       onAnswer={handleAnswer} onNavigate={navigate} onFlag={toggleFlag} onPause={() => {}} onResume={() => {}}
       onFinish={handleFinish} showFinish={showFinish} onShowFinish={value => { advance.cancel(); setShowFinish(value); }}
       physics={isPhysicsSubject(test.subject)} before={<BackButton className="mb-4" />} />
+    {/* `?practice=` va `returnTo` saqlansin — kirgach aynan shu mashqqa qaytadi. */}
+    {sessionExpired && <SessionExpiredDialog variant="practice" returnPath={searchParams.toString() ? `${pathname}?${searchParams.toString()}` : pathname} onClose={() => setSessionExpired(false)} />}
     {checkError && <p role="alert" className="fixed bottom-4 left-1/2 z-50 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 rounded-[18px] bg-rose-50 p-4 text-sm text-rose-800 shadow-lg">{t('practice.checkError')}</p>}
   </div>;
 }

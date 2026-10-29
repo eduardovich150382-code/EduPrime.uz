@@ -668,6 +668,7 @@
     "sessionExpired": {
       "title": "Your session has expired",
       "body": "Your answers are saved — sign in again and submit them.",
+      "practiceBody": "Practice answers aren’t saved — sign in again and restart the practice.",
       "login": "Sign in again",
       "close": "Close"
     },

@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { NextIntlClientProvider } from 'next-intl';
 import { describe, expect, it } from 'vitest';
 import SessionExpiredDialog from '../SessionExpiredDialog';
+import { readPracticeCheck } from '../PracticeSolve';
 import uz from '@/messages/uz.json';
 import ru from '@/messages/ru.json';
 import en from '@/messages/en.json';
@@ -50,5 +51,41 @@ describe('SessionExpiredDialog — topshirishda 401', () => {
     const html = render('uz', '/tests/t1/solve');
     expect(html).toMatch(/<a class="[^"]*min-h-11[^"]*" href="\/login/);
     expect(html).toMatch(/<button type="button" class="exam-control w-full"/);
+  });
+});
+
+describe('PracticeSolve — mashqni tekshirishda 401', () => {
+  const json = (body: unknown, status: number) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
+
+  it('401 — sessiya tugagan, xato emas', async () => {
+    expect(await readPracticeCheck(json({ error: 'Unauthorized' }, 401))).toEqual({ kind: 'expired' });
+  });
+  it.each([400, 403, 404, 500])('%i — avvalgidek xato', async (status) => {
+    expect(await readPracticeCheck(json({ error: 'x' }, status))).toEqual({ kind: 'error' });
+  });
+  it("200, lekin practice yo'q yoki JSON buzuq — xato", async () => {
+    expect(await readPracticeCheck(json({}, 200))).toEqual({ kind: 'error' });
+    expect(await readPracticeCheck(new Response('<html>', { status: 200 }))).toEqual({ kind: 'error' });
+  });
+  it('200 — natija', async () => {
+    const practice = { questions: [] };
+    expect(await readPracticeCheck(json({ practice }, 200))).toEqual({ kind: 'ok', practice });
+  });
+
+  it.each<[Locale, string]>([
+    ['uz', '/tests/t1/solve?practice=r1&returnTo=%2Fcourses%2Fc1%2Flearn'],
+    ['ru', '/ru/tests/t1/solve?practice=r1'],
+    ['en', '/en/tests/t1/solve?practice=r1'],
+  ])("%s: mashq matni (qoralama va'da qilinmaydi), til va query saqlanadi", (locale, returnPath) => {
+    const html = renderToStaticMarkup(
+      <NextIntlClientProvider locale={locale} messages={all[locale]} timeZone="Asia/Tashkent">
+        <SessionExpiredDialog variant="practice" returnPath={returnPath} onClose={() => {}} />
+      </NextIntlClientProvider>,
+    );
+    const t = all[locale].exam.sessionExpired;
+    expect(html).toContain(esc(t.practiceBody));
+    expect(html).not.toContain(esc(t.body));
+    const prefix = locale === 'uz' ? '' : `/${locale}`;
+    expect(html).toContain(`href="${prefix}/login?callbackUrl=${encodeURIComponent(returnPath)}"`);
   });
 });

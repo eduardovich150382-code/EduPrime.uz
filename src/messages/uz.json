@@ -668,6 +668,7 @@
     "sessionExpired": {
       "title": "Sessiya muddati tugadi",
       "body": "Javoblaringiz saqlangan — qayta kiring va topshiring.",
+      "practiceBody": "Mashq javoblari saqlanmaydi — qayta kiring va mashqni yana boshlang.",
       "login": "Qayta kirish",
       "close": "Yopish"
     },
