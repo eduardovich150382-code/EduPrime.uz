@@ -45,7 +45,7 @@ Object.assign(fake, {
 });
 
 const tg = { id: 777, username: 'student', first_name: 'Ali' };
-const request = (body: unknown) => new NextRequest('http://localhost/api/telegram/webhook', { method: 'POST', body: JSON.stringify(body) });
+const request = (body: unknown) => new NextRequest('http://localhost/api/telegram/webhook', { method: 'POST', headers: { 'x-telegram-bot-api-secret-token': 'test-webhook' }, body: JSON.stringify(body) });
 const command = (text: string) => POST(request({ message: { text, chat: { id: tg.id }, from: tg } }));
 type Sent = { chat_id: number; text: string; reply_markup?: { inline_keyboard?: { text: string; url?: string; callback_data?: string }[][] } };
 const urls = () => vi.mocked(fetch).mock.calls.map(([url]) => String(url));
@@ -56,6 +56,8 @@ const noChannelPrompt = () => {
 };
 
 beforeEach(() => {
+  // CI'da TELEGRAM_WEBHOOK_SECRET o'rnatilgan — testlar muhitga bog'liq bo'lmasin.
+  vi.stubEnv('TELEGRAM_WEBHOOK_SECRET', 'test-webhook');
   s.users.length = 0; s.settings.clear(); s.starts.length = 0; s.failStart.value = false; s.intent.mockClear(); s.link.mockClear();
   // Obunasiz foydalanuvchi: getChatMember chaqirilsa "left" qaytadi.
   vi.stubGlobal('fetch', vi.fn(async (url: string) => ({ json: async () => ({ ok: true, result: url.endsWith('/getChatMember') ? { status: 'left' } : { message_id: 1 } }) })));
