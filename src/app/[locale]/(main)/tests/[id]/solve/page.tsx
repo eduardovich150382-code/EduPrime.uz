@@ -2,13 +2,14 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslations } from 'next-intl';
-import { useRouter, useParams, useSearchParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams, usePathname } from 'next/navigation';
 import ExamWorkspace from '@/components/test/ExamWorkspace';
 import { useAutoAdvance } from '@/components/test/useAutoAdvance';
 import { usePracticeClock } from '@/components/test/usePracticeClock';
 import { isPhysicsSubject, shufflePresentedQuestions } from '@/lib/exam-presentation';
 import { CLOCK_KEY_PREFIX, DRAFT_KEY_PREFIX, getDraftResumeMode, restoreTestDraft } from '@/lib/test-draft';
 import ExpiredDraftNotice from '@/components/test/ExpiredDraftNotice';
+import SessionExpiredDialog from '@/components/test/SessionExpiredDialog';
 import TestLockedNotice, { type TestAccessDenied } from '@/components/test/TestLockedNotice';
 import PracticeSolve from '@/components/test/PracticeSolve';
 import BackButton from '@/components/ui/BackButton';
@@ -57,6 +58,7 @@ function TestSolveExam() {
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const testId = params.id as string;
   // Kurs darsidan kelingan bo'lsa (qarang `courses/[id]/learn`), test
   // tugatilgach natija sahifasi orqali aynan shu manzilga qaytish uchun —
@@ -81,6 +83,7 @@ function TestSolveExam() {
   // Ochilishda vaqti tugagan qoralama — foydalanuvchi tanlamaguncha
   // ExamWorkspace (va TestTimer) render qilinmaydi.
   const [expiredDraft, setExpiredDraft] = useState<{ answered: number; total: number } | null>(null);
+  const [sessionExpired, setSessionExpired] = useState(false);
 
   const clock = usePracticeClock(testId, (test?.duration ?? 0) * 60);
   const submitLock = useRef(false);
@@ -309,6 +312,14 @@ function TestSolveExam() {
         body: JSON.stringify({ answers: answerArray, timeSpent }),
       });
 
+      // Qoralama o'chirilmaydi — kirgach shu sahifa uni tiklaydi.
+      if (res.status === 401) {
+        setSessionExpired(true);
+        submitLock.current = false;
+        setSubmitting(false);
+        return;
+      }
+
       const data = await res.json();
 
       if (res.ok && data.result) {
@@ -352,10 +363,17 @@ function TestSolveExam() {
     );
   }
 
+  // `returnTo` ham saqlansin — kurs darsidan kelgan foydalanuvchi kirgach o'sha yo'lda qolsin.
+  const query = searchParams.toString();
+  const sessionDialog = sessionExpired && <SessionExpiredDialog returnPath={query ? `${pathname}?${query}` : pathname} onClose={() => setSessionExpired(false)} />;
+
   if (expiredDraft) {
-    return <ExpiredDraftNotice testId={testId} answered={expiredDraft.answered} total={expiredDraft.total} submitting={submitting}
-      // Tanlov ekranida o'tgan vaqt joriy savolga yozilmasin.
-      onSubmit={() => { questionStartTimeRef.current = Date.now(); handleFinish(); }} />;
+    return <>
+      <ExpiredDraftNotice testId={testId} answered={expiredDraft.answered} total={expiredDraft.total} submitting={submitting}
+        // Tanlov ekranida o'tgan vaqt joriy savolga yozilmasin.
+        onSubmit={() => { questionStartTimeRef.current = Date.now(); handleFinish(); }} />
+      {sessionDialog}
+    </>;
   }
 
   return (
@@ -369,6 +387,7 @@ function TestSolveExam() {
         onFinish={handleFinish} showFinish={showFinishDialog} onShowFinish={value => { advance.cancel(); setShowFinishDialog(value); }}
         physics={isPhysicsSubject(test.subject)} onFullscreen={toggleFullscreen} before={<BackButton className="mb-4" />} />
       {showTabWarning && !clock.paused && <div role="status" className="fixed bottom-4 left-1/2 z-50 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 rounded-[18px] bg-amber-50 p-4 text-sm text-amber-800 shadow-lg">{tabSwitchCount} · {exam('stayOnPage')}</div>}
+      {sessionDialog}
     </div>
   );
 }

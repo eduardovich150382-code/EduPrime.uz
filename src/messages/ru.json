@@ -665,6 +665,12 @@
       "restart": "Начать заново",
       "submit": "Отправить мои ответы"
     },
+    "sessionExpired": {
+      "title": "Сессия истекла",
+      "body": "Ваши ответы сохранены — войдите снова и отправьте их.",
+      "login": "Войти снова",
+      "close": "Закрыть"
+    },
     "legendCorrect": "Верно ({count})",
     "legendIncorrect": "Неверно ({count})",
     "legendUnanswered": "Без ответа ({count})",

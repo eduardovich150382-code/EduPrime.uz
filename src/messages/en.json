@@ -665,6 +665,12 @@
       "restart": "Start over",
       "submit": "Submit my answers"
     },
+    "sessionExpired": {
+      "title": "Your session has expired",
+      "body": "Your answers are saved — sign in again and submit them.",
+      "login": "Sign in again",
+      "close": "Close"
+    },
     "legendCorrect": "Correct ({count})",
     "legendIncorrect": "Incorrect ({count})",
     "legendUnanswered": "Unanswered ({count})",

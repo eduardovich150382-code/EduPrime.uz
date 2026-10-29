@@ -665,6 +665,12 @@
       "restart": "Yangidan boshlash",
       "submit": "Javoblarimni topshirish"
     },
+    "sessionExpired": {
+      "title": "Sessiya muddati tugadi",
+      "body": "Javoblaringiz saqlangan — qayta kiring va topshiring.",
+      "login": "Qayta kirish",
+      "close": "Yopish"
+    },
     "legendCorrect": "To‘g‘ri ({count})",
     "legendIncorrect": "Xato ({count})",
     "legendUnanswered": "Javob berilmagan ({count})",
