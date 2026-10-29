@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { attachFirstSource } from '@/lib/bot-start';
 import * as jose from 'jose';
 import { logger } from '@/lib/logger';
 import { sanitizeReturnPath } from '@/lib/safe-return-path';
@@ -106,6 +107,9 @@ export async function GET(request: NextRequest) {
         });
       }
     }
+
+    // Reklama attributsiyasi: birinchi /start manbasi (yoki 'web') bir marta yoziladi.
+    if (!user.firstSource) await attachFirstSource(user.id, user.telegramId);
 
     // Create session cookie (same way NextAuth v5 / Auth.js does internally)
     const isProduction = APP_URL.startsWith('https');

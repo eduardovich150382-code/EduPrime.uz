@@ -9,7 +9,7 @@ vi.mock('@/lib/db', () => ({ db }));
 
 import uz from '@/messages/uz.json';
 import { fill, handleMenuAction, mainKeyboard, menuActionFor, sendWelcome } from '../telegram-bot-menu';
-import { botReferralLink, miniAppStartTarget, miniAppUrl, parseReferralStart } from '../telegram-bot-links';
+import { botReferralLink, miniAppStartTarget, miniAppUrl, parseAdStart, parseReferralStart } from '../telegram-bot-links';
 
 type Sent = { chatId: number | string; text: string; options?: { reply_markup?: unknown } };
 
@@ -67,6 +67,19 @@ describe('havolalar', () => {
     expect(parseReferralStart('ref_')).toBeNull();
     expect(parseReferralStart('ref_A<script>')).toBeNull();
     expect(botReferralLink('ali-ab12cd')).toBe('https://t.me/EduPrimeuzbot?start=ref_ali-ab12cd');
+  });
+
+  it('reklama start parametri', () => {
+    expect(parseAdStart('ad_fizika1')).toBe('fizika1');
+    expect(parseAdStart('ad_a_b-c')).toBe('a_b-c');
+    expect(parseAdStart(`ad_${'x'.repeat(32)}`)).toBe('x'.repeat(32));
+    // Bo'sh, juda uzun va ruxsatsiz belgilar.
+    expect(parseAdStart('ad_')).toBeNull();
+    expect(parseAdStart(`ad_${'x'.repeat(33)}`)).toBeNull();
+    expect(parseAdStart('ad_Fizika')).toBeNull();
+    expect(parseAdStart('ad_fizika!')).toBeNull();
+    expect(parseAdStart('ad_<script>')).toBeNull();
+    expect(parseAdStart('ref_fizika1')).toBeNull();
   });
 });
 

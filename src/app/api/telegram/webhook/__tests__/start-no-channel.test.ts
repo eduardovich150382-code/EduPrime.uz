@@ -3,7 +3,8 @@ import { NextRequest } from 'next/server';
 
 const s = vi.hoisted(() => {
   process.env.TELEGRAM_BOT_TOKEN = 'test-token'; process.env.ADMIN_TELEGRAM_IDS = '456'; process.env.NEXT_PUBLIC_APP_URL = 'http://localhost';
-  return { users: [] as Record<string, unknown>[], settings: new Map<string, string>(), intent: vi.fn(), link: vi.fn(async () => true) };
+  return { users: [] as Record<string, unknown>[], settings: new Map<string, string>(), starts: [] as Record<string, unknown>[], failStart: { value: false },
+    intent: vi.fn(), link: vi.fn(async () => true) };
 });
 
 // Kanal tekshiruvi olib tashlangan: har qanday /start getChatMember'siz
@@ -18,12 +19,20 @@ vi.mock('@/lib/telegram-intent-checkout', () => ({ startIntentCheckout: s.intent
 vi.mock('@/lib/referral-code', () => ({ linkReferral: s.link, ensureReferralCode: vi.fn() }));
 import { POST } from '../route';
 import uz from '@/messages/uz.json';
+import { AD_START_TEXT, AD_TEST_BUTTON } from '@/lib/telegram-ad-start';
 
 Object.assign(fake, {
   user: {
     findUnique: async ({ where }: { where: { telegramId: string } }) => s.users.find((u) => u.telegramId === where.telegramId) ?? null,
     findFirst: async ({ where }: { where: { telegramId: string } }) => s.users.find((u) => u.telegramId === where.telegramId) ?? null,
     create: async ({ data }: { data: Record<string, unknown> }) => { const u = { id: `u${s.users.length + 1}`, ...data }; s.users.push(u); return u; },
+  },
+  botStart: {
+    findFirst: async ({ where }: { where: { telegramId: bigint } }) => {
+      if (s.failStart.value) throw new Error('db down');
+      return s.starts.find((b) => b.telegramId === where.telegramId) ?? null;
+    },
+    create: async ({ data }: { data: Record<string, unknown> }) => { s.starts.push(data); return data; },
   },
   systemSetting: {
     findMany: async () => [],
@@ -43,7 +52,7 @@ const noChannelPrompt = () => {
 };
 
 beforeEach(() => {
-  s.users.length = 0; s.settings.clear(); s.intent.mockClear(); s.link.mockClear();
+  s.users.length = 0; s.settings.clear(); s.starts.length = 0; s.failStart.value = false; s.intent.mockClear(); s.link.mockClear();
   // Obunasiz foydalanuvchi: getChatMember chaqirilsa "left" qaytadi.
   vi.stubGlobal('fetch', vi.fn(async (url: string) => ({ json: async () => ({ ok: true, result: url.endsWith('/getChatMember') ? { status: 'left' } : { message_id: 1 } }) })));
 });
@@ -78,5 +87,25 @@ describe('obunasiz /start', () => {
     expect(res.status).toBe(200);
     noChannelPrompt();
     expect(sent()[0].text).toContain('Ali');
+  });
+  it('/start ad_test1 — BotStart yoziladi va reklama xabari chiqadi', async () => {
+    await command('/start ad_test1');
+    noChannelPrompt();
+    expect(s.starts).toEqual([{ telegramId: BigInt(777), source: 'ad_test1', isFirst: true }]);
+    expect(sent()[0].text).toBe(AD_START_TEXT);
+    expect(sent()[0].reply_markup?.inline_keyboard?.[0][0].text).toBe(AD_TEST_BUTTON);
+    await command('/start');
+    expect(s.starts[1]).toEqual({ telegramId: BigInt(777), source: 'organic', isFirst: false });
+  });
+  it('noto‘g‘ri ad_ kodi — oddiy welcome', async () => {
+    await command('/start ad_BAD!');
+    expect(s.starts[0]).toMatchObject({ source: 'other' });
+    expect(sent()[0].text).not.toBe(AD_START_TEXT);
+    expect(sent()[0].text).toContain('Ali');
+  });
+  it('BotStart yozish xatosi javobni to‘xtatmaydi', async () => {
+    s.failStart.value = true;
+    await command('/start ad_test1');
+    expect(sent()[0].text).toBe(AD_START_TEXT);
   });
 });

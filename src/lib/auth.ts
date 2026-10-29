@@ -2,6 +2,7 @@ import NextAuth from 'next-auth';
 import Google from 'next-auth/providers/google';
 import Credentials from 'next-auth/providers/credentials';
 import { db } from './db';
+import { attachFirstSource } from './bot-start';
 import { verifyWebAppInitData, webAppDisplayName } from './telegram-webapp-auth';
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -70,6 +71,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             }
           }
 
+          if (!user.firstSource) await attachFirstSource(user.id, user.telegramId);
           return {
             id: user.id,
             name: user.name,
@@ -106,6 +108,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           } else if (telegramUsername && user.telegramUsername !== telegramUsername) {
             user = await db.user.update({ where: { id: user.id }, data: { telegramUsername } });
           }
+          if (!user.firstSource) await attachFirstSource(user.id, user.telegramId);
           return { id: user.id, name: user.name, email: user.email, image: user.image };
         } catch (error) {
           console.error('[Auth] Telegram Mini App authorize error:', error);
@@ -181,6 +184,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             });
           }
 
+          if (!dbUser.firstSource) await attachFirstSource(dbUser.id, dbUser.telegramId);
           token.id = dbUser.id;
           token.role = dbUser.role;
           token.lang = dbUser.lang;

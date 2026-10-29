@@ -36,6 +36,14 @@ export function parseReferralStart(value: string): string | null {
   return REF_PATTERN.exec(value)?.[1] ?? null;
 }
 
+// Reklama havolasi: t.me/EduPrimeuzbot?start=ad_<kod>. Kod BotStart.source'ga
+// yoziladi va hisobotda guruhlanadi — shuning uchun qat'iy, kichik harfli.
+const AD_PATTERN = /^ad_([a-z0-9_-]{1,32})$/;
+
+export function parseAdStart(value: string): string | null {
+  return AD_PATTERN.exec(value)?.[1] ?? null;
+}
+
 export function botReferralLink(code: string): string {
   return `https://t.me/${BOT_USERNAME}?start=${referralStartParameter(code)}`;
 }

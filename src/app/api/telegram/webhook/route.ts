@@ -4,11 +4,13 @@ import { recordPurchase } from '@/lib/purchases';
 import { logger } from '@/lib/logger';
 import { handleCheckoutCallback, handleCheckoutReceipt, showCheckoutProducts, startSelectedCheckout } from '@/lib/telegram-category-checkout';
 import { startIntentCheckout } from '@/lib/telegram-intent-checkout';
-import { parseIntentStart } from '@/lib/checkout-intent';
 import { processLegacySubscription } from '@/lib/subscription-payments';
 import uzMessages from '@/messages/uz.json';
 import { handleMenuAction, menuActionFor, sendWelcome, setChatMenuForUser, setupBotMenu, setupReport } from '@/lib/telegram-bot-menu';
-import { parseReferralStart } from '@/lib/telegram-bot-links';
+import { parseAdStart, parseReferralStart } from '@/lib/telegram-bot-links';
+import { countFirstStarts, recordBotStart } from '@/lib/bot-start';
+import { sendAdStart } from '@/lib/telegram-ad-start';
+import { tashkentDayRangeUtc } from '@/lib/date';
 import { linkReferral } from '@/lib/referral-code';
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
@@ -286,6 +288,13 @@ async function handleStart(chatId: number, userId: number, username: string, fir
     return;
   }
 
+  // Reklama: qisqa xabar va bitta asosiy harakat. Noto'g'ri kod — oddiy welcome.
+  if (parseAdStart(param)) {
+    await sendAdStart(chatId, APP_URL, null, { send: sendMessage });
+    await setChatMenuForUser(BOT_TOKEN, APP_URL, chatId);
+    return;
+  }
+
   // Default /start — salomlashish, Mini App tugmasi va pastki menyu.
   const referralCode = parseReferralStart(param);
   const referred = referralCode ? await registerBotReferral(userId, username, firstName, referralCode) : false;
@@ -332,14 +341,18 @@ async function handleAdmin(chatId: number, userId: number) {
   }
 
   const userCount = await db.user.count();
-  const pendingPayments = await db.payment.count({
-    where: { status: 'PENDING', receiptPhoto: { not: null } },
-  });
+  const [pendingPayments, startsToday, startsWeek] = await Promise.all([
+    db.payment.count({ where: { status: 'PENDING', receiptPhoto: { not: null } } }),
+    // "Bugun" — Toshkent yarim tunidan, UTC'dan emas.
+    countFirstStarts(tashkentDayRangeUtc(0).start),
+    countFirstStarts(tashkentDayRangeUtc(6).start),
+  ]);
 
   await sendMessage(chatId,
     `🔐 <b>Admin Panel</b>\n\n` +
     `👥 Foydalanuvchilar: <b>${userCount}</b>\n` +
-    `💰 Kutilayotgan to'lovlar: <b>${pendingPayments}</b>\n\n` +
+    `💰 Kutilayotgan to'lovlar: <b>${pendingPayments}</b>\n` +
+    `📈 Birinchi /start: bugun <b>${startsToday}</b> · 7 kun <b>${startsWeek}</b>\n\n` +
     `<b>Admin buyruqlar:</b>\n` +
     `/users — Foydalanuvchilar ro'yxati\n` +
     `/broadcast [xabar] — Barchaga xabar yuborish\n\n` +
@@ -817,6 +830,8 @@ export async function POST(request: NextRequest) {
 
       if (text.startsWith('/start')) {
         const param = text.replace('/start', '').trim();
+        // Faqat haqiqiy /start sanaladi — eski check_subscription tugmasi qayta yozmaydi.
+        await recordBotStart(userId, param);
         await handleStart(chatId, userId, username, firstName, param);
       } else if (text === '/login') {
         await handleLogin(chatId, userId, username, firstName);
