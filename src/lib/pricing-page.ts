@@ -4,7 +4,7 @@ import { secondSubjectOfferPrice } from './category-checkout';
 import { localizedName, productContentCounts, promoActive, type PricingProduct } from './pricing';
 import { loadPricingCatalog } from './public-catalog';
 import { subscriptionView, type SubscriptionView } from './subscription-display';
-import type { SubscriptionDetails } from './subscription-details';
+import type { DetailedEntitlements, SubscriptionDetails } from './subscription-details';
 
 type Lang = 'Uz' | 'Ru' | 'En';
 const lang = (locale: string): Lang => locale === 'ru' ? 'Ru' : locale === 'en' ? 'En' : 'Uz';
@@ -19,14 +19,15 @@ function localizedList<F extends string>(row: Record<`${F}${Lang}`, string[]>, f
   return list.length ? list : row[`${field}Uz`];
 }
 
-export async function loadPricingPage(userId: string | null, locale: string, now = new Date()): Promise<{
+// `preloaded` — chaqiruvchi allaqachon yuklagan bo'lsa (/api/attestation/me), qayta so'ralmaydi.
+export async function loadPricingPage(userId: string | null, locale: string, now = new Date(), preloaded?: DetailedEntitlements): Promise<{
   products: PricingProduct[]; subscriptions: SubscriptionView[];
 }> {
   // Katalog (mahsulot, narx, sonlar) — hamma uchun bir xil, keshdan; obunalar
   // va shaxsiy narx — faqat shu foydalanuvchiniki, keshdan tashqarida.
   const [catalog, entitlements] = await Promise.all([
     loadPricingCatalog(),
-    userId ? loadUserEntitlements(userId, now, 'pricing') : null,
+    userId ? (preloaded ?? loadUserEntitlements(userId, now, 'pricing')) : null,
   ]);
   const { counts } = catalog;
   const products = catalog.products.map((product) => ({

@@ -10,11 +10,13 @@ import ExamDialog from './ExamDialog';
 // shuning uchun foydalanuvchini qo'rqitmay, kirgach aynan shu test sahifasiga
 // qaytaramiz — u yerda qoralama tiklanadi va qayta topshirish mumkin.
 // `returnPath` locale prefiksli bo'lishi shart (qarang `localizedPath`).
-export default function SessionExpiredDialog({ returnPath, onClose }: { returnPath: string; onClose: () => void }) {
+// Xatolar ustida mashqda qoralama yo'q (PracticeSolve) — "saqlangan" deb
+// va'da qilmaslik uchun `variant="practice"` boshqa matn ko'rsatadi.
+export default function SessionExpiredDialog({ returnPath, onClose, variant = 'exam' }: { returnPath: string; onClose: () => void; variant?: 'exam' | 'practice' }) {
   const t = useTranslations('exam.sessionExpired');
   return (
     <ExamDialog title={t('title')} onClose={onClose}>
-      <p role="alert" className="mb-6 text-sm leading-relaxed text-text-secondary">{t('body')}</p>
+      <p role="alert" className="mb-6 text-sm leading-relaxed text-text-secondary">{t(variant === 'practice' ? 'practiceBody' : 'body')}</p>
       <div className="flex flex-col gap-3">
         <Link href={loginHref(returnPath)} className="btn-primary inline-flex min-h-11 w-full items-center justify-center gap-2">
           <LogIn size={18} aria-hidden="true" />
