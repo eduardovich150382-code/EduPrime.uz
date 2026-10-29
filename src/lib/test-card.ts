@@ -18,6 +18,8 @@ export interface CardAccessInfo {
   isFree: boolean;
   accessType?: string;
   price?: number;
+  /** Reklama uchun bepul test (lib/ad-free-test.ts) — kirgan har kimga ochiq. */
+  promoFree?: boolean;
 }
 
 export type CardState =
@@ -65,6 +67,8 @@ export function getCardState(test: CardAccessInfo, result?: BriefResult, hasAcce
     };
   }
   if (hasAccess === true) return { kind: 'start' };
+  // Mehmonda ham "Boshlash": havola login'ga, so'ng Mini App/sayt to'g'ridan-to'g'ri testga.
+  if (test.promoFree) return { kind: 'start' };
   if (test.isFree || test.accessType === 'free') return { kind: 'start' };
   if (test.accessType === 'paid') return { kind: 'buy', price: test.price || 0 };
   if (test.accessType === 'premium') return { kind: 'upgrade', plan: 'premium' };
@@ -72,12 +76,14 @@ export function getCardState(test: CardAccessInfo, result?: BriefResult, hasAcce
   return { kind: 'upgrade', plan: 'other' };
 }
 
-export type LockBadge = { kind: 'price'; price: number } | { kind: 'premium' } | { kind: 'teacher' } | { kind: 'subscription' } | null;
+export type LockBadge = { kind: 'price'; price: number } | { kind: 'premium' } | { kind: 'teacher' } | { kind: 'subscription' } | { kind: 'free' } | null;
 
 // Qulf yonidagi kichik belgi. premium_teacher'ga "Premium" — eng ko'p
 // sotiladigan tarif, Ustoz tarifini solve sahifasi qo'shimcha aytadi.
 // Noma'lum accessType'da belgi yo'q, faqat qulf ikonkasi.
 export function getLockBadge(test: CardAccessInfo, state: CardState): LockBadge {
+  // Qulf emas, aksincha — reklama testini ro'yxatda ajratib ko'rsatadi.
+  if (test.promoFree) return state.kind === 'solved' ? null : { kind: 'free' };
   if (state.kind === 'buy') return { kind: 'price', price: state.price };
   if (state.kind !== 'upgrade') return null;
   if (test.accessType === 'premium' || test.accessType === 'premium_teacher') return { kind: 'premium' };

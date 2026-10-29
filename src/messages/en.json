@@ -327,7 +327,11 @@
     "questionVideoTitle": "Question {number} video solution",
     "aiExplainButton": "Explain with AI",
     "aiExplainTitle": "AI explanation",
-    "aiExplaining": "AI is explaining..."
+    "aiExplaining": "AI is explaining...",
+    "adOffer": {
+      "title": "30+ more mock tests and every solution — Attestation subscription",
+      "button": "💳 Choose a subscription"
+    }
   },
   "sessionSolve": {
     "exitButton": "Exit test",
@@ -729,7 +733,8 @@
       "lockPremium": "With subscription",
       "lockTeacher": "Teacher plan",
       "lockSubscription": "Subscription",
-      "lockPrice": "With subscription or {price} UZS separately"
+      "lockPrice": "With subscription or {price} UZS separately",
+      "free": "Free"
     },
     "banner": {
       "pill": "Attestation season",
@@ -1121,12 +1126,12 @@
     "stepReward": "{friends, plural, one {# friend} other {# friends}} = {days, plural, one {# day} other {# days}} of free access (attestation not included)"
   },
   "telegramBot": {
-    "welcome": "🎓 <b>EduPrime</b> — a platform to prepare for attestation and exams\n\nHello, {name}! 👋\n\n✅ Attestation tests based on the official specification\n✅ A detailed step-by-step solution for every question\n✅ Result analysis and your place on the leaderboard\n✅ All right here — inside Telegram, no password or sign-up\n\n👇 Tap <b>“Open the platform”</b> to get started.",
+    "welcome": "🎓 <b>EduPrime</b> — a platform to prepare for attestation and exams\n\nHello, {name}! 👋\n\n✅ Attestation tests based on the official specification\n✅ A detailed step-by-step solution for every question\n✅ Result analysis and your place on the leaderboard\n✅ All right here — inside Telegram, no password or sign-up\n\n👇 Tap <b>“EduPrime.uz”</b> to get started.",
     "referredWelcome": "🤝 A friend invited you — welcome to EduPrime!",
     "friend": "friend",
     "menuHint": "⬇️ Use the menu below to see your results, the leaderboard and more in one tap.",
     "keyboardPlaceholder": "Choose a section",
-    "menuButton": "Open the platform",
+    "menuButton": "EduPrime.uz",
     "shortDescription": "Prepare for attestation and exams: tests with detailed solutions, result analysis and a leaderboard — inside Telegram.",
     "description": "🎓 EduPrime — a platform to prepare teachers for attestation and exams.\n\n✅ Tests based on the official specification\n✅ A detailed solution for every question\n✅ Result analysis and a leaderboard\n\nTap “Start” and begin your first test now!",
     "buttons": {
@@ -1146,7 +1151,8 @@
       "allResults": "📊 All results",
       "fullRating": "🏆 Full leaderboard",
       "share": "📤 Send to friends",
-      "referralPage": "🎁 Invite page"
+      "referralPage": "🎁 Invite page",
+      "channel": "📢 Our channel"
     },
     "testsText": "📚 <b>Tests</b>\n\nTests by subject and topic — each with a detailed solution. Pick a topic and start! 👇",
     "attestationText": "🎯 <b>Attestation preparation</b>\n\n📝 Topic tests and full mock tests — in the exam format\n🧠 A step-by-step solution for every question\n📈 See which topics are strong and which need work\n\nStart today — walk into the exam with confidence! 💪",
@@ -1162,7 +1168,7 @@
     "anonymous": "User",
     "referralText": "🎁 <b>Invite friends</b>\n\nShare EduPrime with colleagues and friends — they join through the link below.\n\n🔗 Your link:\n{link}\n\n👥 You have invited: <b>{count}</b>",
     "referralShareText": "I'm preparing for attestation and exams on EduPrime: tests with detailed solutions, result analysis and a leaderboard — all inside Telegram. Join me! 👇",
-    "helpText": "❓ <b>Help</b>\n\n🚀 <b>Open the platform</b> — the site opens inside Telegram, you are signed in automatically\n📚 <b>Tests</b> — tests by subject and topic\n🎯 <b>Attestation</b> — teacher attestation preparation\n📊 <b>My results</b> — latest results and average score\n🏆 <b>Leaderboard</b> — most points\n🎁 <b>Invite</b> — a link for your friends\n💳 <b>Subscription</b> — buy a subscription\n\n<b>Commands:</b> /start, /testlar, /natijalar, /reyting, /taklif, /obuna, /login, /help\n\n💬 Questions and suggestions: @EduPrimeuz_Admin",
+    "helpText": "❓ <b>Help</b>\n\n📱 <b>EduPrime.uz</b> (bottom-left button) — the site opens inside Telegram, you are signed in automatically\n📚 <b>Tests</b> — tests by subject and topic\n🎯 <b>Attestation</b> — teacher attestation preparation\n📊 <b>My results</b> — latest results and average score\n🏆 <b>Leaderboard</b> — most points\n🎁 <b>Invite</b> — a link for your friends\n💳 <b>Subscription</b> — buy a subscription\n\n<b>Commands:</b> /start, /testlar, /natijalar, /reyting, /taklif, /obuna, /login, /help\n\n💬 Questions and suggestions: @EduPrimeuz_Admin",
     "commands": {
       "start": "Start the bot",
       "tests": "Tests",
@@ -1185,5 +1191,24 @@
     "openInBrowser": "🌐 Open in browser",
     "preparing": "Preparing...",
     "stayInTelegram": "Continue in Telegram"
+  },
+  "adminAdSources": {
+    "title": "Ad sources",
+    "link": "Ads",
+    "description": "People whose first /start was in the period, grouped by first source. Each step is counted after that /start.",
+    "adTest": "Free test: {title}",
+    "adTestMissing": "Free ad test is not configured (Settings → Ads)",
+    "window": "{days} days",
+    "error": "Could not load the report",
+    "empty": "No /start in this period",
+    "footnote": "web — signed up on the site, without the bot. Data is cached for up to 5 minutes.",
+    "columns": {
+      "source": "Source",
+      "firstStarts": "First /start",
+      "signedIn": "Signed in",
+      "adTestStarted": "Started test",
+      "adTestFinished": "Finished test",
+      "paid": "Paid"
+    }
   }
 }

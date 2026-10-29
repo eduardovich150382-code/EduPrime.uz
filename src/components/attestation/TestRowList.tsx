@@ -160,6 +160,8 @@ export function TestRowList({ title, rows, emptyText, lockedHref, pending = fals
                             ? tests('lockPremium')
                             : row.lockBadge.kind === 'subscription'
                             ? tests('lockSubscription')
+                            : row.lockBadge.kind === 'free'
+                            ? tests('free')
                             : tests('lockTeacher')}
                         </span>
                       )}

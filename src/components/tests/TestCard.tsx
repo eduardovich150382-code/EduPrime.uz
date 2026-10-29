@@ -23,6 +23,7 @@ export interface TestItem {
   createdAt?: string;
   category?: { type: TestType } | null;
   hasAccess?: boolean;
+  promoFree?: boolean;
 }
 
 function isTestGoal(type: TestType | undefined): type is TestGoal {
@@ -81,6 +82,8 @@ export function TestCard({
       ? t('card.lockTeacher')
       : badge?.kind === 'subscription'
       ? t('card.lockSubscription')
+      : badge?.kind === 'free'
+      ? t('card.free')
       : null;
 
   // `||` ataylab: bo'sh satr ("") ham tarjima yo'q degani.

@@ -7,6 +7,7 @@ import { auth } from '@/lib/auth';
 import { planQuestionOrder, shuffleTest } from '@/lib/shuffle';
 import { getQuestionSection, groupBySection } from '@/lib/question-sections';
 import { checkTestAccess } from '@/lib/access';
+import { isAdFreeTest, markAdTestStarted } from '@/lib/ad-free-test';
 import { resolveTestVisibility } from '@/lib/test-visibility';
 import { filterPracticeQuestions, getRetakeQuestionIds } from '@/lib/retake-wrong';
 import { logger } from '@/lib/logger';
@@ -62,7 +63,13 @@ export async function GET(
     // Enforce access control server-side — the question content itself is the
     // paid product, so it must never be returned to users without access,
     // regardless of what the client-side check-access call decided.
-    if (!test.isFree && test.accessType !== 'free') {
+    //
+    // Reklama testi: tizimga kirgan har kimga ochiq — rol va obuna so'ralmaydi.
+    // Mehmon (userId yo'q) pastdagi oddiy yo'ldan 401 oladi.
+    const adFree = !!userId && await isAdFreeTest(test.id);
+    if (adFree && userId) {
+      await markAdTestStarted(userId);
+    } else if (!test.isFree && test.accessType !== 'free') {
       if (!userId) {
         return NextResponse.json(
           { error: 'Unauthorized', accessType: test.accessType, price: test.price },
@@ -74,8 +81,12 @@ export async function GET(
       const hasAccess = await checkTestAccess(userId, test, user?.role);
 
       if (!hasAccess) {
+        // Yechish sahifasi "Test yopiq" ekranini shu javobdan quradi (oldin
+        // alohida check-access so'rovi bergan maydonlar) — sarlavha faqat
+        // ko'rinadigan (visible) testda, yuqoridagi tekshiruvdan keyin.
+        const category = await db.testCategory.findUnique({ where: { id: test.categoryId }, select: { type: true } });
         return NextResponse.json(
-          { error: 'Forbidden', accessType: test.accessType, price: test.price },
+          { error: 'Forbidden', accessType: test.accessType, price: test.price, testTitle: test.titleUz, categoryType: category?.type ?? null },
           { status: 403 }
         );
       }

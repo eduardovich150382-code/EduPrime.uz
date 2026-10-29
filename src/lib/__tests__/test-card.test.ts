@@ -163,3 +163,22 @@ describe('isNewTest', () => {
     expect(isNewTest('not-a-date', now)).toBe(false);
   });
 });
+
+describe('reklama uchun bepul test kartasi', () => {
+  const promo = { isFree: false, accessType: 'subscription', promoFree: true };
+  it('mehmon va obunasizda ham "Boshlash", belgi — Bepul', () => {
+    const state = getCardState(promo, undefined, false);
+    expect(state).toEqual({ kind: 'start' });
+    expect(getLockBadge(promo, state)).toEqual({ kind: 'free' });
+  });
+  it('yechilgan bo‘lsa belgi yo‘q', () => {
+    const state = getCardState(promo, { id: 'r', testId: 't', completedAt: '2026-10-29T00:00:00Z', score: 5, maxScore: 10, percentage: 50 }, false);
+    expect(getLockBadge(promo, state)).toBeNull();
+  });
+  it('boshqa obunali test o‘zgarmaydi', () => {
+    const other = { isFree: false, accessType: 'subscription' };
+    const state = getCardState(other, undefined, false);
+    expect(state.kind).toBe('upgrade');
+    expect(getLockBadge(other, state)).toEqual({ kind: 'subscription' });
+  });
+});

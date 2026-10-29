@@ -10,10 +10,10 @@ import uz from '@/messages/uz.json';
 import ru from '@/messages/ru.json';
 import en from '@/messages/en.json';
 import { logger } from './logger';
+import { btn, type InlineButton } from './telegram-buttons';
 
 export type Lang = 'uz' | 'ru' | 'en';
-type Button = { text: string; callback_data: string } | { text: string; url: string };
-type Options = { reply_markup?: { inline_keyboard: Button[][] } };
+type Options = { reply_markup?: { inline_keyboard: InlineButton[][] } };
 export interface Transport {
   send: (chatId: number, text: string, options?: Options) => Promise<unknown>;
   forward: (chatId: number, fromChatId: number, messageId: number) => Promise<void>;
@@ -44,7 +44,7 @@ export async function showCheckoutProducts(chatId: number, transport: Transport)
   const lang = await checkoutLanguage(chatId), t = dictionaries[lang];
   const products = await catalog();
   const rows = products.filter((p) => p.offers.some((o) => o.untilDate === null || o.untilDate > new Date()));
-  await transport.send(chatId, rows.length ? t.chooseProduct : t.noProducts, { reply_markup: { inline_keyboard: rows.map((p) => [{ text: name(p, lang), callback_data: checkoutCallback('p', p.id) }]) } });
+  await transport.send(chatId, rows.length ? t.chooseProduct : t.noProducts, { reply_markup: { inline_keyboard: rows.map((p) => [btn.primary(name(p, lang), { callback_data: checkoutCallback('p', p.id) })]) } });
 }
 
 export async function startSelectedCheckout(chatId: number, from: CheckoutUser, parameter: string, transport: Transport) {
@@ -85,7 +85,7 @@ async function activationMessage(paymentId: string, lang: Lang, appUrl?: string)
   const text = t.activated.replace('{scope}', escape(scope)).replace('{date}', formatTashkentDate(subscription.endDate, lang));
   if (!appUrl) return { text };
   const path = subscription.category?.type === 'ATTESTATION' ? '/attestation' : '/dashboard';
-  return { text, options: { reply_markup: { inline_keyboard: [[{ text: t.openSite, url: `${appUrl}${localizedPath(path, lang)}` }]] } } };
+  return { text, options: { reply_markup: { inline_keyboard: [[btn.success(t.openSite, { url: `${appUrl}${localizedPath(path, lang)}` })]] } } };
 }
 
 export async function handleCheckoutCallback(chatId: number, from: CheckoutUser, data: string, transport: Transport): Promise<boolean> {
@@ -127,13 +127,13 @@ export async function handleCheckoutCallback(chatId: number, from: CheckoutUser,
     if (chosen.length < needed) {
       const text = (needed === 2 ? t.chooseTwo : t.chooseSubject) + (chosen.length ? `\n${chosen.map((id) => escape(name(subjects.find((s) => s.id === id)!, lang))).join(', ')}` : '') +
         (needed === 2 ? `\n${t.mandatory}: ${mandatory.map((s) => escape(name(s, lang))).join(', ')}` : '');
-      await transport.send(chatId, text, { reply_markup: { inline_keyboard: available.filter((s) => !chosen.includes(s.id)).map((s) => [{ text: name(s, lang), callback_data: checkoutCallback('s', product.id, [...chosen, s.id], selectedOffer?.id) }]) } });
+      await transport.send(chatId, text, { reply_markup: { inline_keyboard: available.filter((s) => !chosen.includes(s.id)).map((s) => [btn.primary(name(s, lang), { callback_data: checkoutCallback('s', product.id, [...chosen, s.id], selectedOffer?.id) })]) } });
       return true;
     }
     const subjectIds = buildSubjectIds(product, chosen, subjects).sort();
     if (step !== 'o' && !selectedOffer) {
       const offers = product.offers.filter((o) => !o.untilDate || o.untilDate > new Date());
-      await transport.send(chatId, t.chooseOffer, { reply_markup: { inline_keyboard: offers.map((o) => [{ text: `${label(o, lang)} — ${o.price.toLocaleString('uz-UZ')} ${t.currency}`, callback_data: checkoutCallback('o', product.id, chosen, o.id) }]) } });
+      await transport.send(chatId, t.chooseOffer, { reply_markup: { inline_keyboard: offers.map((o) => [btn.primary(`${label(o, lang)} — ${o.price.toLocaleString('uz-UZ')} ${t.currency}`, { callback_data: checkoutCallback('o', product.id, chosen, o.id) })]) } });
       return true;
     }
     const offer = resolveCheckoutKey(product.offers, offerKey);
@@ -186,7 +186,7 @@ export async function handleCheckoutReceipt(message: ReceiptMessage, transport: 
     try {
       await transport.forward(Number(adminId), message.chat.id, message.message_id);
       await transport.send(Number(adminId), `${uz.checkout.newReceipt}\n${identity}\n${summary.text}`, { reply_markup: { inline_keyboard: [[
-        { text: uz.checkout.confirm, callback_data: `cp:c:${payment.id}` }, { text: uz.checkout.reject, callback_data: `cp:r:${payment.id}` },
+        btn.success(uz.checkout.confirm, { callback_data: `cp:c:${payment.id}` }), btn.danger(uz.checkout.reject, { callback_data: `cp:r:${payment.id}` }),
       ]] } });
     } catch (error) { logger.error('Category receipt notification error', { error }); }
   }

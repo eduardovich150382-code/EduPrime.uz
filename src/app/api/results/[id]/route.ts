@@ -6,7 +6,8 @@ import { extractItemPoints, loadSessionItems } from '@/lib/sessions';
 import { loadFeatureEntitlements } from '@/lib/access';
 import { sessionFeatureScope, testFeatureScope } from '@/lib/feature-context';
 import { getSolutionQuotaStatus, getUnlockedItemIds, resolveUnlockKeys } from '@/lib/quota';
-import { applySolutionVisibility, resolveSolutionTiers } from '@/lib/solution-visibility';
+import { applySolutionVisibility, FULL_SOLUTION_TIERS, resolveSolutionTiers } from '@/lib/solution-visibility';
+import { isAdFreeTest } from '@/lib/ad-free-test';
 import { attachDistractorWhy } from '@/lib/distractor-why';
 import { logger } from '@/lib/logger';
 import { classifyAttestationTests } from '@/lib/attestation-stats';
@@ -84,8 +85,6 @@ export async function GET(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const entitlements = await loadFeatureEntitlements(userId, role);
-
     // S20a — distraktor izohi har doim bepul (S17 dagi "bir qatorli sabab"
     // darajasi, yechim qulfiga kirmaydi), shuning uchun yuqoridagi
     // writtenUnlimited/videoUnlocked hisobiga bog'liq emas.
@@ -93,8 +92,12 @@ export async function GET(
 
     if (result.test) {
       const scope = testFeatureScope(result.test);
-      const { writtenUnlimited, videoUnlocked } = resolveSolutionTiers(role, entitlements, scope);
-      const solutionQuota = await getSolutionQuotaStatus(userId, { entitlements, scopes: [scope] });
+      // Reklama testi: tizimga kirgan har kimga yechimlar to'liq ochiq — obuna
+      // va kvota so'rovlari kerak emas (qo'nish yo'li yengil bo'lsin).
+      const adOffer = await isAdFreeTest(result.test.id);
+      const entitlements = adOffer ? null : await loadFeatureEntitlements(userId, role);
+      const { writtenUnlimited, videoUnlocked } = entitlements ? resolveSolutionTiers(role, entitlements, scope) : FULL_SOLUTION_TIERS;
+      const solutionQuota = entitlements ? await getSolutionQuotaStatus(userId, { entitlements, scopes: [scope] }) : null;
       const [category, attempts] = await Promise.all([
         // Test'da category relation yo'q (faqat categoryId) — GET /api/tests
         // dagi kabi alohida o'qiladi. "Testlarga qaytish" shu tur bo'yicha
@@ -146,6 +149,7 @@ export async function GET(
         solutionQuota,
         attempts,
         attestation,
+        adOffer,
       });
     }
 
@@ -155,6 +159,7 @@ export async function GET(
       return NextResponse.json({ error: 'Result not found' }, { status: 404 });
     }
 
+    const entitlements = await loadFeatureEntitlements(userId, role);
     const items = await loadSessionItems(result.session.itemIds, extractItemPoints(result.session.spec));
     const scopes = items.map((it) => sessionFeatureScope(result.session?.spec, it.subject));
     const tiers = new Map(items.map((it, index) => [it.id, resolveSolutionTiers(role, entitlements, scopes[index])]));

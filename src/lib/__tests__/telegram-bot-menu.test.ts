@@ -9,7 +9,7 @@ vi.mock('@/lib/db', () => ({ db }));
 
 import uz from '@/messages/uz.json';
 import { fill, handleMenuAction, mainKeyboard, menuActionFor, sendWelcome } from '../telegram-bot-menu';
-import { botReferralLink, miniAppStartTarget, miniAppUrl, parseReferralStart } from '../telegram-bot-links';
+import { botReferralLink, miniAppStartTarget, miniAppUrl, parseAdStart, parseReferralStart } from '../telegram-bot-links';
 
 type Sent = { chatId: number | string; text: string; options?: { reply_markup?: unknown } };
 
@@ -67,6 +67,19 @@ describe('havolalar', () => {
     expect(parseReferralStart('ref_')).toBeNull();
     expect(parseReferralStart('ref_A<script>')).toBeNull();
     expect(botReferralLink('ali-ab12cd')).toBe('https://t.me/EduPrimeuzbot?start=ref_ali-ab12cd');
+  });
+
+  it('reklama start parametri', () => {
+    expect(parseAdStart('ad_fizika1')).toBe('fizika1');
+    expect(parseAdStart('ad_a_b-c')).toBe('a_b-c');
+    expect(parseAdStart(`ad_${'x'.repeat(32)}`)).toBe('x'.repeat(32));
+    // Bo'sh, juda uzun va ruxsatsiz belgilar.
+    expect(parseAdStart('ad_')).toBeNull();
+    expect(parseAdStart(`ad_${'x'.repeat(33)}`)).toBeNull();
+    expect(parseAdStart('ad_Fizika')).toBeNull();
+    expect(parseAdStart('ad_fizika!')).toBeNull();
+    expect(parseAdStart('ad_<script>')).toBeNull();
+    expect(parseAdStart('ref_fizika1')).toBeNull();
   });
 });
 
@@ -144,5 +157,39 @@ describe('setupReport', () => {
     expect(text).toContain('✅ menuButton');
     expect(text).toContain('❌ commands: Bad Request: &lt;x&gt;');
     expect(text).toContain('https://eduprime.uz/tg?to=%2Fattestation');
+  });
+});
+
+describe('tugma ranglari', () => {
+  type Btn = { text: string; style?: string };
+  const keyboard = (s: Sent) => ((s.options?.reply_markup as { inline_keyboard: Btn[][] }).inline_keyboard).flat();
+  const styles = (s: Sent) => Object.fromEntries(keyboard(s).map((b) => [b.text, b.style]));
+
+  it('welcome: Platformani ochish — yashil, qolganlari ko‘k', async () => {
+    const t = transport();
+    await sendWelcome(10, { firstName: 'Ali' }, t);
+    const b = uz.telegramBot.buttons;
+    expect(styles(t.sent[0])).toEqual({ [b.openPlatform]: 'success', [b.tests]: 'primary', [b.pricing]: 'primary', [b.channel]: 'primary' });
+  });
+
+  it('har bo‘limda ko‘pi bilan bitta yashil, qizil yo‘q', async () => {
+    db.user.findUnique.mockResolvedValue(null);
+    db.testResult.groupBy.mockResolvedValue([]);
+    for (const action of ['tests', 'attestation', 'results', 'rating', 'help'] as const) {
+      const t = transport();
+      await handleMenuAction(action, ctx, t, async () => {});
+      const list = keyboard(t.sent[0]);
+      expect(list.filter((x) => x.style === 'success').length).toBeLessThanOrEqual(1);
+      expect(list.every((x) => x.style === 'success' || x.style === 'primary')).toBe(true);
+    }
+  });
+
+  it('reklama xabari: test — yashil, obuna — ko‘k; callback o‘zgarmagan', async () => {
+    const { sendAdStart, AD_TEST_BUTTON, AD_SUBSCRIBE_BUTTON } = await import('../telegram-ad-start');
+    const t = transport();
+    await sendAdStart(10, 'https://eduprime.uz', 't1', t);
+    const [test, subscribe] = keyboard(t.sent[0]) as (Btn & { web_app?: { url: string }; callback_data?: string })[];
+    expect(test).toEqual({ text: AD_TEST_BUTTON, style: 'success', web_app: { url: 'https://eduprime.uz/tg?to=%2Ftests%2Ft1%2Fsolve' } });
+    expect(subscribe).toEqual({ text: AD_SUBSCRIBE_BUTTON, style: 'primary', callback_data: 'co:list' });
   });
 });

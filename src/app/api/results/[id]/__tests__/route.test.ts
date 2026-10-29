@@ -54,6 +54,9 @@ vi.mock("@/lib/db", () => ({
 // hisoblab yiqiladi; bu test Node'da ishlaydi, belgi kerak emas.
 vi.mock("server-only", () => ({}));
 
+// Reklama uchun bepul test — faqat "ad-mock" id'li test.
+vi.mock("@/lib/ad-free-test", () => ({ isAdFreeTest: async (id: string) => id === "ad-mock" }));
+
 vi.mock("@/lib/auth", () => ({
   auth: () => authMock(),
 }));
@@ -104,6 +107,43 @@ describe("GET /api/results/[id]", () => {
   });
 
   describe("Test tarmog'i (result.test bor)", () => {
+    it("reklama testi: obunasiz ham yozma va video yechim ochiq, kvota so'ralmaydi, adOffer", async () => {
+      findUniqueResultMock.mockResolvedValue({
+        id: "result1",
+        userId: "user1",
+        testId: "ad-mock",
+        sessionId: null,
+        test: {
+          id: "ad-mock", subject: {}, videoSolution: "v", writtenSolution: "w",
+          questions: [baseQuestion(), baseQuestion({ id: "q2", videoUrl: "https://youtube.com/watch?v=x" })],
+        },
+        session: null,
+      });
+
+      const { status, data } = await callGet();
+      expect(status).toBe(200);
+      expect(data.adOffer).toBe(true);
+      expect(data.solutionQuota).toBeNull();
+      expect(data.result.test.questions[0].explanation).toBe("Chunki 2+2=4");
+      expect(data.result.test.questions[0].solutionUnlocked).toBe(true);
+      expect(data.result.test.questions[1].videoUrl).toBe("https://youtube.com/watch?v=x");
+      expect(data.result.test.questions[1].solutionUnlocked).toBe(true);
+      expect(data.result.test.videoSolution).toBe("v");
+      expect(data.result.test.writtenSolution).toBe("w");
+      expect(subscriptionFindManyMock).not.toHaveBeenCalled();
+      expect(dailyUsageFindUniqueMock).not.toHaveBeenCalled();
+    });
+
+    it("boshqa test: adOffer false, yechim obunasiz yopiq", async () => {
+      findUniqueResultMock.mockResolvedValue({
+        id: "result1", userId: "user1", testId: "mock-9", sessionId: null,
+        test: { id: "mock-9", questions: [baseQuestion()], subject: {} }, session: null,
+      });
+      const { data } = await callGet();
+      expect(data.adOffer).toBe(false);
+      expect(data.result.test.questions[0].explanation).toBeNull();
+    });
+
     it("yozma yechim ochilmagan bo'lsa explanation: null qaytadi", async () => {
       findUniqueResultMock.mockResolvedValue({
         id: "result1",

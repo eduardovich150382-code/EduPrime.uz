@@ -2,6 +2,7 @@ import { db } from './db';
 import { logger } from './logger';
 import { ensureReferralCode } from './referral-code';
 import { botReferralLink, miniAppUrl } from './telegram-bot-links';
+import { btn, type ButtonStyle, type InlineButton } from './telegram-buttons';
 import uzMessages from '@/messages/uz.json';
 import ruMessages from '@/messages/ru.json';
 
@@ -13,8 +14,8 @@ import ruMessages from '@/messages/ru.json';
 
 const m = uzMessages.telegramBot;
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || '';
+export const CHANNEL_LINK = 'https://t.me/EduPrimeuz';
 
-type InlineButton = { text: string; url?: string; web_app?: { url: string }; callback_data?: string };
 type ReplyMarkup =
   | { inline_keyboard: InlineButton[][] }
   | { keyboard: { text: string }[][]; resize_keyboard: boolean; is_persistent: boolean; input_field_placeholder?: string };
@@ -66,8 +67,9 @@ function truncate(value: string, max: number): string {
   return chars.length > max ? `${chars.slice(0, max - 1).join('')}…` : value;
 }
 
-function webApp(text: string, path: string): InlineButton {
-  return { text, web_app: { url: miniAppUrl(APP_URL, path) } };
+// Rang ataylab majburiy: har xabarda qaysi tugma asosiy (success) ekani shu yerda ko'rinib tursin.
+function webApp(text: string, path: string, style: ButtonStyle): InlineButton {
+  return btn[style](text, { web_app: { url: miniAppUrl(APP_URL, path) } });
 }
 
 export function mainKeyboard(): ReplyMarkup {
@@ -94,8 +96,10 @@ export async function sendWelcome(
   await transport.send(chatId, intro + fill(m.welcome, { name: user.firstName || m.friend }) + (user.adminText ?? ''), {
     reply_markup: {
       inline_keyboard: [
-        [webApp(m.buttons.openPlatform, '/attestation')],
-        [webApp(m.buttons.tests, '/tests'), webApp(m.buttons.pricing, '/pricing')],
+        [webApp(m.buttons.openPlatform, '/attestation', 'success')],
+        [webApp(m.buttons.tests, '/tests', 'primary'), webApp(m.buttons.pricing, '/pricing', 'primary')],
+        // Kanal endi majburiy emas — faqat taklif sifatida.
+        [btn.primary(m.buttons.channel, { url: CHANNEL_LINK })],
       ],
     },
   });
@@ -112,11 +116,11 @@ export async function handleMenuAction(
 ) {
   switch (action) {
     case 'tests':
-      await transport.send(ctx.chatId, m.testsText, { reply_markup: { inline_keyboard: [[webApp(m.buttons.openTests, '/tests')]] } });
+      await transport.send(ctx.chatId, m.testsText, { reply_markup: { inline_keyboard: [[webApp(m.buttons.openTests, '/tests', 'success')]] } });
       return;
     case 'attestation':
       await transport.send(ctx.chatId, m.attestationText, {
-        reply_markup: { inline_keyboard: [[webApp(m.buttons.openAttestation, '/attestation')], [webApp(m.buttons.pricing, '/pricing')]] },
+        reply_markup: { inline_keyboard: [[webApp(m.buttons.openAttestation, '/attestation', 'success')], [webApp(m.buttons.pricing, '/pricing', 'primary')]] },
       });
       return;
     case 'results':
@@ -133,7 +137,7 @@ export async function handleMenuAction(
       return;
     case 'help':
       await transport.send(ctx.chatId, m.helpText + (ctx.adminText ?? ''), {
-        reply_markup: { inline_keyboard: [[webApp(m.buttons.openPlatform, '/attestation')]] },
+        reply_markup: { inline_keyboard: [[webApp(m.buttons.openPlatform, '/attestation', 'success')]] },
       });
       return;
   }
@@ -165,7 +169,7 @@ async function sendResults(chatId: number, telegramId: string, transport: BotTra
     : [[], null];
 
   if (results.length === 0 || !totals) {
-    await transport.send(chatId, m.resultsEmpty, { reply_markup: { inline_keyboard: [[webApp(m.buttons.startFirstTest, '/attestation')]] } });
+    await transport.send(chatId, m.resultsEmpty, { reply_markup: { inline_keyboard: [[webApp(m.buttons.startFirstTest, '/attestation', 'success')]] } });
     return;
   }
 
@@ -181,8 +185,8 @@ async function sendResults(chatId: number, telegramId: string, transport: BotTra
   await transport.send(chatId, `${header}\n${lines.join('\n')}`, {
     reply_markup: {
       inline_keyboard: [
-        [webApp(m.buttons.latestResult, `/results/${results[0].id}`)],
-        [webApp(m.buttons.allResults, '/dashboard')],
+        [webApp(m.buttons.latestResult, `/results/${results[0].id}`, 'success')],
+        [webApp(m.buttons.allResults, '/dashboard', 'primary')],
       ],
     },
   });
@@ -193,7 +197,7 @@ const MEDALS = ['🥇', '🥈', '🥉', '4.', '5.'];
 async function sendRating(chatId: number, telegramId: string, transport: BotTransport) {
   // Saytdagi /rating bilan bir xil mezon: jami to'plangan ball.
   const top = await db.testResult.groupBy({ by: ['userId'], _sum: { score: true }, orderBy: { _sum: { score: 'desc' } }, take: 5 });
-  const markup: ReplyMarkup = { inline_keyboard: [[webApp(m.buttons.fullRating, '/rating')]] };
+  const markup: ReplyMarkup = { inline_keyboard: [[webApp(m.buttons.fullRating, '/rating', 'primary')]] };
   if (top.length === 0) {
     await transport.send(chatId, `${m.ratingHeader}\n${m.ratingEmpty}`, { reply_markup: markup });
     return;
@@ -236,7 +240,7 @@ async function sendReferral(ctx: { chatId: number; telegramId: number; username:
   const share = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(m.referralShareText)}`;
   await transport.send(ctx.chatId, fill(m.referralText, { link, count }), {
     disable_web_page_preview: true,
-    reply_markup: { inline_keyboard: [[{ text: m.buttons.share, url: share }], [webApp(m.buttons.referralPage, '/dashboard/referral')]] },
+    reply_markup: { inline_keyboard: [[btn.success(m.buttons.share, { url: share })], [webApp(m.buttons.referralPage, '/dashboard/referral', 'primary')]] },
   });
 }
 
@@ -256,7 +260,7 @@ function commandList(messages: typeof uzMessages.telegramBot.commands): CommandL
 }
 
 /**
- * Botning doimiy ko'rinishi: chap pastdagi "Platformani ochish" menyu
+ * Botning doimiy ko'rinishi: chap pastdagi "EduPrime.uz" menyu
  * tugmasi va buyruqlar ro'yxati. Takror chaqirish xavfsiz — Telegram
  * qiymatni shunchaki qayta yozadi. Webhook o'rnatilganda (GET) chaqiriladi.
  */
@@ -281,7 +285,7 @@ function menuButton(appUrl: string) {
 }
 
 /**
- * Shu chat uchun "Platformani ochish" menyu tugmasi. Umumiy (default)
+ * Shu chat uchun "EduPrime.uz" menyu tugmasi. Umumiy (default)
  * tugmadan tashqari har /start'da chatning o'ziga ham yoziladi: avval
  * chatga boshqa tugma (masalan buyruqlar ro'yxati) qo'yilgan bo'lsa, umumiy
  * sozlama u chatda ko'rinmay qoladi.
@@ -291,7 +295,7 @@ export async function setChatMenuForUser(botToken: string, appUrl: string, chatI
 }
 
 /**
- * Botning doimiy ko'rinishi: chap pastdagi "Platformani ochish" menyu
+ * Botning doimiy ko'rinishi: chap pastdagi "EduPrime.uz" menyu
  * tugmasi, buyruqlar ro'yxati va tavsif. Takror chaqirish xavfsiz —
  * Telegram qiymatni shunchaki qayta yozadi. Admin /setupmenu bilan chaqiradi.
  */

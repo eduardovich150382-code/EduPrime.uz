@@ -6,6 +6,7 @@ import { notifyViaTelegram } from '@/lib/telegram-notify';
 import { logger } from '@/lib/logger';
 import { MAX_QUERY_LENGTH } from '@/lib/tests-filters';
 import { loadTestAccessContext, resolveTestAccess } from '@/lib/access';
+import { getAdFreeTestId } from '@/lib/ad-free-test';
 import { testPriceSchema } from '@/lib/test-price';
 import { canCacheTestsList, getTestsListPage, normalizeTestsListParams, queryTestsListPage } from '@/lib/public-catalog';
 import { revalidateTestCatalog } from '@/lib/cache-tags';
@@ -57,13 +58,15 @@ export async function GET(request: NextRequest) {
     // so'rov yo'q: bepul testlar ochiq, qolganlari yopiq.
     const userId = session?.user?.id;
     const typeByCategory = new Map(list.categoryTypes);
-    const accessContext = userId
-      ? await loadTestAccessContext(userId, session.user.role, list.tests, { categoryTypes: typeByCategory })
-      : null;
+    const [accessContext, adFreeTestId] = await Promise.all([
+      userId ? loadTestAccessContext(userId, session.user.role, list.tests, { categoryTypes: typeByCategory }) : null,
+      getAdFreeTestId(),
+    ]);
     const testsWithType = list.tests.map((t) => ({
       ...t,
       category: typeByCategory.has(t.categoryId) ? { type: typeByCategory.get(t.categoryId) } : null,
       hasAccess: resolveTestAccess(t, accessContext),
+      promoFree: t.id === adFreeTestId,
     }));
 
     const response = NextResponse.json({ tests: testsWithType, total: list.total, page, limit });

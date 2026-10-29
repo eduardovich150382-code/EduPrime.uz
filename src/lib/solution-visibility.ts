@@ -71,6 +71,9 @@ export interface SolutionTiers {
   videoUnlocked: boolean;
 }
 
+/** Reklama uchun bepul test (lib/ad-free-test.ts) — yechimlar obunasiz to'liq ochiq. */
+export const FULL_SOLUTION_TIERS: SolutionTiers = { writtenUnlimited: true, videoUnlocked: true };
+
 /**
  * Obuna → yechim darajalari. Savol darajasidagi (`explanation`/`videoUrl`) va
  * test darajasidagi (`Test.writtenSolution`/`videoSolution`) qulf shu bitta

@@ -327,7 +327,11 @@
     "questionVideoTitle": "{number}-savol videoyechim",
     "aiExplainButton": "AI'dan tushuntirish",
     "aiExplainTitle": "AI tushuntirishi",
-    "aiExplaining": "AI tushuntirmoqda..."
+    "aiExplaining": "AI tushuntirmoqda...",
+    "adOffer": {
+      "title": "Yana 30+ mock test va barcha yechimlar — Attestatsiya obunasi",
+      "button": "💳 Obunani tanlash"
+    }
   },
   "sessionSolve": {
     "exitButton": "Testdan chiqish",
@@ -729,7 +733,8 @@
       "lockPremium": "Obuna bilan",
       "lockTeacher": "Ustoz tarifi",
       "lockSubscription": "Obuna bilan",
-      "lockPrice": "Obuna bilan yoki alohida — {price} so'm"
+      "lockPrice": "Obuna bilan yoki alohida — {price} so'm",
+      "free": "Bepul"
     },
     "banner": {
       "pill": "Attestatsiya mavsumi",
@@ -1121,12 +1126,12 @@
     "stepReward": "{friends} ta do'st = {days} kun bepul foydalanish (attestatsiyadan tashqari)"
   },
   "telegramBot": {
-    "welcome": "🎓 <b>EduPrime</b> — attestatsiya va imtihonlarga tayyorgarlik platformasi\n\nAssalomu alaykum, {name}! 👋\n\n✅ Rasmiy spetsifikatsiya asosidagi attestatsiya testlari\n✅ Har bir savolga bosqichma-bosqich, batafsil yechim\n✅ Natijalaringiz tahlili va reytingdagi o'rningiz\n✅ Hammasi shu yerda — Telegram ichida, parol va ro'yxatdan o'tishsiz\n\n👇 Boshlash uchun <b>«Platformani ochish»</b> tugmasini bosing.",
+    "welcome": "🎓 <b>EduPrime</b> — attestatsiya va imtihonlarga tayyorgarlik platformasi\n\nAssalomu alaykum, {name}! 👋\n\n✅ Rasmiy spetsifikatsiya asosidagi attestatsiya testlari\n✅ Har bir savolga bosqichma-bosqich, batafsil yechim\n✅ Natijalaringiz tahlili va reytingdagi o'rningiz\n✅ Hammasi shu yerda — Telegram ichida, parol va ro'yxatdan o'tishsiz\n\n👇 Boshlash uchun <b>«EduPrime.uz»</b> tugmasini bosing.",
     "referredWelcome": "🤝 Sizni do'stingiz taklif qildi — EduPrime oilasiga xush kelibsiz!",
     "friend": "do'stim",
     "menuHint": "⬇️ Pastdagi menyu orqali natijalaringiz, reyting va boshqa bo'limlarni bir bosishda ko'rasiz.",
     "keyboardPlaceholder": "Bo'limni tanlang",
-    "menuButton": "Platformani ochish",
+    "menuButton": "EduPrime.uz",
     "shortDescription": "Attestatsiya va imtihonlarga tayyorgarlik: batafsil yechimli testlar, natijalar tahlili va reyting — Telegram ichida.",
     "description": "🎓 EduPrime — o'qituvchilar attestatsiyasi va imtihonlarga tayyorgarlik platformasi.\n\n✅ Rasmiy spetsifikatsiya asosidagi testlar\n✅ Har bir savolga batafsil yechim\n✅ Natijalar tahlili va reyting\n\n«Start» tugmasini bosing va birinchi testni hoziroq boshlang!",
     "buttons": {
@@ -1146,7 +1151,8 @@
       "allResults": "📊 Barcha natijalar",
       "fullRating": "🏆 To'liq reyting",
       "share": "📤 Do'stlarga yuborish",
-      "referralPage": "🎁 Taklif sahifasi"
+      "referralPage": "🎁 Taklif sahifasi",
+      "channel": "📢 Kanalimiz"
     },
     "testsText": "📚 <b>Testlar</b>\n\nFanlar va mavzular bo'yicha testlar — har biriga batafsil yechim bilan. Mavzuni tanlang va boshlang! 👇",
     "attestationText": "🎯 <b>Attestatsiyaga tayyorgarlik</b>\n\n📝 Mavzulashtirilgan testlar va to'liq mock testlar — imtihon formatida\n🧠 Har bir savolga bosqichma-bosqich yechim\n📈 Qaysi mavzularda kuchli, qaysilarida bo'sh ekaningizni ko'rasiz\n\nBugun boshlang — imtihonga ishonch bilan kiring! 💪",
@@ -1162,7 +1168,7 @@
     "anonymous": "Foydalanuvchi",
     "referralText": "🎁 <b>Do'stlarni taklif qiling</b>\n\nHamkasb va do'stlaringizga EduPrime'ni ulashing — ular quyidagi havola orqali qo'shiladi.\n\n🔗 Sizning havolangiz:\n{link}\n\n👥 Taklif qilganlaringiz: <b>{count}</b>",
     "referralShareText": "Attestatsiya va imtihonlarga EduPrime'da tayyorlanyapman: batafsil yechimli testlar, natijalar tahlili va reyting — hammasi Telegram ichida. Siz ham qo'shiling! 👇",
-    "helpText": "❓ <b>Yordam</b>\n\n🚀 <b>Platformani ochish</b> — sayt Telegram ichida ochiladi, avtomatik kirasiz\n📚 <b>Testlar</b> — fanlar va mavzular bo'yicha testlar\n🎯 <b>Attestatsiya</b> — o'qituvchilar attestatsiyasiga tayyorgarlik\n📊 <b>Natijalarim</b> — oxirgi natijalar va o'rtacha ball\n🏆 <b>Reyting</b> — eng ko'p ball to'plaganlar\n🎁 <b>Taklif</b> — do'stlarni taklif qilish havolasi\n💳 <b>Obuna</b> — obuna sotib olish\n\n<b>Buyruqlar:</b> /start, /testlar, /natijalar, /reyting, /taklif, /obuna, /login, /help\n\n💬 Savol va takliflar: @EduPrimeuz_Admin",
+    "helpText": "❓ <b>Yordam</b>\n\n📱 <b>EduPrime.uz</b> (chap pastdagi tugma) — sayt Telegram ichida ochiladi, avtomatik kirasiz\n📚 <b>Testlar</b> — fanlar va mavzular bo'yicha testlar\n🎯 <b>Attestatsiya</b> — o'qituvchilar attestatsiyasiga tayyorgarlik\n📊 <b>Natijalarim</b> — oxirgi natijalar va o'rtacha ball\n🏆 <b>Reyting</b> — eng ko'p ball to'plaganlar\n🎁 <b>Taklif</b> — do'stlarni taklif qilish havolasi\n💳 <b>Obuna</b> — obuna sotib olish\n\n<b>Buyruqlar:</b> /start, /testlar, /natijalar, /reyting, /taklif, /obuna, /login, /help\n\n💬 Savol va takliflar: @EduPrimeuz_Admin",
     "commands": {
       "start": "Botni ishga tushirish",
       "tests": "Testlar",
@@ -1185,5 +1191,24 @@
     "openInBrowser": "🌐 Brauzerda ochish",
     "preparing": "Tayyorlanmoqda...",
     "stayInTelegram": "Telegram ichida davom etish"
+  },
+  "adminAdSources": {
+    "title": "Reklama manbalari",
+    "link": "Reklama",
+    "description": "Oyna ichida birinchi marta /start bosganlar — birinchi manba bo'yicha. Har bosqich shu /start'dan keyin sanaladi.",
+    "adTest": "Bepul test: {title}",
+    "adTestMissing": "Bepul reklama testi sozlanmagan (Sozlamalar → Reklama)",
+    "window": "{days} kun",
+    "error": "Hisobotni yuklab bo'lmadi",
+    "empty": "Bu davrda /start yo'q",
+    "footnote": "web — botsiz, sayt orqali ro'yxatdan o'tganlar. Ma'lumot 5 daqiqagacha keshlanadi.",
+    "columns": {
+      "source": "Manba",
+      "firstStarts": "Birinchi /start",
+      "signedIn": "Saytga kirgan",
+      "adTestStarted": "Testni boshlagan",
+      "adTestFinished": "Testni tugatgan",
+      "paid": "To'lagan"
+    }
   }
 }

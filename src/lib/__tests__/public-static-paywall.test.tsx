@@ -22,6 +22,7 @@ const m = vi.hoisted(() => ({ question: vi.fn(), testResult: vi.fn(), queryRaw: 
 
 vi.mock('server-only', () => ({}));
 vi.mock('next/cache', () => ({ unstable_cache: <T,>(fn: T) => fn }));
+vi.mock('@/lib/ad-free-test', () => ({ getAdFreeTestId: async () => null }));
 vi.mock('@/lib/db', () => ({
   db: { question: { findMany: m.question }, testResult: { findMany: m.testResult }, $queryRaw: m.queryRaw },
 }));
@@ -126,7 +127,7 @@ describe('statik sahifalar — paywall', () => {
   it('/tests: birinchi sahifa kartalari faqat oq ro‘yxatdagi metama’lumot', async () => {
     const initial = await loadInitialTests();
     expect(Object.keys(initial.tests[0]).sort()).toEqual([
-      'accessType', 'category', 'createdAt', 'duration', 'hasAccess', 'id', 'isFree', 'price', 'questionCount', 'titleEn', 'titleRu', 'titleUz',
+      'accessType', 'category', 'createdAt', 'duration', 'hasAccess', 'id', 'isFree', 'price', 'promoFree', 'questionCount', 'titleEn', 'titleRu', 'titleUz',
     ]);
     expectNoSecrets(JSON.stringify(initial));
     const markup = html(<TestsPage initial={initial} attestationDate="2026-12-01" />);

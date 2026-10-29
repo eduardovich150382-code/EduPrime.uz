@@ -28,6 +28,8 @@ interface SettingsForm {
   attestation_tier1_min: string;
   attestation_tier_top_min: string;
   attestation_tier_top_bonus_min: string;
+  // Reklama
+  ad_free_test_id: string;
 }
 
 interface SettingsGroup {
@@ -95,6 +97,14 @@ const settingsGroups: SettingsGroup[] = [
       { key: 'attestation_tier_top_bonus_min', label: 'Oliy + 70% ustama (dan)', placeholder: '86', icon: Award, type: 'number', suffix: 'ball' },
     ],
   },
+  {
+    title: 'Reklama',
+    icon: Megaphone,
+    description: "Tizimga kirgan har kimga yechimlari bilan bepul ochiladigan bitta test (bot: /start ad_<kod>). Bo'sh bo'lsa \"Attestatsiya mock testi №10\" nomi bo'yicha topiladi",
+    fields: [
+      { key: 'ad_free_test_id', label: 'Bepul reklama testi (test ID)', placeholder: 'cmg...', icon: Award },
+    ],
+  },
 ];
 
 export default function AdminSettingsPage() {
@@ -114,6 +124,7 @@ export default function AdminSettingsPage() {
     attestation_tier1_min: '70',
     attestation_tier_top_min: '80',
     attestation_tier_top_bonus_min: '86',
+    ad_free_test_id: '',
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
