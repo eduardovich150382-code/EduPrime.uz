@@ -14,7 +14,17 @@ import { HintSwitch } from '@/components/ui/ViewerGate';
 const FILTERS: MockFilter[] = ['all', 'unsolved', 'solved'];
 
 const statusSkeleton = <span aria-hidden className="inline-block h-5 w-20 animate-pulse rounded-full bg-gray-200" />;
-const actionSkeleton = <div aria-hidden className="h-11 w-full animate-pulse rounded-xl bg-gray-200 sm:w-40" />;
+// Shaxsiy holat kelguncha ham test ochilsin: havola solve sahifasiga, u
+// `check-access` bilan qulflangan testda paywall'ni o'zi ko'rsatadi. Faqat
+// qulf/narx belgisi o'rnida skeleton — u foydalanuvchiga bog'liq.
+function pendingAction(row: MockRow, label: string): ReactNode {
+  return (
+    <Link href={`/tests/${row.id}/solve`} className={`${primaryButton} sm:w-auto sm:min-w-40`}>
+      <span aria-hidden className="inline-block h-4 w-4 animate-pulse rounded-full bg-white/30" />
+      {label}
+    </Link>
+  );
+}
 
 function personal(pending: boolean | 'hint', ready: ReactNode, skeleton: ReactNode): ReactNode {
   if (pending === true) return skeleton;
@@ -33,8 +43,8 @@ const SOLVED_PILL = { color: '#166534', background: '#dcfce7' };
 // `lockedHref` — obuna kartasi shu sahifada bo'lsa qulflangan qator unga
 // olib boradi (boshqa sahifaga emas). Berilmasa avvalgi havola.
 // `pending` — sahifa statik: qatorlar mehmon holatida keladi. Kirgan
-// foydalanuvchida `/me` kelguncha holat va tugma o'rnida skeleton (`true`),
-// sessiya noma'lum bo'lsa ikkalasi ham, CSS ishorasi tanlaydi (`'hint'`).
+// foydalanuvchida `/me` kelguncha nom, savol soni va "Boshlash" havolasi
+// darhol, holat va qulf belgisi o'rnida skeleton (`true`); sessiya noma'lum bo'lsa ikkalasi ham, CSS ishorasi tanlaydi (`'hint'`).
 export function TestRowList({ title, rows, emptyText, lockedHref, pending = false }: {
   title: string; rows: MockRow[]; emptyText: string; lockedHref?: string; pending?: boolean | 'hint';
 }) {
@@ -155,7 +165,7 @@ export function TestRowList({ title, rows, emptyText, lockedHref, pending = fals
                       )}
                     </Link>
                   )}
-                </>, actionSkeleton)}
+                </>, pendingAction(row, t('list.start')))}
               </div>
             </li>
           ))}

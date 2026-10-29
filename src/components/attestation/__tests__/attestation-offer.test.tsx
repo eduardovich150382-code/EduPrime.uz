@@ -102,3 +102,23 @@ describe('TestRowList qulflangan qator', () => {
     expect(out).toContain('href="/pricing"'); expect(out).not.toContain('Obuna bilan ochiladi');
   });
 });
+
+describe('TestRowList pending — shaxsiy holat kelguncha', () => {
+  const rows = [row({ id: 't1', title: 'Mock 1', solved: true, lastScore: 40, lastMax: 50, ball: 80, tier: 'top', secondaryHref: '/results/x',
+    locked: true, lockBadge: { kind: 'subscription' }, primaryHref: '/login?returnUrl=%2Ftests%2Ft1%2Fsolve' })];
+  it('nom, savol soni va solve havolasi darhol; holat, ball va qulf yo‘q', () => {
+    const out = html(<TestRowList title="Mock testlar" rows={rows} emptyText="" lockedHref="#obuna" pending />);
+    expect(out).toContain('Mock 1');
+    expect(out).toContain('50 savol');
+    expect(out).toMatch(/href="\/tests\/t1\/solve"[^>]*>.*?Boshlash</);
+    expect(out).not.toContain('#obuna');
+    expect(out).not.toContain('/results/x');
+    expect(out).not.toMatch(/rounded-full px-2.5[^>]*>Yechilgan/);
+    expect(out).not.toContain('Oxirgi natija');
+  });
+  it('hint — mehmon varianti va kirgan uchun solve havolasi ikkalasi ham HTML’da', () => {
+    const out = html(<TestRowList title="Mock testlar" rows={rows.map((r) => ({ ...r, solved: false, locked: false, lockBadge: null }))} emptyText="" pending="hint" />);
+    expect(out).toContain('href="/login?returnUrl=%2Ftests%2Ft1%2Fsolve"');
+    expect(out).toContain('href="/tests/t1/solve"');
+  });
+});

@@ -28,7 +28,7 @@ describe('GET /api/pricing/me', () => {
     const response = await GET(request('?locale=en'));
     expect(response.headers.get('Cache-Control')).toBe('private, no-store');
     expect(m.pricing).toHaveBeenCalledWith('u1', 'en');
-    expect(await response.json()).toEqual({ products: [], subscriptions: [] });
+    expect(await response.json()).toEqual({ products: [], subscriptions: [], userId: 'u1' });
   });
 
   it('xato — 500, baribir keshlanmaydi', async () => {

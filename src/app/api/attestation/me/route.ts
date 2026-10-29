@@ -26,7 +26,10 @@ export async function GET(request: NextRequest) {
       loadAttestationPage({ id: user.id, role: user.role }, locale),
       loadPricingPage(user.id, locale),
     ]);
-    const body: AttestationPersonalData = {
+    // `userId` — klient ishora bilan sessiyadan oldin so'rasa, javob kimniki
+    // ekanini sessiya bilan solishtiradi (lib/personal-data.ts).
+    const body: AttestationPersonalData & { userId: string } = {
+      userId: user.id,
       mockRows: page.mockRows,
       topicRows: page.topicRows,
       hero: page.hero,
