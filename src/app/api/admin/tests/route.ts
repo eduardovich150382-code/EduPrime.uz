@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/api-auth';
 import { logger } from '@/lib/logger';
+import { revalidateTestCatalog } from '@/lib/cache-tags';
 
 /**
  * GET /api/admin/tests — Barcha testlar ro'yxati (ADMIN only)
@@ -94,16 +95,19 @@ export async function PATCH(request: NextRequest) {
 
     if (action === 'publish') {
       await db.test.update({ where: { id: testId }, data: { isPublished: true } });
+      revalidateTestCatalog();
       return NextResponse.json({ message: 'Test published' });
     }
 
     if (action === 'unpublish') {
       await db.test.update({ where: { id: testId }, data: { isPublished: false } });
+      revalidateTestCatalog();
       return NextResponse.json({ message: 'Test unpublished' });
     }
 
     if (action === 'delete') {
       await db.test.delete({ where: { id: testId } });
+      revalidateTestCatalog();
       return NextResponse.json({ message: 'Test deleted' });
     }
 

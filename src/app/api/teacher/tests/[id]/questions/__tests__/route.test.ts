@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { authMock, findUniqueTestMock, transactionMock, updateTestMock } = vi.hoisted(() => ({
+const { authMock, findUniqueTestMock, transactionMock, updateTestMock, revalidateTagMock } = vi.hoisted(() => ({
+  revalidateTagMock: vi.fn(),
   authMock: vi.fn(),
   findUniqueTestMock: vi.fn(),
   transactionMock: vi.fn(),
@@ -19,6 +20,7 @@ vi.mock("@/lib/db", () => ({
 
 vi.mock("@/lib/auth", () => ({ auth: () => authMock() }));
 vi.mock("@/lib/logger", () => ({ logger: { warn: vi.fn(), error: vi.fn() } }));
+vi.mock("next/cache", () => ({ revalidateTag: revalidateTagMock }));
 
 import { PUT } from "../route";
 
@@ -170,6 +172,8 @@ describe("PUT /api/teacher/tests/[id]/questions", () => {
     const { response } = await callPut([validQuestion({ id: "begona-id" })]);
 
     expect(response.status).toBe(200);
+    // questionCount pricing kartochkasi va test ro'yxatida ko'rinadi.
+    expect(revalidateTagMock.mock.calls).toEqual([["tests-list"], ["pricing"]]);
     expect(tx.question.create).toHaveBeenCalledTimes(1);
     expect(tx.question.update).not.toHaveBeenCalled();
   });
@@ -264,6 +268,7 @@ describe("PUT /api/teacher/tests/[id]/questions", () => {
 
     expect(response.status).toBe(403);
     expect(transactionMock).not.toHaveBeenCalled();
+    expect(revalidateTagMock).not.toHaveBeenCalled();
   });
 
   it("autentifikatsiyasiz so'rovni rad etadi", async () => {

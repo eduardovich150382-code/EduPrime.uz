@@ -4,7 +4,9 @@ import { NextRequest, NextResponse } from 'next/server';
 const m = vi.hoisted(() => ({
   auth: vi.fn(), products: vi.fn(), product: vi.fn(), updateProduct: vi.fn(), counts: vi.fn(),
   createOffer: vi.fn(), findOffer: vi.fn(), updateOffer: vi.fn(), subjects: vi.fn(), subject: vi.fn(), updateSubject: vi.fn(),
+  revalidateTag: vi.fn(),
 }));
+vi.mock('next/cache', () => ({ revalidateTag: m.revalidateTag }));
 vi.mock('@/lib/api-auth', () => ({ requireAdmin: m.auth }));
 vi.mock('@/lib/logger', () => ({ logger: { error: vi.fn() } }));
 vi.mock('@/lib/db', () => ({ db: {
@@ -42,6 +44,7 @@ describe('admin himoyasi', () => {
     expect(responses.every((r) => r.status === status)).toBe(true);
     expect(m.products).not.toHaveBeenCalled(); expect(m.updateProduct).not.toHaveBeenCalled();
     expect(m.createOffer).not.toHaveBeenCalled(); expect(m.updateOffer).not.toHaveBeenCalled(); expect(m.updateSubject).not.toHaveBeenCalled();
+    expect(m.revalidateTag).not.toHaveBeenCalled();
   });
 });
 
@@ -61,6 +64,8 @@ describe('mahsulotlar', () => {
   it('mahsulotning tahrirlanadigan maydonlarini saqlaydi', async () => {
     expect((await PATCH(request(product), ctx)).status).toBe(200);
     expect(m.updateProduct).toHaveBeenCalledWith({ where: { id: 'obuna-attestation' }, data: product });
+    // Pricing katalogi keshlangan — yangi narx/matn darhol ko'rinsin.
+    expect(m.revalidateTag.mock.calls).toEqual([['pricing']]);
   });
   it('shior va afzalliklar: bo‘sh qatorlar tashlanadi, bo‘sh shior tozalanadi', async () => {
     const body = { ...product, taglineUz: '  Ishonch bilan ', taglineRu: '', taglineEn: null, featuresUz: ['Jonli tahlil', ' ', 'Guruh'], featuresRu: [], featuresEn: [] };
@@ -74,6 +79,7 @@ describe('mahsulotlar', () => {
   });
   it.each([{ ...product, secondSubjectDiscountPct: 101 }, { ...product, order: 0.5 }, { ...product, nameRu: '' }, { ...product, categoryId: 'change' }])('noto‘g‘ri mahsulotni yozmaydi', async (body) => {
     expect((await PATCH(request(body), ctx)).status).toBe(400); expect(m.updateProduct).not.toHaveBeenCalled();
+    expect(m.revalidateTag).not.toHaveBeenCalled();
   });
 });
 
@@ -81,10 +87,12 @@ describe('variantlar', () => {
   it('oylik variant yaratadi', async () => {
     expect((await POST(request(offer, 'POST'), ctx)).status).toBe(201);
     expect(m.createOffer).toHaveBeenCalledWith({ data: { ...offer, productId: 'obuna-attestation' } });
+    expect(m.revalidateTag.mock.calls).toEqual([['pricing']]);
   });
   it('qat’iy sana Toshkent kunining oxiri sifatida saqlanadi', async () => {
     expect((await editOffer(request({ ...offer, durationMonths: null, untilDate: '2027-01-10' }), ctx)).status).toBe(200);
     expect(m.updateOffer).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ durationMonths: null, untilDate: new Date('2027-01-10T18:59:59.999Z') }) }));
+    expect(m.revalidateTag.mock.calls).toEqual([['pricing']]);
   });
   it('eski narx, belgi, ajratish va aksiya muddati (Toshkent vaqti) saqlanadi', async () => {
     const body = { ...offer, compareAtPrice: 15000, badgeUz: ' Eng foydali ', badgeRu: '', badgeEn: 'Best value', isFeatured: true, promoUntil: '2026-11-11T23:59' };
@@ -107,6 +115,7 @@ describe('variantlar', () => {
     const response = await editOffer(request(body), ctx);
     expect(response.status).toBe(400); expect((await response.json()).error).toBe(code);
     expect(m.updateOffer).not.toHaveBeenCalled();
+    expect(m.revalidateTag).not.toHaveBeenCalled();
   });
   it.each([
     { ...offer, durationMonths: null }, { ...offer, untilDate: '2027-01-01' }, { ...offer, durationMonths: 0 },
@@ -122,6 +131,7 @@ describe('variantlar', () => {
   it('mavjud bo‘lmagan mahsulotga variant yaratmaydi', async () => {
     m.product.mockResolvedValue(null);
     expect((await POST(request(offer, 'POST'), ctx)).status).toBe(404);
+    expect(m.revalidateTag).not.toHaveBeenCalled();
   });
   it('boshqa mahsulotning variantini o‘zgartirmaydi', async () => {
     m.findOffer.mockResolvedValue(null);
@@ -131,6 +141,7 @@ describe('variantlar', () => {
   it('DELETE qatorni o‘chirmay, nofaol qiladi', async () => {
     expect((await deactivateOffer(request({}, 'DELETE'), ctx)).status).toBe(200);
     expect(m.updateOffer).toHaveBeenCalledWith({ where: { id: 'offer1', productId: 'obuna-attestation' }, data: { isActive: false } });
+    expect(m.revalidateTag.mock.calls).toEqual([['pricing']]);
   });
   it('noto‘g‘ri JSON 400 qaytaradi', async () => {
     const response = await POST(new NextRequest('http://localhost', { method: 'POST', body: '{' }), ctx);
@@ -147,11 +158,14 @@ describe('majburiy fanlar', () => {
     m.subject.mockResolvedValue({ category: { type: 'DTM' } });
     expect((await editSubject(request({ id: 'math', isMandatory: true }))).status).toBe(200);
     expect(m.updateSubject).toHaveBeenCalledWith({ where: { id: 'math' }, data: { isMandatory: true } });
+    // Fanlar ro'yxati va pricing (majburiy fanlar sonlardan chiqariladi) keshlangan.
+    expect(m.revalidateTag.mock.calls).toEqual([['taxonomy'], ['pricing']]);
   });
   it('DTM bo‘lmagan fanni belgilamaydi', async () => {
     m.subject.mockResolvedValue({ category: { type: 'ATTESTATION' } });
     expect((await editSubject(request({ id: 'physics', isMandatory: true }))).status).toBe(400);
     expect(m.updateSubject).not.toHaveBeenCalled();
+    expect(m.revalidateTag).not.toHaveBeenCalled();
   });
   it('boolean o‘rniga satr yuborilsa rad etadi', async () => expect((await editSubject(request({ id: 'math', isMandatory: 'true' }))).status).toBe(400));
 });

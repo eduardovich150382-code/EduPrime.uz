@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { requireTeacher, applyRateLimit } from '@/lib/api-auth';
 import { importTestFromText } from '@/lib/gemini';
 import { logger } from '@/lib/logger';
+import { revalidateTestCatalog } from '@/lib/cache-tags';
 
 // POST /api/ai/quiz-from-text — kurs darsi matnidan (yoki istalgan matndan)
 // AI orqali bitta bosishda tekshiruv (Test) yaratadi. Mavjud
@@ -71,6 +72,7 @@ export async function POST(request: NextRequest) {
       },
       select: { id: true, titleUz: true, questionCount: true },
     });
+    revalidateTestCatalog();
 
     return NextResponse.json({ test, warnings: result.warnings || [] }, { status: 201 });
   } catch (error) {

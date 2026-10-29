@@ -8,6 +8,7 @@ vi.mock('@/lib/db', () => ({
   db: { test: { findUnique: m.find, update: m.update }, subject: { findUnique: m.subject } },
 }));
 vi.mock('@/lib/logger', () => ({ logger: { error: vi.fn() } }));
+vi.mock('next/cache', () => ({ revalidateTag: vi.fn() }));
 
 import { PUT } from '../route';
 

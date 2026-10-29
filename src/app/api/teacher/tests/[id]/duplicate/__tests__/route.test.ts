@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { requireTeacherMock, findTeacherMock, findTestMock, createTestMock } = vi.hoisted(() => ({
+const { requireTeacherMock, findTeacherMock, findTestMock, createTestMock, revalidateTagMock } = vi.hoisted(() => ({
+  revalidateTagMock: vi.fn(),
   requireTeacherMock: vi.fn(),
   findTeacherMock: vi.fn(),
   findTestMock: vi.fn(),
@@ -18,6 +19,7 @@ vi.mock("@/lib/db", () => ({
 }));
 vi.mock("@/lib/api-auth", () => ({ requireTeacher: () => requireTeacherMock() }));
 vi.mock("@/lib/logger", () => ({ logger: { error: vi.fn() } }));
+vi.mock("next/cache", () => ({ revalidateTag: revalidateTagMock }));
 
 import { POST } from "../route";
 
@@ -59,6 +61,7 @@ describe("POST /api/teacher/tests/[id]/duplicate", () => {
     findTestMock.mockResolvedValue({ id: 't1', titleUz: 'Attestatsiya', teacherId: 'teacher1', isMock, questions: [] });
     expect((await callDuplicate()).status).toBe(200);
     expect(createTestMock.mock.calls[0][0].data.isMock).toBe(isMock);
+    expect(revalidateTagMock.mock.calls).toEqual([["tests-list"], ["pricing"]]);
   });
 
   it("savollarning teglari (attestatsiya bo'limlari) nusxaga ko'chadi", async () => {

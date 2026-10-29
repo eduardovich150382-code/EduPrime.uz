@@ -1,8 +1,8 @@
 import 'server-only';
-import { db } from './db';
 import { loadUserEntitlements } from './access';
 import { secondSubjectOfferPrice } from './category-checkout';
-import { localizedName, productContentCounts, promoActive, type ContentCountRow, type PricingProduct } from './pricing';
+import { localizedName, productContentCounts, promoActive, type PricingProduct } from './pricing';
+import { loadPricingCatalog } from './public-catalog';
 import { subscriptionView, type SubscriptionView } from './subscription-display';
 import type { SubscriptionDetails } from './subscription-details';
 
@@ -19,37 +19,20 @@ function localizedList<F extends string>(row: Record<`${F}${Lang}`, string[]>, f
   return list.length ? list : row[`${field}Uz`];
 }
 
-// Fan kesimidagi sonlar bitta agregat so'rovda — mahsulot yoki fan soniga
-// qarab so'rov ko'paymaydi.
-function loadContentCounts(): Promise<ContentCountRow[]> {
-  return db.$queryRaw<ContentCountRow[]>`
-    SELECT t."categoryId", t."subjectId",
-      (COUNT(DISTINCT t."id") FILTER (WHERE NOT t."isMock"))::int AS "topicTests",
-      (COUNT(DISTINCT t."id") FILTER (WHERE t."isMock"))::int AS "mockTests",
-      COUNT(q."id")::int AS "questions"
-    FROM "Test" t LEFT JOIN "Question" q ON q."testId" = t."id"
-    WHERE t."isPublished" = true
-    GROUP BY t."categoryId", t."subjectId"
-  `;
-}
-
 export async function loadPricingPage(userId: string | null, locale: string, now = new Date()): Promise<{
   products: PricingProduct[]; subscriptions: SubscriptionView[];
 }> {
-  const [products, counts, entitlements] = await Promise.all([
-    db.product.findMany({
-      where: { isOnSale: true }, orderBy: [{ order: 'asc' }, { id: 'asc' }],
-      include: {
-        offers: { where: { isActive: true, OR: [{ untilDate: null }, { untilDate: { gt: now } }] }, orderBy: [{ order: 'asc' }, { id: 'asc' }] },
-        category: { include: { subjects: {
-          where: { tests: { some: { isPublished: true } } }, orderBy: [{ order: 'asc' }, { id: 'asc' }],
-          include: { _count: { select: { tests: { where: { isPublished: true } } } } },
-        } } },
-      },
-    }),
-    loadContentCounts(),
+  // Katalog (mahsulot, narx, sonlar) — hamma uchun bir xil, keshdan; obunalar
+  // va shaxsiy narx — faqat shu foydalanuvchiniki, keshdan tashqarida.
+  const [catalog, entitlements] = await Promise.all([
+    loadPricingCatalog(),
     userId ? loadUserEntitlements(userId, now, 'pricing') : null,
   ]);
+  const { counts } = catalog;
+  const products = catalog.products.map((product) => ({
+    ...product,
+    offers: product.offers.filter((offer) => offer.untilDate === null || new Date(offer.untilDate).getTime() > now.getTime()),
+  }));
   const owned = (entitlements?.subscriptions ?? []) as SubscriptionDetails[];
   const bundleCategoryIds = products.filter((p) => p.kind === 'CATEGORY' && p.categoryId).map((p) => p.categoryId as string);
   return {
@@ -71,9 +54,9 @@ export async function loadPricingPage(userId: string | null, locale: string, now
         activeSubscriptions: mine.map((s) => ({ id: s.id, endDate: s.endDate.toISOString(), subjects: s.subjects.map((name) => localizedName(name, locale)) })),
         offers: product.offers.map((offer) => ({
           id: offer.id, label: offer[`label${lang(locale)}`], price: offer.price,
-          durationMonths: offer.durationMonths, untilDate: offer.untilDate?.toISOString() ?? null,
+          durationMonths: offer.durationMonths, untilDate: offer.untilDate,
           compareAtPrice: promoActive(offer, now) && offer.compareAtPrice !== null && offer.compareAtPrice > offer.price ? offer.compareAtPrice : null,
-          promoUntil: offer.promoUntil && promoActive(offer, now) ? offer.promoUntil.toISOString() : null,
+          promoUntil: offer.promoUntil && promoActive(offer, now) ? offer.promoUntil : null,
           badge: localizedText(offer, 'badge', locale), isFeatured: offer.isFeatured,
           personalPrice: discountable && mine.length ? secondSubjectOfferPrice(offer.price, product.secondSubjectDiscountPct, product.id, current, now) : null,
         })),

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
+import { revalidateSettings } from '@/lib/cache-tags';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { logger } from '@/lib/logger';
@@ -103,6 +104,10 @@ export async function PUT(request: NextRequest) {
       });
       results.push(result);
     }
+
+    // Public sozlamalar va attestatsiya chegaralari `lib/public-catalog.ts`
+    // da keshlangan — saqlangan qiymat darhol ko'rinsin.
+    revalidateSettings();
 
     // Ikkala sahifa hozir dinamik (auth() / client fetch), lekin kesh
     // qo'shilsa ham yangi sana va chegaralar darhol ko'rinsin.

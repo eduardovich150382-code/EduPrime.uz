@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/api-auth';
+import { revalidatePricing } from '@/lib/cache-tags';
 import { AdminInputError, adminApiError, idSchema, offerSchema, readAdminJson } from '@/lib/admin-products-api';
 
 type Context = { params: Promise<{ id: string; offerId: string }> };
@@ -17,6 +18,7 @@ export async function PATCH(request: NextRequest, context: Context) {
   try {
     const data = offerSchema.parse(await readAdminJson(request));
     const offer = await db.productOffer.update({ where: await offerWhere(context), data });
+    revalidatePricing();
     return NextResponse.json({ offer });
   } catch (error) { return adminApiError(error); }
 }
@@ -26,6 +28,7 @@ export async function DELETE(_request: NextRequest, context: Context) {
   if (error) return error;
   try {
     const offer = await db.productOffer.update({ where: await offerWhere(context), data: { isActive: false } });
+    revalidatePricing();
     return NextResponse.json({ offer });
   } catch (error) { return adminApiError(error); }
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireTeacher } from '@/lib/api-auth';
 import { logger } from '@/lib/logger';
+import { revalidateTestCatalog } from '@/lib/cache-tags';
 
 // POST /api/teacher/tests/[id]/duplicate — testni nusxalash
 export async function POST(
@@ -83,6 +84,7 @@ export async function POST(
         subject: { select: { nameUz: true, icon: true } },
       },
     });
+    revalidateTestCatalog();
 
     return NextResponse.json({
       test: {

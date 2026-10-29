@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { notifyViaTelegram } from '@/lib/telegram-notify';
 import { logger } from '@/lib/logger';
+import { revalidateTestCatalog } from '@/lib/cache-tags';
 
 // GET /api/teacher/tests/[id] — ustoz uchun bitta testni olish (to'g'ri javoblar bilan)
 export async function GET(
@@ -114,6 +115,7 @@ export async function PATCH(
         ...(body.difficulty && { difficulty: body.difficulty }),
       },
     });
+    revalidateTestCatalog();
 
     // If test was just published, notify all users
     if (!wasPublished && body.isPublished === true) {

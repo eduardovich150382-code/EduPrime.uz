@@ -1,5 +1,4 @@
 import 'server-only';
-import type { Prisma } from '@prisma/client';
 import { db } from './db';
 import { loadTestAccessContext, resolveTestAccess } from './access';
 import { getCardLinks, getCardState, getLockBadge, latestResultByTest, type BriefResult, type LockBadge } from './test-card';
@@ -19,7 +18,8 @@ import {
   type TopicStat,
 } from './attestation-stats';
 import type { SectionKey } from './question-sections';
-import { loadAttestationSettings, type AttestationSettings } from './attestation-settings';
+import type { AttestationSettings } from './attestation-settings';
+import { cachedAttestationSettings, loadAttestationCatalog } from './public-catalog';
 import { attestationScore, getAttestationTier, type AttestationTier } from './attestation-tiers';
 
 // /attestation sahifasining barcha ma'lumoti — bitta joyda, so'rovlar soni
@@ -87,48 +87,26 @@ function localizedTitle(test: { titleUz: string; titleRu: string | null; titleEn
   return (locale === 'ru' && test.titleRu) || (locale === 'en' && test.titleEn) || test.titleUz;
 }
 
-const TEST_SELECT = {
-  id: true,
-  isMock: true,
-  titleUz: true,
-  titleRu: true,
-  titleEn: true,
-  isFree: true,
-  accessType: true,
-  price: true,
-  questionCount: true,
-  subjectId: true,
-  categoryId: true,
-} satisfies Prisma.TestSelect;
-
 export async function loadAttestationPage(
   user: { id: string; role?: string } | null,
   locale: string,
 ): Promise<AttestationPageData> {
-  const [categories, settings] = await Promise.all([
-    db.testCategory.findMany({ where: { type: 'ATTESTATION' }, select: { id: true, type: true } }),
-    loadAttestationSettings(),
-  ]);
-
-  // Test'da category relation yo'q — kategoriya id lari bo'yicha. Tartib
-  // maydoni ham yo'q: createdAt o'sish (teng bo'lsa id — barqaror).
-  const where: Prisma.TestWhereInput = {
-    isPublished: true,
-    categoryId: { in: categories.map((c) => c.id) },
-  };
-  const tests = categories.length
-    ? await db.test.findMany({ where, select: TEST_SELECT, orderBy: [{ createdAt: 'asc' }, { id: 'asc' }] })
-    : [];
+  // Katalog va sozlamalar hamma uchun bir xil — keshdan. Natijalar, ruxsat
+  // va readiness pastda, faqat shu foydalanuvchi uchun.
+  const [{ categories, tests }, settings] = await Promise.all([loadAttestationCatalog(), cachedAttestationSettings()]);
   const testIds = tests.map((t) => t.id);
 
   // Tasniflash uchun teglar bitta so'rovda (N+1 yo'q). Faqat teg va mavzu —
-  // matn, variant va to'g'ri javob tanlanmaydi.
+  // matn, variant va to'g'ri javob tanlanmaydi. Ular faqat readiness uchun
+  // kerak — mehmonda so'rov yuborilmaydi.
   const [questions, results, accessContext] = testIds.length
     ? await Promise.all([
-        db.question.findMany({
-          where: { testId: { in: testIds } },
-          select: { id: true, testId: true, tags: true, topic: true },
-        }),
+        user
+          ? db.question.findMany({
+              where: { testId: { in: testIds } },
+              select: { id: true, testId: true, tags: true, topic: true },
+            })
+          : [],
         user
           ? db.testResult.findMany({
               where: { userId: user.id, testId: { in: testIds } },

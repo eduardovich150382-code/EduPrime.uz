@@ -3,7 +3,8 @@ import { NextRequest } from 'next/server';
 const m = vi.hoisted(() => ({ settings: vi.fn(), upsert: vi.fn(), auth: vi.fn() }));
 vi.mock('@/lib/db', () => ({ db: { systemSetting: { findMany: m.settings, upsert: m.upsert } } }));
 vi.mock('@/lib/auth', () => ({ auth: m.auth }));
-vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
+vi.mock('server-only', () => ({}));
+vi.mock('next/cache', () => ({ revalidatePath: vi.fn(), revalidateTag: vi.fn(), unstable_cache: <T>(fn: T) => fn }));
 import { GET } from '../route';
 import { GET as adminGet, PUT } from '@/app/api/admin/settings/route';
 
