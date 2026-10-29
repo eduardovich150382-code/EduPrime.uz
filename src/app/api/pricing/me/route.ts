@@ -17,7 +17,10 @@ export async function GET(request: NextRequest) {
     return error;
   }
   try {
-    return NextResponse.json(await loadPricingPage(user.id, requestLocale(request)), { headers: PRIVATE });
+    // `userId` — ishora bilan erta yuborilgan so'rov javobini sessiya bilan
+    // solishtirish uchun (lib/personal-data.ts).
+    const page = await loadPricingPage(user.id, requestLocale(request));
+    return NextResponse.json({ ...page, userId: user.id }, { headers: PRIVATE });
   } catch (err) {
     logger.error('GET /api/pricing/me error:', { error: err });
     return NextResponse.json({ error: 'Server error' }, { status: 500, headers: PRIVATE });

@@ -36,7 +36,8 @@ describe('GET /api/attestation/me', () => {
     expect(m.page).toHaveBeenCalledWith({ id: 'u1', role: 'USER' }, 'ru');
     expect(m.pricing).toHaveBeenCalledWith('u1', 'ru');
     const body = await response.json();
-    expect(Object.keys(body).sort()).toEqual(['hero', 'mockRows', 'readiness', 'topicRows', 'view']);
+    expect(Object.keys(body).sort()).toEqual(['hero', 'mockRows', 'readiness', 'topicRows', 'userId', 'view']);
+    expect(body.userId).toBe('u1');
     expect(body.view).toMatchObject({ product: null, owned: null, showOffer: false, buy: { userId: 'u1', knownSubscriptionIds: [] } });
   });
 
