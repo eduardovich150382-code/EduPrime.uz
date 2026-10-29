@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import { ListChecks, Lock, RotateCcw } from 'lucide-react';
 import { Link } from '@/i18n/routing';
@@ -9,8 +9,18 @@ import { GOAL_STYLES } from '@/lib/goal-styles';
 import { primaryButton, secondaryButton } from '@/components/tests/button-classes';
 import type { MockRow } from '@/lib/attestation-page';
 import { TierPill } from './TierPill';
+import { HintSwitch } from '@/components/ui/ViewerGate';
 
 const FILTERS: MockFilter[] = ['all', 'unsolved', 'solved'];
+
+const statusSkeleton = <span aria-hidden className="inline-block h-5 w-20 animate-pulse rounded-full bg-gray-200" />;
+const actionSkeleton = <div aria-hidden className="h-11 w-full animate-pulse rounded-xl bg-gray-200 sm:w-40" />;
+
+function personal(pending: boolean | 'hint', ready: ReactNode, skeleton: ReactNode): ReactNode {
+  if (pending === true) return skeleton;
+  if (pending === 'hint') return <HintSwitch guest={ready} authed={skeleton} />;
+  return ready;
+}
 
 // Ranglar docs/design/testlar-ui.md "to'g'ri" holatidan; "Yangi" —
 // attestatsiya maqsad belgisi bilan bir xil juftlik.
@@ -22,8 +32,11 @@ const SOLVED_PILL = { color: '#166534', background: '#dcfce7' };
 // bu komponentga hech qachon kelmaydi (lib/attestation-page.ts).
 // `lockedHref` — obuna kartasi shu sahifada bo'lsa qulflangan qator unga
 // olib boradi (boshqa sahifaga emas). Berilmasa avvalgi havola.
-export function TestRowList({ title, rows, emptyText, lockedHref }: {
-  title: string; rows: MockRow[]; emptyText: string; lockedHref?: string;
+// `pending` — sahifa statik: qatorlar mehmon holatida keladi. Kirgan
+// foydalanuvchida `/me` kelguncha holat va tugma o'rnida skeleton (`true`),
+// sessiya noma'lum bo'lsa ikkalasi ham, CSS ishorasi tanlaydi (`'hint'`).
+export function TestRowList({ title, rows, emptyText, lockedHref, pending = false }: {
+  title: string; rows: MockRow[]; emptyText: string; lockedHref?: string; pending?: boolean | 'hint';
 }) {
   const t = useTranslations('attestation');
   const tests = useTranslations('tests.card');
@@ -81,64 +94,68 @@ export function TestRowList({ title, rows, emptyText, lockedHref }: {
                     <span className="inline-flex items-center gap-1.5">
                       <ListChecks size={16} aria-hidden /> {tests('questions', { count: row.questionCount })}
                     </span>
-                    <span
-                      className="rounded-full px-2.5 py-0.5 text-xs font-semibold"
-                      style={row.solved ? SOLVED_PILL : GOAL_STYLES.ATTESTATION}
-                    >
-                      {row.solved ? t('status.solved') : t('status.new')}
-                    </span>
-                    {row.solved && row.ball !== null ? (
-                      // Mock — rasmiy 100 ballik shkala va toifa.
-                      <>
-                        <span className="font-medium" style={{ color: '#166534' }}>
-                          {t('list.lastBall', { score: row.ball })}
-                        </span>
-                        {row.tier && <TierPill tier={row.tier} label={t(`tiers.${row.tier}`)} />}
-                      </>
-                    ) : row.solved && (
-                      <span className="font-medium" style={{ color: '#166534' }}>
-                        {/* Eski natijalarda maxScore 0 bo'lishi mumkin — TestCard'dagi kabi foiz. */}
-                        {row.lastMax
-                          ? t('list.lastScore', { score: row.lastScore ?? 0, max: row.lastMax })
-                          : t('list.lastPercent', { percent: row.lastPercent ?? 0 })}
+                    {personal(pending, <>
+                      <span
+                        className="rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                        style={row.solved ? SOLVED_PILL : GOAL_STYLES.ATTESTATION}
+                      >
+                        {row.solved ? t('status.solved') : t('status.new')}
                       </span>
-                    )}
+                      {row.solved && row.ball !== null ? (
+                        // Mock — rasmiy 100 ballik shkala va toifa.
+                        <>
+                          <span className="font-medium" style={{ color: '#166534' }}>
+                            {t('list.lastBall', { score: row.ball })}
+                          </span>
+                          {row.tier && <TierPill tier={row.tier} label={t(`tiers.${row.tier}`)} />}
+                        </>
+                      ) : row.solved && (
+                        <span className="font-medium" style={{ color: '#166534' }}>
+                          {/* Eski natijalarda maxScore 0 bo'lishi mumkin — TestCard'dagi kabi foiz. */}
+                          {row.lastMax
+                            ? t('list.lastScore', { score: row.lastScore ?? 0, max: row.lastMax })
+                            : t('list.lastPercent', { percent: row.lastPercent ?? 0 })}
+                        </span>
+                      )}
+                    </>, statusSkeleton)}
                   </div>
                 </div>
               </div>
 
               <div className="w-full shrink-0 sm:w-auto">
-                {row.solved && row.secondaryHref ? (
-                  <div className="grid grid-cols-2 gap-2 sm:w-72">
-                    <Link href={row.secondaryHref} className={secondaryButton}>
-                      {t('list.result')}
+                {personal(pending, <>
+                  {row.solved && row.secondaryHref ? (
+                    <div className="grid grid-cols-2 gap-2 sm:w-72">
+                      <Link href={row.secondaryHref} className={secondaryButton}>
+                        {t('list.result')}
+                      </Link>
+                      <Link href={row.primaryHref} className={primaryButton}>
+                        <RotateCcw size={16} aria-hidden /> {t('list.retake')}
+                      </Link>
+                    </div>
+                  ) : row.locked && lockedHref ? (
+                    <a href={lockedHref} className={`${primaryButton} sm:w-auto sm:min-w-40`}>
+                      <Lock size={16} aria-hidden />
+                      {t('list.unlockWithSubscription')}
+                    </a>
+                  ) : (
+                    <Link href={row.primaryHref} className={`${primaryButton} sm:w-auto sm:min-w-40`}>
+                      {row.locked && <Lock size={16} aria-hidden />}
+                      {t('list.start')}
+                      {row.lockBadge && (
+                        <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
+                          {row.lockBadge.kind === 'price'
+                            ? tests('lockPrice', { price: row.lockBadge.price.toLocaleString() })
+                            : row.lockBadge.kind === 'premium'
+                            ? tests('lockPremium')
+                            : row.lockBadge.kind === 'subscription'
+                            ? tests('lockSubscription')
+                            : tests('lockTeacher')}
+                        </span>
+                      )}
                     </Link>
-                    <Link href={row.primaryHref} className={primaryButton}>
-                      <RotateCcw size={16} aria-hidden /> {t('list.retake')}
-                    </Link>
-                  </div>
-                ) : row.locked && lockedHref ? (
-                  <a href={lockedHref} className={`${primaryButton} sm:w-auto sm:min-w-40`}>
-                    <Lock size={16} aria-hidden />
-                    {t('list.unlockWithSubscription')}
-                  </a>
-                ) : (
-                  <Link href={row.primaryHref} className={`${primaryButton} sm:w-auto sm:min-w-40`}>
-                    {row.locked && <Lock size={16} aria-hidden />}
-                    {t('list.start')}
-                    {row.lockBadge && (
-                      <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
-                        {row.lockBadge.kind === 'price'
-                          ? tests('lockPrice', { price: row.lockBadge.price.toLocaleString() })
-                          : row.lockBadge.kind === 'premium'
-                          ? tests('lockPremium')
-                          : row.lockBadge.kind === 'subscription'
-                          ? tests('lockSubscription')
-                          : tests('lockTeacher')}
-                      </span>
-                    )}
-                  </Link>
-                )}
+                  )}
+                </>, actionSkeleton)}
               </div>
             </li>
           ))}

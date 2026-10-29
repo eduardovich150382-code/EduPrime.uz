@@ -21,6 +21,7 @@ import type { SectionKey } from './question-sections';
 import type { AttestationSettings } from './attestation-settings';
 import { cachedAttestationSettings, loadAttestationCatalog } from './public-catalog';
 import { attestationScore, getAttestationTier, type AttestationTier } from './attestation-tiers';
+import type { AttestationView } from './attestation-offer';
 
 // /attestation sahifasining barcha ma'lumoti — bitta joyda, so'rovlar soni
 // testlar sonidan qat'i nazar o'zgarmas (N+1 yo'q).
@@ -80,6 +81,18 @@ export interface AttestationPageData {
   hero: { kind: HeroTarget['kind']; number: number | null; href: string } | null;
   /** `null` — kirmagan foydalanuvchi. */
   readiness: Readiness | null;
+}
+
+/**
+ * Faqat kirgan foydalanuvchiga xos qism — `/api/attestation/me` javobi.
+ * Statik sahifa shu maydonlarning mehmon variantini chizadi.
+ */
+export interface AttestationPersonalData {
+  mockRows: MockRow[];
+  topicRows: MockRow[];
+  hero: AttestationPageData['hero'];
+  readiness: Readiness | null;
+  view: AttestationView;
 }
 
 function localizedTitle(test: { titleUz: string; titleRu: string | null; titleEn: string | null }, locale: string): string {

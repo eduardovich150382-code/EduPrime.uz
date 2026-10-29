@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { attestationSubscription, liveOffers, pickAttestationProduct, recommendedOfferId } from '../attestation-offer';
+import { attestationSubscription, buildAttestationView, liveOffers, pickAttestationProduct, recommendedOfferId } from '../attestation-offer';
 import type { PricingOffer, PricingProduct } from '../pricing';
 import { subscriptionView } from '../subscription-display';
 import { subscriptionFixture as sub, subscriptionNow as now } from './fixtures/subscriptions';
@@ -70,5 +70,25 @@ describe('attestationSubscription', () => {
     expect(attestationSubscription(views({ endDate: new Date('2026-10-20T00:00:00+05:00') }), product, now)).toBeNull();
     expect(attestationSubscription(views({ startDate: new Date('2026-10-30T00:00:00+05:00') }), product, now)).toBeNull();
     expect(attestationSubscription(views({ isActive: false }), product, now)).toBeNull();
+  });
+});
+
+// Statik mehmon render'i va /api/attestation/me bitta qoidadan foydalanadi.
+describe('buildAttestationView', () => {
+  const login = '/login?callbackUrl=%2Fattestation';
+  it('mehmon: karta ko‘rinadi, tugma kirishga olib boradi', () => {
+    expect(buildAttestationView({ products: [product], subscriptions: [] }, { userId: null, loginHref: login }, now)).toEqual({
+      product, owned: null, showOffer: true, buy: { userId: null, loginHref: login, knownSubscriptionIds: [] },
+    });
+  });
+  it('obunachi: karta o‘rniga faol obuna, ma’lum obunalar tugmaga beriladi', () => {
+    const view = buildAttestationView({ products: [product], subscriptions: views({}) }, { userId: 'u1', loginHref: login }, now);
+    expect(view.showOffer).toBe(false);
+    expect(view.owned?.subscription.id).toBe('s1');
+    expect(view.buy).toEqual({ userId: 'u1', loginHref: login, knownSubscriptionIds: ['s1'] });
+  });
+  it('variant yoki mahsulot yo‘q — karta yo‘q', () => {
+    expect(buildAttestationView({ products: [{ ...product, offers: [] }], subscriptions: [] }, { userId: null, loginHref: login }, now).showOffer).toBe(false);
+    expect(buildAttestationView({ products: [], subscriptions: [] }, { userId: null, loginHref: login }, now)).toMatchObject({ product: null, showOffer: false });
   });
 });

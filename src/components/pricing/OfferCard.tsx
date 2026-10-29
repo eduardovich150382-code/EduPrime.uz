@@ -5,6 +5,7 @@ import { GOAL_STYLES, BUNDLE_STYLE, LEGACY_STYLE } from '@/lib/goal-styles';
 import { autoFeatures, longerOfferSaving, roundDownCount, soldSubjects, sumCounts, type ContentCounts, type PricingProduct } from '@/lib/pricing';
 import { goalIcon } from '@/components/subscription/goal-icons';
 import { formatAmount, OfferVariant, type Accent, type BuyContext } from './OfferVariant';
+import { HintSwitch } from '@/components/ui/ViewerGate';
 
 export function productAccent(product: Pick<PricingProduct, 'kind' | 'goal'>): Accent {
   if (product.kind === 'BUNDLE') return BUNDLE_STYLE;
@@ -152,7 +153,11 @@ export function OfferCard({ product, locale, buy, title, recommend }: {
           </div>
         )}
         {mandatory.length > 0 && <p className="text-sm text-text-secondary">{t('mandatorySubjects', { names: mandatory.map((s) => s.name).join(', ') })}</p>}
-        {!buy.userId && (product.subjectRule === 'ONE' || product.subjectRule === 'DTM_BLOCK') && product.kind === 'CATEGORY' && <p className="text-sm text-text-secondary">{t('subjectInBot')}</p>}
+        {!buy.userId && buy.pending !== true && (product.subjectRule === 'ONE' || product.subjectRule === 'DTM_BLOCK') && product.kind === 'CATEGORY' && (
+          buy.pending === 'hint'
+            ? <HintSwitch guest={<p className="text-sm text-text-secondary">{t('subjectInBot')}</p>} authed={null} />
+            : <p className="text-sm text-text-secondary">{t('subjectInBot')}</p>
+        )}
         <FeatureList product={product} counts={total} accent={accent} />
         <VariantGrid product={product} accent={accent} buy={buy} locale={locale} recommend={recommend} />
         <PaymentFacts />

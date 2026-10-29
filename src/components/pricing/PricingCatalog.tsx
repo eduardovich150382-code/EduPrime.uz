@@ -12,15 +12,17 @@ import type { BuyContext } from './OfferVariant';
 
 const card = 'min-w-0 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6';
 
-export function PricingCatalog({ products, subscriptions, goal, locale, returnUrl, userId = null }: {
+export function PricingCatalog({ products, subscriptions, goal, locale, returnUrl, userId = null, pending }: {
   products: PricingProduct[]; subscriptions: SubscriptionView[]; goal?: string; locale: string; returnUrl?: string; userId?: string | null;
+  /** Statik sahifada shaxsiy qism hali yo'q (BuyContext.pending). */
+  pending?: boolean | 'hint';
 }) {
   const t = useTranslations('pricing');
   const categories = products.filter((product) => product.kind === 'CATEGORY');
   const bundles = products.filter((product) => product.kind === 'BUNDLE');
   const selected = selectPricingProduct(products, goal);
   const buy: BuyContext = {
-    userId, knownSubscriptionIds: subscriptions.map((subscription) => subscription.id),
+    userId, pending, knownSubscriptionIds: subscriptions.map((subscription) => subscription.id),
     loginHref: loginHref(localizedPath(selected?.goal ? `/pricing?goal=${encodeURIComponent(selected.goal)}` : '/pricing', locale)),
   };
   return (

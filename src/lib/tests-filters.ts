@@ -33,6 +33,10 @@ export const DEFAULT_FILTERS: TestsFilters = { type: null, subject: null, q: '',
 // bazaga yubormaslik uchun.
 export const MAX_QUERY_LENGTH = 100;
 
+// 24 — 2 va 3 ustunli to'rda ham to'liq qatorlar bilan tugaydi. Statik
+// /tests birinchi sahifasi (lib/public-tests.ts) ham shu hajmda.
+export const TESTS_PAGE_SIZE = 24;
+
 function isTestGoal(value: string | null): value is TestGoal {
   return value !== null && (TEST_GOALS as readonly string[]).includes(value);
 }

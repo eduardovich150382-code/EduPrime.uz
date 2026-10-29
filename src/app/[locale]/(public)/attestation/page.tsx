@@ -1,18 +1,24 @@
 import type { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
-import { auth } from '@/lib/auth';
-import { loadAttestationPage } from '@/lib/attestation-page';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { loadAttestationPage, type AttestationPersonalData } from '@/lib/attestation-page';
 import { loadPricingPage } from '@/lib/pricing-page';
-import { attestationSubscription, pickAttestationProduct } from '@/lib/attestation-offer';
+import { buildAttestationView } from '@/lib/attestation-offer';
 import { loginHref, localizedPath } from '@/lib/safe-return-path';
 import { AttestationHero } from '@/components/attestation/AttestationHero';
-import { AttestationActiveSubscription, AttestationOffer } from '@/components/attestation/AttestationOffer';
 import { ExamStructure } from '@/components/attestation/ExamStructure';
-import { TestRowList } from '@/components/attestation/TestRowList';
-import { GuestPanel, ReadinessPanel } from '@/components/attestation/ReadinessPanel';
+import {
+  AttestationPersonalProvider, HeroActions, OfferSlot, RowsSlot, SidePanelSlot,
+} from '@/components/attestation/AttestationPersonal';
+import { noBuildTimeParams } from '@/i18n/static-params';
 
-// Admin narxni o'zgartirgach obuna kartasida eski Full Route Cache qaytmasin (/pricing kabi).
-export const dynamic = 'force-dynamic';
+// Statik (ISR): sahifa mehmon ko'rinishida CDN'dan beriladi, shaxsiy qism
+// (natija, readiness, obuna, shaxsiy narx) klientda /api/attestation/me dan.
+// Katalog, narx va sozlamalar keshlangan funksiyalardan (lib/public-catalog.ts);
+// admin o'zgartirsa revalidateTag sahifani ham yangilaydi, aks holda ko'pi
+// bilan 5 daqiqa (PUBLIC_CACHE_REVALIDATE_SEC bilan bir xil).
+export const revalidate = 300;
+// Build'da bazaga ulanmaydi — birinchi so'rovda render (i18n/static-params.ts).
+export const generateStaticParams = noBuildTimeParams;
 type Params = Promise<{ locale: string }>;
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
@@ -27,48 +33,35 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 
 export default async function AttestationPage({ params }: { params: Params }) {
   const { locale } = await params;
-  const session = await auth();
-  const user = session?.user?.id ? { id: session.user.id, role: session.user.role } : null;
+  setRequestLocale(locale);
   // Narx, variantlar va obunalar /pricing yuklovchisidan — alohida narx manbai yo'q.
-  const [data, pricing] = await Promise.all([loadAttestationPage(user, locale), loadPricingPage(user?.id ?? null, locale)]);
+  const [data, pricing] = await Promise.all([loadAttestationPage(null, locale), loadPricingPage(null, locale)]);
   const t = await getTranslations({ locale, namespace: 'attestation.list' });
 
-  const now = new Date();
-  const product = pickAttestationProduct(pricing.products);
-  const owned = product ? attestationSubscription(pricing.subscriptions, product, now) : null;
-  const showOffer = !!product && !owned && product.offers.length > 0;
   const returnHere = loginHref(localizedPath('/attestation', locale));
-  const buy = { userId: user?.id ?? null, loginHref: returnHere, knownSubscriptionIds: pricing.subscriptions.map((s) => s.id) };
-  const lockedHref = showOffer ? '#obuna' : undefined;
+  const guest: AttestationPersonalData = {
+    mockRows: data.mockRows,
+    topicRows: data.topicRows,
+    hero: data.hero,
+    readiness: null,
+    view: buildAttestationView(pricing, { userId: null, loginHref: returnHere }, new Date()),
+  };
 
   return (
-    <div className="mx-auto max-w-7xl space-y-8">
-      <AttestationHero hero={data.hero} date={data.settings.date} locale={locale} offersAnchor={showOffer} />
-      {(showOffer || owned) && (
-        <section id="obuna" className="scroll-mt-24">
-          {owned ? (
-            <AttestationActiveSubscription subscription={owned.subscription} uncoveredSubjects={owned.uncoveredSubjects}
-              discountPct={product?.secondSubjectDiscountPct ?? 0} />
-          ) : product && <AttestationOffer product={product} buy={buy} locale={locale} />}
-        </section>
-      )}
-      <ExamStructure settings={data.settings} />
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
-        <div className="min-w-0 space-y-8">
-          <div className="space-y-3">
-            <TestRowList title={t('title')} rows={data.mockRows} emptyText={t('mocksEmpty')} lockedHref={lockedHref} />
-            {data.mockRows.length > 0 && <p className="text-sm text-text-secondary">{t('mocksFootnote')}</p>}
+    <AttestationPersonalProvider locale={locale} guest={guest}>
+      {/* gap, space-y emas: HintSwitch o'ramalari `display: contents` — margin ularga tushmaydi. */}
+      <div className="mx-auto flex max-w-7xl flex-col gap-8">
+        <AttestationHero date={data.settings.date} locale={locale} actions={<HeroActions />} />
+        <OfferSlot />
+        <ExamStructure settings={data.settings} />
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
+          <div className="min-w-0 space-y-8">
+            <RowsSlot kind="mock" title={t('title')} emptyText={t('mocksEmpty')} footnote={t('mocksFootnote')} />
+            <RowsSlot kind="topic" title={t('topicsTitle')} emptyText={t('mocksEmpty')} />
           </div>
-          {data.topicRows.length > 0 && (
-            <TestRowList title={t('topicsTitle')} rows={data.topicRows} emptyText={t('mocksEmpty')} lockedHref={lockedHref} />
-          )}
+          <SidePanelSlot loginHref={returnHere} />
         </div>
-        {data.readiness ? (
-          <ReadinessPanel readiness={data.readiness} />
-        ) : (
-          <GuestPanel loginHref={returnHere} />
-        )}
       </div>
-    </div>
+    </AttestationPersonalProvider>
   );
 }

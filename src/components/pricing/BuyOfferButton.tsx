@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { clearSubscriptionStatusCache, loadSubscriptionStatus } from '@/components/ui/useSubscriptionStatus';
 import { BUY_BUTTON_STYLES, type BuyButtonVariant } from './buy-button-styles';
+import { PersonalRefreshContext } from './personal-refresh';
 import { isTelegramMiniApp, openExternalInMiniApp } from '@/lib/telegram-webapp-client';
 
 const POLL_MS = 20_000;
@@ -19,6 +20,7 @@ export function BuyOfferButton({ userId, productId, offerId, needed, choices, kn
 }) {
   const t = useTranslations('pricing');
   const router = useRouter();
+  const reloadPersonal = useContext(PersonalRefreshContext);
   const [picking, setPicking] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
   const [status, setStatus] = useState<'idle' | 'loading' | 'opened' | 'error'>('idle');
@@ -75,14 +77,14 @@ export function BuyOfferButton({ userId, productId, offerId, needed, choices, kn
       if (Date.now() - startedAt > POLL_WINDOW_MS) { done = true; return; }
       clearSubscriptionStatusCache();
       loadSubscriptionStatus(userId).then((current) => {
-        if (!done && current.subscriptions.some((subscription) => !knownSubscriptionIds.includes(subscription.id))) { done = true; setStatus('idle'); router.refresh(); }
+        if (!done && current.subscriptions.some((subscription) => !knownSubscriptionIds.includes(subscription.id))) { done = true; setStatus('idle'); router.refresh(); reloadPersonal?.(); }
       }).catch(() => {});
     };
     const timer = window.setInterval(check, POLL_MS);
     const onVisible = () => { if (document.visibilityState === 'visible') check(); };
     document.addEventListener('visibilitychange', onVisible);
     return () => { done = true; window.clearInterval(timer); document.removeEventListener('visibilitychange', onVisible); };
-  }, [status, userId, knownSubscriptionIds, router]);
+  }, [status, userId, knownSubscriptionIds, router, reloadPersonal]);
 
   return (
     <div className="mt-auto space-y-3">
