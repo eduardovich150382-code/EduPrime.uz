@@ -11,6 +11,7 @@ import { parseAdStart, parseReferralStart } from '@/lib/telegram-bot-links';
 import { countFirstStarts, recordBotStart } from '@/lib/bot-start';
 import { sendAdStart } from '@/lib/telegram-ad-start';
 import { getAdFreeTestId } from '@/lib/ad-free-test';
+import { btn } from '@/lib/telegram-buttons';
 import { tashkentDayRangeUtc } from '@/lib/date';
 import { linkReferral } from '@/lib/referral-code';
 
@@ -276,8 +277,8 @@ async function handleStart(chatId: number, userId: number, username: string, fir
         {
           reply_markup: {
             inline_keyboard: [
-              [{ text: '✅ Saytga kirish', url: authUrl }],
-              [{ text: '📚 Testlar', url: `${APP_URL}/tests` }, { text: '📊 Dashboard', url: `${APP_URL}/dashboard` }],
+              [btn.success('✅ Saytga kirish', { url: authUrl })],
+              [btn.primary('📚 Testlar', { url: `${APP_URL}/tests` }), btn.primary('📊 Dashboard', { url: `${APP_URL}/dashboard` })],
             ]
           }
         }
@@ -326,8 +327,8 @@ async function handleLogin(chatId: number, userId: number, username: string, fir
     {
       reply_markup: {
         inline_keyboard: [
-          [{ text: '✅ Saytga kirish', url: authUrl }],
-          [{ text: '📚 Testlar', url: `${APP_URL}/tests` }, { text: '📊 Dashboard', url: `${APP_URL}/dashboard` }],
+          [btn.success('✅ Saytga kirish', { url: authUrl })],
+          [btn.primary('📚 Testlar', { url: `${APP_URL}/tests` }), btn.primary('📊 Dashboard', { url: `${APP_URL}/dashboard` })],
         ]
       }
     }
@@ -361,8 +362,8 @@ async function handleAdmin(chatId: number, userId: number) {
     {
       reply_markup: {
         inline_keyboard: [
-          [{ text: '⚙️ Admin Panel (sayt)', url: `${APP_URL}/admin` }],
-          [{ text: '👥 Foydalanuvchilar', url: `${APP_URL}/admin/users` }, { text: '💰 To\'lovlar', url: `${APP_URL}/admin/payments` }],
+          [btn.success('⚙️ Admin Panel (sayt)', { url: `${APP_URL}/admin` })],
+          [btn.primary('👥 Foydalanuvchilar', { url: `${APP_URL}/admin/users` }), btn.primary('💰 To\'lovlar', { url: `${APP_URL}/admin/payments` })],
         ]
       }
     }
@@ -394,7 +395,7 @@ async function handleUsers(chatId: number, userId: number) {
     {
       reply_markup: {
         inline_keyboard: [
-          [{ text: '👥 Barchasini ko\'rish (sayt)', url: `${APP_URL}/admin/users` }],
+          [btn.primary('👥 Barchasini ko\'rish (sayt)', { url: `${APP_URL}/admin/users` })],
         ]
       }
     }
@@ -429,7 +430,7 @@ async function handleBroadcast(chatId: number, userId: number, messageText: stri
           `📢 <b>EduPrime.uz yangiligi</b>\n\n${messageText}`,
           {
             reply_markup: {
-              inline_keyboard: [[{ text: '🌐 Saytga o\'tish', url: APP_URL }]]
+              inline_keyboard: [[btn.success('🌐 Saytga o\'tish', { url: APP_URL })]]
             }
           }
         );
@@ -553,7 +554,7 @@ async function handleCallbackQuery(callbackQuery: any) {
         confirmMessage,
         {
           reply_markup: {
-            inline_keyboard: [[{ text: '🌐 Saytga kirish', url: APP_URL }]]
+            inline_keyboard: [[btn.success('🌐 Saytga kirish', { url: APP_URL })]]
           }
         }
       );
@@ -794,8 +795,8 @@ async function notifyAdminsAboutReceipt(
         {
           reply_markup: {
             inline_keyboard: [[
-              { text: '✅ Tasdiqlash', callback_data: `confirm_${userId}` },
-              { text: '❌ Rad etish', callback_data: `reject_${userId}` },
+              btn.success('✅ Tasdiqlash', { callback_data: `confirm_${userId}` }),
+              btn.danger('❌ Rad etish', { callback_data: `reject_${userId}` }),
             ]]
           }
         }
@@ -843,7 +844,7 @@ export async function POST(request: NextRequest) {
       } else if (text === '/users') {
         await handleUsers(chatId, userId);
       } else if (text === '/setupmenu') {
-        // Menyu tugmasi ("Platformani ochish"), buyruqlar va bot tavsifi —
+        // Menyu tugmasi ("EduPrime.uz"), buyruqlar va bot tavsifi —
         // ochiq GET'da emas, faqat admin buyrug'i bilan yangilanadi.
         if (!isAdmin(userId)) {
           await sendMessage(chatId, '❌ Bu buyruq faqat adminlar uchun.');

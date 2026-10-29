@@ -82,6 +82,8 @@ describe('obunasiz /start', () => {
     noChannelPrompt();
     expect(s.settings.has('telegram_auth_777')).toBe(true);
     expect(sent()[0].reply_markup?.inline_keyboard?.[0][0].url).toContain('/api/auth/telegram-callback?telegramId=777');
+    // Saytga kirish — yashil, Testlar/Dashboard — ko'k.
+    expect(sent()[0].reply_markup?.inline_keyboard?.flat().map((b) => (b as { style?: string }).style)).toEqual(['success', 'primary', 'primary']);
   });
   it('eski check_subscription tugmasi parametrsiz — welcome, xato yo‘q', async () => {
     const res = await POST(request({ callback_query: { id: 'cb', from: tg, message: { chat: { id: tg.id } }, data: 'check_subscription' } }));

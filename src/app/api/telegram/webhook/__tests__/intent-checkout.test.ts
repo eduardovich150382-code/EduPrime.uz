@@ -172,6 +172,8 @@ describe('ci_ cheki va tasdiqlash', () => {
     const admin = toUser(456).at(-1)!;
     expect(admin.text).toContain('google@example.com'); expect(admin.text).not.toContain(uz.checkout.telegramMismatch);
     expect(admin.reply_markup?.inline_keyboard[0].map((b) => b.callback_data)).toEqual(['cp:c:pay1', 'cp:r:pay1']);
+    // Admin: tasdiqlash — yashil, rad etish — qizil.
+    expect(admin.reply_markup?.inline_keyboard[0].map((b) => (b as { style?: string }).style)).toEqual(['success', 'danger']);
   });
   it('ziddiyat holati: chek yo‘naltirgich orqali sayt to‘loviga tushadi va admin ogohlantiriladi', async () => {
     s.users.push(user('tg-dup', { telegramId: '777' }));
@@ -190,7 +192,7 @@ describe('ci_ cheki va tasdiqlash', () => {
     expect(s.confirm).toHaveBeenCalledWith('pay1', 'confirm', 'admin');
     const done = toUser(777).at(-1)!;
     expect(done.text).toBe('Подписка активирована — Аттестация · Физика, до 11 ноября');
-    expect(done.reply_markup?.inline_keyboard[0][0]).toEqual({ text: ru.checkout.openSite, url: 'http://localhost/ru/attestation' });
+    expect(done.reply_markup?.inline_keyboard[0][0]).toEqual({ text: ru.checkout.openSite, url: 'http://localhost/ru/attestation', style: 'success' });
   });
   it('o‘zbekcha: "Obunangiz faollashdi — Attestatsiya · Fizika, 11-noyabrgacha"', async () => {
     Object.assign(find(s.users, { id: 'site' })!, { lang: 'uz' });

@@ -10,7 +10,7 @@ import {
   ensureMiniAppSession, getLaunchInitData, isDesktopTelegram, loadTelegramSdk, requestBrowserHandoff, type TelegramWebApp,
 } from '@/lib/telegram-webapp-client';
 
-// Botdagi "Platformani ochish" va boshqa Mini App tugmalari shu sahifani
+// Botdagi "EduPrime.uz" menyu tugmasi, "🚀 Platformani ochish" va boshqa Mini App tugmalari shu sahifani
 // ochadi: foydalanuvchi jimgina tizimga kiradi va `?to=` dagi bo'limga
 // o'tadi. Oddiy brauzerda ochilsa — darhol o'sha bo'limga.
 const DEFAULT_TARGET = '/attestation';

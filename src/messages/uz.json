@@ -1126,12 +1126,12 @@
     "stepReward": "{friends} ta do'st = {days} kun bepul foydalanish (attestatsiyadan tashqari)"
   },
   "telegramBot": {
-    "welcome": "🎓 <b>EduPrime</b> — attestatsiya va imtihonlarga tayyorgarlik platformasi\n\nAssalomu alaykum, {name}! 👋\n\n✅ Rasmiy spetsifikatsiya asosidagi attestatsiya testlari\n✅ Har bir savolga bosqichma-bosqich, batafsil yechim\n✅ Natijalaringiz tahlili va reytingdagi o'rningiz\n✅ Hammasi shu yerda — Telegram ichida, parol va ro'yxatdan o'tishsiz\n\n👇 Boshlash uchun <b>«Platformani ochish»</b> tugmasini bosing.",
+    "welcome": "🎓 <b>EduPrime</b> — attestatsiya va imtihonlarga tayyorgarlik platformasi\n\nAssalomu alaykum, {name}! 👋\n\n✅ Rasmiy spetsifikatsiya asosidagi attestatsiya testlari\n✅ Har bir savolga bosqichma-bosqich, batafsil yechim\n✅ Natijalaringiz tahlili va reytingdagi o'rningiz\n✅ Hammasi shu yerda — Telegram ichida, parol va ro'yxatdan o'tishsiz\n\n👇 Boshlash uchun <b>«EduPrime.uz»</b> tugmasini bosing.",
     "referredWelcome": "🤝 Sizni do'stingiz taklif qildi — EduPrime oilasiga xush kelibsiz!",
     "friend": "do'stim",
     "menuHint": "⬇️ Pastdagi menyu orqali natijalaringiz, reyting va boshqa bo'limlarni bir bosishda ko'rasiz.",
     "keyboardPlaceholder": "Bo'limni tanlang",
-    "menuButton": "Platformani ochish",
+    "menuButton": "EduPrime.uz",
     "shortDescription": "Attestatsiya va imtihonlarga tayyorgarlik: batafsil yechimli testlar, natijalar tahlili va reyting — Telegram ichida.",
     "description": "🎓 EduPrime — o'qituvchilar attestatsiyasi va imtihonlarga tayyorgarlik platformasi.\n\n✅ Rasmiy spetsifikatsiya asosidagi testlar\n✅ Har bir savolga batafsil yechim\n✅ Natijalar tahlili va reyting\n\n«Start» tugmasini bosing va birinchi testni hoziroq boshlang!",
     "buttons": {
@@ -1168,7 +1168,7 @@
     "anonymous": "Foydalanuvchi",
     "referralText": "🎁 <b>Do'stlarni taklif qiling</b>\n\nHamkasb va do'stlaringizga EduPrime'ni ulashing — ular quyidagi havola orqali qo'shiladi.\n\n🔗 Sizning havolangiz:\n{link}\n\n👥 Taklif qilganlaringiz: <b>{count}</b>",
     "referralShareText": "Attestatsiya va imtihonlarga EduPrime'da tayyorlanyapman: batafsil yechimli testlar, natijalar tahlili va reyting — hammasi Telegram ichida. Siz ham qo'shiling! 👇",
-    "helpText": "❓ <b>Yordam</b>\n\n🚀 <b>Platformani ochish</b> — sayt Telegram ichida ochiladi, avtomatik kirasiz\n📚 <b>Testlar</b> — fanlar va mavzular bo'yicha testlar\n🎯 <b>Attestatsiya</b> — o'qituvchilar attestatsiyasiga tayyorgarlik\n📊 <b>Natijalarim</b> — oxirgi natijalar va o'rtacha ball\n🏆 <b>Reyting</b> — eng ko'p ball to'plaganlar\n🎁 <b>Taklif</b> — do'stlarni taklif qilish havolasi\n💳 <b>Obuna</b> — obuna sotib olish\n\n<b>Buyruqlar:</b> /start, /testlar, /natijalar, /reyting, /taklif, /obuna, /login, /help\n\n💬 Savol va takliflar: @EduPrimeuz_Admin",
+    "helpText": "❓ <b>Yordam</b>\n\n📱 <b>EduPrime.uz</b> (chap pastdagi tugma) — sayt Telegram ichida ochiladi, avtomatik kirasiz\n📚 <b>Testlar</b> — fanlar va mavzular bo'yicha testlar\n🎯 <b>Attestatsiya</b> — o'qituvchilar attestatsiyasiga tayyorgarlik\n📊 <b>Natijalarim</b> — oxirgi natijalar va o'rtacha ball\n🏆 <b>Reyting</b> — eng ko'p ball to'plaganlar\n🎁 <b>Taklif</b> — do'stlarni taklif qilish havolasi\n💳 <b>Obuna</b> — obuna sotib olish\n\n<b>Buyruqlar:</b> /start, /testlar, /natijalar, /reyting, /taklif, /obuna, /login, /help\n\n💬 Savol va takliflar: @EduPrimeuz_Admin",
     "commands": {
       "start": "Botni ishga tushirish",
       "tests": "Testlar",
