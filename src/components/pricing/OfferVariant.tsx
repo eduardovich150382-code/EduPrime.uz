@@ -6,12 +6,30 @@ import { requiredSubjectCount } from '@/lib/product-offers';
 import { BuyOfferButton } from './BuyOfferButton';
 import { BUY_BUTTON_STYLES } from './buy-button-styles';
 import { PromoPrice } from './PromoPrice';
+import { HintSwitch } from '@/components/ui/ViewerGate';
 
-export interface BuyContext { userId: string | null; loginHref: string; knownSubscriptionIds: string[] }
+export interface BuyContext {
+  userId: string | null; loginHref: string; knownSubscriptionIds: string[];
+  // Statik sahifada shaxsiy ma'lumot hali yo'q: `true` — kirgan, yuklanmoqda
+  // (tugma o'rnida skeleton); `'hint'` — sessiya noma'lum, mehmon havolasi
+  // va skeleton ikkalasi chiziladi, CSS ishorasi tanlaydi (ViewerGate).
+  pending?: boolean | 'hint';
+}
 export interface Accent { color: string; background: string; border: string }
 
 export function formatAmount(amount: number, locale: string): string {
   return new Intl.NumberFormat(locale).format(amount);
+}
+
+// Tugma balandligida — kirgan foydalanuvchida karta sakramasin.
+const buySkeleton = <div aria-hidden className="h-12 w-full animate-pulse rounded-xl bg-gray-200" />;
+
+function LoginBuyLink({ href, variant, label }: { href: string; variant: keyof typeof BUY_BUTTON_STYLES; label: string }) {
+  return (
+    <Link href={href} className={`inline-flex min-h-11 w-full items-center justify-center rounded-xl px-4 py-3 text-center font-semibold ${BUY_BUTTON_STYLES[variant]}`}>
+      {label}
+    </Link>
+  );
 }
 
 export function OfferVariant({ product, offer, accent, buy, locale, now, saving, recommended }: {
@@ -72,10 +90,10 @@ export function OfferVariant({ product, offer, accent, buy, locale, now, saving,
         {buy.userId ? (
           <BuyOfferButton userId={buy.userId} productId={product.id} offerId={offer.id} needed={needed} variant={variant}
             choices={choices.map(({ id, name }) => ({ id, name }))} knownSubscriptionIds={buy.knownSubscriptionIds} />
+        ) : buy.pending === true ? buySkeleton : buy.pending === 'hint' ? (
+          <HintSwitch guest={<LoginBuyLink href={buy.loginHref} variant={variant} label={t('buy')} />} authed={buySkeleton} />
         ) : (
-          <Link href={buy.loginHref} className={`inline-flex min-h-11 w-full items-center justify-center rounded-xl px-4 py-3 text-center font-semibold ${BUY_BUTTON_STYLES[variant]}`}>
-            {t('buy')}
-          </Link>
+          <LoginBuyLink href={buy.loginHref} variant={variant} label={t('buy')} />
         )}
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { getTranslations } from 'next-intl/server';
+import { useTranslations } from 'next-intl';
 import { LogIn, Target } from 'lucide-react';
 import { Link } from '@/i18n/routing';
 import { primaryButton } from '@/components/tests/button-classes';
@@ -29,9 +29,11 @@ function Bar({ label, percent, hint }: { label: string; percent: number; hint: s
 
 const card = 'min-w-0 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm';
 
-export async function ReadinessPanel({ readiness }: { readiness: Readiness }) {
-  const t = await getTranslations('attestation');
-  const sectionNames = await getTranslations('questionSections');
+// Sinxron (useTranslations): /attestation statik, panel klientda
+// `/api/attestation/me` javobidan chiziladi.
+export function ReadinessPanel({ readiness }: { readiness: Readiness }) {
+  const t = useTranslations('attestation');
+  const sectionNames = useTranslations('questionSections');
   const { weakSpot } = readiness;
 
   return (
@@ -119,8 +121,8 @@ export async function ReadinessPanel({ readiness }: { readiness: Readiness }) {
   );
 }
 
-export async function GuestPanel({ loginHref }: { loginHref: string }) {
-  const t = await getTranslations('attestation.guest');
+export function GuestPanel({ loginHref }: { loginHref: string }) {
+  const t = useTranslations('attestation.guest');
   return (
     <aside className={card}>
       <h2 className="text-lg font-bold text-text-primary">{t('title')}</h2>
@@ -128,6 +130,20 @@ export async function GuestPanel({ loginHref }: { loginHref: string }) {
       <Link href={loginHref} className={`${primaryButton} mt-4`}>
         <LogIn size={16} aria-hidden /> {t('cta')}
       </Link>
+    </aside>
+  );
+}
+
+/** Kirgan foydalanuvchi, `/me` hali kelmagan — panel joyi band. */
+export function ReadinessSkeleton() {
+  return (
+    <aside className={`${card} animate-pulse`} aria-hidden>
+      <div className="h-6 w-40 rounded bg-gray-200" />
+      <div className="mt-4 h-4 w-32 rounded bg-gray-200" />
+      <div className="mt-3 h-9 w-24 rounded bg-gray-200" />
+      <div className="mt-6 space-y-4">
+        {[0, 1, 2].map((i) => <div key={i} className="h-8 rounded bg-gray-100" />)}
+      </div>
     </aside>
   );
 }

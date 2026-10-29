@@ -1,7 +1,9 @@
 import Header from '@/components/layout/Header';
 import MainLayoutClient from '@/components/layout/MainLayoutClient';
+import SessionShell from '@/components/layout/SessionShell';
 import SessionProvider from '@/components/providers/SessionProvider';
 import ReferralHandler from '@/components/providers/ReferralHandler';
+import AuthHintSync from '@/components/providers/AuthHintSync';
 import PremiumBanner from '@/components/ui/PremiumBanner';
 import SubscriptionExpiryBanner from '@/components/ui/SubscriptionExpiryBanner';
 import SiteAnnouncement from '@/components/ui/SiteAnnouncement';
@@ -9,7 +11,8 @@ import SiteAnnouncement from '@/components/ui/SiteAnnouncement';
 interface AppShellProps {
   // `null` — kirmagan foydalanuvchi. Qobiq (main) va (public) guruhlarida
   // bir xil bo'lishi uchun bitta joyda; farqi faqat redirect'da, u layout'da.
-  role: string | null;
+  // Berilmasa (public) — role klientda sessiyadan olinadi (SessionShell).
+  role?: string | null;
   children: React.ReactNode;
 }
 
@@ -23,15 +26,22 @@ export default function AppShell({ role, children }: AppShellProps) {
   return (
     <SessionProvider>
       <ReferralHandler />
+      <AuthHintSync />
       <Header />
       <SiteAnnouncement />
-      {/* Mehmonda obuna bannerlari yo'q: /api/subscription/status 401
-          qaytaradi, PremiumBanner esa xatoda ham banner ko'rsatardi. */}
-      {!isGuest && <PremiumBanner userPlan={userPlan} />}
-      {!isGuest && <SubscriptionExpiryBanner />}
-      <MainLayoutClient role={role} showPremiumBanner={!isGuest}>
-        {children}
-      </MainLayoutClient>
+      {role === undefined ? (
+        <SessionShell>{children}</SessionShell>
+      ) : (
+        <>
+          {/* Mehmonda obuna bannerlari yo'q: /api/subscription/status 401
+              qaytaradi, PremiumBanner esa xatoda ham banner ko'rsatardi. */}
+          {!isGuest && <PremiumBanner userPlan={userPlan} />}
+          {!isGuest && <SubscriptionExpiryBanner />}
+          <MainLayoutClient role={role} showPremiumBanner={!isGuest}>
+            {children}
+          </MainLayoutClient>
+        </>
+      )}
     </SessionProvider>
   );
 }

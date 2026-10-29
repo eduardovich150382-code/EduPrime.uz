@@ -52,11 +52,15 @@ export function TestCard({
   index,
   result,
   isGuest = false,
+  appear = true,
 }: {
   test: TestItem;
   index: number;
   result?: BriefResult;
   isGuest?: boolean;
+  // Statik HTML'dagi kartalar (/tests birinchi sahifasi) JS kelmasdan ham
+  // ko'rinsin — opacity 0 dan boshlanmaydi.
+  appear?: boolean;
 }) {
   const t = useTranslations('tests');
   const locale = useLocale();
@@ -85,7 +89,7 @@ export function TestCard({
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 20 }}
+      initial={appear ? { opacity: 0, y: 20 } : false}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05, duration: 0.3 }}
       className="flex h-full min-w-0 flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"

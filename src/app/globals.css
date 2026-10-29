@@ -205,3 +205,15 @@
 @media (prefers-reduced-motion: reduce) {
   .result-progress, .result-score-value, .result-stat, .result-orbit { animation: none; }
 }
+
+/* Statik (ISR) sahifada mehmon va kirgan foydalanuvchi bloklari — qaysi biri
+   ko'rinishini sessiya kelguncha shu qurilmadagi ishora hal qiladi
+   (lib/auth-hint.ts, components/ui/ViewerGate.tsx). */
+.viewer-guest,
+.viewer-authed {
+  display: contents;
+}
+[data-auth-scope][data-authed] .viewer-guest,
+[data-auth-scope]:not([data-authed]) .viewer-authed {
+  display: none;
+}

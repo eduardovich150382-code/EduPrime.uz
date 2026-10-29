@@ -8,11 +8,8 @@ import '../globals.css';
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://eduprime.uz';
 
-// Locale'lar build vaqtida ma'lum — shusiz next-intl har [locale] sahifani
-// dinamik qiladi va statik bosh sahifa ham har ochilishda serverda render bo'ladi.
-export function generateStaticParams() {
-  return routing.locales.map((locale) => ({ locale }));
-}
+// generateStaticParams bu yerda emas — prerender qilinadigan sahifalarda
+// (i18n/static-params.ts sababini yozadi).
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;

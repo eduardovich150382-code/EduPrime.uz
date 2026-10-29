@@ -59,3 +59,33 @@ export function attestationSubscription(subscriptions: SubscriptionView[], produ
   const ids = new Set(covering.flatMap(({ covered }) => covered === 'all' ? [] : covered));
   return { subscription: latest.s, uncoveredSubjects: all ? [] : sold.filter((subject) => !ids.has(subject.id)) };
 }
+
+/** Sotib olish tugmasi konteksti (`components/pricing/OfferVariant` dagi `BuyContext`). */
+export interface AttestationBuy { userId: string | null; loginHref: string; knownSubscriptionIds: string[] }
+
+export interface AttestationView {
+  product: PricingProduct | null;
+  owned: ReturnType<typeof attestationSubscription>;
+  /** Obuna kartasi ko'rsatiladimi (va hero'da "#obuna" yakori, qulflangan qator havolasi). */
+  showOffer: boolean;
+  buy: AttestationBuy;
+}
+
+/**
+ * /attestation dagi obuna bloki holati — statik mehmon render'i va
+ * `/api/attestation/me` bitta qoidadan foydalanadi.
+ */
+export function buildAttestationView(
+  pricing: { products: PricingProduct[]; subscriptions: SubscriptionView[] },
+  viewer: { userId: string | null; loginHref: string },
+  now: Date,
+): AttestationView {
+  const product = pickAttestationProduct(pricing.products);
+  const owned = product ? attestationSubscription(pricing.subscriptions, product, now) : null;
+  return {
+    product,
+    owned,
+    showOffer: !!product && !owned && product.offers.length > 0,
+    buy: { userId: viewer.userId, loginHref: viewer.loginHref, knownSubscriptionIds: pricing.subscriptions.map((s) => s.id) },
+  };
+}

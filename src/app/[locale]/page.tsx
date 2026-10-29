@@ -10,6 +10,7 @@ import SessionProvider from '@/components/providers/SessionProvider';
 import { OrganizationJsonLd, WebApplicationJsonLd, FAQJsonLd } from '@/components/seo/JsonLd';
 import type { Metadata } from 'next';
 import { setRequestLocale } from 'next-intl/server';
+import { generateLocaleStaticParams } from '@/i18n/static-params';
 
 export const metadata: Metadata = {
   title: "EduPrime.uz — O'zbekiston Test Platformasi | DTM, SAT, GRE",
@@ -24,6 +25,8 @@ export const metadata: Metadata = {
 
 // Landing to'liq statik (klient komponentlari, server tomonda auth/DB yo'q) —
 // setRequestLocale bilan sahifa build vaqtida har locale uchun tayyorlanadi.
+export const generateStaticParams = generateLocaleStaticParams;
+
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);

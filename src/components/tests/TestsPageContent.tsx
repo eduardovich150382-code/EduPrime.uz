@@ -2,10 +2,12 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 import { Link, usePathname, useRouter } from '@/i18n/routing';
 import { BookOpen, Loader2, Zap } from 'lucide-react';
 import { TestCard, TestCardSkeleton, type TestItem } from '@/components/tests/TestCard';
+import type { InitialTests } from '@/lib/public-tests';
 import { TestsSearchBar } from '@/components/tests/TestsSearchBar';
 import { TestsFilters, type SubjectOption } from '@/components/tests/TestsFilters';
 import { AttestationBanner } from '@/components/tests/AttestationBanner';
@@ -14,6 +16,7 @@ import {
   buildQuery,
   buildTestsApiQuery,
   parseFilters,
+  TESTS_PAGE_SIZE as PAGE_SIZE,
   type TestGoal,
   type TestsFilters as Filters,
   type TestsSort,
@@ -27,9 +30,6 @@ import {
   readDraftSummary,
   type DraftSummary,
 } from '@/lib/test-draft';
-
-// 24 — 2 va 3 ustunli to'rda ham to'liq qatorlar bilan tugaydi.
-const PAGE_SIZE = 24;
 
 // auto-fill + min(280px, 100%): 390px telefonda bitta ustun va gorizontal
 // aylanish yo'q, kengroq ekranda ustunlar o'zi qo'shiladi.
@@ -56,27 +56,33 @@ interface TestsResponse {
   total?: number;
 }
 
-function TestsPageContent({ isGuest }: { isGuest: boolean }) {
+// Statik (ISR) birinchi sahifa — filtrsiz holat (lib/public-tests.ts).
+const DEFAULT_FILTERS: Filters = parseFilters(new URLSearchParams());
+const INITIAL_KEY = buildTestsApiQuery(DEFAULT_FILTERS, 1, PAGE_SIZE);
+
+interface TestsPageProps {
+  initial: InitialTests;
+  attestationDate: string | null;
+}
+
+function TestsPageContent({ filters, initial, attestationDate }: TestsPageProps & { filters: Filters }) {
   const t = useTranslations('tests');
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-
-  // Filtrning yagona manbai — URL. Holatni alohida useState'da saqlasak,
-  // orqaga tugmasi yoki ulashilgan havola bilan ochilganda ular ajralib
-  // qolardi.
-  const filters = useMemo(() => parseFilters(searchParams), [searchParams]);
+  // Sahifa statik — mehmonmi, sessiyadan. Aniq bo'lguncha mehmon havolalari
+  // (bosilsa login kirgan foydalanuvchini o'zi qaytaradi).
+  const { status } = useSession();
+  const isGuest = status !== 'authenticated';
 
   const [subjects, setSubjects] = useState<SubjectOption[]>([]);
   const [loadingSubjects, setLoadingSubjects] = useState(false);
-  const [tests, setTests] = useState<TestItem[]>([]);
-  const [total, setTotal] = useState(0);
+  const [tests, setTests] = useState<TestItem[]>(initial.tests);
+  const [total, setTotal] = useState(initial.total);
   const [page, setPage] = useState(1);
-  const [loadingTests, setLoadingTests] = useState(true);
+  const [loadingTests, setLoadingTests] = useState(() => buildTestsApiQuery(filters, 1, PAGE_SIZE) !== INITIAL_KEY);
   const [loadingMore, setLoadingMore] = useState(false);
   const [recentResults, setRecentResults] = useState<BriefResult[]>([]);
   const [drafts, setDrafts] = useState<DraftSummary[]>([]);
-  const [attestationDate, setAttestationDate] = useState<string | null>(null);
 
   // Har filtr o'zgarishi push emas, replace: aks holda har chip bosilishi
   // tarixga yoziladi va "orqaga" sahifadan chiqish o'rniga chiplarni birma-bir
@@ -101,29 +107,20 @@ function TestsPageContent({ isGuest }: { isGuest: boolean }) {
   // Mehmonda so'rov umuman yuborilmaydi (aks holda konsolda 401) —
   // kartalar shunchaki "Hali yechilmagan" bo'lib qoladi.
   useEffect(() => {
-    if (isGuest) return;
+    if (status !== 'authenticated') return;
     fetch('/api/results?limit=100&brief=true')
       .then(r => r.json())
       .then((data: { results?: BriefResult[] }) => {
         if (data.results) setRecentResults(data.results);
       })
       .catch(() => {});
-  }, [isGuest]);
+  }, [status]);
 
   // Qoralamalar boshqa (avval shu qurilmada kirgan) foydalanuvchiniki
   // bo'lishi mumkin — mehmonga ko'rsatilmaydi va o'qilmaydi ham.
   useEffect(() => {
-    if (!isGuest) setDrafts(readLocalDrafts());
-  }, [isGuest]);
-
-  useEffect(() => {
-    fetch('/api/settings')
-      .then(r => r.json())
-      .then((data: { settings?: Record<string, string> }) => {
-        setAttestationDate(data.settings?.attestation_date || null);
-      })
-      .catch(() => {});
-  }, []);
+    if (status === 'authenticated') setDrafts(readLocalDrafts());
+  }, [status]);
 
   useEffect(() => {
     if (!filters.type) {
@@ -154,9 +151,25 @@ function TestsPageContent({ isGuest }: { isGuest: boolean }) {
   filtersKeyRef.current = filtersKey;
 
   useEffect(() => {
+    const isInitial = filtersKey === INITIAL_KEY;
+    // Filtrsiz ro'yxat statik HTML'da bor — mehmonga so'rov kerak emas.
+    // hasAccess (qulf belgisi) sessiyaga bog'liq: kirgan foydalanuvchiga
+    // /api/tests dan qayta olinadi, sessiya aniq bo'lgach bir marta.
+    if (isInitial && status !== 'authenticated') {
+      setTests(initial.tests);
+      setTotal(initial.total);
+      setPage(1);
+      setLoadingTests(false);
+      return;
+    }
+    if (status === 'loading') {
+      setLoadingTests(true);
+      return;
+    }
     // Tez-tez chip bosilganda eski javob yangisining ustiga yozilmasin.
     const controller = new AbortController();
-    setLoadingTests(true);
+    // Filtrsiz holatda statik kartalar ko'rinib turadi — skeleton'ga almashmasin.
+    if (!isInitial) setLoadingTests(true);
     fetch(`/api/tests?${filtersKey}`, { signal: controller.signal })
       .then((res) => res.json())
       .then((data: TestsResponse) => {
@@ -173,7 +186,7 @@ function TestsPageContent({ isGuest }: { isGuest: boolean }) {
         setLoadingTests(false);
       });
     return () => controller.abort();
-  }, [filtersKey]);
+  }, [filtersKey, status, initial]);
 
   const loadMore = async () => {
     const requestKey = filtersKey;
@@ -250,6 +263,7 @@ function TestsPageContent({ isGuest }: { isGuest: boolean }) {
                   index={index % PAGE_SIZE}
                   result={resultByTestId.get(test.id)}
                   isGuest={isGuest}
+                  appear={tests !== initial.tests}
                 />
               ))}
             </div>
@@ -288,19 +302,22 @@ function TestsPageContent({ isGuest }: { isGuest: boolean }) {
   );
 }
 
-// Sessiya serverda ((public)/tests/page.tsx) aniqlanadi: birinchi renderdanoq
-// mehmon ekani ma'lum, 401 ga qarab taxmin qilish va blok miltillashi yo'q.
-export function TestsPage({ isGuest }: { isGuest: boolean }) {
+// Filtrning yagona manbai — URL. Holatni alohida useState'da saqlasak,
+// orqaga tugmasi yoki ulashilgan havola bilan ochilganda ular ajralib
+// qolardi.
+function TestsWithSearchParams(props: TestsPageProps) {
+  const searchParams = useSearchParams();
+  const filters = useMemo(() => parseFilters(searchParams), [searchParams]);
+  return <TestsPageContent {...props} filters={filters} />;
+}
+
+// Sahifa statik (ISR): useSearchParams serverda yo'q, shuning uchun statik
+// HTML — Suspense fallback'i, ya'ni filtrsiz holatdagi to'liq sahifa
+// (spinner emas). URL'da filtr bo'lsa klient o'zi qayta chizadi.
+export function TestsPage(props: TestsPageProps) {
   return (
-    <Suspense
-      fallback={
-        <div className="max-w-7xl mx-auto text-center py-12">
-          <Loader2 size={32} className="animate-spin text-primary-600 mx-auto mb-2" />
-          <p className="text-text-secondary text-sm">Yuklanmoqda...</p>
-        </div>
-      }
-    >
-      <TestsPageContent isGuest={isGuest} />
+    <Suspense fallback={<TestsPageContent {...props} filters={DEFAULT_FILTERS} />}>
+      <TestsWithSearchParams {...props} />
     </Suspense>
   );
 }

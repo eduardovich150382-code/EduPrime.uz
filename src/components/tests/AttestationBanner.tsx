@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
-import { daysUntil } from '@/lib/date';
+import { useDaysUntil } from '@/lib/use-days-until';
 import { ATTESTATION_HREF } from '@/lib/nav-links';
 
 interface AttestationBannerProps {
@@ -14,7 +14,8 @@ interface AttestationBannerProps {
 export function AttestationBanner({ attestationDate }: AttestationBannerProps) {
   const t = useTranslations('tests.banner');
   const pricing = useTranslations('pricing');
-  const days = daysUntil(attestationDate);
+  // Klientda hisoblanadi — /tests statik (ISR), server soni eskirishi mumkin.
+  const days = useDaysUntil(attestationDate);
 
   return (
     <section className="rounded-2xl bg-[#2e1065] p-5 sm:p-7 flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
@@ -26,10 +27,11 @@ export function AttestationBanner({ attestationDate }: AttestationBannerProps) {
         <p className="mt-2 text-sm sm:text-base text-[#ddd6fe]">{t('body')}</p>
       </div>
       <div className="flex flex-col gap-4 sm:items-center md:shrink-0">
-        {days !== null && (
-          <div className="flex items-baseline gap-2 text-white sm:flex-col sm:items-center sm:gap-0">
-            <span className="text-3xl sm:text-4xl font-bold tabular-nums leading-none">{days}</span>
-            <span className="text-sm text-[#ddd6fe]">{t('daysLeft', { count: days })}</span>
+        {/* Hisoblanguncha joy band (ko'rinmas) — banner sakramasin. */}
+        {attestationDate && days !== null && (
+          <div className={`flex items-baseline gap-2 text-white sm:flex-col sm:items-center sm:gap-0 ${days === undefined ? 'invisible' : ''}`}>
+            <span className="text-3xl sm:text-4xl font-bold tabular-nums leading-none">{days ?? 0}</span>
+            <span className="text-sm text-[#ddd6fe]">{t('daysLeft', { count: days ?? 0 })}</span>
           </div>
         )}
         <Link

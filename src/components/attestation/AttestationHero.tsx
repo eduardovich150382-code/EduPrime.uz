@@ -1,48 +1,33 @@
+import type { ReactNode } from 'react';
 import { getTranslations } from 'next-intl/server';
-import { ChevronRight, ListChecks, Play, RotateCcw } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { Link } from '@/i18n/routing';
-import { daysUntil, formatTashkentDate } from '@/lib/date';
-import type { AttestationPageData } from '@/lib/attestation-page';
+import { formatTashkentDate } from '@/lib/date';
+import { AttestationCountdown } from './AttestationCountdown';
 
 // `YYYY-MM-DD` kaliti UTC yarim tuni — Toshkentda shu kunning 05:00 i,
-// shuning uchun formatTashkentDate kunni surmaydi. Sana `daysUntil` dan
-// o'tgan (to'g'ri), shuning uchun bu yerda qayta tekshirish shart emas.
+// shuning uchun formatTashkentDate kunni surmaydi.
 function formatDateKey(key: string, locale: string): string {
   const [y, m, d] = key.split('-').map(Number);
   return formatTashkentDate(new Date(Date.UTC(y, m - 1, d)), locale, true);
 }
 
-// "№N" faqat mock uchun — mavzu testlarida tartib raqami ko'rsatilmaydi.
-function ctaLabel(
-  t: Awaited<ReturnType<typeof getTranslations<'attestation'>>>,
-  hero: NonNullable<AttestationPageData['hero']>,
-): string {
-  switch (hero.kind) {
-    case 'mockNext':
-      return t('hero.ctaNext', { number: hero.number ?? 0 });
-    case 'mockRetake':
-      return t('hero.ctaRetake', { number: hero.number ?? 0 });
-    case 'topicStart':
-      return t('hero.ctaTopicStart');
-    case 'topicRetake':
-      return t('hero.ctaRetakeLowest');
-  }
-}
+const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
 
+// Sarlavha va sana — umumiy (statik HTML). Tugmalar foydalanuvchining
+// natijasiga bog'liq — `actions` slotida (AttestationPersonal.HeroActions),
+// kunlar soni — klientda (AttestationCountdown).
 export async function AttestationHero({
-  hero,
   date,
   locale,
-  offersAnchor,
+  actions,
 }: {
-  hero: AttestationPageData['hero'];
   date: string | null;
   locale: string;
-  /** Obuna kartasi shu sahifada bo'lsa — unga yakor; obunachida havola yo'q. */
-  offersAnchor: boolean;
+  actions: ReactNode;
 }) {
   const t = await getTranslations('attestation');
-  const days = daysUntil(date);
+  const dateKey = date?.trim() ?? '';
 
   return (
     <section className="rounded-2xl bg-[#2e1065] p-5 sm:p-8">
@@ -60,45 +45,10 @@ export async function AttestationHero({
           </h1>
           <p className="mt-3 text-sm text-[#ddd6fe] sm:text-base">{t('hero.subtitle')}</p>
 
-          <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            {hero && (
-              <Link
-                href={hero.href}
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#fbbf24] px-5 text-sm font-semibold text-[#451a03] transition-colors hover:bg-[#f59e0b]"
-              >
-                {hero.kind === 'mockRetake' || hero.kind === 'topicRetake' ? (
-                  <RotateCcw size={16} aria-hidden />
-                ) : (
-                  <Play size={16} aria-hidden />
-                )}
-                {ctaLabel(t, hero)}
-              </Link>
-            )}
-            <a
-              href="#tuzilma"
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/30 px-5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
-            >
-              <ListChecks size={16} aria-hidden />
-              {t('hero.ctaStructure')}
-            </a>
-            {offersAnchor && (
-              <a href="#obuna" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-white/30 px-5 py-2 text-sm font-semibold text-white hover:bg-white/10">
-                {t('hero.ctaOffers')}
-              </a>
-            )}
-          </div>
+          <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">{actions}</div>
         </div>
 
-        {days !== null && date && (
-          <div className="rounded-2xl bg-white/10 p-5 text-white lg:w-64 lg:shrink-0">
-            <p className="text-sm text-[#ddd6fe]">{t('countdown.before')}</p>
-            <p className="mt-1 flex items-baseline gap-2">
-              <span className="text-4xl font-bold tabular-nums leading-none">{days}</span>
-              <span className="text-sm text-[#ddd6fe]">{t('countdown.daysLeft')}</span>
-            </p>
-            <p className="mt-2 text-sm text-white">{formatDateKey(date.trim(), locale)}</p>
-          </div>
-        )}
+        {DATE_KEY.test(dateKey) && <AttestationCountdown dateKey={dateKey} dateLabel={formatDateKey(dateKey, locale)} />}
       </div>
     </section>
   );

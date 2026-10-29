@@ -1,10 +1,19 @@
 import AppShell from '@/components/layout/AppShell';
-import { auth } from '@/lib/auth';
+import { AUTH_HINT_SCRIPT } from '@/lib/auth-hint';
 
 // Kirmagan foydalanuvchi ham ko'radigan sahifalar — (main) bilan bir xil
-// qobiq, faqat redirect yo'q. Sahifa ichida shaxsiy qism `session` bo'yicha
-// yashiriladi; test yechish, natija va to'lov (main) da qoladi.
-export default async function PublicLayout({ children }: { children: React.ReactNode }) {
-  const session = await auth();
-  return <AppShell role={session?.user?.role ?? null}>{children}</AppShell>;
+// qobiq, faqat redirect yo'q. Bu yerda `auth()` yo'q: sahifalar statik (ISR)
+// va CDN'dan beriladi, role va shaxsiy qism klientda sessiyadan keladi.
+// Test yechish, natija va to'lov (main) da qoladi.
+//
+// Inline skript o'ramaga `data-authed` qo'yadi (lib/auth-hint.ts) — sessiya
+// kelguncha kirgan foydalanuvchiga mehmon CTA'si o'rniga skeleton ko'rinadi.
+// Atribut server HTML'ida yo'q, shuning uchun suppressHydrationWarning.
+export default function PublicLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div data-auth-scope="" suppressHydrationWarning>
+      <script dangerouslySetInnerHTML={{ __html: AUTH_HINT_SCRIPT }} />
+      <AppShell>{children}</AppShell>
+    </div>
+  );
 }
