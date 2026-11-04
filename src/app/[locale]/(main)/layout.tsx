@@ -15,5 +15,8 @@ export default async function MainLayout({
 
   const role = session.user?.role || 'USER';
 
-  return <AppShell role={role}>{children}</AppShell>;
+  // Layout baribir dinamik va sessiyani o'qigan — uni klientga ham beramiz,
+  // aks holda har (main) sahifasi ochilganda /api/auth/session funksiyasi
+  // xuddi shu ishni qayta qilardi.
+  return <AppShell role={role} session={session}>{children}</AppShell>;
 }

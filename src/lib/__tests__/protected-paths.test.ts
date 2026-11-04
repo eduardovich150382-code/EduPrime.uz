@@ -20,6 +20,12 @@ describe('isProtectedPath', () => {
     }
   });
 
+  it('/build va /session/<id> — (main) dagi konstruktor ham yopiq', () => {
+    for (const path of ['/build', '/ru/build', '/en/build?subject=x', '/session/abc', '/uz/session/abc', '/en/session/abc']) {
+      expect(isProtectedPath(path), path).toBe(true);
+    }
+  });
+
   it('ochiq sahifalar ochiq qoladi', () => {
     for (const path of ['/', '/ru', '/login', '/attestation', '/ru/attestation', '/share/x', '/certificate/x', '/pricing', '/ru/pricing', '/en/pricing?goal=ATTESTATION']) {
       expect(isProtectedPath(path), path).toBe(false);

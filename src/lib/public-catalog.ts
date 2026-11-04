@@ -224,6 +224,12 @@ export const getTestsListPage = unstable_cache(
 // ------------------------------------------------------- /api/settings
 
 // Faqat shu kalitlar ommaga ochiq.
+//
+// `/api/settings` statik (ISR, 1 soat; build'dan keyin va xatoda 60 s
+// defaults). Shuning uchun bu yerga narx, chegirma, to'lov summasi yoki
+// foydalanuvchiga bog'liq kalit QO'SHILMASIN — eskirgan yoki defaults
+// qiymat ko'rinishi mumkin. To'lov summasi server'da offer'dan hisoblanadi
+// (`lib/checkout-selection.ts`).
 export const PUBLIC_SETTING_KEYS = [
   'payment_card_number',
   'payment_card_owner',

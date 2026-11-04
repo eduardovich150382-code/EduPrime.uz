@@ -1,6 +1,5 @@
 'use client';
 
-import * as Sentry from '@sentry/nextjs';
 import { useEffect } from 'react';
 
 // Ildiz darajasidagi xato chegarasi. Usiz React render xatolari (layout yoki
@@ -17,8 +16,13 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  // SDK dinamik import qilinadi: statik import bo'lsa bu komponentning SSR
+  // nusxasi server Sentry SDK'sini (~1.7 MB) HAR sahifa funksiyasining sovuq
+  // startiga olib kirardi, holbuki xabar faqat brauzerda yuboriladi. Brauzerda
+  // SDK `instrumentation-client.ts` orqali allaqachon yuklangan — import
+  // o'sha modulni qaytaradi, xatti-harakat o'zgarmaydi.
   useEffect(() => {
-    Sentry.captureException(error);
+    void import('@sentry/nextjs').then((Sentry) => Sentry.captureException(error));
   }, [error]);
 
   return (
