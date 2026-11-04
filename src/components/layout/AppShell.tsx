@@ -1,3 +1,4 @@
+import type { Session } from 'next-auth';
 import Header from '@/components/layout/Header';
 import MainLayoutClient from '@/components/layout/MainLayoutClient';
 import SessionShell from '@/components/layout/SessionShell';
@@ -13,10 +14,13 @@ interface AppShellProps {
   // bir xil bo'lishi uchun bitta joyda; farqi faqat redirect'da, u layout'da.
   // Berilmasa (public) — role klientda sessiyadan olinadi (SessionShell).
   role?: string | null;
+  // Serverda o'qilgan sessiya — berilsa klient `/api/auth/session` ni
+  // qayta so'ramaydi. (public) bermaydi: u statik, kim ochganini bilmaydi.
+  session?: Session | null;
   children: React.ReactNode;
 }
 
-export default function AppShell({ role, children }: AppShellProps) {
+export default function AppShell({ role, session, children }: AppShellProps) {
   const isGuest = role === null;
 
   // Banner only hidden for ADMIN — everyone else sees it until they have active subscription
@@ -24,7 +28,7 @@ export default function AppShell({ role, children }: AppShellProps) {
   const userPlan = role === 'ADMIN' ? 'ADMIN' : 'FREE';
 
   return (
-    <SessionProvider>
+    <SessionProvider session={session}>
       <ReferralHandler />
       <AuthHintSync />
       <Header />
