@@ -33,7 +33,7 @@ export default function AppShell({ role, children }: AppShellProps) {
         <SessionShell>{children}</SessionShell>
       ) : (
         <>
-          {/* Mehmonda obuna bannerlari yo'q: /api/subscription/status 401
+          {/* Mehmonda obuna bannerlari yo'q: /api/me/header 401
               qaytaradi, PremiumBanner esa xatoda ham banner ko'rsatardi. */}
           {!isGuest && <PremiumBanner userPlan={userPlan} />}
           {!isGuest && <SubscriptionExpiryBanner />}

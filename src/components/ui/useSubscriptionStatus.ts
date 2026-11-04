@@ -3,28 +3,21 @@
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import type { SubscriptionStatus } from '@/lib/subscription-display';
+import { clearMeHeaderCache, loadMeHeader } from '@/lib/me-header-store';
 
-// Header, Sidebar, ikki banner va CTA bitta sahifada birga turadi — har biri
-// alohida so'rov yubormasin. Kesh foydalanuvchi ID'si bilan bog'langan:
-// boshqa akkauntga o'tilsa eski obunalar bir lahza ham ko'rinmasin.
-const TTL_MS = 60_000;
-let cache: { userId: string; at: number; promise: Promise<SubscriptionStatus> } | null = null;
-
+// Obuna holati header so'rovi (`/api/me/header`) ichida keladi — Header'dagi
+// son bilan bitta so'rov va bitta 60 soniyalik kesh (lib/me-header-store.ts).
+// Kesh foydalanuvchi ID'si bilan bog'langan.
 export function loadSubscriptionStatus(userId: string, now = Date.now()): Promise<SubscriptionStatus> {
-  if (cache && cache.userId === userId && now - cache.at < TTL_MS) return cache.promise;
-  const promise = fetch('/api/subscription/status').then((response) => {
-    if (!response.ok) throw new Error('STATUS_UNAVAILABLE');
-    return response.json() as Promise<SubscriptionStatus>;
+  return loadMeHeader(userId, now).then((header) => {
+    if (!header.subscription) throw new Error('STATUS_UNAVAILABLE');
+    return header.subscription;
   });
-  const entry = { userId, at: now, promise };
-  cache = entry;
-  // Xato (401/500/tarmoq) keshlanmaydi — keyingi chaqiruv qayta so'raydi.
-  promise.catch(() => { if (cache === entry) cache = null; });
-  return promise;
 }
 
+// Sotib olishdan keyin keyingi chaqiruv yangi holatni olsin.
 export function clearSubscriptionStatusCache() {
-  cache = null;
+  clearMeHeaderCache();
 }
 
 export function useSubscriptionStatus(enabled = true) {

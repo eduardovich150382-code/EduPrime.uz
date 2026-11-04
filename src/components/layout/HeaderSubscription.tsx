@@ -15,7 +15,7 @@ import ActiveSubscriptionCard, { subscriptionSubjects } from '@/components/subsc
 
 // Header'dagi obuna joyi: obunasizga "Obuna olish", obunachiga eng yaqin
 // tugaydigan obuna belgisi ("Fizika · 16 kun") va bosilganda ro'yxat.
-// Holat /api/subscription/status dan — bu yerda kirish huquqi hisoblanmaydi.
+// Holat /api/me/header dan — bu yerda kirish huquqi hisoblanmaydi.
 export default function HeaderSubscription({ compact = false }: { compact?: boolean }) {
   const { data: session, status: authStatus } = useSession();
   const isAdmin = session?.user?.role === 'ADMIN';

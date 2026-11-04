@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import { formatTashkentDate } from '@/lib/date';
+import { markNotificationsRead } from '@/lib/me-header-store';
 import {
   Bell,
   CheckCheck,
@@ -92,11 +93,13 @@ export default function NotificationsPage() {
 
   async function markAsRead(id: string) {
     try {
-      await fetch('/api/notifications', {
+      const res = await fetch('/api/notifications', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),
       });
+      // Header'dagi son keyingi so'rovni kutmasdan kamaysin (polling yo'q).
+      if (res.ok) markNotificationsRead(1);
       setNotifications((prev) =>
         prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
       );
@@ -107,11 +110,12 @@ export default function NotificationsPage() {
 
   async function markAllAsRead() {
     try {
-      await fetch('/api/notifications', {
+      const res = await fetch('/api/notifications', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ markAll: true }),
       });
+      if (res.ok) markNotificationsRead('all');
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
     } catch (error) {
       console.error('Failed to mark all as read:', error);
