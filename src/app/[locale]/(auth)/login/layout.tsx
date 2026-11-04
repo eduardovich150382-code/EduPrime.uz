@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 
-// [locale] layout statik bo'lgach bu sahifa ham prerender qilinardi, lekin u
-// `useSearchParams` (error, callbackUrl, ref) dan render bo'ladi — Suspense
-// bilan o'ralsa HTML JS yuklanguncha bo'sh qolardi. Avvalgidek serverda.
-export const dynamic = 'force-dynamic';
+// Sahifa statik (page.tsx). `force-dynamic` olib tashlandi: avvalgi xavotir —
+// `useSearchParams` Suspense bilan o'ralsa HTML JS yuklanguncha bo'sh qolardi —
+// endi yo'q, chunki Suspense ichida faqat xato xabari, karta va tugmalar
+// tashqarida (components/auth/LoginForm.tsx).
 
 export const metadata: Metadata = {
   title: "Kirish — EduPrime.uz",

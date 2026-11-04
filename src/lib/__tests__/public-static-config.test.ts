@@ -40,4 +40,25 @@ describe('statik (ISR) public sahifalar', () => {
     // bo'lmasa Next route'ni dinamik (ƒ) qiladi.
     for (const file of PAGES) expect(code(file)).toMatch(/export const generateStaticParams = noBuildTimeParams;/);
   });
+
+  // /login: build'da har til uchun HTML. URL parametrlari faqat Suspense ichidagi
+  // komponentda — aks holda build xato beradi yoki sahifa yana dinamik bo'ladi.
+  it('/login statik: server sahifa, locale prerender, force-dynamic yo‘q', () => {
+    const page = read('(auth)/login/page.tsx');
+    expect(page).not.toMatch(/^'use client'/);
+    expect(page).toMatch(/export const generateStaticParams = generateLocaleStaticParams;/);
+    expect(code('(auth)/login/page.tsx')).toMatch(/setRequestLocale\(locale\)/);
+    expect(code('(auth)/login/layout.tsx')).not.toMatch(/export const dynamic/);
+    expect(code('(auth)/login/page.tsx')).not.toMatch(/\b(auth\(|searchParams|useSearchParams)\b|from 'next\/headers'/);
+  });
+
+  it('/login: useSearchParams faqat Suspense ichidagi LoginSearchParams da', () => {
+    const form = readFileSync(path.resolve(__dirname, '../../components/auth/LoginForm.tsx'), 'utf-8')
+      .replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+    const calls = form.match(/useSearchParams\(\)/g) ?? [];
+    expect(calls).toHaveLength(1);
+    const owner = form.slice(form.lastIndexOf('function ', form.indexOf('useSearchParams()')));
+    expect(owner).toMatch(/^function LoginSearchParams\(/);
+    expect(form).toMatch(/<Suspense fallback=\{null\}>\s*<LoginSearchParams \/>\s*<\/Suspense>/);
+  });
 });

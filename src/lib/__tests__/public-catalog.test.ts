@@ -158,15 +158,15 @@ describe('public katalog keshi', () => {
     expect(JSON.parse(JSON.stringify(result))).toEqual(result);
   });
 
-  it('har kesh o‘z tegi va 300 s muddati bilan ro‘yxatdan o‘tgan', () => {
+  it('har kesh o‘z tegi va 3600 s (1 soat) muddati bilan ro‘yxatdan o‘tgan', () => {
     const byKey = Object.fromEntries(m.registrations.map((r) => [r.keyParts.join('/'), r.options]));
     expect(byKey).toEqual({
-      'public-catalog/pricing': { tags: ['pricing'], revalidate: 300 },
-      'public-catalog/attestation': { tags: ['tests-list'], revalidate: 300 },
-      'public-catalog/attestation-settings': { tags: ['settings'], revalidate: 300 },
-      'public-catalog/tests-list': { tags: ['tests-list'], revalidate: 300 },
-      'public-catalog/settings': { tags: ['settings'], revalidate: 300 },
-      'public-catalog/subjects': { tags: ['taxonomy'], revalidate: 300 },
+      'public-catalog/pricing': { tags: ['pricing'], revalidate: 3600 },
+      'public-catalog/attestation': { tags: ['tests-list'], revalidate: 3600 },
+      'public-catalog/attestation-settings': { tags: ['settings'], revalidate: 3600 },
+      'public-catalog/tests-list': { tags: ['tests-list'], revalidate: 3600 },
+      'public-catalog/settings': { tags: ['settings'], revalidate: 3600 },
+      'public-catalog/subjects': { tags: ['taxonomy'], revalidate: 3600 },
     });
   });
 
