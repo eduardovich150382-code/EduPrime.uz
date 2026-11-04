@@ -119,3 +119,17 @@ describe('pricing ko‘rinishi', () => {
     expect(html).toContain('href="/ru/pricing"'); expect(html).not.toContain('49'); expect(html).not.toContain('Premium');
   });
 });
+
+// Statik /pricing 1 soatgacha eski render'dan beriladi: loader filtridan o'tib
+// qolgan, keyin muddati tugagan variant brauzer vaqti bilan yashiriladi.
+describe('muddati o‘tgan variant', () => {
+  it('untilDate o‘tgan variant chiqmaydi, qolgani chiqadi', () => {
+    const html = render([{ ...product, offers: [product.offers[0], { ...product.offers[1], untilDate: '2026-10-23T19:00:00Z' }] }]);
+    expect(html).toContain('1 oy'); expect(html).not.toContain('Mavsum');
+    expect(html.match(/>Sotib olish</g)).toHaveLength(1);
+  });
+  it('hamma variant tugagan bo‘lsa — "variant yo‘q" matni', () => {
+    const html = render([{ ...product, offers: [{ ...product.offers[1], untilDate: '2026-10-23T19:00:00Z' }] }]);
+    expect(html).not.toContain('>Sotib olish<'); expect(html).toContain(uz.pricing.noOffers);
+  });
+});

@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useLocale, useNow, useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import { useLiveNow } from '@/lib/use-live-now';
 import { useSession } from 'next-auth/react';
 import { Link, usePathname } from '@/i18n/routing';
 import { daysLeft } from '@/lib/date';
@@ -39,7 +40,7 @@ function SubscriptionBadge({ subscriptions, compact }: {
 }) {
   const locale = useLocale();
   const t = useTranslations('subscriptionUi');
-  const now = useNow();
+  const now = useLiveNow();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);

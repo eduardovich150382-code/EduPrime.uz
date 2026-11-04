@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { logger } from '@/lib/logger';
+import { revalidateTaxonomy, revalidateTestCatalog } from '@/lib/cache-tags';
 
 // GET /api/admin/seed?secret=<ADMIN_SETUP_SECRET> — boshlang'ich ma'lumotlarni DB ga kiritish
 export async function GET(request: NextRequest) {
@@ -83,6 +84,11 @@ export async function GET(request: NextRequest) {
         }
       }
     }
+
+    // Kategoriya va fanlar public katalogda (fanlar ro'yxati, /tests filtri,
+    // pricing) 1 soatgacha keshlanadi — sikl ichida emas, oxirida bir marta.
+    revalidateTaxonomy();
+    revalidateTestCatalog();
 
     return NextResponse.json({
       message: 'Seed completed!',

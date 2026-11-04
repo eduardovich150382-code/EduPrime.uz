@@ -42,7 +42,7 @@ async function queryPricingCatalog() {
       where: { isOnSale: true }, orderBy: [{ order: 'asc' }, { id: 'asc' }],
       omit: { createdAt: true, updatedAt: true },
       include: {
-        // `untilDate` bu yerda filtrlanmaydi: kesh 5 daqiqa yashaydi, muddati
+        // `untilDate` bu yerda filtrlanmaydi: kesh 1 soat yashaydi, muddati
         // o'tgan variant chaqiruvchida joriy `now` bilan olib tashlanadi.
         offers: { where: { isActive: true }, orderBy: [{ order: 'asc' }, { id: 'asc' }] },
         category: { select: { type: true, subjects: {

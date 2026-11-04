@@ -1,6 +1,7 @@
 'use client';
 
-import { useLocale, useNow, useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import { useLiveNow } from '@/lib/use-live-now';
 import { Archive, type LucideIcon } from 'lucide-react';
 import { Link } from '@/i18n/routing';
 import { goalIcon } from './goal-icons';
@@ -23,7 +24,7 @@ export function subscriptionSubjects(s: SubscriptionView, locale: string, allSub
 // Muddat holati rang bilan birga so'z bilan ham aytiladi ("3 kun qoldi").
 function useExpiry(s: SubscriptionView) {
   const t = useTranslations('subscriptionUi');
-  const days = daysLeft(s.endDate, useNow());
+  const days = daysLeft(s.endDate, useLiveNow());
   const state = expiryState(days);
   const label = days < 0 ? t('expiredLabel') : days === 0 ? t('endsToday') : t('daysLeftLong', { count: days });
   return { days, state, label };
@@ -34,7 +35,7 @@ export default function ActiveSubscriptionCard({ subscription: s, variant = 'ful
 }) {
   const locale = useLocale();
   const t = useTranslations('subscriptionUi');
-  const now = useNow();
+  const now = useLiveNow();
   const { days, state, label } = useExpiry(s);
   const style = subscriptionStyle(s);
   const category = subscriptionDisplayName(s, locale);

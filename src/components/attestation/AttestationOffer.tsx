@@ -1,4 +1,5 @@
-import { useNow, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
+import { useLiveNow } from '@/lib/use-live-now';
 import { CheckCircle2 } from 'lucide-react';
 import { Link } from '@/i18n/routing';
 import { liveOffers, recommendedOfferId } from '@/lib/attestation-offer';
@@ -13,7 +14,7 @@ import ActiveSubscriptionCard from '@/components/subscription/ActiveSubscription
 // Bu yerda faqat sarlavha va tavsiya etilgan variant beriladi.
 export function AttestationOffer({ product, buy, locale }: { product: PricingProduct; buy: BuyContext; locale: string }) {
   const t = useTranslations('attestation.offer');
-  const now = useNow();
+  const now = useLiveNow();
   const offers = liveOffers(product.offers, now);
   const sold = soldSubjects(product);
   return (

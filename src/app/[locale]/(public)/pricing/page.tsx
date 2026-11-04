@@ -7,7 +7,7 @@ import { noBuildTimeParams } from '@/i18n/static-params';
 // Statik (ISR): katalog keshlangan `loadPricingCatalog` dan, mehmon
 // ko'rinishida; shaxsiy qism va `?goal` klientda (PricingPersonal). Admin
 // narxni o'zgartirsa revalidateTag('pricing') sahifani ham yangilaydi.
-export const revalidate = 300;
+export const revalidate = 3600;
 // Build'da bazaga ulanmaydi — birinchi so'rovda render (i18n/static-params.ts).
 export const generateStaticParams = noBuildTimeParams;
 type Params = Promise<{ locale: string }>;

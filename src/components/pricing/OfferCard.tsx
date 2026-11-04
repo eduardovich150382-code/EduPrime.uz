@@ -1,4 +1,6 @@
-import { useNow, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
+import { useLiveNow } from '@/lib/use-live-now';
+import { liveOffers } from '@/lib/attestation-offer';
 import { Check, ClipboardList, ListChecks, Timer } from 'lucide-react';
 import { formatTashkentDate } from '@/lib/date';
 import { GOAL_STYLES, BUNDLE_STYLE, LEGACY_STYLE } from '@/lib/goal-styles';
@@ -73,13 +75,16 @@ export function VariantGrid({ product, accent, buy, locale, recommend }: {
   product: PricingProduct; accent: Accent; buy: BuyContext; locale: string; recommend?: OfferRecommendation;
 }) {
   const t = useTranslations('pricing');
-  const now = useNow();
-  const saving = longerOfferSaving(product.offers, now);
-  if (!product.offers.length) return <p className="text-text-secondary">{t('noOffers')}</p>;
+  const now = useLiveNow();
+  // Loader muddati o'tganini render paytida olib tashlaydi, lekin statik
+  // sahifa 1 soatgacha eski render'dan beriladi — brauzer vaqti bilan qayta.
+  const offers = liveOffers(product.offers, now);
+  const saving = longerOfferSaving(offers, now);
+  if (!offers.length) return <p className="text-text-secondary">{t('noOffers')}</p>;
   return (
     <div id={`variants-${product.id}`} className="scroll-mt-24 space-y-3">
-      <div className={`grid gap-5 pt-2 ${product.offers.length > 1 ? 'sm:grid-cols-2' : ''}`}>
-        {product.offers.map((offer) => (
+      <div className={`grid gap-5 pt-2 ${offers.length > 1 ? 'sm:grid-cols-2' : ''}`}>
+        {offers.map((offer) => (
           <OfferVariant key={offer.id} product={product} offer={offer} accent={accent} buy={buy} locale={locale} now={now}
             recommended={recommend && { active: recommend.offerId === offer.id, label: recommend.label }}
             saving={saving?.offerId === offer.id ? { percent: saving.percent, label: saving.shorter.label } : null} />

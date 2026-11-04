@@ -12,9 +12,13 @@ const code = (file: string) => read(file).replace(/\/\*[\s\S]*?\*\//g, '').repla
 const PAGES = ['(public)/attestation/page.tsx', '(public)/pricing/page.tsx', '(public)/tests/page.tsx'];
 
 describe('statik (ISR) public sahifalar', () => {
-  it.each(PAGES)('%s: revalidate 300, dinamik API yo‘q', (file) => {
+  it('katalog keshi 1 soat — sahifalardagi literal shu songa teng', () => {
+    expect(readFileSync(path.resolve(__dirname, '../cache-tags.ts'), 'utf-8')).toMatch(/export const PUBLIC_CACHE_REVALIDATE_SEC = 3600;/);
+  });
+
+  it.each(PAGES)('%s: revalidate 3600, dinamik API yo‘q', (file) => {
     const source = code(file);
-    expect(source).toMatch(/export const revalidate = 300;/);
+    expect(source).toMatch(/export const revalidate = 3600;/);
     expect(source).not.toMatch(/export const dynamic/);
     expect(source).not.toMatch(/\bauth\(/);
     expect(source).not.toMatch(/\bsearchParams\b/);
