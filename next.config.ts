@@ -70,7 +70,16 @@ export default process.env.SENTRY_DSN
         // kod ko'rinadi.
         deleteSourcemapsAfterUpload: true,
       },
-      // Sentry'ning o'z debug logger'i prod bundle'idan chiqarib tashlansin.
-      webpack: { treeshake: { removeDebugLogging: true } },
+      webpack: {
+        // Sentry'ning o'z debug logger'i prod bundle'idan chiqarib tashlansin.
+        treeshake: { removeDebugLogging: true },
+        // Avto-o'ramlar har route va sahifani `@sentry/nextjs` import
+        // qiladigan wrapper bilan o'raydi — server SDK'si (~1.5 MB) har
+        // funksiyaning sovuq startiga tushadi. Ular asosan tracing beradi
+        // (server'da o'chiq); tutilmagan xatolarni `instrumentation.ts`
+        // dagi `onRequestError` ushlaydi. Middleware o'rami (edge) qoladi.
+        autoInstrumentServerFunctions: false,
+        autoInstrumentAppDirectory: false,
+      },
     })
   : config;

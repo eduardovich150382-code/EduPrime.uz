@@ -3,7 +3,8 @@ import { redactEvent } from '@/lib/logger';
 
 // Edge runtime (middleware va `runtime = 'edge'` route'lari) uchun alohida
 // init kerak — server konfiguratsiyasi u yerda ishlamaydi.
-// DSN yo'q bo'lsa — sentry.server.config.ts dagi kabi to'liq o'chiq.
+// DSN yo'q bo'lsa — to'liq o'chiq. Node runtime'da server SDK bu yerda emas,
+// `lib/logger.ts` da birinchi xatoda lazy yuklanadi (sovuq start sababli).
 const dsn = process.env.SENTRY_DSN;
 
 if (dsn) {

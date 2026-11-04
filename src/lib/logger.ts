@@ -1,4 +1,4 @@
-import * as Sentry from '@sentry/nextjs';
+import type * as SentryModule from '@sentry/nextjs';
 
 // Markazlashgan log — `console.error` ni to'g'ridan-to'g'ri chaqirish o'rniga
 // shu yerdan o'tkazamiz. Ikkita sabab bor:
@@ -199,12 +199,119 @@ export function redactEvent<T extends RedactableEvent>(event: T): T {
   return event;
 }
 
-// DSN berilmagan bo'lsa Sentry umuman ishga tushirilmaydi (client
-// yaratilmaydi) — lokal ishlab chiqish va CI aynan shu holatda ishlaydi.
-// `Sentry.getClient()` shuni tekshirishning eng ishonchli usuli: env
-// o'zgaruvchisini qayta o'qish emas, SDK haqiqatan sozlanganini bildiradi.
+// ---------------------------------------------------------------- Sentry
+//
+// Server SDK (Sentry + OpenTelemetry, ~1.5 MB) statik import qilinsa, logger
+// orqali HAR bir API route va sahifa funksiyasining sovuq startiga tushadi:
+// o'lchovda modul yuklanishi ~200 ms ga, instrumentation ~260 ms ga oshardi,
+// holbuki ko'p funksiya umrida birorta ham xato yubormaydi. Shuning uchun SDK
+// faqat birinchi xato kelganda yuklanadi va o'sha paytda init qilinadi.
+// `next.config.ts` da Sentry'ning avto-o'ramlari ham shu sababdan o'chiq.
+
+type Sentry = typeof SentryModule;
+
+let sentryLoading: Promise<Sentry | null> | null = null;
+
+// DSN yo'q bo'lsa (lokal, CI) SDK umuman yuklanmaydi va hech narsa
+// yuborilmaydi. Endi bu yerda `getClient()` ishlatib bo'lmaydi: SDK hali
+// yuklanmagan bo'ladi, DSN esa init qilinishini aniq bildiradi.
 function isSentryEnabled(): boolean {
-  return Sentry.getClient() !== undefined;
+  return Boolean(process.env.SENTRY_DSN);
+}
+
+// Ilgari `sentry.server.config.ts` da edi. `tracesSampleRate` ataylab
+// berilmagan: SDK `0` ni ham "tracing yoqilgan" deb hisoblaydi
+// (`hasSpansEnabled` — `!= null`) va 27 ta avto-instrumentatsiyani
+// (Prisma, Postgres, Http span'lari...) ulaydi. Bizga server'dan faqat xatolar
+// kerak. OpenTelemetry ham shu sababdan sozlanmaydi; xatolarni ushlash unga
+// bog'liq emas.
+const DROPPED_INTEGRATIONS = new Set(['LocalVariablesAsync', 'ProcessSession', 'ChildProcess', 'Modules']);
+
+function initSentry(sdk: Sentry, dsn: string): void {
+  // Bir jarayonda ikki marta init qilinmasin (test, HMR).
+  if (sdk.getClient()) return;
+  sdk.init({
+    dsn,
+    skipOpenTelemetrySetup: true,
+    integrations: (defaults) => defaults.filter((integration) => !DROPPED_INTEGRATIONS.has(integration.name)),
+    // Vercel'da `VERCEL_ENV` = production | preview | development.
+    environment: process.env.VERCEL_ENV ?? process.env.NODE_ENV,
+    // Foydalanuvchi IP va sarlavhalari yuborilmasin — Sentry'ga faqat
+    // kerakli minimum boradi.
+    sendDefaultPii: false,
+    // Logger'ni chetlab o'tgan xatolar (`onRequestError`) ham tozalansin —
+    // xato matni ichidagi DSN yoki token Sentry'ga chiqmasin.
+    beforeSend: (event) => redactEvent(event),
+  });
+}
+
+/**
+ * SDK'ni bir marta yuklab init qiladi. Yuklanish davomida kelgan barcha
+ * xatolar shu bitta promise'ga zanjirlanadi — navbatda turadi va tartibi
+ * saqlanadi. Yuklash yiqilsa keyingi xatoda qayta uriniladi.
+ */
+export function loadSentry(): Promise<Sentry | null> {
+  const dsn = process.env.SENTRY_DSN;
+  if (!dsn) return Promise.resolve(null);
+  sentryLoading ??= import('@sentry/nextjs')
+    .then((sdk) => {
+      initSentry(sdk, dsn);
+      return sdk;
+    })
+    .catch((error: unknown) => {
+      sentryLoading = null;
+      console.error('Sentry SDK yuklanmadi', error instanceof Error ? redactSecrets(error.message) : error);
+      return null;
+    });
+  return sentryLoading;
+}
+
+type WaitUntilContext = { get?: () => { waitUntil?: (promise: Promise<unknown>) => void } | undefined };
+
+/**
+ * Serverless funksiya javob qaytgach muzlatiladi — yuborish tugamagan
+ * xato yo'qoladi. Vercel so'rov kontekstidagi `waitUntil` funksiyani promise
+ * tugaguncha tirik ushlab turadi; Sentry SDK'ning o'zi ham aynan shu
+ * belgidan foydalanadi (`@sentry/core` `vercelWaitUntil`). Kontekst yo'q
+ * bo'lsa (lokal server, skript) jarayon baribir tirik, promise o'zi tugaydi.
+ */
+export function keepAlive(promise: Promise<unknown>): void {
+  const context = (globalThis as Record<symbol, WaitUntilContext | undefined>)[Symbol.for('@vercel/request-context')];
+  context?.get?.()?.waitUntil?.(promise);
+}
+
+const FLUSH_TIMEOUT_MS = 2000;
+
+function send(capture: (sdk: Sentry) => void): void {
+  const pending = loadSentry().then(async (sdk) => {
+    if (!sdk) return;
+    capture(sdk);
+    await sdk.flush(FLUSH_TIMEOUT_MS);
+  }).catch((error: unknown) => {
+    console.error('Sentry yuborishda xato', error instanceof Error ? redactSecrets(error.message) : error);
+  });
+  keepAlive(pending);
+}
+
+/**
+ * Navbatdagi barcha xatolar yuborilishini kutadi. `send` dagi capture'lar
+ * shu promise'ga oldinroq zanjirlangan, shuning uchun flush ulardan keyin
+ * ishlaydi. `true` — hammasi yetkazildi; DSN yo'q yoki SDK yuklanmagan
+ * bo'lsa `false`. Sinov route'i (`/api/admin/sentry-test`) va testlar uchun.
+ */
+export async function flushSentry(timeoutMs = FLUSH_TIMEOUT_MS): Promise<boolean> {
+  const sdk = await loadSentry();
+  return sdk ? sdk.flush(timeoutMs) : false;
+}
+
+/**
+ * `instrumentation.ts` dagi `onRequestError` uchun: tutilmagan xatolar ham
+ * SDK'ni faqat kerak bo'lganda yuklaydi. Next bu funksiyani kutadi, flush'ni
+ * esa SDK o'zi `waitUntil` ga beradi.
+ */
+export async function captureRequestError(...args: Parameters<Sentry['captureRequestError']>): Promise<void> {
+  const sdk = await loadSentry();
+  sdk?.captureRequestError(...args);
 }
 
 /**
@@ -253,9 +360,9 @@ function report(message: string, context: LogContext | undefined, level: 'error'
     // `logMessage` deb nomlangan: kontekstda `message` kaliti bo'lsa
     // (masalan serializatsiya qilingan xatoning o'z xabari) log satri
     // bosilib ketmasin.
-    Sentry.captureException(cause, { level, tags, extra: { ...extra, logMessage: message } });
+    send((sdk) => sdk.captureException(cause, { level, tags, extra: { ...extra, logMessage: message } }));
   } else {
-    Sentry.captureMessage(message, { level, tags, extra });
+    send((sdk) => sdk.captureMessage(message, { level, tags, extra }));
   }
 }
 

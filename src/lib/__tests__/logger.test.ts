@@ -1,18 +1,32 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Sentry SDK'ni to'liq mock qilamiz — testda hech qanday tarmoq so'rovi
-// bo'lmasin va `getClient` qiymatini o'zimiz boshqaraylik.
+// bo'lmasin. Logger SDK'ni dinamik import qiladi, shuning uchun factory
+// faqat birinchi yuborishda ishlaydi — `sdkLoads` aynan shuni sanaydi.
 const captureException = vi.fn();
 const captureMessage = vi.fn();
-const getClient = vi.fn<() => object | undefined>(() => undefined);
+const captureRequestErrorMock = vi.fn();
+const init = vi.fn();
+const flush = vi.fn<(timeout: number) => Promise<boolean>>(async () => true);
+let client: object | undefined;
+let sdkLoads = 0;
 
-vi.mock('@sentry/nextjs', () => ({
-  captureException: (...args: unknown[]) => captureException(...args),
-  captureMessage: (...args: unknown[]) => captureMessage(...args),
-  getClient: () => getClient(),
-}));
+vi.mock('@sentry/nextjs', () => {
+  sdkLoads += 1;
+  return {
+    captureException: (...args: unknown[]) => captureException(...args),
+    captureMessage: (...args: unknown[]) => captureMessage(...args),
+    captureRequestError: (...args: unknown[]) => captureRequestErrorMock(...args),
+    getClient: () => client,
+    init: (options: unknown) => { init(options); client = {}; },
+    flush: (timeout: number) => flush(timeout),
+  };
+});
 
-const { logger, sanitizeContext, redactSecrets, redactEvent } = await import('../logger');
+const { logger, sanitizeContext, redactSecrets, redactEvent, flushSentry, captureRequestError } = await import('../logger');
+
+const DSN = 'https://public@o0.ingest.invalid/1';
+const enableSentry = () => vi.stubEnv('SENTRY_DSN', DSN);
 
 describe('sanitizeContext — maxfiy kalitlar', () => {
   it('to\'g\'ridan-to\'g\'ri sanab o\'tilgan kalitlarni olib tashlaydi', () => {
@@ -93,49 +107,60 @@ describe('logger', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     captureException.mockClear();
     captureMessage.mockClear();
-    getClient.mockReturnValue(undefined);
+    flush.mockClear();
+    vi.stubEnv('SENTRY_DSN', '');
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllEnvs();
   });
 
-  it('console chiqishiga ham tozalangan kontekst boradi', () => {
+  it('console chiqishiga ham tozalangan kontekst boradi', async () => {
     logger.error('POST /api/x error', { token: 'abc', userId: 'u1' });
+    await flushSentry();
 
     expect(console.error).toHaveBeenCalledWith('POST /api/x error', { userId: 'u1' });
   });
 
-  it('info va warn mos console kanaliga yozadi', () => {
+  it('info va warn mos console kanaliga yozadi', async () => {
     logger.info('salom');
     logger.warn('ogohlantirish');
+    await flushSentry();
 
     expect(console.log).toHaveBeenCalledWith('salom');
     expect(console.warn).toHaveBeenCalledWith('ogohlantirish');
   });
 
-  it('DSN yo\'q bo\'lsa (client yaratilmagan) Sentry\'ga hech narsa yubormaydi', () => {
+  it('DSN yo\'q bo\'lsa SDK umuman yuklanmaydi va hech narsa yuborilmaydi', async () => {
     logger.error('xato', { error: new Error('boom') });
+    expect(await flushSentry()).toBe(false);
 
     expect(captureException).not.toHaveBeenCalled();
     expect(captureMessage).not.toHaveBeenCalled();
+    // Shu fayldagi Sentry yoqilgan birinchi test bundan keyin keladi — SDK
+    // hali import qilinmagan bo'lishi kerak (sovuq start narxi shu).
+    expect(sdkLoads).toBe(0);
   });
 
-  it('info va warn Sentry\'ga yuborilmaydi', () => {
-    getClient.mockReturnValue({});
+  it('info va warn Sentry\'ga yuborilmaydi', async () => {
+    enableSentry();
 
     logger.info('salom', { a: 1 });
     logger.warn('ogohlantirish', { a: 1 });
+    await flushSentry();
 
     expect(captureException).not.toHaveBeenCalled();
     expect(captureMessage).not.toHaveBeenCalled();
   });
 
-  it('client bor bo\'lsa Error\'ni exception sifatida, tozalangan extra bilan yuboradi', () => {
-    getClient.mockReturnValue({});
+  it('DSN bor bo\'lsa Error\'ni exception sifatida, tozalangan extra bilan yuboradi', async () => {
+    enableSentry();
     const err = new Error('boom');
 
     logger.error('POST /api/x error', { error: err, password: 'p', userId: 'u1' });
+
+    await flushSentry();
 
     expect(captureException).toHaveBeenCalledTimes(1);
     const [captured, options] = captureException.mock.calls[0] as [
@@ -149,10 +174,12 @@ describe('logger', () => {
     expect(options.extra).not.toHaveProperty('password');
   });
 
-  it('kontekstda Error bo\'lmasa xabar sifatida yuboradi', () => {
-    getClient.mockReturnValue({});
+  it('kontekstda Error bo\'lmasa xabar sifatida yuboradi', async () => {
+    enableSentry();
 
     logger.error('nimadir noto\'g\'ri', { apiKey: 'k', testId: 't1' });
+
+    await flushSentry();
 
     expect(captureMessage).toHaveBeenCalledTimes(1);
     const [message, options] = captureMessage.mock.calls[0] as [
@@ -164,11 +191,13 @@ describe('logger', () => {
     expect(options.extra).toEqual({ testId: 't1' });
   });
 
-  it("`tags` Sentry tegiga aylanadi va `extra` da takrorlanmaydi", () => {
-    getClient.mockReturnValue({});
+  it("`tags` Sentry tegiga aylanadi va `extra` da takrorlanmaydi", async () => {
+    enableSentry();
     const err = new Error('boom');
 
     logger.error('struktura yiqildi', { error: err, tags: { jobId: 'j1', order: 7, attempt: 3 } });
+
+    await flushSentry();
 
     const [, options] = captureException.mock.calls[0] as [
       unknown,
@@ -178,31 +207,37 @@ describe('logger', () => {
     expect(options.extra).not.toHaveProperty('tags');
   });
 
-  it("teg qiymatidagi maxfiy matn ham tozalanadi", () => {
-    getClient.mockReturnValue({});
+  it("teg qiymatidagi maxfiy matn ham tozalanadi", async () => {
+    enableSentry();
 
     logger.error('xato', { tags: { url: 'https://api.example.com/x?api_key=SECRET' } });
+
+    await flushSentry();
 
     const [, options] = captureMessage.mock.calls[0] as [string, { tags: Record<string, string> }];
     expect(options.tags.url).not.toContain('SECRET');
   });
 
-  it("`report: true` bo'lmasa warn Sentry'ga umuman ketmaydi", () => {
+  it("`report: true` bo'lmasa warn Sentry'ga umuman ketmaydi", async () => {
     // Kvota sababli sukut bo'yicha jim: barcha `warn` lar oqib ketsa bepul
     // tarif bir kunda tugaydi va haqiqiy xatolar shovqin ichida qoladi.
-    getClient.mockReturnValue({});
+    enableSentry();
 
     logger.warn('sekin javob', { error: new Error('slow'), ms: 900 });
+
+    await flushSentry();
 
     expect(captureException).not.toHaveBeenCalled();
     expect(captureMessage).not.toHaveBeenCalled();
   });
 
-  it("`report: true` bilan warn `warning` darajasida yuboriladi", () => {
-    getClient.mockReturnValue({});
+  it("`report: true` bilan warn `warning` darajasida yuboriladi", async () => {
+    enableSentry();
     const err = new Error('429');
 
     logger.warn('qayta uriniladi', { error: err, report: true, tags: { order: 2 } });
+
+    await flushSentry();
 
     expect(captureException).toHaveBeenCalledTimes(1);
     const [captured, options] = captureException.mock.calls[0] as [
@@ -216,10 +251,114 @@ describe('logger', () => {
     expect(options.extra).not.toHaveProperty('report');
   });
 
-  it("`report` bayrogi konsol satriga chiqmaydi, `tags` esa chiqadi", () => {
+  it("`report` bayrogi konsol satriga chiqmaydi, `tags` esa chiqadi", async () => {
     logger.warn('qayta uriniladi', { report: true, tags: { order: 2 } });
+    await flushSentry();
 
     expect(console.warn).toHaveBeenCalledWith('qayta uriniladi', { tags: { order: 2 } });
+  });
+});
+
+describe('logger — Sentry SDK faqat kerak bo\'lganda yuklanadi', () => {
+  const contextKey = Symbol.for('@vercel/request-context');
+
+  beforeEach(() => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    captureException.mockClear();
+    captureMessage.mockClear();
+    captureRequestErrorMock.mockClear();
+    flush.mockClear();
+    enableSentry();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllEnvs();
+    delete (globalThis as Record<symbol, unknown>)[contextKey];
+  });
+
+  it('SDK bir marta yuklanadi va bir marta init qilinadi', async () => {
+    logger.error('birinchi', { error: new Error('a') });
+    logger.error('ikkinchi', { error: new Error('b') });
+    await flushSentry();
+
+    expect(sdkLoads).toBe(1);
+    expect(init).toHaveBeenCalledTimes(1);
+  });
+
+  it('init: tracing berilmaydi, OpenTelemetry sozlanmaydi, PII yo\'q, beforeSend tozalaydi', async () => {
+    logger.error('xato');
+    await flushSentry();
+
+    const options = init.mock.calls[0][0] as {
+      dsn: string;
+      tracesSampleRate?: number;
+      skipOpenTelemetrySetup: boolean;
+      sendDefaultPii: boolean;
+      beforeSend: (event: { message?: string }) => { message?: string };
+    };
+    expect(options.dsn).toBe(DSN);
+    // `0` ham SDK uchun "tracing yoqilgan" — kalit umuman bo'lmasligi shart.
+    expect(options).not.toHaveProperty('tracesSampleRate');
+    expect(options.skipOpenTelemetrySetup).toBe(true);
+    expect(options.sendDefaultPii).toBe(false);
+    expect(options.beforeSend({ message: 'postgresql://u:p@h/db' }).message).toBe('[redacted-dsn]');
+  });
+
+  it('yuklanish tugaguncha kelgan xatolar yo\'qolmaydi, tartibi saqlanadi va flush ulardan keyin', async () => {
+    const first = new Error('1');
+    const second = new Error('2');
+
+    logger.error('a', { error: first });
+    logger.error('b', { error: second });
+    logger.error('c');
+    // Hali hech narsa yuborilmagan — SDK yuklanmoqda.
+    expect(captureException).not.toHaveBeenCalled();
+
+    expect(await flushSentry()).toBe(true);
+    expect(captureException.mock.calls.map(([error]) => error)).toEqual([first, second]);
+    expect(captureMessage).toHaveBeenCalledTimes(1);
+    // Har capture'dan keyin flush bor — oxirgisi ham yuborilmay qolmaydi.
+    const captures = [...captureException.mock.invocationCallOrder, ...captureMessage.mock.invocationCallOrder];
+    const flushes = flush.mock.invocationCallOrder;
+    for (const order of captures) {
+      expect(flushes.some((flushOrder) => flushOrder > order)).toBe(true);
+    }
+  });
+
+  it('yuborish Vercel waitUntil\'ga beriladi — javobdan keyin ham funksiya tirik qoladi', async () => {
+    const waitUntil = vi.fn();
+    (globalThis as Record<symbol, unknown>)[contextKey] = { get: () => ({ waitUntil }) };
+
+    logger.error('xato', { error: new Error('boom') });
+
+    expect(waitUntil).toHaveBeenCalledTimes(1);
+    const pending = waitUntil.mock.calls[0][0] as Promise<unknown>;
+    await pending;
+    expect(captureException).toHaveBeenCalledTimes(1);
+    expect(flush).toHaveBeenCalled();
+  });
+
+  it('so\'rov konteksti yo\'q joyda (skript, cron emas) ham yiqilmaydi', async () => {
+    logger.error('xato');
+    await flushSentry();
+    expect(captureMessage).toHaveBeenCalledTimes(1);
+  });
+
+  it('onRequestError o\'rami SDK\'ning captureRequestError\'iga aynan o\'sha argumentlarni uzatadi', async () => {
+    const error = new Error('render');
+    const request = { path: '/api/x', method: 'GET', headers: {} };
+    const context = { routerKind: 'App Router', routePath: '/api/x', routeType: 'route' } as const;
+
+    await captureRequestError(error, request, context);
+
+    expect(captureRequestErrorMock).toHaveBeenCalledWith(error, request, context);
+  });
+
+  it('DSN yo\'q bo\'lsa onRequestError o\'rami hech narsa qilmaydi', async () => {
+    vi.stubEnv('SENTRY_DSN', '');
+    await captureRequestError(new Error('x'), { path: '/', method: 'GET', headers: {} }, { routerKind: 'App Router', routePath: '/', routeType: 'render' });
+    expect(captureRequestErrorMock).not.toHaveBeenCalled();
   });
 });
 
