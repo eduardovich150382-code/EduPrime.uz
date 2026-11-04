@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useLocale, useNow, useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import { useLiveNow } from '@/lib/use-live-now';
 import { useSession } from 'next-auth/react';
 import { Link, usePathname } from '@/i18n/routing';
 import { daysLeft } from '@/lib/date';
@@ -14,7 +15,7 @@ import ActiveSubscriptionCard, { subscriptionSubjects } from '@/components/subsc
 
 // Header'dagi obuna joyi: obunasizga "Obuna olish", obunachiga eng yaqin
 // tugaydigan obuna belgisi ("Fizika · 16 kun") va bosilganda ro'yxat.
-// Holat /api/subscription/status dan — bu yerda kirish huquqi hisoblanmaydi.
+// Holat /api/me/header dan — bu yerda kirish huquqi hisoblanmaydi.
 export default function HeaderSubscription({ compact = false }: { compact?: boolean }) {
   const { data: session, status: authStatus } = useSession();
   const isAdmin = session?.user?.role === 'ADMIN';
@@ -39,7 +40,7 @@ function SubscriptionBadge({ subscriptions, compact }: {
 }) {
   const locale = useLocale();
   const t = useTranslations('subscriptionUi');
-  const now = useNow();
+  const now = useLiveNow();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);

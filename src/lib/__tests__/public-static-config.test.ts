@@ -12,9 +12,13 @@ const code = (file: string) => read(file).replace(/\/\*[\s\S]*?\*\//g, '').repla
 const PAGES = ['(public)/attestation/page.tsx', '(public)/pricing/page.tsx', '(public)/tests/page.tsx'];
 
 describe('statik (ISR) public sahifalar', () => {
-  it.each(PAGES)('%s: revalidate 300, dinamik API yo‘q', (file) => {
+  it('katalog keshi 1 soat — sahifalardagi literal shu songa teng', () => {
+    expect(readFileSync(path.resolve(__dirname, '../cache-tags.ts'), 'utf-8')).toMatch(/export const PUBLIC_CACHE_REVALIDATE_SEC = 3600;/);
+  });
+
+  it.each(PAGES)('%s: revalidate 3600, dinamik API yo‘q', (file) => {
     const source = code(file);
-    expect(source).toMatch(/export const revalidate = 300;/);
+    expect(source).toMatch(/export const revalidate = 3600;/);
     expect(source).not.toMatch(/export const dynamic/);
     expect(source).not.toMatch(/\bauth\(/);
     expect(source).not.toMatch(/\bsearchParams\b/);
@@ -35,5 +39,26 @@ describe('statik (ISR) public sahifalar', () => {
     // Bo'sh ro'yxat: build'da render yo'q, birinchi so'rovda ISR. Umuman
     // bo'lmasa Next route'ni dinamik (ƒ) qiladi.
     for (const file of PAGES) expect(code(file)).toMatch(/export const generateStaticParams = noBuildTimeParams;/);
+  });
+
+  // /login: build'da har til uchun HTML. URL parametrlari faqat Suspense ichidagi
+  // komponentda — aks holda build xato beradi yoki sahifa yana dinamik bo'ladi.
+  it('/login statik: server sahifa, locale prerender, force-dynamic yo‘q', () => {
+    const page = read('(auth)/login/page.tsx');
+    expect(page).not.toMatch(/^'use client'/);
+    expect(page).toMatch(/export const generateStaticParams = generateLocaleStaticParams;/);
+    expect(code('(auth)/login/page.tsx')).toMatch(/setRequestLocale\(locale\)/);
+    expect(code('(auth)/login/layout.tsx')).not.toMatch(/export const dynamic/);
+    expect(code('(auth)/login/page.tsx')).not.toMatch(/\b(auth\(|searchParams|useSearchParams)\b|from 'next\/headers'/);
+  });
+
+  it('/login: useSearchParams faqat Suspense ichidagi LoginSearchParams da', () => {
+    const form = readFileSync(path.resolve(__dirname, '../../components/auth/LoginForm.tsx'), 'utf-8')
+      .replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+    const calls = form.match(/useSearchParams\(\)/g) ?? [];
+    expect(calls).toHaveLength(1);
+    const owner = form.slice(form.lastIndexOf('function ', form.indexOf('useSearchParams()')));
+    expect(owner).toMatch(/^function LoginSearchParams\(/);
+    expect(form).toMatch(/<Suspense fallback=\{null\}>\s*<LoginSearchParams \/>\s*<\/Suspense>/);
   });
 });

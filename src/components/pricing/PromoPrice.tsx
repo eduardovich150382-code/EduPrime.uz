@@ -1,6 +1,7 @@
 'use client';
 
-import { useNow, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
+import { useLiveNow } from '@/lib/use-live-now';
 import { Clock } from 'lucide-react';
 import { discountPercent, promoActive, savingsAmount } from '@/lib/pricing';
 
@@ -15,7 +16,7 @@ export function PromoPrice({ price, compareAtPrice, promoUntil, locale }: {
   price: number; compareAtPrice: number | null; promoUntil: string | null; locale: string;
 }) {
   const t = useTranslations('pricing');
-  const now = useNow({ updateInterval: MINUTE });
+  const now = useLiveNow(MINUTE);
   const percent = discountPercent(price, compareAtPrice);
   if (percent === null || !promoActive({ promoUntil }, now)) return null;
   const format = (amount: number) => t('price', { amount: new Intl.NumberFormat(locale).format(amount) });

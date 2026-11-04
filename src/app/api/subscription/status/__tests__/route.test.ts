@@ -3,6 +3,7 @@ import { subscriptionFixture as sub, subscriptionNow as now } from '@/lib/__test
 
 const m = vi.hoisted(() => ({ auth: vi.fn(), rows: vi.fn(), permissions: vi.fn() }));
 vi.mock('@/lib/auth', () => ({ auth: m.auth }));
+vi.mock('server-only', () => ({}));
 vi.mock('@/lib/db', () => ({ db: { $queryRaw: m.rows, userPermission: { findMany: m.permissions } } }));
 vi.mock('@/lib/logger', () => ({ logger: { error: vi.fn() } }));
 import { GET } from '../route';

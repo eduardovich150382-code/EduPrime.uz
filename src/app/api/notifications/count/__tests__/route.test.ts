@@ -7,6 +7,7 @@ const { authMock, countMock, updateManyMock } = vi.hoisted(() => ({
   updateManyMock: vi.fn(),
 }));
 
+vi.mock('server-only', () => ({}));
 vi.mock('@/lib/db', () => ({
   db: {
     notification: { count: (...args: unknown[]) => countMock(...args) },

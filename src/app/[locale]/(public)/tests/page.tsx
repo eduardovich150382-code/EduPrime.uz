@@ -13,7 +13,7 @@ export const metadata = testsMetadata;
 // (URL → /api/tests). Shaxsiy qismlar (natijalar, "Davom etish", hasAccess)
 // sessiya aniq bo'lgach klientda. Yechish (/tests/[id]/solve) va natijalar
 // (main) da qoladi.
-export const revalidate = 300;
+export const revalidate = 3600;
 // Build'da bazaga ulanmaydi — birinchi so'rovda render (i18n/static-params.ts).
 export const generateStaticParams = noBuildTimeParams;
 

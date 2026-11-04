@@ -15,8 +15,9 @@ import { noBuildTimeParams } from '@/i18n/static-params';
 // (natija, readiness, obuna, shaxsiy narx) klientda /api/attestation/me dan.
 // Katalog, narx va sozlamalar keshlangan funksiyalardan (lib/public-catalog.ts);
 // admin o'zgartirsa revalidateTag sahifani ham yangilaydi, aks holda ko'pi
-// bilan 5 daqiqa (PUBLIC_CACHE_REVALIDATE_SEC bilan bir xil).
-export const revalidate = 300;
+// bilan 1 soat (PUBLIC_CACHE_REVALIDATE_SEC bilan bir xil). Vaqtga bog'liq qism
+// (variant muddati, aksiya, "N kun") klientda `useLiveNow` bilan hisoblanadi.
+export const revalidate = 3600;
 // Build'da bazaga ulanmaydi — birinchi so'rovda render (i18n/static-params.ts).
 export const generateStaticParams = noBuildTimeParams;
 type Params = Promise<{ locale: string }>;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useSyncExternalStore } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link, usePathname as useLocalePathname } from '@/i18n/routing';
 import { Menu, X, LogOut, User, Bell } from 'lucide-react';
@@ -10,7 +10,8 @@ import LanguageSwitcher from './LanguageSwitcher';
 import HeaderSubscription from './HeaderSubscription';
 import { ATTESTATION_HREF, isAttestationPath } from '@/lib/nav-links';
 import { loginHref } from '@/lib/safe-return-path';
-import { startNotificationPolling } from '@/lib/notification-poll';
+import { startHeaderRefresh } from '@/lib/header-refresh';
+import { getUnread, loadMeHeader, subscribeUnread } from '@/lib/me-header-store';
 
 export default function Header() {
   const t = useTranslations();
@@ -21,30 +22,20 @@ export default function Header() {
   const isAttestation = isAttestationPath(useLocalePathname());
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   const isLoggedIn = status === 'authenticated' && session?.user;
-  const userRole = session?.user?.role;
+  const userId = status === 'authenticated' ? session?.user?.id ?? null : null;
 
-  // Fetch unread notification count
+  // Son obuna holati bilan bitta `/api/me/header` so'rovida keladi (Sidebar,
+  // bannerlar bilan umumiy kesh). Polling yo'q — sahifa ochilganda va tabga
+  // ≥5 daqiqadan keyin qaytilganda (lib/header-refresh.ts); o'qilganda
+  // bildirishnomalar sahifasi sonni darhol kamaytiradi.
+  const unreadCount = useSyncExternalStore(subscribeUnread, () => getUnread(userId), () => 0);
   useEffect(() => {
-    if (!isLoggedIn) return;
-
-    async function fetchCount() {
-      try {
-        const res = await fetch('/api/notifications/count');
-        if (res.ok) {
-          const data = await res.json();
-          setUnreadCount(data.count);
-        }
-      } catch (error) {
-        // silently fail
-      }
-    }
-
-    return startNotificationPolling(fetchCount);
-  }, [isLoggedIn]);
+    if (!userId) return;
+    return startHeaderRefresh(() => { loadMeHeader(userId).catch(() => {}); });
+  }, [userId]);
 
   // Click outside to close user dropdown
   useEffect(() => {
