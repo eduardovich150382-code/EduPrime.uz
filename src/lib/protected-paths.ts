@@ -10,6 +10,11 @@ const PROTECTED_PREFIXES = [
   '/profile',
   '/teacher',
   '/admin',
+  // (main) guruhida — mehmonni funksiya ichidagi `auth()` emas, middleware
+  // cookie bo'yicha qaytarsin (callbackUrl bilan). `/session/` slesh bilan:
+  // ro'yxat sahifasi yo'q va prefiks boshqa yo'lni ilib olmasin.
+  '/build',
+  '/session/',
 ];
 
 // /tests ro'yxati mehmonga ochiq ((public) guruhi), lekin uning ichidagi
