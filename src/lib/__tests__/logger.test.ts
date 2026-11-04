@@ -496,4 +496,22 @@ describe('redactEvent — beforeSend', () => {
     const event: { event_id: string; message?: string } = { event_id: 'abc' };
     expect(redactEvent(event)).toEqual({ event_id: 'abc' });
   });
+
+  it("onRequestError hodisasi: cookie'lar tashlanadi, maxfiy sarlavhalar va request_path query'si tozalanadi", () => {
+    // `captureRequestError` `sendDefaultPii: false` da ham aynan shu shaklni
+    // yuboradi (haqiqiy SDK bilan lokal ingest'da tekshirilgan).
+    const event = redactEvent({
+      request: {
+        method: 'GET',
+        headers: { cookie: '__Secure-authjs.session-token=SECRET', authorization: 'Bearer SECRETSECRET', 'x-api-key': 'SECRET', 'user-agent': 'Android', host: 'eduprime.uz' },
+        cookies: { '__Secure-authjs.session-token': 'SECRET' },
+      },
+      contexts: { nextjs: { request_path: '/api/x?token=SECRET&lang=uz', router_kind: 'App Router' } },
+    });
+
+    expect(JSON.stringify(event)).not.toContain('SECRET');
+    expect(event.request).not.toHaveProperty('cookies');
+    expect(event.request?.headers).toEqual({ 'user-agent': 'Android', host: 'eduprime.uz' });
+    expect((event.contexts?.nextjs as { request_path: string }).request_path).toBe('/api/x?token=[redacted]&lang=uz');
+  });
 });

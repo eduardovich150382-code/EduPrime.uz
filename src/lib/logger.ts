@@ -133,13 +133,17 @@ type RedactableEvent = {
   extra?: LogContext | null;
   // `request` va `breadcrumbs` ni SDK o'zi ilib qo'yadi — kodimizdan
   // o'tmaydi, shuning uchun logger'ning tozalashi ularga tegmaydi.
-  request?: { url?: unknown; query_string?: unknown; data?: unknown } | null;
+  request?: { url?: unknown; query_string?: unknown; data?: unknown; headers?: unknown; cookies?: unknown } | null;
+  // `captureRequestError` (onRequestError) so'rov yo'lini query bilan shu
+  // yerga yozadi (`/api/x?token=...`).
+  contexts?: Record<string, unknown> | null;
   breadcrumbs?: Array<{ message?: unknown; data?: LogContext | null } | null | undefined> | null;
 };
 
 /**
  * Sentry hodisasining erkin matnli maydonlarini — `message`, exception
- * qiymatlari, `extra`, so'rov URL/query/tanasi va breadcrumb'lar — joyida
+ * qiymatlari, `extra`, so'rov URL/query/tanasi/sarlavhalari (cookie'lar
+ * tashlanadi), `contexts.nextjs.request_path` va breadcrumb'lar — joyida
  * tozalaydi va o'sha hodisani qaytaradi. `beforeSend` uchun mo'ljallangan,
  * test uchun eksport.
  */
@@ -179,6 +183,23 @@ export function redactEvent<T extends RedactableEvent>(event: T): T {
     if (typeof request.data === 'string') {
       request.data = redactSecrets(request.data);
     }
+    // `sendDefaultPii: false` ga qaramay `captureRequestError` so'rovning
+    // barcha sarlavhalarini va ulardan ajratilgan cookie'larni hodisaga
+    // qo'shadi — ichida sessiya tokeni (`__Secure-authjs.session-token`) va
+    // `Authorization` bor. Cookie'lar butunlay tashlanadi; sarlavhalar
+    // kalit bo'yicha tozalanadi (`cookie`, `authorization`, `x-api-key`...),
+    // qolganlari (user-agent, host) xatoni tushunish uchun qoladi.
+    if ('cookies' in request) {
+      delete request.cookies;
+    }
+    if (request.headers && typeof request.headers === 'object' && !Array.isArray(request.headers)) {
+      request.headers = sanitizeContext(request.headers as LogContext);
+    }
+  }
+
+  const nextjs = event.contexts?.nextjs as { request_path?: unknown } | null | undefined;
+  if (nextjs && typeof nextjs.request_path === 'string') {
+    nextjs.request_path = redactSecrets(nextjs.request_path);
   }
 
   // Fetch va console izlari. Klient sahifalaridagi tozalanmagan
