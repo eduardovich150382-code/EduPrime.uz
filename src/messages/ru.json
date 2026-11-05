@@ -967,6 +967,12 @@
     "restoreConfirmTitle": "Восстановить подписку?",
     "restoreConfirmBody": "Подписка «{name}» снова будет активна до {date}."
   },
+  "adminUsersPager": {
+    "prev": "Назад",
+    "next": "Далее",
+    "range": "{from}–{to} из {total}",
+    "pageOf": "Стр. {page} из {pages}"
+  },
   "adminMessage": {
     "open": "Написать",
     "heading": "Сообщение пользователю",

@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import {
   Users, Search, Shield, GraduationCap, User, Crown,
   Mail, MessageCircle, Loader2, RefreshCw, Eye, Ban, X, BookOpen, Clock, MessageSquare,
+  ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import BackButton from '@/components/ui/BackButton';
@@ -25,6 +26,9 @@ interface UserData {
   _count: { testResults: number };
 }
 
+// API bir so'rovda ko'pi bilan 100 ta qaytaradi (sanitizePagination); 50 — mobil uchun yengil sahifa.
+const PAGE_SIZE = 50;
+
 function recipient(user: UserData): MessageRecipient {
   return { id: user.id, name: user.name, username: user.telegramUsername, hasTelegram: user.hasTelegram };
 }
@@ -39,6 +43,9 @@ function getRoleBadge(role: string) {
 
 export default function AdminUsersPage() {
   const tm = useTranslations('adminMessage');
+  const tp = useTranslations('adminUsersPager');
+  const [page, setPage] = useState(1);
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [messageTarget, setMessageTarget] = useState<MessageRecipient | null>(null);
   const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,7 +87,12 @@ export default function AdminUsersPage() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/users?search=${encodeURIComponent(searchQuery)}`);
+      const params = new URLSearchParams({
+        search: debouncedSearch,
+        page: String(page),
+        limit: String(PAGE_SIZE),
+      });
+      const res = await fetch(`/api/admin/users?${params}`);
       const data = await res.json();
       if (data.users) {
         setUsers(data.users);
@@ -92,14 +104,24 @@ export default function AdminUsersPage() {
     setLoading(false);
   };
 
+  // Qidiruv o'zgarsa birinchi sahifaga qaytamiz — aks holda 5-sahifada qolib, natija bo'sh ko'rinadi.
   useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  useEffect(() => {
-    const timer = setTimeout(fetchUsers, 500);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setPage(1);
+    }, 500);
     return () => clearTimeout(timer);
   }, [searchQuery]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [page, debouncedSearch]);
+
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const goToPage = (next: number) => {
+    setPage(Math.min(Math.max(1, next), totalPages));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const changeRole = async (userId: string, newRole: string) => {
     setChangingRole(userId);
@@ -308,6 +330,38 @@ export default function AdminUsersPage() {
                 </table>
               </div>
             </div>
+
+            {/* Sahifalash */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between gap-3 mt-4">
+                <button
+                  onClick={() => goToPage(page - 1)}
+                  disabled={page <= 1}
+                  className="min-h-11 px-4 rounded-xl border border-border bg-white text-sm font-medium flex items-center gap-1 hover:bg-primary-50 disabled:opacity-40 disabled:hover:bg-white"
+                >
+                  <ChevronLeft size={16} />
+                  <span className="hidden sm:inline">{tp('prev')}</span>
+                </button>
+                <div className="text-center text-sm text-text-secondary">
+                  <p className="font-medium text-text-primary">{tp('pageOf', { page, pages: totalPages })}</p>
+                  <p className="text-xs">
+                    {tp('range', {
+                      from: (page - 1) * PAGE_SIZE + 1,
+                      to: Math.min(page * PAGE_SIZE, total),
+                      total,
+                    })}
+                  </p>
+                </div>
+                <button
+                  onClick={() => goToPage(page + 1)}
+                  disabled={page >= totalPages}
+                  className="min-h-11 px-4 rounded-xl border border-border bg-white text-sm font-medium flex items-center gap-1 hover:bg-primary-50 disabled:opacity-40 disabled:hover:bg-white"
+                >
+                  <span className="hidden sm:inline">{tp('next')}</span>
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            )}
           </>
         )}
       </motion.div>
