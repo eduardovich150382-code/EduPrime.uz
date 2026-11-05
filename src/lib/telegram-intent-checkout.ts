@@ -3,9 +3,10 @@ import { db } from './db';
 import { paymentTransaction } from './subscription-payments';
 import { createCheckoutPayment } from './checkout-selection';
 import { intentKey, isIntentExpired, parseIntent, parseIntentStart, paymentChatKey, telegramPaymentKey } from './checkout-intent';
-import { dictionaries, escape, language, sendPaymentInstructions, showCheckoutProducts, type CheckoutUser, type Transport } from './telegram-category-checkout';
+import { dictionaries, language, sendPaymentInstructions, showCheckoutProducts, type CheckoutUser, type Transport } from './telegram-category-checkout';
 import uz from '@/messages/uz.json';
 import { logger } from './logger';
+import { escapeHtml } from './html-escape';
 
 interface Conflict { holderId: string; holderHasData: boolean }
 type Claim =
@@ -75,8 +76,8 @@ export async function startIntentCheckout(chatId: number, from: CheckoutUser, pa
   }
   await sendPaymentInstructions(chatId, claim.paymentId, lang, transport, t.intentReceiptPrompt);
   if (claim.conflict) {
-    const text = `${uz.checkout.intentConflict}\n${uz.checkout.intentConflictSite}: ${escape(claim.site.email ?? claim.site.id)}\n` +
-      `${uz.checkout.intentConflictHolder}: ${escape(claim.conflict.holderId)} (Telegram ${from.id}) — ${claim.conflict.holderHasData ? uz.checkout.holderHasData : uz.checkout.holderEmpty}`;
+    const text = `${uz.checkout.intentConflict}\n${uz.checkout.intentConflictSite}: ${escapeHtml(claim.site.email ?? claim.site.id)}\n` +
+      `${uz.checkout.intentConflictHolder}: ${escapeHtml(claim.conflict.holderId)} (Telegram ${from.id}) — ${claim.conflict.holderHasData ? uz.checkout.holderHasData : uz.checkout.holderEmpty}`;
     for (const adminId of transport.adminIds) {
       try { await transport.send(Number(adminId), text); } catch (error) { logger.error('Checkout intent conflict notification error', { error }); }
     }

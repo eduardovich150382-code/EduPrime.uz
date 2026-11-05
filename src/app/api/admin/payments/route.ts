@@ -45,6 +45,7 @@ export async function GET(request: NextRequest) {
             name: true,
             email: true,
             telegramUsername: true,
+            telegramId: true,
             image: true,
           },
         },
@@ -71,7 +72,10 @@ export async function GET(request: NextRequest) {
 
     const subjects = await db.subject.findMany({ where: { id: { in: payments.flatMap((p) => p.subjectIds) } }, select: { id: true, nameUz: true, nameRu: true, nameEn: true } });
     return NextResponse.json({
-      payments: payments.map((p) => ({ ...p, subjects: subjects.filter((subject) => p.subjectIds.includes(subject.id)) })),
+      // telegramId klientga chiqmaydi — admin paneliga faqat "ulanganmi" kerak.
+      payments: payments.map(({ user: { telegramId, ...user }, ...p }) => ({
+        ...p, user: { ...user, hasTelegram: Boolean(telegramId) }, subjects: subjects.filter((subject) => p.subjectIds.includes(subject.id)),
+      })),
       total,
       page,
       limit,

@@ -49,7 +49,13 @@ export async function GET(request: NextRequest) {
 
     const total = await db.user.count({ where });
 
-    return NextResponse.json({ users, total, page, limit });
+    // telegramId klientga chiqmaydi — admin paneliga faqat "ulanganmi" kerak.
+    return NextResponse.json({
+      users: users.map(({ telegramId, ...user }) => ({ ...user, hasTelegram: Boolean(telegramId) })),
+      total,
+      page,
+      limit,
+    });
   } catch (error) {
     logger.error('GET /api/admin/users error:', { error });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });

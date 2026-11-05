@@ -3,6 +3,7 @@ import { logger } from './logger';
 import { ensureReferralCode } from './referral-code';
 import { botReferralLink, miniAppUrl } from './telegram-bot-links';
 import { btn, type ButtonStyle, type InlineButton } from './telegram-buttons';
+import { escapeHtml } from './html-escape';
 import uzMessages from '@/messages/uz.json';
 import ruMessages from '@/messages/ru.json';
 
@@ -51,9 +52,7 @@ export function menuActionFor(text: string): MenuAction | null {
   return ACTION_BY_TEXT[normalized] ?? null;
 }
 
-export function escapeHtml(value: string): string {
-  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
+export { escapeHtml };
 
 /** `{nom}` o'rniga qiymat qo'yadi; qiymatlar HTML uchun xavfsizlantiriladi. */
 export function fill(template: string, values: Record<string, string | number>): string {

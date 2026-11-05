@@ -11,6 +11,7 @@ import ru from '@/messages/ru.json';
 import en from '@/messages/en.json';
 import { logger } from './logger';
 import { btn, type InlineButton } from './telegram-buttons';
+import { escapeHtml } from './html-escape';
 
 export type Lang = 'uz' | 'ru' | 'en';
 type Options = { reply_markup?: { inline_keyboard: InlineButton[][] } };
@@ -32,7 +33,6 @@ async function checkoutLanguage(telegramId: number): Promise<Lang> {
   const user = await db.user.findUnique({ where: { telegramId: String(telegramId) }, select: { lang: true } });
   return language(user?.lang);
 }
-export const escape = (value: string) => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 function name(row: { nameUz: string; nameRu: string; nameEn: string }, lang: Lang) { return row[lang === 'uz' ? 'nameUz' : lang === 'ru' ? 'nameRu' : 'nameEn']; }
 function label(row: { labelUz: string; labelRu: string; labelEn: string }, lang: Lang) { return row[lang === 'uz' ? 'labelUz' : lang === 'ru' ? 'labelRu' : 'labelEn']; }
 
@@ -57,9 +57,9 @@ async function details(paymentId: string, lang: Lang) {
   const payment = await db.payment.findUniqueOrThrow({ where: { id: paymentId }, include: { product: true, offer: true, user: true } });
   const subjects = await db.subject.findMany({ where: { id: { in: payment.subjectIds } }, orderBy: [{ order: 'asc' }, { id: 'asc' }] });
   const t = dictionaries[lang];
-  const text = `${t.product}: <b>${escape(payment.product ? name(payment.product, lang) : payment.plan)}</b>\n` +
-    (subjects.length ? `${t.subjects}: ${subjects.map((s) => escape(name(s, lang))).join(', ')}\n` : '') +
-    `${t.offer}: ${escape(payment.offer ? label(payment.offer, lang) : payment.duration)}\n` +
+  const text = `${t.product}: <b>${escapeHtml(payment.product ? name(payment.product, lang) : payment.plan)}</b>\n` +
+    (subjects.length ? `${t.subjects}: ${subjects.map((s) => escapeHtml(name(s, lang))).join(', ')}\n` : '') +
+    `${t.offer}: ${escapeHtml(payment.offer ? label(payment.offer, lang) : payment.duration)}\n` +
     `${t.amount}: <b>${payment.amount.toLocaleString('uz-UZ')} ${t.currency}</b>`;
   return { payment, text };
 }
@@ -68,7 +68,7 @@ export async function sendPaymentInstructions(chatId: number, paymentId: string,
   const t = dictionaries[lang];
   const { cardNumber, cardOwner } = await transport.settings();
   const summary = await details(paymentId, lang);
-  const sent = await transport.send(chatId, `${summary.text}\n\n${t.card}: <code>${escape(cardNumber)}</code>\n${t.owner}: ${escape(cardOwner)}\n\n${prompt}`);
+  const sent = await transport.send(chatId, `${summary.text}\n\n${t.card}: <code>${escapeHtml(cardNumber)}</code>\n${t.owner}: ${escapeHtml(cardOwner)}\n\n${prompt}`);
   if (typeof sent === 'object' && sent !== null && 'result' in sent && typeof sent.result === 'object' && sent.result !== null && 'message_id' in sent.result) {
     await db.payment.update({ where: { id: paymentId }, data: { telegramMsgId: String(sent.result.message_id) } });
   }
@@ -82,7 +82,7 @@ async function activationMessage(paymentId: string, lang: Lang, appUrl?: string)
   if (!subscription?.product) return { text: t.confirmed };
   const subjects = subscription.subjectIds.length ? await db.subject.findMany({ where: { id: { in: subscription.subjectIds } }, orderBy: [{ order: 'asc' }, { id: 'asc' }] }) : [];
   const scope = [name(subscription.product, lang), ...(subjects.length ? [subjects.map((s) => name(s, lang)).join(', ')] : [])].join(' · ');
-  const text = t.activated.replace('{scope}', escape(scope)).replace('{date}', formatTashkentDate(subscription.endDate, lang));
+  const text = t.activated.replace('{scope}', escapeHtml(scope)).replace('{date}', formatTashkentDate(subscription.endDate, lang));
   if (!appUrl) return { text };
   const path = subscription.category?.type === 'ATTESTATION' ? '/attestation' : '/dashboard';
   return { text, options: { reply_markup: { inline_keyboard: [[btn.success(t.openSite, { url: `${appUrl}${localizedPath(path, lang)}` })]] } } };
@@ -125,8 +125,8 @@ export async function handleCheckoutCallback(chatId: number, from: CheckoutUser,
     if (new Set(chosen).size !== chosen.length || chosen.length > needed) throw new Error('INVALID_SELECTION');
     if (!hasEnoughSubjects(product, available, mandatory)) { await transport.send(chatId, t.noSubjects); return true; }
     if (chosen.length < needed) {
-      const text = (needed === 2 ? t.chooseTwo : t.chooseSubject) + (chosen.length ? `\n${chosen.map((id) => escape(name(subjects.find((s) => s.id === id)!, lang))).join(', ')}` : '') +
-        (needed === 2 ? `\n${t.mandatory}: ${mandatory.map((s) => escape(name(s, lang))).join(', ')}` : '');
+      const text = (needed === 2 ? t.chooseTwo : t.chooseSubject) + (chosen.length ? `\n${chosen.map((id) => escapeHtml(name(subjects.find((s) => s.id === id)!, lang))).join(', ')}` : '') +
+        (needed === 2 ? `\n${t.mandatory}: ${mandatory.map((s) => escapeHtml(name(s, lang))).join(', ')}` : '');
       await transport.send(chatId, text, { reply_markup: { inline_keyboard: available.filter((s) => !chosen.includes(s.id)).map((s) => [btn.primary(name(s, lang), { callback_data: checkoutCallback('s', product.id, [...chosen, s.id], selectedOffer?.id) })]) } });
       return true;
     }
@@ -180,8 +180,8 @@ export async function handleCheckoutReceipt(message: ReceiptMessage, transport: 
   const summary = await details(payment.id, 'uz');
   const payer = summary.payment.user;
   // Admin to'lov qaysi sayt akkauntini ochishini va chek boshqa Telegram'dan kelganini ko'rsin.
-  const identity = `${escape(payer.name ?? '')} (@${escape(payer.telegramUsername ?? message.from.username ?? '')})` +
-    (payer.email ? `\n${escape(payer.email)}` : '') + (payer.telegramId !== telegramId ? `\n${uz.checkout.telegramMismatch}` : '');
+  const identity = `${escapeHtml(payer.name ?? '')} (@${escapeHtml(payer.telegramUsername ?? message.from.username ?? '')})` +
+    (payer.email ? `\n${escapeHtml(payer.email)}` : '') + (payer.telegramId !== telegramId ? `\n${uz.checkout.telegramMismatch}` : '');
   for (const adminId of transport.adminIds) {
     try {
       await transport.forward(Number(adminId), message.chat.id, message.message_id);

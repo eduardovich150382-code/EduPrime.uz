@@ -225,7 +225,8 @@ export default function NotificationsPage() {
                       <div className="w-2.5 h-2.5 rounded-full bg-primary-500 flex-shrink-0 mt-1.5" />
                     )}
                   </div>
-                  <p className="text-sm text-text-secondary mt-0.5 line-clamp-2">
+                  {/* Admin xabari ko'p qatorli bo'lishi mumkin va kengaytirish yo'q — qisqartirilmaydi. */}
+                  <p className={`text-sm text-text-secondary mt-0.5 whitespace-pre-line ${notification.type === 'admin_message' ? 'break-words' : 'line-clamp-2'}`}>
                     {notification.message}
                   </p>
                   <div className="flex items-center justify-between mt-2">

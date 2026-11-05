@@ -1,3 +1,5 @@
+import { escapeHtml } from './html-escape';
+
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const SITE_URL = process.env.NEXTAUTH_URL || 'https://eduprime.uz';
 
@@ -38,6 +40,19 @@ export async function sendTelegramMessage(
   }
 }
 
+// Sarlavha va matn oddiy matn deb qabul qilinadi: ularni admin/ustoz erkin
+// yozadi, `<` yoki `&` qolsa Telegram HTML rejimida butun xabarni rad etadi.
+// Havola esa chaqiruvchida tekshiriladi — u `href` ichiga tushadi.
+function formatNotificationText(title: string, message: string, link?: string | null): string {
+  const fullLink = link
+    ? link.startsWith('http')
+      ? link
+      : `${SITE_URL}${link}`
+    : SITE_URL;
+
+  return `<b>${escapeHtml(title)}</b>\n\n${escapeHtml(message)}\n\n<a href="${fullLink}">Saytga kirish</a>`;
+}
+
 /**
  * Notify a user via Telegram about a new notification
  */
@@ -49,16 +64,22 @@ export async function notifyViaTelegram(
 ): Promise<void> {
   if (!telegramId) return;
 
-  const fullLink = link
-    ? link.startsWith('http')
-      ? link
-      : `${SITE_URL}${link}`
-    : SITE_URL;
-
-  const text = `<b>${title}</b>\n\n${message}\n\n<a href="${fullLink}">Saytga kirish</a>`;
-
   // Fire and forget
-  sendTelegramMessage(telegramId, text).catch(() => {});
+  sendTelegramMessage(telegramId, formatNotificationText(title, message, link)).catch(() => {});
+}
+
+/**
+ * `notifyViaTelegram` bilan bir xil xabar, lekin natijani qaytaradi.
+ * Bitta foydalanuvchiga yuborishda await qilinadi: Vercel javobdan keyin
+ * funksiyani to'xtatadi, fire-and-forget so'rov esa yo'qolib ketishi mumkin.
+ */
+export async function sendUserTelegramNotification(
+  telegramId: string,
+  title: string,
+  message: string,
+  link?: string | null
+): Promise<boolean> {
+  return sendTelegramMessage(telegramId, formatNotificationText(title, message, link));
 }
 
 /**
@@ -96,7 +117,7 @@ export async function sendPremiumExpiryWarning(
 ): Promise<void> {
   const greeting = userName ? `Salom, ${userName}!` : 'Salom!';
   // Mahsulot nomini admin yozadi; HTML rejimida "<" yoki "&" xabarni Telegram rad etadigan qilmasin.
-  const name = subscription.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const name = escapeHtml(subscription);
 
   let text = `<b>${greeting}</b>\n\n`;
   text += `Sizning <b>${name}</b> obunangiz tugashiga <b>${daysLeft} kun</b> qoldi.\n\n`;

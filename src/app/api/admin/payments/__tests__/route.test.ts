@@ -141,4 +141,13 @@ describe('admin to‘lovlar ro‘yxati', () => {
     await GET(new NextRequest('http://localhost/?includeUnreceipted=1'));
     expect(m.payments).toHaveBeenCalledWith(expect.objectContaining({ where: {} }));
   });
+  it('foydalanuvchi uchun faqat hasTelegram qaytadi, telegramId klientga chiqmaydi', async () => {
+    m.payments.mockImplementation(async () => [
+      { ...payment, product: null, offer: null, user: { id: 'u1', name: 'A', telegramId: '777' }, confirmedBy: null },
+      { ...payment, id: 'pay2', product: null, offer: null, user: { id: 'u2', name: 'B', telegramId: null }, confirmedBy: null },
+    ]);
+    const data = await (await GET(new NextRequest('http://localhost'))).json();
+    expect(m.payments).toHaveBeenCalledWith(expect.objectContaining({ include: expect.objectContaining({ user: { select: expect.objectContaining({ telegramId: true }) } }) }));
+    expect(data.payments.map((p: { user: unknown }) => p.user)).toEqual([{ id: 'u1', name: 'A', hasTelegram: true }, { id: 'u2', name: 'B', hasTelegram: false }]);
+  });
 });
