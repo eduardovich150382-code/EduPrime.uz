@@ -967,6 +967,12 @@
     "restoreConfirmTitle": "Obunani qayta tiklaysizmi?",
     "restoreConfirmBody": "«{name}» obunasi {date} gacha yana faol bo‘ladi."
   },
+  "adminUsersPager": {
+    "prev": "Oldingi",
+    "next": "Keyingi",
+    "range": "{from}–{to} / {total}",
+    "pageOf": "{page}-sahifa / {pages}"
+  },
   "adminMessage": {
     "open": "Xabar yozish",
     "heading": "Foydalanuvchiga xabar",

@@ -967,6 +967,12 @@
     "restoreConfirmTitle": "Restore this subscription?",
     "restoreConfirmBody": "“{name}” will be active again until {date}."
   },
+  "adminUsersPager": {
+    "prev": "Previous",
+    "next": "Next",
+    "range": "{from}–{to} of {total}",
+    "pageOf": "Page {page} of {pages}"
+  },
   "adminMessage": {
     "open": "Message",
     "heading": "Message to user",
