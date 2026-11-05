@@ -5,10 +5,11 @@ import { motion } from 'framer-motion';
 import {
   CreditCard, CheckCircle, XCircle, Clock, User,
   Loader2, RefreshCw, Download, TrendingUp, X, Eye,
-  ArrowUpDown, ArrowUp, ArrowDown,
+  ArrowUpDown, ArrowUp, ArrowDown, MessageSquare,
 } from 'lucide-react';
 import BackButton from '@/components/ui/BackButton';
 import PaymentProductDetails, { type ProductPaymentDetails } from '@/components/admin/PaymentProductDetails';
+import SendMessageDialog, { type MessageRecipient, type MessageTemplate } from '@/components/admin/SendMessageDialog';
 import { useTranslations } from 'next-intl';
 
 interface PaymentData extends ProductPaymentDetails {
@@ -26,6 +27,7 @@ interface PaymentData extends ProductPaymentDetails {
     email: string | null;
     telegramUsername: string | null;
     image: string | null;
+    hasTelegram: boolean;
   };
   confirmedBy: {
     id: string;
@@ -62,6 +64,7 @@ function getPlanLabel(p: string) {
 
 export default function AdminPaymentsPage() {
   const t = useTranslations('checkout');
+  const tm = useTranslations('adminMessage');
   const [includeUnreceipted, setIncludeUnreceipted] = useState(false);
   const [payments, setPayments] = useState<PaymentData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,6 +74,7 @@ export default function AdminPaymentsPage() {
   const [processing, setProcessing] = useState<string | null>(null);
   const [viewingReceipt, setViewingReceipt] = useState<string | null>(null);
   const [receiptLoading, setReceiptLoading] = useState(false);
+  const [messageTarget, setMessageTarget] = useState<{ user: MessageRecipient; template?: MessageTemplate } | null>(null);
 
   const fetchPayments = async () => {
     setLoading(true);
@@ -240,7 +244,12 @@ export default function AdminPaymentsPage() {
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2 mb-1">
-                    <p className="font-medium text-text-primary text-sm truncate">{payment.user.name || 'Nomsiz'}</p>
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <p className="font-medium text-text-primary text-sm truncate">{payment.user.name || 'Nomsiz'}</p>
+                      <span className={`flex-shrink-0 px-1.5 py-0.5 rounded-full text-[10px] font-medium ${payment.user.hasTelegram ? 'bg-sky-100 text-sky-700' : 'bg-gray-100 text-text-secondary'}`}>
+                        {payment.user.hasTelegram ? tm('telegramLinked') : tm('telegramNotLinked')}
+                      </span>
+                    </div>
                     {getStatusBadge(payment.status)}
                   </div>
                   <p className="text-xs text-text-secondary mb-2">
@@ -277,6 +286,15 @@ export default function AdminPaymentsPage() {
                         </button>
                       </>
                     )}
+                    <button
+                      onClick={() => setMessageTarget({
+                        user: { id: payment.user.id, name: payment.user.name, username: payment.user.telegramUsername, hasTelegram: payment.user.hasTelegram },
+                        // "Chek yuborilmagan" to'lov — eng ko'p yoziladigan eslatma darhol tayyor tursin.
+                        template: payment.status === 'PENDING' && !payment.receiptPhoto ? 'receipt' : undefined,
+                      })}
+                      className="flex items-center gap-1 min-h-11 px-3 rounded-lg bg-primary-50 text-primary-700 text-xs font-medium hover:bg-primary-100 transition-colors">
+                      <MessageSquare size={12} /> {tm('open')}
+                    </button>
                     {payment.confirmedBy && payment.status !== 'PENDING' && (
                       <span className="text-[10px] text-text-secondary">
                         {payment.confirmedBy.name} tomonidan
@@ -288,6 +306,10 @@ export default function AdminPaymentsPage() {
             </div>
           ))}
         </div>
+      )}
+
+      {messageTarget && (
+        <SendMessageDialog open user={messageTarget.user} defaultTemplate={messageTarget.template} onClose={() => setMessageTarget(null)} />
       )}
 
       {/* Receipt Photo/PDF Modal */}

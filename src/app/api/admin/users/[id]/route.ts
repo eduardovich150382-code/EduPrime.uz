@@ -58,8 +58,10 @@ export async function GET(
       take: 20,
     });
 
+    // telegramId klientga chiqmaydi — admin paneliga faqat "ulanganmi" kerak.
+    const { telegramId, ...publicUser } = user;
     return NextResponse.json({
-      user,
+      user: { ...publicUser, hasTelegram: Boolean(telegramId) },
       subscriptions,
       testResults: testResults.map(r => ({
         id: r.id,

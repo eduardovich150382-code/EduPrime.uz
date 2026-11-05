@@ -4,10 +4,12 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Users, Search, Shield, GraduationCap, User, Crown,
-  Mail, MessageCircle, Loader2, RefreshCw, Eye, Ban, X, BookOpen, Clock,
+  Mail, MessageCircle, Loader2, RefreshCw, Eye, Ban, X, BookOpen, Clock, MessageSquare,
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import BackButton from '@/components/ui/BackButton';
 import SubscriptionSummary from '@/components/ui/SubscriptionSummary';
+import SendMessageDialog, { type MessageRecipient } from '@/components/admin/SendMessageDialog';
 
 interface UserData {
   id: string;
@@ -15,11 +17,16 @@ interface UserData {
   email: string | null;
   image: string | null;
   telegramUsername: string | null;
+  hasTelegram: boolean;
   role: string;
   lastActiveAt: string | null;
   isBanned: boolean;
   createdAt: string;
   _count: { testResults: number };
+}
+
+function recipient(user: UserData): MessageRecipient {
+  return { id: user.id, name: user.name, username: user.telegramUsername, hasTelegram: user.hasTelegram };
 }
 
 function getRoleBadge(role: string) {
@@ -31,6 +38,8 @@ function getRoleBadge(role: string) {
 }
 
 export default function AdminUsersPage() {
+  const tm = useTranslations('adminMessage');
+  const [messageTarget, setMessageTarget] = useState<MessageRecipient | null>(null);
   const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -202,6 +211,9 @@ export default function AdminUsersPage() {
                       <button onClick={() => viewProfile(user.id)} className="p-1.5 rounded-lg hover:bg-primary-50 text-primary-600" title="Profil">
                         <Eye size={14} />
                       </button>
+                      <button onClick={() => setMessageTarget(recipient(user))} className="min-h-11 min-w-11 flex items-center justify-center rounded-lg hover:bg-primary-50 text-primary-600" title={tm('open')} aria-label={tm('open')}>
+                        <MessageSquare size={16} />
+                      </button>
                       <button onClick={() => toggleBan(user.id, user.isBanned)} className={`p-1.5 rounded-lg ${user.isBanned ? 'hover:bg-green-50 text-green-600' : 'hover:bg-red-50 text-red-500'}`} title={user.isBanned ? 'Blokni olish' : 'Bloklash'}>
                         <Ban size={14} />
                       </button>
@@ -272,6 +284,9 @@ export default function AdminUsersPage() {
                             <button onClick={() => viewProfile(user.id)} className="p-2 rounded-lg hover:bg-primary-50 text-primary-600 transition-colors" title="Profil ko'rish">
                               <Eye size={15} />
                             </button>
+                            <button onClick={() => setMessageTarget(recipient(user))} className="min-h-11 min-w-11 flex items-center justify-center rounded-lg hover:bg-primary-50 text-primary-600 transition-colors" title={tm('open')} aria-label={tm('open')}>
+                              <MessageSquare size={15} />
+                            </button>
                             <button onClick={() => toggleBan(user.id, user.isBanned)} className={`p-2 rounded-lg transition-colors ${user.isBanned ? 'hover:bg-green-50 text-green-600' : 'hover:bg-red-50 text-red-500'}`} title={user.isBanned ? 'Blokni olish' : 'Bloklash'}>
                               <Ban size={15} />
                             </button>
@@ -296,6 +311,10 @@ export default function AdminUsersPage() {
           </>
         )}
       </motion.div>
+
+      {messageTarget && (
+        <SendMessageDialog open user={messageTarget} onClose={() => setMessageTarget(null)} />
+      )}
 
       {/* Profile Modal */}
       {selectedUserId && (
