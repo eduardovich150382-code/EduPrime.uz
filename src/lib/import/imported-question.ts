@@ -1,5 +1,6 @@
 import type { AIImportedQuestion, QuestionCoreFields } from '@/types';
 import { DEFAULT_OPTION_LABELS } from './option-labels';
+import { parseQuestionPoints } from './question-points';
 
 /**
  * Import natijasini savol muharriri kutadigan shaklga o'giradi.
@@ -41,5 +42,14 @@ export function toImportedCore(q: AIImportedQuestion): ImportedCore {
     ],
     tags: q.tags ?? [],
     aiConfidence: q.confidence,
+  };
+}
+
+/** JSONdagi ball qoralamaga o'tishi kerak; aks holda import uni jimgina 1 ga almashtirardi. */
+export function toImportedTestQuestion(q: AIImportedQuestion, defaultPoints = 1) {
+  return {
+    ...toImportedCore(q),
+    points: parseQuestionPoints(q.points) ?? defaultPoints,
+    videoUrl: '',
   };
 }

@@ -1,6 +1,7 @@
 import type { AIImportedQuestion, QuestionOption, QuestionType } from '@/types';
 import { imageTokensOf, withoutImageTokens } from './image-token';
 import { labelToIndex, MAX_OPTIONS, MIN_OPTIONS, optionLabel } from './option-labels';
+import { parseQuestionPoints } from './question-points';
 
 /**
  * Ustoz chatdan nusxalab qo'ygan JSON ni savollarga aylantirish.
@@ -248,6 +249,7 @@ export function parsePastedQuestions(text: string): PastedParseResult {
       topic: str(raw.topic).slice(0, 100),
       bloomLevel: str(raw.bloomLevel),
       difficulty: Number.isInteger(raw.difficulty) ? (raw.difficulty as number) : null,
+      points: parseQuestionPoints(raw.points),
       // Attestatsiya bo'limi (`section:fizika`) shu yerda keladi. Ilgari
       // jimgina tashlab yuborilardi va natija xaritasi bo'limlarni bilmasdi.
       tags: stringList(raw.tags),

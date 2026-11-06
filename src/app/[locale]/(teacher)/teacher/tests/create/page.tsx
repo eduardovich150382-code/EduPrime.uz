@@ -27,7 +27,7 @@ import { dropDuplicateQuestions, findDuplicateQuestions, type DuplicateGroup } f
 import QuestionEditorForm from '@/components/teacher/QuestionEditorForm';
 import DuplicateQuestionsDialog from '@/components/teacher/DuplicateQuestionsDialog';
 import ImportMergeDialog from '@/components/teacher/ImportMergeDialog';
-import { toImportedCore } from '@/lib/import/imported-question';
+import { toImportedTestQuestion } from '@/lib/import/imported-question';
 import { incomingDuplicates, isPristineDraft, mergeImported, type ImportMergeMode } from '@/lib/import/merge-imported';
 import AiImportPanel, { LOW_CONFIDENCE_THRESHOLD } from '@/components/teacher/AiImportPanel';
 import ImportImageAttach from '@/components/teacher/ImportImageAttach';
@@ -514,11 +514,8 @@ export default function CreateTestPage() {
     // Standart mavzu FAQAT kelayotgan savollarga — `mergeImported` dan keyin
     // qo'llansa `append` da qoralamadagi eski savollarga ham tegib ketardi.
     const mapped: QuestionForm[] = applyDefaultTopic(
-      imported.map((q) => ({
-        ...toImportedCore(q),
-        points: 1,
-        videoUrl: '',
-      })),
+      imported.map((q) => toImportedTestQuestion(q,
+        testInfo.categoryType === 'ATTESTATION' && testInfo.isMock ? 2 : 1)),
       defaultTopic,
     );
     // Qoralama hali ochilgan holida bo'lsa so'rashning ma'nosi yo'q.
