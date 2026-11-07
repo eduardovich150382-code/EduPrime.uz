@@ -1441,6 +1441,13 @@
       "premiumTeacher": "Prem+Teacher",
       "paid": "Paid",
       "free": "Free"
+    },
+    "participants": "{count, plural, one {# participant} other {# participants}}",
+    "rating": "Ranking",
+    "sortLabel": "Sort:",
+    "sort": {
+      "new": "Newest",
+      "participants": "Participants"
     }
   },
   "adminTeachers": {
@@ -1513,6 +1520,35 @@
       "status": "Status",
       "lastSeen": "Last active",
       "actions": "Actions"
+    }
+  },
+  "adminRating": {
+    "title": "Test ranking",
+    "backToTests": "Tests",
+    "notFound": "Test not found",
+    "export": "Download Excel (CSV)",
+    "modeLabel": "Which result",
+    "modes": {
+      "best": "Best result",
+      "first": "First attempt"
+    },
+    "cards": {
+      "participants": "Participants",
+      "attemptsTotal": "Total attempts",
+      "avgPercentage": "Average %",
+      "maxPercentage": "Top %"
+    },
+    "empty": "Nobody has taken this test yet",
+    "score": "Score: {score}/{max}",
+    "attempts": "{count, plural, one {# attempt} other {# attempts}}",
+    "columns": {
+      "rank": "Rank",
+      "user": "User",
+      "score": "Score",
+      "percentage": "%",
+      "time": "Time",
+      "date": "Date",
+      "attempts": "Attempts"
     }
   }
 }

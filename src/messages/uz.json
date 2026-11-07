@@ -1441,6 +1441,13 @@
       "premiumTeacher": "Prem+Ustoz",
       "paid": "Pullik",
       "free": "Bepul"
+    },
+    "participants": "{count} kishi ishlagan",
+    "rating": "Reyting",
+    "sortLabel": "Saralash:",
+    "sort": {
+      "new": "Yangilari",
+      "participants": "Ishlaganlar"
     }
   },
   "adminTeachers": {
@@ -1513,6 +1520,35 @@
       "status": "Holat",
       "lastSeen": "Oxirgi faollik",
       "actions": "Amallar"
+    }
+  },
+  "adminRating": {
+    "title": "Test reytingi",
+    "backToTests": "Testlar",
+    "notFound": "Test topilmadi",
+    "export": "Excel (CSV) yuklab olish",
+    "modeLabel": "Qaysi natija",
+    "modes": {
+      "best": "Eng yaxshi natija",
+      "first": "Birinchi urinish"
+    },
+    "cards": {
+      "participants": "Ishlaganlar",
+      "attemptsTotal": "Jami urinishlar",
+      "avgPercentage": "O'rtacha %",
+      "maxPercentage": "Eng yuqori %"
+    },
+    "empty": "Bu testni hali hech kim ishlamagan",
+    "score": "Ball: {score}/{max}",
+    "attempts": "{count} urinish",
+    "columns": {
+      "rank": "O'rin",
+      "user": "Foydalanuvchi",
+      "score": "Ball",
+      "percentage": "%",
+      "time": "Vaqt",
+      "date": "Sana",
+      "attempts": "Urinishlar"
     }
   }
 }

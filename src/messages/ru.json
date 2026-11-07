@@ -1441,6 +1441,13 @@
       "premiumTeacher": "Прем+Учитель",
       "paid": "Платный",
       "free": "Бесплатный"
+    },
+    "participants": "{count, plural, one {# участник} few {# участника} many {# участников} other {# участника}}",
+    "rating": "Рейтинг",
+    "sortLabel": "Сортировка:",
+    "sort": {
+      "new": "Новые",
+      "participants": "По участникам"
     }
   },
   "adminTeachers": {
@@ -1513,6 +1520,35 @@
       "status": "Статус",
       "lastSeen": "Последняя активность",
       "actions": "Действия"
+    }
+  },
+  "adminRating": {
+    "title": "Рейтинг теста",
+    "backToTests": "Тесты",
+    "notFound": "Тест не найден",
+    "export": "Скачать Excel (CSV)",
+    "modeLabel": "Какой результат",
+    "modes": {
+      "best": "Лучший результат",
+      "first": "Первая попытка"
+    },
+    "cards": {
+      "participants": "Участники",
+      "attemptsTotal": "Всего попыток",
+      "avgPercentage": "Средний %",
+      "maxPercentage": "Лучший %"
+    },
+    "empty": "Этот тест ещё никто не проходил",
+    "score": "Баллы: {score}/{max}",
+    "attempts": "{count, plural, one {# попытка} few {# попытки} many {# попыток} other {# попытки}}",
+    "columns": {
+      "rank": "Место",
+      "user": "Пользователь",
+      "score": "Баллы",
+      "percentage": "%",
+      "time": "Время",
+      "date": "Дата",
+      "attempts": "Попытки"
     }
   }
 }
