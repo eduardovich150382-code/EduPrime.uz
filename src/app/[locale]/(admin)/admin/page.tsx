@@ -8,7 +8,7 @@ import { localizedName } from '@/lib/pricing';
 import type { LocalizedName } from '@/lib/subscription-details';
 import {
   Users, BookOpen, CreditCard, TrendingUp, Shield,
-  Clock, Crown, UserPlus, ArrowRight, BarChart3, Loader2, type LucideIcon,
+  Clock, Crown, UserPlus, ArrowRight, BarChart3, Loader2, CalendarCheck, CalendarRange, type LucideIcon,
 } from 'lucide-react';
 
 interface DashboardData {
@@ -21,6 +21,7 @@ interface DashboardData {
     totalUsers: number;
     totalTests: number;
   };
+  online: { onlineNow: number; activeToday: number; active7d: number };
   // S20a — sifat halqasi ko'rsatkichi: "Yozma yechimi bor savollar" (Item.explanationSource !== NONE).
   explanationCoverage: { withExplanation: number; total: number };
   weeklyGrowth: { date: string; count: number }[];
@@ -109,6 +110,35 @@ export default function AdminDashboard() {
         </h1>
         <p className="text-text-secondary mt-1">{t('subtitle')}</p>
       </motion.div>
+
+      {/* Onlayn — eng tepada: reklama paytida adminning birinchi savoli. */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <Link href="/admin/online" className="card p-4 min-h-11 flex items-center gap-3 hover:border-green-300 transition-colors">
+          <span className="relative flex h-3 w-3 flex-shrink-0" aria-hidden>
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
+            <span className="relative inline-flex h-3 w-3 rounded-full bg-green-500" />
+          </span>
+          <span className="min-w-0">
+            <span className="block text-2xl font-bold text-green-700">{data.online.onlineNow}</span>
+            <span className="block text-xs text-text-secondary">{t('online.now')}</span>
+          </span>
+          <ArrowRight size={16} className="ml-auto text-text-secondary" aria-hidden />
+        </Link>
+        <div className="card p-4 flex items-center gap-3">
+          <CalendarCheck size={18} className="text-primary-600 flex-shrink-0" aria-hidden />
+          <span>
+            <span className="block text-2xl font-bold text-text-primary">{data.online.activeToday}</span>
+            <span className="block text-xs text-text-secondary">{t('online.today')}</span>
+          </span>
+        </div>
+        <div className="card p-4 flex items-center gap-3">
+          <CalendarRange size={18} className="text-primary-600 flex-shrink-0" aria-hidden />
+          <span>
+            <span className="block text-2xl font-bold text-text-primary">{data.online.active7d}</span>
+            <span className="block text-xs text-text-secondary">{t('online.week')}</span>
+          </span>
+        </div>
+      </div>
 
       {/* Stats cards */}
       <motion.div

@@ -4,6 +4,8 @@ import { requireAdmin } from '@/lib/api-auth';
 import { logger } from '@/lib/logger';
 import { loadSubscriptionRows } from '@/lib/subscription-details';
 import { subscriptionName, subscriptionProductStats } from '@/lib/subscription-display';
+import { tashkentDayRangeUtc } from '@/lib/date';
+import { loadOnlineCounts } from '@/lib/online-users';
 
 /**
  * GET /api/admin/dashboard — Admin dashboard statistikasi
@@ -14,8 +16,10 @@ export async function GET() {
     if (error) return error;
 
     const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    // "Bugun" — Toshkent yarim tunidan. Server (Vercel) UTC'da ishlaydi:
+    // `new Date(y, m, d)` UTC yarim tuni bo'lardi va 00:00–05:00 orasidagi
+    // ro'yxatdan o'tish/testlar kechagi kunga yozilardi.
+    const todayStart = tashkentDayRangeUtc(0, now).start;
 
     // Today's stats
     const [
@@ -27,6 +31,7 @@ export async function GET() {
       totalTests,
       itemsWithExplanation,
       totalItems,
+      online,
     ] = await Promise.all([
       db.user.count({ where: { createdAt: { gte: todayStart } } }),
       db.testResult.count({ where: { completedAt: { gte: todayStart } } }),
@@ -39,6 +44,8 @@ export async function GET() {
       // mualliflikka ko'tarilgan) — ikkalasi ham "yozma yechim BOR" hisoblanadi.
       db.item.count({ where: { explanationSource: { not: 'NONE' } } }),
       db.item.count(),
+      // Onlayn/bugun/7 kun — alohida endpoint emas, shu javobda (bitta so'rov).
+      loadOnlineCounts(now),
     ]);
 
     // Weekly growth (users registered per day for last 7 days)
@@ -91,6 +98,7 @@ export async function GET() {
         totalUsers,
         totalTests,
       },
+      online,
       explanationCoverage: { withExplanation: itemsWithExplanation, total: totalItems },
       subscriptionProducts: subscriptionProductStats(subscriptions),
       weeklyGrowth,

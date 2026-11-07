@@ -1282,7 +1282,8 @@
       "products": "Mahsulot va narxlar",
       "permissions": "Ruxsatlar",
       "adSources": "Reklama manbalari",
-      "settings": "Sozlamalar"
+      "settings": "Sozlamalar",
+      "online": "Onlayn"
     }
   },
   "adminCommon": {
@@ -1321,6 +1322,11 @@
       "confirmed": "Tasdiqlangan",
       "rejected": "Rad etilgan",
       "pending": "Kutilmoqda"
+    },
+    "online": {
+      "now": "Hozir onlayn",
+      "today": "Bugun faol",
+      "week": "7 kunda faol"
     }
   },
   "adminPayments": {
@@ -1487,5 +1493,26 @@
     "confirmTitle": "Xabarni yuborasizmi?",
     "confirmBody": "Auditoriya: {audience}. Yuborilgan xabarni qaytarib olib bo'lmaydi.",
     "confirmSend": "Ha, yuborish"
+  },
+  "adminOnline": {
+    "title": "Hozir onlayn",
+    "updatedAt": "Oxirgi yangilanish: {time}",
+    "counts": {
+      "onlineNow": "Hozir onlayn",
+      "activeToday": "Bugun faol",
+      "active7d": "7 kunda faol"
+    },
+    "empty": "Hozir hech kim onlayn emas",
+    "limited": "Eng faol {shown} tasi ko'rsatilmoqda",
+    "justNow": "hozirgina",
+    "minutesAgo": "{count} daqiqa oldin",
+    "subscribed": "Obunachi",
+    "inTest": "Test ishlayapti",
+    "columns": {
+      "user": "Foydalanuvchi",
+      "status": "Holat",
+      "lastSeen": "Oxirgi faollik",
+      "actions": "Amallar"
+    }
   }
 }

@@ -1282,7 +1282,8 @@
       "products": "Продукты и цены",
       "permissions": "Доступы",
       "adSources": "Рекламные источники",
-      "settings": "Настройки"
+      "settings": "Настройки",
+      "online": "Онлайн"
     }
   },
   "adminCommon": {
@@ -1321,6 +1322,11 @@
       "confirmed": "Подтверждён",
       "rejected": "Отклонён",
       "pending": "Ожидает"
+    },
+    "online": {
+      "now": "Сейчас онлайн",
+      "today": "Активны сегодня",
+      "week": "Активны за 7 дней"
     }
   },
   "adminPayments": {
@@ -1487,5 +1493,26 @@
     "confirmTitle": "Отправить сообщение?",
     "confirmBody": "Аудитория: {audience}. Отправленное сообщение нельзя отозвать.",
     "confirmSend": "Да, отправить"
+  },
+  "adminOnline": {
+    "title": "Сейчас онлайн",
+    "updatedAt": "Обновлено: {time}",
+    "counts": {
+      "onlineNow": "Сейчас онлайн",
+      "activeToday": "Активны сегодня",
+      "active7d": "За 7 дней"
+    },
+    "empty": "Сейчас никого нет онлайн",
+    "limited": "Показаны {shown} самых активных",
+    "justNow": "только что",
+    "minutesAgo": "{count, plural, one {# минуту} few {# минуты} many {# минут} other {# минуты}} назад",
+    "subscribed": "Подписчик",
+    "inTest": "Решает тест",
+    "columns": {
+      "user": "Пользователь",
+      "status": "Статус",
+      "lastSeen": "Последняя активность",
+      "actions": "Действия"
+    }
   }
 }

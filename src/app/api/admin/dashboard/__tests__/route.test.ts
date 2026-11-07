@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { subscriptionFixture as sub, subscriptionNow as now } from '@/lib/__tests__/fixtures/subscriptions';
 
 const m = vi.hoisted(() => ({ auth: vi.fn(), rows: vi.fn(), count: vi.fn(), payments: vi.fn(), tests: vi.fn() }));
+vi.mock('server-only', () => ({}));
 vi.mock('@/lib/api-auth', () => ({ requireAdmin: m.auth }));
 vi.mock('@/lib/logger', () => ({ logger: { error: vi.fn() } }));
 vi.mock('@/lib/db', () => ({ db: { $queryRaw: m.rows, user: { count: m.count }, testResult: { count: m.count },
@@ -31,5 +32,24 @@ describe('admin bosh sahifa obunalari', () => {
     expect(data.recentPayments[0].name.nameUz).toBe('Attestatsiya');
     const [sql, ids, , timeline] = m.rows.mock.calls[0];
     expect(ids).toBeNull(); expect(timeline).toBe(false); expect(sql.join('?')).toContain('s."startDate" <=');
+  });
+});
+
+describe('admin bosh sahifa: Toshkent "bugun" va onlayn sonlar', () => {
+  it('bugungi yangi/testlar Toshkent yarim tunidan sanaladi (UTC emas)', async () => {
+    // 19:30 UTC = Toshkentda 00:30 — bugun 19:00 UTC dan boshlanadi.
+    vi.setSystemTime(new Date('2026-11-08T19:30:00.000Z'));
+    await GET();
+    const start = new Date('2026-11-08T19:00:00.000Z');
+    const where = m.count.mock.calls.map(([arg]) => arg?.where);
+    expect(where).toContainEqual({ createdAt: { gte: start } });
+    expect(where).toContainEqual({ completedAt: { gte: start } });
+  });
+
+  it('onlayn sonlar shu javobda keladi (alohida so‘rov emas)', async () => {
+    const data = await (await GET()).json();
+    expect(data.online).toEqual({ onlineNow: 1, activeToday: 1, active7d: 1 });
+    const online = m.count.mock.calls.filter(([arg]) => arg?.where?.lastActiveAt);
+    expect(online).toHaveLength(3);
   });
 });
