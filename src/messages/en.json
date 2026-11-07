@@ -182,7 +182,14 @@
     "rating": "Rating",
     "pricing": "Pricing",
     "teacher": "Teacher panel",
-    "admin": "Admin panel"
+    "admin": "Admin panel",
+    "courses": "Courses",
+    "referral": "Referral",
+    "language": "Language:",
+    "menu": "Menu",
+    "closeMenu": "Close menu",
+    "collapse": "Collapse menu",
+    "expand": "Expand menu"
   },
   "auth": {
     "loginTitle": "Sign in",
@@ -965,7 +972,11 @@
     "cancelConfirmTitle": "Cancel this subscription?",
     "cancelConfirmBody": "“{name}” is closed immediately and the user loses access. The record is kept — it can be restored until {date}.",
     "restoreConfirmTitle": "Restore this subscription?",
-    "restoreConfirmBody": "“{name}” will be active again until {date}."
+    "restoreConfirmBody": "“{name}” will be active again until {date}.",
+    "revokeConfirmTitle": "Revoke this permission?",
+    "revokeConfirmBody": "{name}: {scope}",
+    "deactivateConfirmTitle": "Deactivate this offer?",
+    "deactivateConfirmBody": "“{name}” will be removed from the pricing page."
   },
   "adminUsersPager": {
     "prev": "Previous",
@@ -1247,5 +1258,234 @@
       "adTestFinished": "Finished test",
       "paid": "Paid"
     }
+  },
+  "adminNav": {
+    "title": "Admin menu",
+    "backToSite": "Back to site",
+    "groups": {
+      "general": "General",
+      "people": "Users",
+      "content": "Content",
+      "finance": "Finance",
+      "marketing": "Marketing",
+      "system": "System"
+    },
+    "items": {
+      "home": "Home",
+      "users": "Users",
+      "teachers": "Teachers",
+      "notifications": "Messages",
+      "tests": "Tests",
+      "subjects": "Subjects",
+      "payments": "Payments",
+      "subscriptions": "Subscriptions",
+      "products": "Products & prices",
+      "permissions": "Permissions",
+      "adSources": "Ad sources",
+      "settings": "Settings"
+    }
+  },
+  "adminCommon": {
+    "back": "Back",
+    "processing": "Working...",
+    "refresh": "Refresh",
+    "error": "Something went wrong",
+    "serverError": "Could not reach the server",
+    "close": "Close",
+    "unnamed": "Unnamed",
+    "loading": "Loading..."
+  },
+  "adminDashboard": {
+    "title": "Admin panel",
+    "subtitle": "Manage the platform",
+    "loadError": "Failed to load data",
+    "stats": {
+      "todayNewUsers": "New today",
+      "todayTests": "Tests today",
+      "pendingPayments": "Pending payments",
+      "activeSubscriptions": "Active subscriptions",
+      "totalUsers": "Total users",
+      "totalTests": "Total tests"
+    },
+    "explanationCoverage": "Questions with a written solution:",
+    "weeklyGrowth": "Weekly growth (new users)",
+    "topTests": "Top tests",
+    "noTests": "No tests",
+    "attempts": "{count, plural, one {# attempt} other {# attempts}}",
+    "recentPayments": "Recent payments",
+    "allPayments": "All payments",
+    "noPayments": "No payments",
+    "unnamed": "Unnamed",
+    "amount": "{amount} UZS",
+    "status": {
+      "confirmed": "Confirmed",
+      "rejected": "Rejected",
+      "pending": "Pending"
+    }
+  },
+  "adminPayments": {
+    "title": "Payments",
+    "subtitle": "All payments and revenue stats",
+    "csvHeader": "Name,Telegram,Plan,Duration,Amount,Status,Date",
+    "currency": "UZS",
+    "amount": "{amount} UZS",
+    "totalRevenue": "Total revenue (confirmed)",
+    "thisMonth": "This month: {amount} UZS",
+    "rejectedCount": "Rejected",
+    "sort": "Sort:",
+    "amountSort": "Amount",
+    "ascending": "(low→high)",
+    "descending": "(high→low)",
+    "clearSort": "Clear",
+    "empty": "No payments found",
+    "viewReceipt": "View receipt",
+    "confirm": "Confirm",
+    "reject": "Reject",
+    "confirmedBy": "by {name}",
+    "rejectTitle": "Reject this payment?",
+    "rejectBody": "{name} — {amount} UZS. No subscription will be opened for a rejected payment.",
+    "receipt": "Payment receipt",
+    "openInNewTab": "Open in a new tab",
+    "status": {
+      "confirmed": "Confirmed",
+      "rejected": "Rejected",
+      "pending": "Pending"
+    },
+    "duration": {
+      "oneMonth": "1 month",
+      "threeMonths": "3 months",
+      "sixMonths": "6 months",
+      "oneYear": "1 year"
+    },
+    "plan": {
+      "premium": "Premium",
+      "teacher": "Teacher"
+    }
+  },
+  "adminUsers": {
+    "title": "Users",
+    "total": "Total: {count}",
+    "searchPlaceholder": "Search by name, email or telegram...",
+    "empty": "No users found",
+    "testsCount": "{count, plural, one {# test} other {# tests}}",
+    "registeredAt": "Joined: {date}",
+    "banned": "Banned",
+    "profile": "Profile",
+    "message": "Message",
+    "columns": {
+      "user": "User",
+      "role": "Role",
+      "tests": "Tests",
+      "date": "Date",
+      "actions": "Actions"
+    },
+    "roles": {
+      "USER": "Student",
+      "TEACHER": "Teacher",
+      "ADMIN": "Admin"
+    },
+    "profileTitle": "User profile",
+    "profileNotFound": "No data found",
+    "fields": {
+      "tests": "Tests:",
+      "referrals": "Referrals:",
+      "payments": "Payments:",
+      "registered": "Joined:",
+      "lastActive": "Last active:",
+      "role": "Role"
+    },
+    "testHistory": "Test history (last 20)",
+    "ban": "Ban",
+    "unban": "Unban",
+    "banTitle": "Ban this user?",
+    "banBody": "{name} will not be able to sign in. You can unban later.",
+    "unbanTitle": "Unban this user?",
+    "unbanBody": "{name} will be able to use the site again.",
+    "banReason": "Reason (optional)",
+    "roleTitle": "Change role?",
+    "roleBody": "{name}: {from} → {to}",
+    "roleConfirm": "Change role"
+  },
+  "adminTests": {
+    "title": "Test management",
+    "total": "Total: {count} tests",
+    "newTest": "New test",
+    "searchPlaceholder": "Search by test title...",
+    "filters": {
+      "all": "All",
+      "published": "Published",
+      "draft": "Drafts"
+    },
+    "empty": "No tests found",
+    "published": "Published",
+    "draft": "Draft",
+    "teacher": "Teacher: {name}",
+    "questions": "{count, plural, one {# question} other {# questions}}",
+    "minutes": "{count} min",
+    "attempts": "{count, plural, one {# attempt} other {# attempts}}",
+    "avgScore": "{value}% average",
+    "publish": "Publish",
+    "unpublish": "Unpublish",
+    "delete": "Delete",
+    "deleteTitle": "Delete this test?",
+    "deleteBody": "“{title}” will be deleted permanently. This cannot be undone.",
+    "access": {
+      "premium": "Premium",
+      "teacher": "Teacher",
+      "premiumTeacher": "Prem+Teacher",
+      "paid": "Paid",
+      "free": "Free"
+    }
+  },
+  "adminTeachers": {
+    "title": "Teachers",
+    "total": "Total: {count} teachers",
+    "empty": "No teachers found",
+    "verified": "Verified",
+    "unverified": "Not verified",
+    "tests": "{count, plural, one {# test} other {# tests}}",
+    "verify": "Verify",
+    "revoke": "Revoke verification",
+    "revokeTitle": "Revoke verification?",
+    "revokeBody": "{name} will go back to unverified teacher status."
+  },
+  "adminNotifications": {
+    "title": "Send a message",
+    "subtitle": "Targeted or general notification",
+    "tabs": {
+      "send": "Send",
+      "history": "History",
+      "templates": "Templates"
+    },
+    "audience": "Send to",
+    "targets": {
+      "all": "Everyone",
+      "free": "Free users",
+      "premium": "Premium",
+      "teacher": "Teachers"
+    },
+    "type": "Message type",
+    "types": {
+      "info": "Info",
+      "success": "Success",
+      "warning": "Warning",
+      "reminder": "Reminder"
+    },
+    "fieldTitle": "Title *",
+    "fieldMessage": "Message text *",
+    "fieldLink": "Link (optional)",
+    "sending": "Sending...",
+    "sent": "Message sent to {count} users!",
+    "error": "Something went wrong",
+    "networkError": "Could not reach the server",
+    "historyTitle": "Sent messages history",
+    "historyEmpty": "No messages sent yet",
+    "recipients": "{count} recipients",
+    "templatesTitle": "Ready templates",
+    "useTemplate": "Use",
+    "templatesHelp": "Choosing a template opens the Send tab with the fields filled in.",
+    "confirmTitle": "Send this message?",
+    "confirmBody": "Audience: {audience}. A sent message cannot be recalled.",
+    "confirmSend": "Yes, send"
   }
 }

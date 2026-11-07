@@ -9,7 +9,7 @@ import uz from '@/messages/uz.json';
 const m = vi.hoisted(() => ({ status: vi.fn() }));
 vi.mock('../useSubscriptionStatus', () => ({ useSubscriptionStatus: m.status }));
 vi.mock('next/navigation', () => ({ usePathname: () => '/tests' }));
-vi.mock('@/i18n/routing', async (original) => ({ ...await original<typeof import('@/i18n/routing')>(), usePathname: () => '/tests' }));
+vi.mock('@/i18n/routing', async (original) => ({ ...await original<typeof import('@/i18n/routing')>(), usePathname: () => '/tests', useRouter: () => ({ replace: vi.fn() }) }));
 vi.mock('next-auth/react', () => ({ signOut: vi.fn() }));
 import Sidebar from '@/components/layout/Sidebar';
 function render(role: string | null = 'USER') {

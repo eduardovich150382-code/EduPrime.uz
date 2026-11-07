@@ -7,17 +7,50 @@ import { Link, usePathname as useLocalePathname } from '@/i18n/routing';
 import { Menu, User, BookOpen, Wand2, Award, LogIn } from 'lucide-react';
 import { ATTESTATION_HREF, isAttestationPath } from '@/lib/nav-links';
 import { loginHref } from '@/lib/safe-return-path';
+import { ADMIN_MOBILE_ITEMS, getActiveAdminHref } from '@/components/admin/admin-nav';
 
 interface BottomNavProps {
   onMenuClick: () => void;
+  // 'admin' — admin bo'limlari; "Menyu" to'liq guruhlangan admin menyusini ochadi.
+  mode?: 'admin';
 }
 
-export default function BottomNav({ onMenuClick }: BottomNavProps) {
+const itemClass = (active: boolean) => `flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors relative ${
+  active ? 'text-primary-600' : 'text-text-secondary hover:text-primary-600'
+}`;
+
+export default function BottomNav({ onMenuClick, mode }: BottomNavProps) {
   const pathname = usePathname();
   const t = useTranslations('nav');
   const tCommon = useTranslations('common');
+  const tAdmin = useTranslations('adminNav');
   const { status } = useSession();
-  const isAttestation = isAttestationPath(useLocalePathname());
+  const localePathname = useLocalePathname();
+  const isAttestation = isAttestationPath(localePathname);
+
+  if (mode === 'admin') {
+    const active = getActiveAdminHref(localePathname);
+    return (
+      <nav aria-label={tAdmin('title')} className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+        <div className="flex items-center justify-around h-14">
+          {ADMIN_MOBILE_ITEMS.map((item) => {
+            const isActive = active === item.href;
+            return (
+              <Link key={item.href} href={item.href} aria-current={isActive ? 'page' : undefined} className={itemClass(isActive)}>
+                <item.icon size={22} aria-hidden />
+                <span className="text-[10px] font-medium">{tAdmin(`items.${item.labelKey}`)}</span>
+                {isActive && <span className="absolute bottom-1 w-6 h-0.5 rounded-full bg-primary-600" />}
+              </Link>
+            );
+          })}
+          <button type="button" onClick={onMenuClick} className={itemClass(false)}>
+            <Menu size={22} aria-hidden />
+            <span className="text-[10px] font-medium">{t('menu')}</span>
+          </button>
+        </div>
+      </nav>
+    );
+  }
 
   // Hide during test solving — MainLayoutClient'dagi bir xil qoida bilan
   // mos (konstruktordan kelgan /session/[id] ham shu yerga kiradi).
@@ -38,7 +71,7 @@ export default function BottomNav({ onMenuClick }: BottomNavProps) {
           className="flex flex-col items-center justify-center gap-1 flex-1 h-full text-text-secondary hover:text-primary-600 transition-colors"
         >
           <Menu size={22} />
-          <span className="text-[10px] font-medium">Menyu</span>
+          <span className="text-[10px] font-medium">{t('menu')}</span>
         </button>
 
         {/* Tests */}
@@ -50,7 +83,7 @@ export default function BottomNav({ onMenuClick }: BottomNavProps) {
         >
           <BookOpen size={22} />
           <span className={`text-[10px] font-medium ${isTests ? 'text-primary-600' : ''}`}>
-            Testlar
+            {t('tests')}
           </span>
           {isTests && (
             <span className="absolute bottom-1 w-6 h-0.5 rounded-full bg-primary-600" />
@@ -113,7 +146,7 @@ export default function BottomNav({ onMenuClick }: BottomNavProps) {
           >
             <User size={22} />
             <span className={`text-[10px] font-medium ${isProfile ? 'text-primary-600' : ''}`}>
-              Profil
+              {tCommon('profile')}
             </span>
             {isProfile && (
               <span className="absolute bottom-1 w-6 h-0.5 rounded-full bg-primary-600" />

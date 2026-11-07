@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import UserPicker from '@/components/admin/UserPicker';
-import { adminFetch, buttonClass, ErrorMessage, errorCode, fieldClass, Field } from '@/components/admin/AdminFields';
+import { adminFetch, dangerOutlineClass, ErrorMessage, errorCode, fieldClass, Field } from '@/components/admin/AdminFields';
+import ConfirmDialog from '@/components/admin/ConfirmDialog';
 import { localName, type AdminUser, type LocalName } from '@/components/admin/product-types';
 
 interface Category extends LocalName { id: string; subjects: (LocalName & { id: string })[] }
@@ -24,6 +25,7 @@ export default function PermissionsPage() {
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [revokeTarget, setRevokeTarget] = useState<Permission | null>(null);
   const userId = user?.id;
   const reload = useCallback(async (signal?: AbortSignal) => {
     const data = await adminFetch<{ categories: Category[]; permissions: Permission[] }>(`/api/admin/permissions${userId ? `?userId=${encodeURIComponent(userId)}` : ''}`, { signal });
@@ -47,7 +49,7 @@ export default function PermissionsPage() {
     setBusy(true); setError(''); setSaved(false);
     try { await adminFetch('/api/admin/permissions', { method: 'DELETE', body: JSON.stringify({ id }) }); await reload(); }
     catch (error) { setError(errorCode(error)); }
-    finally { setBusy(false); }
+    finally { setBusy(false); setRevokeTarget(null); }
   }
   return <div className="mx-auto max-w-5xl space-y-4"><h1 className="text-2xl font-bold">{t('permissions')}</h1>
     <form className="card space-y-4 p-4" onSubmit={(e) => { e.preventDefault(); void grant(); }}><fieldset className="space-y-4" disabled={busy}>
@@ -64,6 +66,8 @@ export default function PermissionsPage() {
     <ErrorMessage error={error} /><h2 className="font-semibold">{t('activePermissions')}</h2>
     {loading && <p role="status">{t('loading')}</p>}
     {!loading && !permissions.length && <p>{t('noPermissions')}</p>}
-    {permissions.map((permission) => <div key={permission.id} className="card flex flex-wrap items-center justify-between gap-3 p-4"><div className="min-w-0 break-words"><p className="font-medium">{permission.user.name || permission.user.id}</p><p className="text-sm text-text-secondary">{permission.user.email || permission.user.telegramUsername}</p><p>{localName(permission.category, locale)} — {permission.subject ? localName(permission.subject, locale) : t('wholeCategory')}</p><p className="text-sm">{permission.expiresAt ? new Date(permission.expiresAt).toLocaleDateString(locale, { timeZone: 'Asia/Tashkent' }) : t('unlimited')}</p></div><button className={buttonClass} type="button" disabled={busy} onClick={() => void revoke(permission.id)}>{t('revoke')}</button></div>)}
+    {permissions.map((permission) => <div key={permission.id} className="card flex flex-wrap items-center justify-between gap-3 p-4"><div className="min-w-0 break-words"><p className="font-medium">{permission.user.name || permission.user.id}</p><p className="text-sm text-text-secondary">{permission.user.email || permission.user.telegramUsername}</p><p>{localName(permission.category, locale)} — {permission.subject ? localName(permission.subject, locale) : t('wholeCategory')}</p><p className="text-sm">{permission.expiresAt ? new Date(permission.expiresAt).toLocaleDateString(locale, { timeZone: 'Asia/Tashkent' }) : t('unlimited')}</p></div><button className={dangerOutlineClass} type="button" disabled={busy} onClick={() => setRevokeTarget(permission)}>{t('revoke')}</button></div>)}
+    {revokeTarget && <ConfirmDialog title={t('revokeConfirmTitle')} confirmLabel={t('revoke')} busy={busy} onConfirm={() => void revoke(revokeTarget.id)} onClose={() => setRevokeTarget(null)}
+      body={t('revokeConfirmBody', { name: revokeTarget.user.name || revokeTarget.user.id, scope: `${localName(revokeTarget.category, locale)} — ${revokeTarget.subject ? localName(revokeTarget.subject, locale) : t('wholeCategory')}` })} />}
   </div>;
 }

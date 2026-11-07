@@ -203,7 +203,7 @@ export default function AdminSettingsPage() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6 pb-24">
-      <BackButton className="mb-2" />
+      <BackButton className="mb-2 min-h-11" />
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -289,7 +289,7 @@ export default function AdminSettingsPage() {
           <button
             onClick={handleSave}
             disabled={saving || !hasChanges}
-            className="btn-primary flex items-center justify-center gap-2 !py-2.5 text-sm disabled:opacity-50 flex-1 sm:flex-none"
+            className="btn-primary min-h-11 flex items-center justify-center gap-2 !py-2.5 text-sm disabled:opacity-50 flex-1 sm:flex-none"
           >
             {saving ? (
               <Loader2 size={16} className="animate-spin" />
@@ -304,7 +304,7 @@ export default function AdminSettingsPage() {
           {hasChanges && !saving && (
             <button
               onClick={handleReset}
-              className="btn-ghost text-sm !py-2.5"
+              className="btn-ghost min-h-11 text-sm !py-2.5"
             >
               Bekor qilish
             </button>

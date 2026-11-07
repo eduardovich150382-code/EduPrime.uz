@@ -3,14 +3,16 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Users, Search, Shield, GraduationCap, User, Crown,
-  Mail, MessageCircle, Loader2, RefreshCw, Eye, Ban, X, BookOpen, Clock, MessageSquare,
+  Users, Search, User,
+  Mail, MessageCircle, Loader2, RefreshCw, Eye, Clock, MessageSquare,
   ChevronLeft, ChevronRight,
 } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import BackButton from '@/components/ui/BackButton';
-import SubscriptionSummary from '@/components/ui/SubscriptionSummary';
 import SendMessageDialog, { type MessageRecipient } from '@/components/admin/SendMessageDialog';
+import UserProfileModal, { type AdminRole, type UserPatch } from '@/components/admin/UserProfileModal';
+import RoleBadge from '@/components/admin/RoleBadge';
+import { actionButtonClass } from '@/components/admin/AdminFields';
 
 interface UserData {
   id: string;
@@ -19,7 +21,7 @@ interface UserData {
   image: string | null;
   telegramUsername: string | null;
   hasTelegram: boolean;
-  role: string;
+  role: AdminRole;
   lastActiveAt: string | null;
   isBanned: boolean;
   createdAt: string;
@@ -33,17 +35,11 @@ function recipient(user: UserData): MessageRecipient {
   return { id: user.id, name: user.name, username: user.telegramUsername, hasTelegram: user.hasTelegram };
 }
 
-function getRoleBadge(role: string) {
-  switch (role) {
-    case 'ADMIN': return <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-medium flex items-center gap-1"><Shield size={10} /> Admin</span>;
-    case 'TEACHER': return <span className="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 text-xs font-medium flex items-center gap-1"><GraduationCap size={10} /> Ustoz</span>;
-    default: return <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-medium flex items-center gap-1"><User size={10} /> User</span>;
-  }
-}
-
 export default function AdminUsersPage() {
-  const tm = useTranslations('adminMessage');
+  const t = useTranslations('adminUsers');
+  const tc = useTranslations('adminCommon');
   const tp = useTranslations('adminUsersPager');
+  const locale = useLocale();
   const [page, setPage] = useState(1);
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [messageTarget, setMessageTarget] = useState<MessageRecipient | null>(null);
@@ -51,38 +47,9 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [total, setTotal] = useState(0);
-  const [changingRole, setChangingRole] = useState<string | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const [profileData, setProfileData] = useState<any>(null);
-  const [profileLoading, setProfileLoading] = useState(false);
 
-  const viewProfile = async (userId: string) => {
-    setSelectedUserId(userId);
-    setProfileLoading(true);
-    try {
-      const res = await fetch(`/api/admin/users/${userId}`);
-      const data = await res.json();
-      if (res.ok) setProfileData(data);
-    } catch {}
-    setProfileLoading(false);
-  };
-
-  const toggleBan = async (userId: string, currentBanned: boolean) => {
-    const reason = currentBanned ? '' : prompt('Ban sababi (ixtiyoriy):') || '';
-    try {
-      const res = await fetch(`/api/admin/users/${userId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ban: !currentBanned, banReason: reason }),
-      });
-      if (res.ok) {
-        setUsers(users.map(u => u.id === userId ? { ...u, isBanned: !currentBanned } : u));
-        if (profileData?.user?.id === userId) {
-          setProfileData({ ...profileData, user: { ...profileData.user, isBanned: !currentBanned } });
-        }
-      }
-    } catch { alert('Xatolik'); }
-  };
+  const day = (value: string) => new Date(value).toLocaleDateString(locale, { timeZone: 'Asia/Tashkent' });
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -123,29 +90,40 @@ export default function AdminUsersPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const changeRole = async (userId: string, newRole: string) => {
-    setChangingRole(userId);
-    try {
-      const res = await fetch(`/api/admin/users/${userId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ newRole }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
-      } else {
-        alert(data.error || 'Xatolik');
-      }
-    } catch (error) {
-      alert('Server xatolik');
-    }
-    setChangingRole(null);
+  // Profil oynasida ban/rol o'zgarsa ro'yxat qayta yuklanmaydi — qator joyida yangilanadi.
+  const applyPatch = (userId: string, patch: UserPatch) => {
+    setUsers((list) => list.map((u) => (u.id === userId ? { ...u, ...patch } : u)));
   };
+
+  const rowActions = (user: UserData) => (
+    <div className="flex items-center gap-2">
+      <button type="button" onClick={() => setSelectedUserId(user.id)} className={`${actionButtonClass} bg-primary-50 text-primary-700 hover:bg-primary-100`}>
+        <Eye size={16} aria-hidden /> {t('profile')}
+      </button>
+      <button type="button" onClick={() => setMessageTarget(recipient(user))} className={`${actionButtonClass} border border-border text-text-primary hover:bg-gray-50`}>
+        <MessageSquare size={16} aria-hidden /> {t('message')}
+      </button>
+    </div>
+  );
+
+  const contacts = (user: UserData) => (
+    <>
+      {user.email && <span className="flex items-center gap-0.5 min-w-0 break-all"><Mail size={10} aria-hidden />{user.email}</span>}
+      {user.telegramUsername && <span className="flex items-center gap-0.5"><MessageCircle size={10} aria-hidden />@{user.telegramUsername}</span>}
+    </>
+  );
+
+  const avatar = (user: UserData, size: string) => user.image ? (
+    <img src={user.image} alt="" className={`${size} rounded-full object-cover flex-shrink-0`} />
+  ) : (
+    <div className={`${size} rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0`}>
+      <User size={16} className="text-primary-600" aria-hidden />
+    </div>
+  );
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      <BackButton className="mb-2" />
+      <BackButton className="mb-2 min-h-11" />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -153,44 +131,40 @@ export default function AdminUsersPage() {
       >
         <div>
           <h1 className="text-2xl font-bold text-text-primary flex items-center gap-2">
-            <Users size={24} className="text-primary-600" />
-            Foydalanuvchilar
+            <Users size={24} className="text-primary-600" aria-hidden />
+            {t('title')}
           </h1>
-          <p className="text-text-secondary mt-1">Jami: {total} ta</p>
+          <p className="text-text-secondary mt-1">{t('total', { count: total })}</p>
         </div>
-        <button onClick={fetchUsers} className="btn-ghost flex items-center gap-2 self-start">
-          <RefreshCw size={16} />
-          Yangilash
+        <button type="button" onClick={fetchUsers} className="btn-ghost min-h-11 flex items-center gap-2 self-start">
+          <RefreshCw size={16} aria-hidden />
+          {tc('refresh')}
         </button>
       </motion.div>
 
       {/* Search */}
       <div className="relative">
-        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" />
+        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" aria-hidden />
         <input
           type="text"
-          placeholder="Ism, email yoki telegram bo'yicha qidiring..."
+          aria-label={t('searchPlaceholder')}
+          placeholder={t('searchPlaceholder')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full pl-11 pr-4 py-3 rounded-xl border border-border bg-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all"
         />
       </div>
 
-      {/* Users */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-      >
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
         {loading ? (
           <div className="card p-12 text-center">
             <Loader2 size={32} className="animate-spin text-primary-600 mx-auto mb-2" />
-            <p className="text-text-secondary text-sm">Yuklanmoqda...</p>
+            <p className="text-text-secondary text-sm">{tc('loading')}</p>
           </div>
         ) : users.length === 0 ? (
           <div className="card p-12 text-center">
-            <Users size={48} className="text-text-secondary mx-auto mb-4 opacity-30" />
-            <p className="text-text-secondary">Foydalanuvchilar topilmadi</p>
+            <Users size={48} className="text-text-secondary mx-auto mb-4 opacity-30" aria-hidden />
+            <p className="text-text-secondary">{t('empty')}</p>
           </div>
         ) : (
           <>
@@ -199,65 +173,22 @@ export default function AdminUsersPage() {
               {users.map((user) => (
                 <div key={user.id} className="card p-4 space-y-3">
                   <div className="flex items-center gap-3">
-                    {user.image ? (
-                      <img src={user.image} alt="" className="w-10 h-10 rounded-full object-cover" />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
-                        <User size={18} className="text-primary-600" />
-                      </div>
-                    )}
+                    {avatar(user, 'w-10 h-10')}
                     <div className="min-w-0 flex-1">
-                      <p className="font-medium text-text-primary text-sm truncate">{user.name || 'Nomsiz'}</p>
-                      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-text-secondary">
-                        {user.email && (
-                          <span className="flex items-center gap-0.5 truncate">
-                            <Mail size={10} />{user.email}
-                          </span>
-                        )}
-                        {user.telegramUsername && (
-                          <span className="flex items-center gap-0.5">
-                            <MessageCircle size={10} />@{user.telegramUsername}
-                          </span>
-                        )}
-                      </div>
+                      <p className="font-medium text-text-primary text-sm truncate">{user.name || tc('unnamed')}</p>
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-text-secondary">{contacts(user)}</div>
                     </div>
                   </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      {getRoleBadge(user.role)}
-                      <span className="text-xs text-text-secondary">{user._count.testResults} test</span>
-                      {user.isBanned && <span className="px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-medium">Bloklangan</span>}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <button onClick={() => viewProfile(user.id)} className="p-1.5 rounded-lg hover:bg-primary-50 text-primary-600" title="Profil">
-                        <Eye size={14} />
-                      </button>
-                      <button onClick={() => setMessageTarget(recipient(user))} className="min-h-11 min-w-11 flex items-center justify-center rounded-lg hover:bg-primary-50 text-primary-600" title={tm('open')} aria-label={tm('open')}>
-                        <MessageSquare size={16} />
-                      </button>
-                      <button onClick={() => toggleBan(user.id, user.isBanned)} className={`p-1.5 rounded-lg ${user.isBanned ? 'hover:bg-green-50 text-green-600' : 'hover:bg-red-50 text-red-500'}`} title={user.isBanned ? 'Blokni olish' : 'Bloklash'}>
-                        <Ban size={14} />
-                      </button>
-                      <select
-                        value={user.role}
-                        onChange={(e) => changeRole(user.id, e.target.value)}
-                        disabled={changingRole === user.id}
-                        className="px-2 py-1 rounded-lg border border-border text-xs font-medium bg-white focus:ring-2 focus:ring-primary-500/20 disabled:opacity-50"
-                      >
-                        <option value="USER">USER</option>
-                        <option value="TEACHER">TEACHER</option>
-                        <option value="ADMIN">ADMIN</option>
-                      </select>
-                    </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <RoleBadge role={user.role} />
+                    <span className="text-xs text-text-secondary">{t('testsCount', { count: user._count.testResults })}</span>
+                    {user.isBanned && <span className="px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-medium">{t('banned')}</span>}
                   </div>
-
-                  <div className="flex items-center gap-3 text-xs text-text-secondary">
-                    <span>Ro&apos;yxatdan: {new Date(user.createdAt).toLocaleDateString('uz-UZ')}</span>
-                    {user.lastActiveAt && (
-                      <span className="flex items-center gap-0.5"><Clock size={10} /> {new Date(user.lastActiveAt).toLocaleDateString('uz-UZ')}</span>
-                    )}
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-text-secondary">
+                    <span>{t('registeredAt', { date: day(user.createdAt) })}</span>
+                    {user.lastActiveAt && <span className="flex items-center gap-0.5"><Clock size={10} aria-hidden /> {day(user.lastActiveAt)}</span>}
                   </div>
+                  {rowActions(user)}
                 </div>
               ))}
             </div>
@@ -268,11 +199,9 @@ export default function AdminUsersPage() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-border bg-gray-50">
-                      <th className="text-left px-6 py-3 text-xs font-semibold text-text-secondary uppercase">Foydalanuvchi</th>
-                      <th className="text-left px-6 py-3 text-xs font-semibold text-text-secondary uppercase">Rol</th>
-                      <th className="text-left px-6 py-3 text-xs font-semibold text-text-secondary uppercase">Testlar</th>
-                      <th className="text-left px-6 py-3 text-xs font-semibold text-text-secondary uppercase">Sana</th>
-                      <th className="text-left px-6 py-3 text-xs font-semibold text-text-secondary uppercase">Amallar</th>
+                      {(['user', 'role', 'tests', 'date', 'actions'] as const).map((col) => (
+                        <th key={col} className="text-left px-6 py-3 text-xs font-semibold text-text-secondary uppercase">{t(`columns.${col}`)}</th>
+                      ))}
                     </tr>
                   </thead>
                   <tbody>
@@ -280,50 +209,20 @@ export default function AdminUsersPage() {
                       <tr key={user.id} className="border-b border-border hover:bg-primary-50/30 transition-colors">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            {user.image ? (
-                              <img src={user.image} alt="" className="w-9 h-9 rounded-full object-cover" />
-                            ) : (
-                              <div className="w-9 h-9 rounded-full bg-primary-100 flex items-center justify-center">
-                                <User size={16} className="text-primary-600" />
-                              </div>
-                            )}
-                            <div>
-                              <p className="font-medium text-text-primary text-sm">{user.name || 'Nomsiz'}</p>
-                              <div className="flex items-center gap-2 text-xs text-text-secondary">
-                                {user.email && <span className="flex items-center gap-0.5"><Mail size={10} />{user.email}</span>}
-                                {user.telegramUsername && <span className="flex items-center gap-0.5"><MessageCircle size={10} />@{user.telegramUsername}</span>}
-                              </div>
+                            {avatar(user, 'w-9 h-9')}
+                            <div className="min-w-0">
+                              <p className="font-medium text-text-primary text-sm">
+                                {user.name || tc('unnamed')}
+                                {user.isBanned && <span className="ml-2 px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-medium">{t('banned')}</span>}
+                              </p>
+                              <div className="flex items-center gap-2 text-xs text-text-secondary">{contacts(user)}</div>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4">{getRoleBadge(user.role)}</td>
-                        <td className="px-6 py-4 text-sm text-text-secondary">{user._count.testResults} ta</td>
-                        <td className="px-6 py-4 text-sm text-text-secondary">
-                          {new Date(user.createdAt).toLocaleDateString('uz-UZ')}
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-1">
-                            <button onClick={() => viewProfile(user.id)} className="p-2 rounded-lg hover:bg-primary-50 text-primary-600 transition-colors" title="Profil ko'rish">
-                              <Eye size={15} />
-                            </button>
-                            <button onClick={() => setMessageTarget(recipient(user))} className="min-h-11 min-w-11 flex items-center justify-center rounded-lg hover:bg-primary-50 text-primary-600 transition-colors" title={tm('open')} aria-label={tm('open')}>
-                              <MessageSquare size={15} />
-                            </button>
-                            <button onClick={() => toggleBan(user.id, user.isBanned)} className={`p-2 rounded-lg transition-colors ${user.isBanned ? 'hover:bg-green-50 text-green-600' : 'hover:bg-red-50 text-red-500'}`} title={user.isBanned ? 'Blokni olish' : 'Bloklash'}>
-                              <Ban size={15} />
-                            </button>
-                            <select
-                              value={user.role}
-                              onChange={(e) => changeRole(user.id, e.target.value)}
-                              disabled={changingRole === user.id}
-                              className="px-3 py-1.5 rounded-lg border border-border text-xs font-medium bg-white focus:ring-2 focus:ring-primary-500/20 disabled:opacity-50"
-                            >
-                              <option value="USER">USER</option>
-                              <option value="TEACHER">TEACHER</option>
-                              <option value="ADMIN">ADMIN</option>
-                            </select>
-                          </div>
-                        </td>
+                        <td className="px-6 py-4"><RoleBadge role={user.role} /></td>
+                        <td className="px-6 py-4 text-sm text-text-secondary">{user._count.testResults}</td>
+                        <td className="px-6 py-4 text-sm text-text-secondary">{day(user.createdAt)}</td>
+                        <td className="px-6 py-4">{rowActions(user)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -335,11 +234,13 @@ export default function AdminUsersPage() {
             {totalPages > 1 && (
               <div className="flex items-center justify-between gap-3 mt-4">
                 <button
+                  type="button"
                   onClick={() => goToPage(page - 1)}
                   disabled={page <= 1}
+                  aria-label={tp('prev')}
                   className="min-h-11 px-4 rounded-xl border border-border bg-white text-sm font-medium flex items-center gap-1 hover:bg-primary-50 disabled:opacity-40 disabled:hover:bg-white"
                 >
-                  <ChevronLeft size={16} />
+                  <ChevronLeft size={16} aria-hidden />
                   <span className="hidden sm:inline">{tp('prev')}</span>
                 </button>
                 <div className="text-center text-sm text-text-secondary">
@@ -353,12 +254,14 @@ export default function AdminUsersPage() {
                   </p>
                 </div>
                 <button
+                  type="button"
                   onClick={() => goToPage(page + 1)}
                   disabled={page >= totalPages}
+                  aria-label={tp('next')}
                   className="min-h-11 px-4 rounded-xl border border-border bg-white text-sm font-medium flex items-center gap-1 hover:bg-primary-50 disabled:opacity-40 disabled:hover:bg-white"
                 >
                   <span className="hidden sm:inline">{tp('next')}</span>
-                  <ChevronRight size={16} />
+                  <ChevronRight size={16} aria-hidden />
                 </button>
               </div>
             )}
@@ -370,76 +273,8 @@ export default function AdminUsersPage() {
         <SendMessageDialog open user={messageTarget} onClose={() => setMessageTarget(null)} />
       )}
 
-      {/* Profile Modal */}
       {selectedUserId && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => { setSelectedUserId(null); setProfileData(null); }}>
-          <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[85vh] overflow-hidden" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-4 border-b border-border">
-              <h3 className="font-semibold text-text-primary">Foydalanuvchi profili</h3>
-              <button onClick={() => { setSelectedUserId(null); setProfileData(null); }} className="p-2 rounded-lg hover:bg-gray-100"><X size={18} /></button>
-            </div>
-            <div className="p-4 overflow-y-auto max-h-[70vh]">
-              {profileLoading ? (
-                <div className="text-center py-8"><Loader2 size={24} className="animate-spin text-primary-600 mx-auto" /></div>
-              ) : profileData ? (
-                <div className="space-y-4">
-                  {/* User info */}
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center overflow-hidden">
-                      {profileData.user.image ? <img src={profileData.user.image} alt="" className="w-full h-full object-cover" /> : <User size={20} className="text-primary-600" />}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-text-primary">{profileData.user.name || 'Nomsiz'}</p>
-                      <p className="text-xs text-text-secondary">{profileData.user.email || profileData.user.telegramUsername ? `@${profileData.user.telegramUsername}` : ''}</p>
-                    </div>
-                    {profileData.user.isBanned && <span className="ml-auto px-2 py-1 rounded-full bg-red-100 text-red-700 text-xs font-medium">Bloklangan</span>}
-                  </div>
-                  {/* Details */}
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="p-2.5 rounded-lg bg-gray-50"><span className="text-text-secondary">Rol:</span> <span className="font-medium">{profileData.user.role}</span></div>
-                    <div className="p-2.5 rounded-lg bg-gray-50"><span className="text-text-secondary">Testlar:</span> <span className="font-medium">{profileData.user._count.testResults}</span></div>
-                    <div className="p-2.5 rounded-lg bg-gray-50"><span className="text-text-secondary">Referral:</span> <span className="font-medium">{profileData.user._count.referralsMade}</span></div>
-                    <div className="p-2.5 rounded-lg bg-gray-50"><span className="text-text-secondary">To&apos;lovlar:</span> <span className="font-medium">{profileData.user._count.payments}</span></div>
-                    <div className="p-2.5 rounded-lg bg-gray-50"><span className="text-text-secondary">Ro&apos;yxatdan:</span> <span className="font-medium">{new Date(profileData.user.createdAt).toLocaleDateString('uz-UZ')}</span></div>
-                    <div className="p-2.5 rounded-lg bg-gray-50"><span className="text-text-secondary">Oxirgi:</span> <span className="font-medium">{profileData.user.lastActiveAt ? new Date(profileData.user.lastActiveAt).toLocaleDateString('uz-UZ') : '—'}</span></div>
-                  </div>
-                  {/* Subscriptions */}
-                  {profileData.subscriptions.length > 0 && (
-                    <div>
-                      <SubscriptionSummary subscriptions={profileData.subscriptions} showPeriod />
-                    </div>
-                  )}
-                  {/* Test history */}
-                  {profileData.testResults.length > 0 && (
-                    <div>
-                      <h4 className="text-sm font-semibold text-text-primary mb-2 flex items-center gap-1"><BookOpen size={14} /> Test tarixi (oxirgi 20)</h4>
-                      <div className="space-y-1.5 max-h-48 overflow-y-auto">
-                        {profileData.testResults.map((r: any) => (
-                          <div key={r.id} className="flex items-center justify-between p-2 rounded-lg bg-gray-50 text-xs">
-                            <div className="min-w-0 flex-1">
-                              <p className="font-medium text-text-primary truncate">{r.testTitle}</p>
-                              <p className="text-text-secondary">{r.subject}</p>
-                            </div>
-                            <span className={`font-bold ml-2 ${r.percentage >= 70 ? 'text-green-600' : r.percentage >= 50 ? 'text-yellow-600' : 'text-red-600'}`}>{r.percentage}%</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {/* Ban button */}
-                  <button
-                    onClick={() => toggleBan(profileData.user.id, profileData.user.isBanned)}
-                    className={`w-full py-2.5 rounded-xl text-sm font-medium ${profileData.user.isBanned ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-red-100 text-red-700 hover:bg-red-200'} transition-colors`}
-                  >
-                    {profileData.user.isBanned ? 'Blokni olib tashlash' : 'Foydalanuvchini bloklash'}
-                  </button>
-                </div>
-              ) : (
-                <p className="text-center text-text-secondary py-4">Ma&apos;lumot topilmadi</p>
-              )}
-            </div>
-          </div>
-        </div>
+        <UserProfileModal userId={selectedUserId} onClose={() => setSelectedUserId(null)} onChanged={applyPatch} />
       )}
     </div>
   );

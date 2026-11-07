@@ -31,7 +31,7 @@ export default function AdminAdSourcesPage() {
 
   return (
     <div className="space-y-4">
-      <BackButton className="mb-2" />
+      <BackButton className="mb-2 min-h-11" />
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-bold text-text-primary">
           <Megaphone size={24} className="text-primary-600" aria-hidden /> {t('title')}

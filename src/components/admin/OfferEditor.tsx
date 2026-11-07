@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { tashkentDateInput, tashkentDateTimeInput } from '@/lib/product-offers';
-import { adminFetch, buttonClass, ErrorMessage, errorCode, fieldClass, Field } from './AdminFields';
+import { adminFetch, buttonClass, dangerOutlineClass, ErrorMessage, errorCode, fieldClass, Field } from './AdminFields';
+import ConfirmDialog from './ConfirmDialog';
 import type { AdminOffer } from './product-types';
 
 export default function OfferEditor({ productId, offer, onSaved, onCancel }: { productId: string; offer?: AdminOffer; onSaved: () => Promise<void>; onCancel?: () => void }) {
@@ -18,6 +19,7 @@ export default function OfferEditor({ productId, offer, onSaved, onCancel }: { p
   const [durationType, setDurationType] = useState(offer?.untilDate ? 'until' : 'months');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [confirmDeactivate, setConfirmDeactivate] = useState(false);
   async function save(deactivate = false) {
     setBusy(true); setError('');
     try {
@@ -29,7 +31,7 @@ export default function OfferEditor({ productId, offer, onSaved, onCancel }: { p
       }) });
       await onSaved();
     } catch (error) { setError(errorCode(error)); }
-    finally { setBusy(false); }
+    finally { setBusy(false); setConfirmDeactivate(false); }
   }
   return <form className="space-y-3 rounded-xl border border-border p-3 sm:p-4" onSubmit={(e) => { e.preventDefault(); void save(); }}>
     <fieldset disabled={busy} className="space-y-3">
@@ -51,9 +53,11 @@ export default function OfferEditor({ productId, offer, onSaved, onCancel }: { p
       <label className="flex min-h-11 items-center gap-3"><input type="checkbox" className="h-5 w-5" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} />{t('active')}</label>
       <ErrorMessage error={error} />
       <div className="flex flex-wrap gap-2"><button className="btn-primary min-h-11" type="submit">{busy ? t('saving') : t('save')}</button>
-        {offer?.isActive && <button className={buttonClass} type="button" onClick={() => void save(true)}>{t('deactivate')}</button>}
+        {offer?.isActive && <button className={dangerOutlineClass} type="button" onClick={() => setConfirmDeactivate(true)}>{t('deactivate')}</button>}
         {onCancel && <button type="button" className={buttonClass} onClick={onCancel}>{t('cancel')}</button>}
       </div>
     </fieldset>
+    {confirmDeactivate && offer && <ConfirmDialog title={t('deactivateConfirmTitle')} body={t('deactivateConfirmBody', { name: offer.labelUz })}
+      confirmLabel={t('deactivate')} busy={busy} onConfirm={() => void save(true)} onClose={() => setConfirmDeactivate(false)} />}
   </form>;
 }

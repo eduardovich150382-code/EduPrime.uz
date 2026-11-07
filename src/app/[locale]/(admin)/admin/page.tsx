@@ -8,8 +8,7 @@ import { localizedName } from '@/lib/pricing';
 import type { LocalizedName } from '@/lib/subscription-details';
 import {
   Users, BookOpen, CreditCard, TrendingUp, Shield,
-  Clock, Crown, UserPlus, CheckCircle, XCircle,
-  ArrowRight, BarChart3, Loader2, Bell, Settings, Megaphone,
+  Clock, Crown, UserPlus, ArrowRight, BarChart3, Loader2, type LucideIcon,
 } from 'lucide-react';
 
 interface DashboardData {
@@ -44,10 +43,21 @@ interface DashboardData {
   }[];
 }
 
+interface StatCard {
+  key: string;
+  value: number;
+  icon: LucideIcon;
+  iconClass: string;
+  valueClass?: string;
+  // Har karta ko'pi bilan bitta aniq manzilga olib boradi; mos filtr bo'lmasa
+  // (masalan "bugungi yangi") karta bosilmaydi — noaniq havola qo'yilmaydi.
+  href?: string;
+}
+
 export default function AdminDashboard() {
   const locale = useLocale();
+  const t = useTranslations('adminDashboard');
   const tSubscription = useTranslations('subscriptionUi');
-  const tAds = useTranslations('adminAdSources');
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -70,7 +80,7 @@ export default function AdminDashboard() {
     return (
       <div className="text-center py-20">
         <Shield size={48} className="text-red-400 mx-auto mb-4" />
-        <p className="text-text-secondary">Ma&apos;lumotlarni yuklashda xatolik</p>
+        <p className="text-text-secondary">{t('loadError')}</p>
       </div>
     );
   }
@@ -80,6 +90,14 @@ export default function AdminDashboard() {
   const explanationCoveragePct = explanationCoverage.total > 0
     ? Math.round((explanationCoverage.withExplanation / explanationCoverage.total) * 1000) / 10
     : 0;
+  const statCards: StatCard[] = [
+    { key: 'todayNewUsers', value: stats.todayNewUsers, icon: UserPlus, iconClass: 'text-blue-600' },
+    { key: 'todayTests', value: stats.todayTestsCompleted, icon: BookOpen, iconClass: 'text-green-600' },
+    { key: 'pendingPayments', value: stats.pendingPayments, icon: Clock, iconClass: 'text-yellow-600', valueClass: 'text-yellow-600', href: '/admin/payments?status=PENDING' },
+    { key: 'activeSubscriptions', value: stats.activeSubscriptions, icon: Crown, iconClass: 'text-purple-600', href: '/admin/subscriptions' },
+    { key: 'totalUsers', value: stats.totalUsers, icon: Users, iconClass: 'text-text-secondary', href: '/admin/users' },
+    { key: 'totalTests', value: stats.totalTests, icon: BarChart3, iconClass: 'text-text-secondary', href: '/admin/tests' },
+  ];
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -87,9 +105,9 @@ export default function AdminDashboard() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-2xl sm:text-3xl font-bold text-text-primary flex items-center gap-2">
           <Shield size={28} className="text-primary-600" />
-          Admin Panel
+          {t('title')}
         </h1>
-        <p className="text-text-secondary mt-1">Platformani boshqaring</p>
+        <p className="text-text-secondary mt-1">{t('subtitle')}</p>
       </motion.div>
 
       {/* Stats cards */}
@@ -99,36 +117,18 @@ export default function AdminDashboard() {
         transition={{ delay: 0.1 }}
         className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3"
       >
-        <div className="card p-4">
-          <UserPlus size={18} className="text-blue-600 mb-2" />
-          <p className="text-2xl font-bold text-text-primary">{stats.todayNewUsers}</p>
-          <p className="text-xs text-text-secondary">Bugungi yangi</p>
-        </div>
-        <div className="card p-4">
-          <BookOpen size={18} className="text-green-600 mb-2" />
-          <p className="text-2xl font-bold text-text-primary">{stats.todayTestsCompleted}</p>
-          <p className="text-xs text-text-secondary">Bugungi testlar</p>
-        </div>
-        <Link href="/admin/payments" className="card p-4 hover:border-yellow-300 transition-colors">
-          <Clock size={18} className="text-yellow-600 mb-2" />
-          <p className="text-2xl font-bold text-yellow-600">{stats.pendingPayments}</p>
-          <p className="text-xs text-text-secondary">Kutayotgan to&apos;lov</p>
-        </Link>
-        <div className="card p-4">
-          <Crown size={18} className="text-purple-600 mb-2" />
-          <p className="text-2xl font-bold text-text-primary">{stats.activeSubscriptions}</p>
-          <p className="text-xs text-text-secondary">Aktiv obuna</p>
-        </div>
-        <div className="card p-4">
-          <Users size={18} className="text-text-secondary mb-2" />
-          <p className="text-2xl font-bold text-text-primary">{stats.totalUsers}</p>
-          <p className="text-xs text-text-secondary">Jami user</p>
-        </div>
-        <div className="card p-4">
-          <BarChart3 size={18} className="text-text-secondary mb-2" />
-          <p className="text-2xl font-bold text-text-primary">{stats.totalTests}</p>
-          <p className="text-xs text-text-secondary">Jami test</p>
-        </div>
+        {statCards.map((card) => {
+          const body = <>
+            <card.icon size={18} className={`${card.iconClass} mb-2`} aria-hidden />
+            <p className={`text-2xl font-bold ${card.valueClass ?? 'text-text-primary'}`}>{card.value}</p>
+            <p className="text-xs text-text-secondary">{t(`stats.${card.key}`)}</p>
+          </>;
+          return card.href ? (
+            <Link key={card.key} href={card.href} className="card p-4 min-h-11 hover:border-primary-300 transition-colors">
+              {body}
+            </Link>
+          ) : <div key={card.key} className="card p-4">{body}</div>;
+        })}
       </motion.div>
 
       <section className="card min-w-0 space-y-3 p-4">
@@ -153,7 +153,7 @@ export default function AdminDashboard() {
       >
         <BookOpen size={18} className="text-primary-600 flex-shrink-0" />
         <p className="text-sm text-text-primary">
-          Yozma yechimi bor savollar:{' '}
+          {t('explanationCoverage')}{' '}
           <span className="font-semibold">
             {explanationCoverage.withExplanation} / {explanationCoverage.total}
           </span>{' '}
@@ -172,7 +172,7 @@ export default function AdminDashboard() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold text-text-primary flex items-center gap-2">
               <TrendingUp size={16} className="text-primary-600" />
-              Haftalik o&apos;sish (yangi foydalanuvchilar)
+              {t('weeklyGrowth')}
             </h2>
           </div>
           <div className="flex items-end gap-2 h-32">
@@ -196,14 +196,10 @@ export default function AdminDashboard() {
           transition={{ delay: 0.3 }}
           className="card p-6"
         >
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-text-primary">Top testlar</h2>
-            <Link href="/admin/tests" className="text-xs text-primary-600 hover:underline">
-              Barchasi
-            </Link>
-          </div>
+          {/* "Barchasi" havolasi yo'q — /admin/tests ga "Jami test" kartasi olib boradi. */}
+          <h2 className="text-sm font-semibold text-text-primary mb-4">{t('topTests')}</h2>
           {topTests.length === 0 ? (
-            <p className="text-sm text-text-secondary text-center py-4">Testlar yo&apos;q</p>
+            <p className="text-sm text-text-secondary text-center py-4">{t('noTests')}</p>
           ) : (
             <div className="space-y-3">
               {topTests.map((test, i) => (
@@ -213,7 +209,7 @@ export default function AdminDashboard() {
                     <p className="text-sm font-medium text-text-primary truncate">{test.titleUz}</p>
                     <p className="text-xs text-text-secondary">{test.subject.icon} {test.subject.nameUz}</p>
                   </div>
-                  <span className="text-xs font-semibold text-primary-600">{test.attempts} marta</span>
+                  <span className="text-xs font-semibold text-primary-600">{t('attempts', { count: test.attempts })}</span>
                 </div>
               ))}
             </div>
@@ -231,14 +227,14 @@ export default function AdminDashboard() {
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-semibold text-text-primary flex items-center gap-2">
             <CreditCard size={16} className="text-green-600" />
-            Oxirgi to&apos;lovlar
+            {t('recentPayments')}
           </h2>
-          <Link href="/admin/payments" className="text-xs text-primary-600 hover:underline flex items-center gap-1">
-            Barchasi <ArrowRight size={12} />
+          <Link href="/admin/payments" className="min-h-11 px-2 text-xs text-primary-600 hover:underline flex items-center gap-1">
+            {t('allPayments')} <ArrowRight size={12} aria-hidden />
           </Link>
         </div>
         {recentPayments.length === 0 ? (
-          <p className="text-sm text-text-secondary text-center py-4">To&apos;lovlar yo&apos;q</p>
+          <p className="text-sm text-text-secondary text-center py-4">{t('noPayments')}</p>
         ) : (
           <div className="space-y-2">
             {recentPayments.map((p) => (
@@ -248,10 +244,10 @@ export default function AdminDashboard() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-text-primary truncate">
-                    {p.userName || p.telegramUsername || 'Nomsiz'}
+                    {p.userName || p.telegramUsername || t('unnamed')}
                   </p>
                   <p className="text-xs text-text-secondary">
-                    {localizedName(p.name, locale)} — {p.amount.toLocaleString()} so&apos;m
+                    {localizedName(p.name, locale)} — {t('amount', { amount: p.amount.toLocaleString() })}
                   </p>
                 </div>
                 <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
@@ -259,7 +255,7 @@ export default function AdminDashboard() {
                   p.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
                   'bg-yellow-100 text-yellow-700'
                 }`}>
-                  {p.status === 'CONFIRMED' ? 'Tasdiqlangan' : p.status === 'REJECTED' ? 'Rad' : 'Kutilmoqda'}
+                  {t(p.status === 'CONFIRMED' ? 'status.confirmed' : p.status === 'REJECTED' ? 'status.rejected' : 'status.pending')}
                 </span>
               </div>
             ))}
@@ -267,46 +263,6 @@ export default function AdminDashboard() {
         )}
       </motion.div>
 
-      {/* Quick links */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3"
-      >
-        <Link href="/admin/users" className="card p-4 text-center hover:border-primary-200 transition-colors">
-          <Users size={20} className="text-blue-600 mx-auto mb-2" />
-          <p className="text-xs font-medium text-text-primary">Foydalanuvchilar</p>
-        </Link>
-        <Link href="/admin/tests" className="card p-4 text-center hover:border-primary-200 transition-colors">
-          <BookOpen size={20} className="text-green-600 mx-auto mb-2" />
-          <p className="text-xs font-medium text-text-primary">Testlar</p>
-        </Link>
-        <Link href="/admin/teachers" className="card p-4 text-center hover:border-primary-200 transition-colors">
-          <Crown size={20} className="text-orange-600 mx-auto mb-2" />
-          <p className="text-xs font-medium text-text-primary">Ustozlar</p>
-        </Link>
-        <Link href="/admin/payments" className="card p-4 text-center hover:border-primary-200 transition-colors">
-          <CreditCard size={20} className="text-emerald-600 mx-auto mb-2" />
-          <p className="text-xs font-medium text-text-primary">To&apos;lovlar</p>
-        </Link>
-        <Link href="/admin/subscriptions" className="card p-4 text-center hover:border-primary-200 transition-colors">
-          <Crown size={20} className="text-purple-600 mx-auto mb-2" />
-          <p className="text-xs font-medium text-text-primary">Obunalar</p>
-        </Link>
-        <Link href="/admin/notifications" className="card p-4 text-center hover:border-primary-200 transition-colors">
-          <Bell size={20} className="text-pink-600 mx-auto mb-2" />
-          <p className="text-xs font-medium text-text-primary">Xabar yuborish</p>
-        </Link>
-        <Link href="/admin/ad-sources" className="card p-4 text-center hover:border-primary-200 transition-colors">
-          <Megaphone size={20} className="text-primary-600 mx-auto mb-2" />
-          <p className="text-xs font-medium text-text-primary">{tAds('link')}</p>
-        </Link>
-        <Link href="/admin/settings" className="card p-4 text-center hover:border-primary-200 transition-colors">
-          <Settings size={20} className="text-gray-600 mx-auto mb-2" />
-          <p className="text-xs font-medium text-text-primary">Sozlamalar</p>
-        </Link>
-      </motion.div>
     </div>
   );
 }
