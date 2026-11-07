@@ -1,5 +1,5 @@
 import {
-  LayoutDashboard, Users, GraduationCap, Bell, ClipboardList, BookOpen,
+  LayoutDashboard, Activity, Users, GraduationCap, Bell, ClipboardList, BookOpen,
   Wallet, Crown, Package, KeyRound, Megaphone, Settings, type LucideIcon,
 } from 'lucide-react';
 
@@ -27,6 +27,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     titleKey: 'general',
     items: [
       { href: '/admin', labelKey: 'home', icon: LayoutDashboard, mobilePrimary: true },
+      { href: '/admin/online', labelKey: 'online', icon: Activity },
     ],
   },
   {

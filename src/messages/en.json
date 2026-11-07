@@ -1282,7 +1282,8 @@
       "products": "Products & prices",
       "permissions": "Permissions",
       "adSources": "Ad sources",
-      "settings": "Settings"
+      "settings": "Settings",
+      "online": "Online"
     }
   },
   "adminCommon": {
@@ -1321,6 +1322,11 @@
       "confirmed": "Confirmed",
       "rejected": "Rejected",
       "pending": "Pending"
+    },
+    "online": {
+      "now": "Online now",
+      "today": "Active today",
+      "week": "Active in 7 days"
     }
   },
   "adminPayments": {
@@ -1487,5 +1493,26 @@
     "confirmTitle": "Send this message?",
     "confirmBody": "Audience: {audience}. A sent message cannot be recalled.",
     "confirmSend": "Yes, send"
+  },
+  "adminOnline": {
+    "title": "Online now",
+    "updatedAt": "Last updated: {time}",
+    "counts": {
+      "onlineNow": "Online now",
+      "activeToday": "Active today",
+      "active7d": "Last 7 days"
+    },
+    "empty": "Nobody is online right now",
+    "limited": "Showing the {shown} most recent",
+    "justNow": "just now",
+    "minutesAgo": "{count, plural, one {# minute} other {# minutes}} ago",
+    "subscribed": "Subscriber",
+    "inTest": "Taking a test",
+    "columns": {
+      "user": "User",
+      "status": "Status",
+      "lastSeen": "Last active",
+      "actions": "Actions"
+    }
   }
 }

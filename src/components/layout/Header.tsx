@@ -11,6 +11,7 @@ import HeaderSubscription from './HeaderSubscription';
 import { ATTESTATION_HREF, isAttestationPath } from '@/lib/nav-links';
 import { loginHref } from '@/lib/safe-return-path';
 import { startHeaderRefresh } from '@/lib/header-refresh';
+import { startActivityPing } from '@/lib/activity-ping';
 import { getUnread, loadMeHeader, subscribeUnread } from '@/lib/me-header-store';
 
 export default function Header() {
@@ -35,6 +36,13 @@ export default function Header() {
   useEffect(() => {
     if (!userId) return;
     return startHeaderRefresh(() => { loadMeHeader(userId).catch(() => {}); });
+  }, [userId]);
+
+  // "Onlayn" heartbeat — Header barcha shell'larda (main, admin, teacher,
+  // test yechish ham) bir marta mount bo'ladi; mehmonda umuman ishlamaydi.
+  useEffect(() => {
+    if (!userId) return;
+    return startActivityPing();
   }, [userId]);
 
   // Click outside to close user dropdown

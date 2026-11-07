@@ -57,6 +57,9 @@ model User {
   courseReviews     CourseReview[]
   purchases         Purchase[]
   dailyUsage        DailyUsage[]
+
+  // Admin "Onlayn" sahifasi va dashboard: lastActiveAt >= now - 5m / bugun / 7 kun.
+  @@index([lastActiveAt])
 }
 
 model Referral {
