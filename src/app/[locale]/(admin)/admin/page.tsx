@@ -233,14 +233,14 @@ export default function AdminDashboard() {
           ) : (
             <div className="space-y-3">
               {topTests.map((test, i) => (
-                <div key={test.id} className="flex items-center gap-3">
+                <Link key={test.id} href={`/admin/tests/${test.id}/reyting`} className="flex min-h-11 items-center gap-3 rounded-lg -mx-2 px-2 hover:bg-primary-50/50">
                   <span className="text-xs font-bold text-text-secondary w-4">{i + 1}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-text-primary truncate">{test.titleUz}</p>
                     <p className="text-xs text-text-secondary">{test.subject.icon} {test.subject.nameUz}</p>
                   </div>
                   <span className="text-xs font-semibold text-primary-600">{t('attempts', { count: test.attempts })}</span>
-                </div>
+                </Link>
               ))}
             </div>
           )}

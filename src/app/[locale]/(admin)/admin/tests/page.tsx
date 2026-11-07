@@ -4,12 +4,13 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   BookOpen, Search, Loader2, RefreshCw, Eye, EyeOff,
-  Trash2, BarChart3, Users, Clock, Plus, Pencil,
+  Trash2, BarChart3, Users, Clock, Plus, Pencil, Trophy, UserCheck,
 } from 'lucide-react';
 import BackButton from '@/components/ui/BackButton';
 import { Link } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
+import Pager from '@/components/admin/Pager';
 import { actionButtonClass, iconButtonClass } from '@/components/admin/AdminFields';
 
 interface TestData {
@@ -24,11 +25,16 @@ interface TestData {
   duration: number;
   difficulty: number;
   attempts: number;
+  participants: number;
   avgScore: number;
   createdAt: string;
 }
 
 type StatusFilter = 'all' | 'published' | 'draft';
+type SortMode = 'new' | 'participants';
+
+// API bilan bir xil (ADMIN_TESTS_PAGE_SIZE) — sahifa hisobi mos kelsin.
+const PAGE_SIZE = 30;
 
 function getAccessBadge(accessType: string) {
   switch (accessType) {
@@ -53,6 +59,9 @@ export default function AdminTestsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [sort, setSort] = useState<SortMode>('new');
+  const [page, setPage] = useState(1);
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [total, setTotal] = useState(0);
   const [processing, setProcessing] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<TestData | null>(null);
@@ -60,9 +69,10 @@ export default function AdminTestsPage() {
   const fetchTests = async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams();
-      if (search) params.set('search', search);
+      const params = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE) });
+      if (debouncedSearch) params.set('search', debouncedSearch);
       if (statusFilter !== 'all') params.set('status', statusFilter);
+      if (sort !== 'new') params.set('sort', sort);
       const res = await fetch(`/api/admin/tests?${params.toString()}`);
       const data = await res.json();
       if (data.tests) {
@@ -75,11 +85,19 @@ export default function AdminTestsPage() {
     setLoading(false);
   };
 
-  useEffect(() => { fetchTests(); }, [statusFilter]);
+  // Qidiruv, holat yoki saralash o'zgarsa 1-sahifaga qaytiladi — aks holda
+  // 5-sahifada qolib, natija bo'sh ko'rinadi.
   useEffect(() => {
-    const timer = setTimeout(fetchTests, 500);
+    const timer = setTimeout(() => { setDebouncedSearch(search); setPage(1); }, 500);
     return () => clearTimeout(timer);
   }, [search]);
+  useEffect(() => { fetchTests(); }, [page, debouncedSearch, statusFilter, sort]);
+
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const goToPage = (next: number) => {
+    setPage(Math.min(Math.max(1, next), totalPages));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const handleAction = async (testId: string, action: 'publish' | 'unpublish' | 'delete') => {
     setProcessing(testId);
@@ -156,7 +174,7 @@ export default function AdminTestsPage() {
               key={s}
               type="button"
               aria-pressed={statusFilter === s}
-              onClick={() => setStatusFilter(s)}
+              onClick={() => { setStatusFilter(s); setPage(1); }}
               className={`min-h-11 px-3 py-2 rounded-xl text-sm font-medium transition-all ${
                 statusFilter === s
                   ? 'bg-primary-600 text-white'
@@ -167,6 +185,23 @@ export default function AdminTestsPage() {
             </button>
           ))}
         </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2" role="group" aria-label={t('sortLabel')}>
+        <span className="text-sm text-text-secondary">{t('sortLabel')}</span>
+        {(['new', 'participants'] as SortMode[]).map((s) => (
+          <button
+            key={s}
+            type="button"
+            aria-pressed={sort === s}
+            onClick={() => { setSort(s); setPage(1); }}
+            className={`min-h-11 px-3 rounded-xl text-sm font-medium transition-all ${
+              sort === s ? 'bg-primary-50 border border-primary-200 text-primary-700' : 'bg-white border border-border text-text-secondary hover:border-primary-200'
+            }`}
+          >
+            {t(`sort.${s}`)}
+          </button>
+        ))}
       </div>
 
       {/* Tests list */}
@@ -207,13 +242,17 @@ export default function AdminTestsPage() {
                     {test.teacherName && <span>{t('teacher', { name: test.teacherName })}</span>}
                     <span className="flex items-center gap-1"><BookOpen size={10} aria-hidden /> {t('questions', { count: test.questionCount })}</span>
                     <span className="flex items-center gap-1"><Clock size={10} aria-hidden /> {t('minutes', { count: test.duration })}</span>
+                    <span className="flex items-center gap-1 font-medium text-text-primary"><UserCheck size={10} aria-hidden /> {t('participants', { count: test.participants })}</span>
                     <span className="flex items-center gap-1"><Users size={10} aria-hidden /> {t('attempts', { count: test.attempts })}</span>
                     <span className="flex items-center gap-1"><BarChart3 size={10} aria-hidden /> {t('avgScore', { value: test.avgScore })}</span>
                   </div>
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-1 flex-shrink-0">
+                <div className="flex flex-wrap items-center gap-1 flex-shrink-0">
+                  <Link href={`/admin/tests/${test.id}/reyting`} className={`${actionButtonClass} bg-amber-50 text-amber-800 hover:bg-amber-100`}>
+                    <Trophy size={14} aria-hidden /> {t('rating')}
+                  </Link>
                   <Link href={`/teacher/tests/${test.id}/edit`} className={`${actionButtonClass} text-primary-600 hover:bg-primary-50`}>
                     <Pencil size={14} aria-hidden /> {tAccess('edit')}
                   </Link>
@@ -254,6 +293,7 @@ export default function AdminTestsPage() {
               </div>
             </motion.div>
           ))}
+          <Pager page={page} totalPages={totalPages} total={total} pageSize={PAGE_SIZE} onPage={goToPage} />
         </div>
       )}
 
