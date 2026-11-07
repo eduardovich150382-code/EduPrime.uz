@@ -6,10 +6,20 @@ import { Globe } from 'lucide-react';
 import { locales, localeNames, type Locale } from '@/i18n/config';
 import { useState, useRef, useEffect } from 'react';
 
-export default function LanguageSwitcher() {
+// Til almashtirish mantig'i bitta joyda: Header'dagi menyu ham, Sidebar'dagi
+// mobil tugmalar ham shu hook'dan foydalanadi — yo'l saqlanib, faqat locale o'zgaradi.
+export function useSwitchLocale() {
   const locale = useLocale() as Locale;
   const router = useRouter();
   const pathname = usePathname();
+  const switchLocale = (newLocale: Locale) => {
+    if (newLocale !== locale) router.replace(pathname, { locale: newLocale });
+  };
+  return { locale, switchLocale };
+}
+
+export default function LanguageSwitcher() {
+  const { locale, switchLocale: replaceLocale } = useSwitchLocale();
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -24,7 +34,7 @@ export default function LanguageSwitcher() {
   }, []);
 
   const switchLocale = (newLocale: Locale) => {
-    router.replace(pathname, { locale: newLocale });
+    replaceLocale(newLocale);
     setIsOpen(false);
   };
 

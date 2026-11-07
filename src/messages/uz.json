@@ -182,7 +182,14 @@
     "rating": "Reyting",
     "pricing": "Tariflar",
     "teacher": "Ustoz panel",
-    "admin": "Admin panel"
+    "admin": "Admin panel",
+    "courses": "Kurslar",
+    "referral": "Referral",
+    "language": "Til:",
+    "menu": "Menyu",
+    "closeMenu": "Menyuni yopish",
+    "collapse": "Menyuni yig'ish",
+    "expand": "Menyuni yoyish"
   },
   "auth": {
     "loginTitle": "Tizimga kirish",
@@ -965,7 +972,11 @@
     "cancelConfirmTitle": "Obunani bekor qilasizmi?",
     "cancelConfirmBody": "«{name}» obunasi darhol yopiladi va foydalanuvchi kirish huquqini yo‘qotadi. Yozuv o‘chirilmaydi — {date} gacha qayta tiklash mumkin.",
     "restoreConfirmTitle": "Obunani qayta tiklaysizmi?",
-    "restoreConfirmBody": "«{name}» obunasi {date} gacha yana faol bo‘ladi."
+    "restoreConfirmBody": "«{name}» obunasi {date} gacha yana faol bo‘ladi.",
+    "revokeConfirmTitle": "Ruxsatni olasizmi?",
+    "revokeConfirmBody": "{name}: {scope}",
+    "deactivateConfirmTitle": "Taklifni o'chirasizmi?",
+    "deactivateConfirmBody": "«{name}» narxlar sahifasidan olib tashlanadi."
   },
   "adminUsersPager": {
     "prev": "Oldingi",
@@ -1247,5 +1258,234 @@
       "adTestFinished": "Testni tugatgan",
       "paid": "To'lagan"
     }
+  },
+  "adminNav": {
+    "title": "Admin menyusi",
+    "backToSite": "Saytga qaytish",
+    "groups": {
+      "general": "Umumiy",
+      "people": "Foydalanuvchilar",
+      "content": "Kontent",
+      "finance": "Moliya",
+      "marketing": "Marketing",
+      "system": "Tizim"
+    },
+    "items": {
+      "home": "Bosh sahifa",
+      "users": "Foydalanuvchilar",
+      "teachers": "O'qituvchilar",
+      "notifications": "Xabarlar",
+      "tests": "Testlar",
+      "subjects": "Fanlar",
+      "payments": "To'lovlar",
+      "subscriptions": "Obunalar",
+      "products": "Mahsulot va narxlar",
+      "permissions": "Ruxsatlar",
+      "adSources": "Reklama manbalari",
+      "settings": "Sozlamalar"
+    }
+  },
+  "adminCommon": {
+    "back": "Ortga",
+    "processing": "Bajarilmoqda...",
+    "refresh": "Yangilash",
+    "error": "Xatolik yuz berdi",
+    "serverError": "Server bilan bog'lanishda xatolik",
+    "close": "Yopish",
+    "unnamed": "Nomsiz",
+    "loading": "Yuklanmoqda..."
+  },
+  "adminDashboard": {
+    "title": "Admin panel",
+    "subtitle": "Platformani boshqaring",
+    "loadError": "Ma'lumotlarni yuklashda xatolik",
+    "stats": {
+      "todayNewUsers": "Bugungi yangi",
+      "todayTests": "Bugungi testlar",
+      "pendingPayments": "Kutayotgan to'lov",
+      "activeSubscriptions": "Aktiv obuna",
+      "totalUsers": "Jami foydalanuvchi",
+      "totalTests": "Jami test"
+    },
+    "explanationCoverage": "Yozma yechimi bor savollar:",
+    "weeklyGrowth": "Haftalik o'sish (yangi foydalanuvchilar)",
+    "topTests": "Top testlar",
+    "noTests": "Testlar yo'q",
+    "attempts": "{count} marta",
+    "recentPayments": "Oxirgi to'lovlar",
+    "allPayments": "Barcha to'lovlar",
+    "noPayments": "To'lovlar yo'q",
+    "unnamed": "Nomsiz",
+    "amount": "{amount} so'm",
+    "status": {
+      "confirmed": "Tasdiqlangan",
+      "rejected": "Rad etilgan",
+      "pending": "Kutilmoqda"
+    }
+  },
+  "adminPayments": {
+    "title": "To'lovlar",
+    "subtitle": "Barcha to'lovlar va daromad statistikasi",
+    "csvHeader": "Ism,Telegram,Tarif,Muddat,Summa,Holat,Sana",
+    "currency": "so'm",
+    "amount": "{amount} so'm",
+    "totalRevenue": "Jami daromad (tasdiqlangan)",
+    "thisMonth": "Bu oy: {amount} so'm",
+    "rejectedCount": "Rad etilgan",
+    "sort": "Saralash:",
+    "amountSort": "Summa",
+    "ascending": "(kichik→katta)",
+    "descending": "(katta→kichik)",
+    "clearSort": "Tozalash",
+    "empty": "To'lovlar topilmadi",
+    "viewReceipt": "Chekni ko'rish",
+    "confirm": "Tasdiqlash",
+    "reject": "Rad etish",
+    "confirmedBy": "{name} tomonidan",
+    "rejectTitle": "To'lovni rad etasizmi?",
+    "rejectBody": "{name} — {amount} so'm. Rad etilgan to'lov bo'yicha obuna ochilmaydi.",
+    "receipt": "To'lov cheki",
+    "openInNewTab": "Yangi tabda ochish",
+    "status": {
+      "confirmed": "Tasdiqlangan",
+      "rejected": "Rad",
+      "pending": "Kutilmoqda"
+    },
+    "duration": {
+      "oneMonth": "1 oy",
+      "threeMonths": "3 oy",
+      "sixMonths": "6 oy",
+      "oneYear": "1 yil"
+    },
+    "plan": {
+      "premium": "Premium",
+      "teacher": "Ustoz"
+    }
+  },
+  "adminUsers": {
+    "title": "Foydalanuvchilar",
+    "total": "Jami: {count} ta",
+    "searchPlaceholder": "Ism, email yoki telegram bo'yicha qidiring...",
+    "empty": "Foydalanuvchilar topilmadi",
+    "testsCount": "{count} test",
+    "registeredAt": "Ro'yxatdan: {date}",
+    "banned": "Bloklangan",
+    "profile": "Profil",
+    "message": "Xabar",
+    "columns": {
+      "user": "Foydalanuvchi",
+      "role": "Rol",
+      "tests": "Testlar",
+      "date": "Sana",
+      "actions": "Amallar"
+    },
+    "roles": {
+      "USER": "O'quvchi",
+      "TEACHER": "Ustoz",
+      "ADMIN": "Admin"
+    },
+    "profileTitle": "Foydalanuvchi profili",
+    "profileNotFound": "Ma'lumot topilmadi",
+    "fields": {
+      "tests": "Testlar:",
+      "referrals": "Referral:",
+      "payments": "To'lovlar:",
+      "registered": "Ro'yxatdan:",
+      "lastActive": "Oxirgi faollik:",
+      "role": "Rol"
+    },
+    "testHistory": "Test tarixi (oxirgi 20)",
+    "ban": "Bloklash",
+    "unban": "Blokdan chiqarish",
+    "banTitle": "Foydalanuvchini bloklaysizmi?",
+    "banBody": "{name} saytga kira olmaydi. Keyin blokdan chiqarish mumkin.",
+    "unbanTitle": "Blokdan chiqarasizmi?",
+    "unbanBody": "{name} yana saytdan foydalana oladi.",
+    "banReason": "Sabab (ixtiyoriy)",
+    "roleTitle": "Rolni o'zgartirasizmi?",
+    "roleBody": "{name}: {from} → {to}",
+    "roleConfirm": "Rolni o'zgartirish"
+  },
+  "adminTests": {
+    "title": "Testlar boshqaruvi",
+    "total": "Jami: {count} ta test",
+    "newTest": "Yangi test",
+    "searchPlaceholder": "Test nomi bo'yicha qidirish...",
+    "filters": {
+      "all": "Hammasi",
+      "published": "Nashr",
+      "draft": "Qoralama"
+    },
+    "empty": "Testlar topilmadi",
+    "published": "Nashr",
+    "draft": "Qoralama",
+    "teacher": "Ustoz: {name}",
+    "questions": "{count} savol",
+    "minutes": "{count} min",
+    "attempts": "{count} marta",
+    "avgScore": "{value}% o'rtacha",
+    "publish": "Nashr qilish",
+    "unpublish": "Nashrdan olish",
+    "delete": "O'chirish",
+    "deleteTitle": "Testni o'chirasizmi?",
+    "deleteBody": "«{title}» butunlay o'chiriladi. Bu amalni ortga qaytarib bo'lmaydi.",
+    "access": {
+      "premium": "Premium",
+      "teacher": "Ustoz",
+      "premiumTeacher": "Prem+Ustoz",
+      "paid": "Pullik",
+      "free": "Bepul"
+    }
+  },
+  "adminTeachers": {
+    "title": "O'qituvchilar",
+    "total": "Jami: {count} ta ustoz",
+    "empty": "Ustozlar topilmadi",
+    "verified": "Tasdiqlangan",
+    "unverified": "Tasdiqlanmagan",
+    "tests": "{count} test",
+    "verify": "Tasdiqlash",
+    "revoke": "Tasdiqni bekor qilish",
+    "revokeTitle": "Tasdiqni bekor qilasizmi?",
+    "revokeBody": "{name} tasdiqlanmagan ustoz holatiga qaytadi."
+  },
+  "adminNotifications": {
+    "title": "Xabar yuborish",
+    "subtitle": "Maqsadli yoki umumiy bildirishnoma",
+    "tabs": {
+      "send": "Yuborish",
+      "history": "Tarix",
+      "templates": "Shablonlar"
+    },
+    "audience": "Kimga yuborish",
+    "targets": {
+      "all": "Hammaga",
+      "free": "Bepul",
+      "premium": "Premium",
+      "teacher": "Ustoz"
+    },
+    "type": "Xabar turi",
+    "types": {
+      "info": "Ma'lumot",
+      "success": "Muvaffaqiyat",
+      "warning": "Ogohlantirish",
+      "reminder": "Eslatma"
+    },
+    "fieldTitle": "Sarlavha *",
+    "fieldMessage": "Xabar matni *",
+    "fieldLink": "Havola (ixtiyoriy)",
+    "sending": "Yuborilmoqda...",
+    "sent": "{count} ta foydalanuvchiga xabar yuborildi!",
+    "error": "Xatolik yuz berdi",
+    "networkError": "Server bilan bog'lanishda xatolik",
+    "historyTitle": "Yuborilgan xabarlar tarixi",
+    "historyEmpty": "Hali xabar yuborilmagan",
+    "recipients": "{count} ta foydalanuvchiga",
+    "templatesTitle": "Tayyor shablonlar",
+    "useTemplate": "Tanlash",
+    "templatesHelp": "Shablonni tanlaganingizda \"Yuborish\" tabiga o'tadi va ma'lumotlar to'ldiriladi.",
+    "confirmTitle": "Xabarni yuborasizmi?",
+    "confirmBody": "Auditoriya: {audience}. Yuborilgan xabarni qaytarib olib bo'lmaydi.",
+    "confirmSend": "Ha, yuborish"
   }
 }

@@ -17,12 +17,14 @@ import {
   Shield,
   Gift,
   X,
-  Crown,
   Sparkles,
   Globe,
   Video,
   Wand2,
 } from 'lucide-react';
+import AdminNav from '@/components/admin/AdminNav';
+import { useSwitchLocale } from './LanguageSwitcher';
+import { locales } from '@/i18n/config';
 import { signOut } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import { usePathname as useFullPathname } from 'next/navigation';
@@ -34,20 +36,23 @@ interface SidebarProps {
   role: string | null;
   mobileOpen: boolean;
   setMobileOpen: (open: boolean) => void;
+  // 'admin' — (admin) layout: faqat guruhlangan admin menyusi ko'rinadi.
+  mode?: 'admin';
 }
 
-export default function Sidebar({ role, mobileOpen, setMobileOpen }: SidebarProps) {
+export default function Sidebar({ role, mobileOpen, setMobileOpen, mode }: SidebarProps) {
   const t = useTranslations('nav');
   const tCommon = useTranslations('common');
-  const tAdmin = useTranslations('adminProducts');
   const tSubscription = useTranslations('subscriptionUi');
+  const { locale, switchLocale } = useSwitchLocale();
+  const isAdminMode = mode === 'admin';
   const pathname = usePathname();
   // callbackUrl uchun locale prefiksli yo'l (Header'dagi bilan bir xil sabab).
   const fullPathname = useFullPathname();
   const isGuest = role === null;
   const [collapsed, setCollapsed] = useState(false);
   const status = useSubscriptionStatus(!isGuest);
-  const showOffer = (isGuest || !!status && !status.hasAnyScope && !status.subscriptions.length) && role !== 'ADMIN';
+  const showOffer = (isGuest || !!status && !status.hasAnyScope && !status.subscriptions.length) && role !== 'ADMIN' && !isAdminMode;
 
   // Close mobile sidebar on route change
   useEffect(() => {
@@ -70,23 +75,21 @@ export default function Sidebar({ role, mobileOpen, setMobileOpen }: SidebarProp
     { href: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
     { href: '/tests', icon: BookOpen, label: t('tests') },
     { href: '/build', icon: Wand2, label: t('build') },
-    { href: '/courses', icon: Video, label: 'Kurslar' },
+    { href: '/courses', icon: Video, label: t('courses') },
     { href: '/rating', icon: Trophy, label: t('rating') },
     { href: '/pricing', icon: CreditCard, label: t('pricing') },
-    { href: '/dashboard/referral', icon: Gift, label: 'Referral' },
-    { href: '/profile', icon: User, label: 'Profil' },
+    { href: '/dashboard/referral', icon: Gift, label: t('referral') },
+    { href: '/profile', icon: User, label: tCommon('profile') },
   ];
 
   const teacherLinks = [
     { href: '/teacher', icon: GraduationCap, label: t('teacher') },
   ];
 
+  // Sayt sahifalarida admin uchun bitta kirish nuqtasi — to'liq guruhlangan
+  // menyu faqat /admin ichida (AdminNav), aks holda ro'yxat juda uzun bo'lardi.
   const adminLinks = [
     { href: '/admin', icon: Shield, label: t('admin') },
-    { href: '/admin/products', icon: CreditCard, label: tAdmin('products') },
-    { href: '/admin/permissions', icon: Shield, label: tAdmin('permissions') },
-    { href: '/admin/subscriptions', icon: Crown, label: tAdmin('subscriptions') },
-    { href: '/admin/subjects', icon: BookOpen, label: tAdmin('subjects') },
   ];
 
   const links = [
@@ -101,7 +104,7 @@ export default function Sidebar({ role, mobileOpen, setMobileOpen }: SidebarProp
   const sidebarContent = (
     <>
       {/* Navigation */}
-      <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+      {isAdminMode ? <AdminNav collapsed={collapsed} /> : <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {links.map((link) => {
           const isExact = pathname === link.href;
           const isPrefix = pathname.startsWith(link.href + '/');
@@ -113,6 +116,8 @@ export default function Sidebar({ role, mobileOpen, setMobileOpen }: SidebarProp
             <Link
               key={link.href}
               href={link.href}
+              aria-label={collapsed ? link.label : undefined}
+              title={collapsed ? link.label : undefined}
               className={cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
                 isActive
@@ -125,7 +130,7 @@ export default function Sidebar({ role, mobileOpen, setMobileOpen }: SidebarProp
             </Link>
           );
         })}
-      </nav>
+      </nav>}
 
       {/* Obunasiz foydalanuvchi uchun taklif. */}
       {showOffer && <div className="p-3 border-t border-border">
@@ -150,15 +155,18 @@ export default function Sidebar({ role, mobileOpen, setMobileOpen }: SidebarProp
       <div className="md:hidden p-3 border-t border-border">
         <div className="flex items-center gap-2 px-3">
           <Globe size={16} className="text-text-secondary" />
-          <span className="text-xs text-text-secondary font-medium">Til:</span>
+          <span className="text-xs text-text-secondary font-medium">{t('language')}</span>
           <div className="flex gap-1 ml-auto">
-            {(['uz', 'ru', 'en'] as const).map((l) => (
+            {locales.map((l) => (
               <button
                 key={l}
-                onClick={() => {
-                  // Language switch handled by LanguageSwitcher component
-                }}
-                className="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-text-secondary hover:bg-primary-100 hover:text-primary-600 transition-colors uppercase"
+                type="button"
+                aria-pressed={l === locale}
+                onClick={() => switchLocale(l)}
+                className={cn(
+                  'min-h-11 min-w-11 px-2 rounded-lg text-xs font-medium transition-colors uppercase',
+                  l === locale ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-text-secondary hover:bg-primary-100 hover:text-primary-600',
+                )}
               >
                 {l}
               </button>
@@ -180,17 +188,19 @@ export default function Sidebar({ role, mobileOpen, setMobileOpen }: SidebarProp
         ) : (
           <button
             onClick={() => signOut({ callbackUrl: '/' })}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-all duration-200"
+            className="w-full min-h-11 flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-all duration-200"
           >
             <LogOut size={20} className="flex-shrink-0" />
-            {!collapsed && <span>Chiqish</span>}
+            {!collapsed && <span>{tCommon('logout')}</span>}
           </button>
         )}
 
         {/* Collapse button only visible on desktop */}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="hidden md:flex w-full items-center justify-center p-2 rounded-xl text-text-secondary hover:bg-primary-50 transition-all"
+          aria-label={collapsed ? t('expand') : t('collapse')}
+          title={collapsed ? t('expand') : t('collapse')}
+          className="hidden md:flex w-full min-h-11 items-center justify-center p-2 rounded-xl text-text-secondary hover:bg-primary-50 transition-all"
         >
           {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
         </button>
@@ -211,10 +221,12 @@ export default function Sidebar({ role, mobileOpen, setMobileOpen }: SidebarProp
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between p-3 border-b border-border">
-              <span className="text-sm font-semibold text-text-primary">Menyu</span>
+              <span className="text-sm font-semibold text-text-primary">{t('menu')}</span>
               <button
                 onClick={() => setMobileOpen(false)}
-                className="p-2 rounded-lg hover:bg-primary-50 transition-colors"
+                aria-label={t('closeMenu')}
+                title={t('closeMenu')}
+                className="min-h-11 min-w-11 flex items-center justify-center rounded-lg hover:bg-primary-50 transition-colors"
               >
                 <X size={18} className="text-text-secondary" />
               </button>

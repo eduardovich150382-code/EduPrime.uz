@@ -4,11 +4,13 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   BookOpen, Search, Loader2, RefreshCw, Eye, EyeOff,
-  Trash2, BarChart3, Users, Clock, Filter,
+  Trash2, BarChart3, Users, Clock, Plus, Pencil,
 } from 'lucide-react';
 import BackButton from '@/components/ui/BackButton';
 import { Link } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
+import ConfirmDialog from '@/components/admin/ConfirmDialog';
+import { actionButtonClass, iconButtonClass } from '@/components/admin/AdminFields';
 
 interface TestData {
   id: string;
@@ -28,7 +30,24 @@ interface TestData {
 
 type StatusFilter = 'all' | 'published' | 'draft';
 
+function getAccessBadge(accessType: string) {
+  switch (accessType) {
+    case 'subscription': return 'bg-purple-100 text-purple-700';
+    case 'premium': return 'bg-purple-100 text-purple-700';
+    case 'teacher': return 'bg-blue-100 text-blue-700';
+    case 'premium_teacher': return 'bg-indigo-100 text-indigo-700';
+    case 'paid': return 'bg-orange-100 text-orange-700';
+    default: return 'bg-green-100 text-green-700';
+  }
+}
+
+const ACCESS_KEYS: Record<string, string> = {
+  premium: 'premium', teacher: 'teacher', premium_teacher: 'premiumTeacher', paid: 'paid',
+};
+
 export default function AdminTestsPage() {
+  const t = useTranslations('adminTests');
+  const tc = useTranslations('adminCommon');
   const tAccess = useTranslations('testAccessForm');
   const [tests, setTests] = useState<TestData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,6 +55,7 @@ export default function AdminTestsPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [total, setTotal] = useState(0);
   const [processing, setProcessing] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<TestData | null>(null);
 
   const fetchTests = async () => {
     setLoading(true);
@@ -62,7 +82,6 @@ export default function AdminTestsPage() {
   }, [search]);
 
   const handleAction = async (testId: string, action: 'publish' | 'unpublish' | 'delete') => {
-    if (action === 'delete' && !confirm("Bu testni o'chirishni tasdiqlaysizmi? Bu amalni ortga qaytarib bo'lmaydi.")) return;
     setProcessing(testId);
     try {
       const res = await fetch('/api/admin/tests', {
@@ -81,60 +100,51 @@ export default function AdminTestsPage() {
         }
       } else {
         const data = await res.json();
-        alert(data.error || 'Xatolik');
+        alert(data.error || tc('error'));
       }
-    } catch { alert('Server xatolik'); }
+    } catch { alert(tc('serverError')); }
     setProcessing(null);
+    setDeleteTarget(null);
   };
 
-  function getAccessBadge(accessType: string) {
-    switch (accessType) {
-      case 'subscription': return 'bg-purple-100 text-purple-700';
-      case 'premium': return 'bg-purple-100 text-purple-700';
-      case 'teacher': return 'bg-blue-100 text-blue-700';
-      case 'premium_teacher': return 'bg-indigo-100 text-indigo-700';
-      case 'paid': return 'bg-orange-100 text-orange-700';
-      default: return 'bg-green-100 text-green-700';
-    }
-  }
-
-  function getAccessLabel(accessType: string) {
-    switch (accessType) {
-      case 'subscription': return tAccess('subscription');
-      case 'premium': return 'Premium';
-      case 'teacher': return 'Ustoz';
-      case 'premium_teacher': return 'Prem+Ustoz';
-      case 'paid': return 'Pullik';
-      default: return 'Bepul';
-    }
-  }
+  const accessLabel = (accessType: string) => {
+    if (accessType === 'subscription') return tAccess('subscription');
+    const key = ACCESS_KEYS[accessType];
+    return key ? t(`access.${key}`) : t('access.free');
+  };
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-      <BackButton className="mb-2" />
+      <BackButton className="mb-2 min-h-11" />
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
         className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
       >
         <div>
           <h1 className="text-2xl font-bold text-text-primary flex items-center gap-2">
-            <BookOpen size={24} className="text-primary-600" />
-            Testlar boshqaruvi
+            <BookOpen size={24} className="text-primary-600" aria-hidden />
+            {t('title')}
           </h1>
-          <p className="text-text-secondary text-sm mt-1">Jami: {total} ta test</p>
+          <p className="text-text-secondary text-sm mt-1">{t('total', { count: total })}</p>
         </div>
-        <Link href="/teacher/tests/create" className="btn-primary min-h-11">{tAccess('create')}</Link>
-        <button onClick={fetchTests} className="btn-ghost flex items-center gap-2 self-start">
-          <RefreshCw size={16} /> Yangilash
-        </button>
+        <div className="flex flex-wrap gap-2 self-start">
+          {/* Test yaratish ustoz panelida — admin ham o'sha konstruktordan foydalanadi. */}
+          <Link href="/teacher/tests/create" className="btn-primary min-h-11 inline-flex items-center gap-2">
+            <Plus size={16} aria-hidden /> {t('newTest')}
+          </Link>
+          <button type="button" onClick={fetchTests} className="btn-ghost min-h-11 flex items-center gap-2">
+            <RefreshCw size={16} aria-hidden /> {tc('refresh')}
+          </button>
+        </div>
       </motion.div>
 
       {/* Search + Filter */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" />
+          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" aria-hidden />
           <input
             type="text"
-            placeholder="Test nomi bo'yicha qidirish..."
+            aria-label={t('searchPlaceholder')}
+            placeholder={t('searchPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-11 pr-4 py-3 rounded-xl border border-border bg-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all"
@@ -144,14 +154,16 @@ export default function AdminTestsPage() {
           {(['all', 'published', 'draft'] as StatusFilter[]).map((s) => (
             <button
               key={s}
+              type="button"
+              aria-pressed={statusFilter === s}
               onClick={() => setStatusFilter(s)}
-              className={`px-3 py-2 rounded-xl text-sm font-medium transition-all ${
+              className={`min-h-11 px-3 py-2 rounded-xl text-sm font-medium transition-all ${
                 statusFilter === s
                   ? 'bg-primary-600 text-white'
                   : 'bg-white border border-border text-text-secondary hover:border-primary-200'
               }`}
             >
-              {s === 'all' ? 'Hammasi' : s === 'published' ? 'Nashr' : 'Qoralama'}
+              {t(`filters.${s}`)}
             </button>
           ))}
         </div>
@@ -164,8 +176,8 @@ export default function AdminTestsPage() {
         </div>
       ) : tests.length === 0 ? (
         <div className="card p-12 text-center">
-          <BookOpen size={48} className="text-text-secondary mx-auto mb-4 opacity-30" />
-          <p className="text-text-secondary">Testlar topilmadi</p>
+          <BookOpen size={48} className="text-text-secondary mx-auto mb-4 opacity-30" aria-hidden />
+          <p className="text-text-secondary">{t('empty')}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -184,57 +196,76 @@ export default function AdminTestsPage() {
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
                       test.isPublished ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
                     }`}>
-                      {test.isPublished ? 'Nashr' : 'Qoralama'}
+                      {test.isPublished ? t('published') : t('draft')}
                     </span>
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${getAccessBadge(test.accessType)}`}>
-                      {getAccessLabel(test.accessType)}
+                      {accessLabel(test.accessType)}
                     </span>
                   </div>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-secondary">
                     <span>{test.subject.icon} {test.subject.nameUz}</span>
-                    {test.teacherName && <span>Ustoz: {test.teacherName}</span>}
-                    <span className="flex items-center gap-1"><BookOpen size={10} /> {test.questionCount} savol</span>
-                    <span className="flex items-center gap-1"><Clock size={10} /> {test.duration} min</span>
-                    <span className="flex items-center gap-1"><Users size={10} /> {test.attempts} marta</span>
-                    <span className="flex items-center gap-1"><BarChart3 size={10} /> {test.avgScore}% o&apos;rtacha</span>
+                    {test.teacherName && <span>{t('teacher', { name: test.teacherName })}</span>}
+                    <span className="flex items-center gap-1"><BookOpen size={10} aria-hidden /> {t('questions', { count: test.questionCount })}</span>
+                    <span className="flex items-center gap-1"><Clock size={10} aria-hidden /> {t('minutes', { count: test.duration })}</span>
+                    <span className="flex items-center gap-1"><Users size={10} aria-hidden /> {t('attempts', { count: test.attempts })}</span>
+                    <span className="flex items-center gap-1"><BarChart3 size={10} aria-hidden /> {t('avgScore', { value: test.avgScore })}</span>
                   </div>
                 </div>
 
                 {/* Actions */}
                 <div className="flex items-center gap-1 flex-shrink-0">
-                  <Link href={`/teacher/tests/${test.id}/edit`} className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg px-2 text-sm text-primary-600">{tAccess('edit')}</Link>
+                  <Link href={`/teacher/tests/${test.id}/edit`} className={`${actionButtonClass} text-primary-600 hover:bg-primary-50`}>
+                    <Pencil size={14} aria-hidden /> {tAccess('edit')}
+                  </Link>
                   {test.isPublished ? (
                     <button
+                      type="button"
                       onClick={() => handleAction(test.id, 'unpublish')}
                       disabled={processing === test.id}
-                      className="p-2 rounded-lg text-yellow-600 hover:bg-yellow-50 transition-colors disabled:opacity-50"
-                      title="Nashrdan olish"
+                      className={`${iconButtonClass} text-yellow-600 hover:bg-yellow-50`}
+                      title={t('unpublish')}
+                      aria-label={t('unpublish')}
                     >
-                      <EyeOff size={16} />
+                      <EyeOff size={16} aria-hidden />
                     </button>
                   ) : (
                     <button
+                      type="button"
                       onClick={() => handleAction(test.id, 'publish')}
                       disabled={processing === test.id}
-                      className="p-2 rounded-lg text-green-600 hover:bg-green-50 transition-colors disabled:opacity-50"
-                      title="Nashr qilish"
+                      className={`${iconButtonClass} text-green-600 hover:bg-green-50`}
+                      title={t('publish')}
+                      aria-label={t('publish')}
                     >
-                      <Eye size={16} />
+                      <Eye size={16} aria-hidden />
                     </button>
                   )}
                   <button
-                    onClick={() => handleAction(test.id, 'delete')}
+                    type="button"
+                    onClick={() => setDeleteTarget(test)}
                     disabled={processing === test.id}
-                    className="p-2 rounded-lg text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
-                    title="O'chirish"
+                    className={`${iconButtonClass} text-red-600 hover:bg-red-50`}
+                    title={t('delete')}
+                    aria-label={t('delete')}
                   >
-                    {processing === test.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                    {processing === test.id ? <Loader2 size={16} className="animate-spin" aria-hidden /> : <Trash2 size={16} aria-hidden />}
                   </button>
                 </div>
               </div>
             </motion.div>
           ))}
         </div>
+      )}
+
+      {deleteTarget && (
+        <ConfirmDialog
+          title={t('deleteTitle')}
+          body={t('deleteBody', { title: deleteTarget.titleUz })}
+          confirmLabel={t('delete')}
+          busy={processing === deleteTarget.id}
+          onConfirm={() => void handleAction(deleteTarget.id, 'delete')}
+          onClose={() => setDeleteTarget(null)}
+        />
       )}
     </div>
   );

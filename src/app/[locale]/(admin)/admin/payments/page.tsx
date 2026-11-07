@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
   CreditCard, CheckCircle, XCircle, Clock, User,
@@ -11,6 +12,9 @@ import BackButton from '@/components/ui/BackButton';
 import PaymentProductDetails, { type ProductPaymentDetails } from '@/components/admin/PaymentProductDetails';
 import SendMessageDialog, { type MessageRecipient, type MessageTemplate } from '@/components/admin/SendMessageDialog';
 import { useTranslations } from 'next-intl';
+import ConfirmDialog from '@/components/admin/ConfirmDialog';
+import { iconButtonClass } from '@/components/admin/AdminFields';
+import { getDurationLabel, getPlanLabel, initialStatusFilter, type PaymentsTranslator } from '@/components/admin/payment-labels';
 
 interface PaymentData extends ProductPaymentDetails {
   id: string;
@@ -37,38 +41,34 @@ interface PaymentData extends ProductPaymentDetails {
 
 type SortDirection = 'none' | 'asc' | 'desc';
 
-function getStatusBadge(status: string) {
+function getStatusBadge(status: string, t: PaymentsTranslator) {
   switch (status) {
     case 'CONFIRMED':
-      return <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-medium"><CheckCircle size={12} /> Tasdiqlangan</span>;
+      return <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-medium"><CheckCircle size={12} /> {t('status.confirmed')}</span>;
     case 'REJECTED':
-      return <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-medium"><XCircle size={12} /> Rad</span>;
+      return <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-medium"><XCircle size={12} /> {t('status.rejected')}</span>;
     default:
-      return <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 text-xs font-medium"><Clock size={12} /> Kutilmoqda</span>;
+      return <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 text-xs font-medium"><Clock size={12} /> {t('status.pending')}</span>;
   }
 }
 
-function getDurationLabel(d: string) {
-  switch (d) {
-    case 'ONE_MONTH': return '1 oy';
-    case 'THREE_MONTHS': return '3 oy';
-    case 'SIX_MONTHS': return '6 oy';
-    case 'ONE_YEAR': return '1 yil';
-    default: return d;
-  }
-}
-
-function getPlanLabel(p: string) {
-  return p === 'PREMIUM' ? 'Premium' : p === 'TEACHER_PLAN' ? 'Ustoz' : p;
-}
-
+// useSearchParams Suspense chegarasini talab qiladi (aks holda Next 15 build xatosi).
 export default function AdminPaymentsPage() {
+  return <Suspense fallback={null}><AdminPaymentsContent /></Suspense>;
+}
+
+function AdminPaymentsContent() {
   const t = useTranslations('checkout');
+  const tp = useTranslations('adminPayments');
+  const tc = useTranslations('adminCommon');
   const tm = useTranslations('adminMessage');
+  const searchParams = useSearchParams();
   const [includeUnreceipted, setIncludeUnreceipted] = useState(false);
   const [payments, setPayments] = useState<PaymentData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState('');
+  // Dashboard kartasi `?status=PENDING` bilan ochadi — shu boshlang'ich filtr.
+  const [statusFilter, setStatusFilter] = useState(() => initialStatusFilter(searchParams.get('status')));
+  const [rejectTarget, setRejectTarget] = useState<PaymentData | null>(null);
   const [amountSort, setAmountSort] = useState<SortDirection>('none');
   const [counts, setCounts] = useState({ pending: 0, confirmed: 0, rejected: 0 });
   const [processing, setProcessing] = useState<string | null>(null);
@@ -113,16 +113,17 @@ export default function AdminPaymentsPage() {
         body: JSON.stringify({ paymentId, action, ...(replacementOfferId ? { replacementOfferId } : {}) }),
       });
       if (res.ok) fetchPayments();
-      else { const d = await res.json(); alert(d.error === 'EXPIRED_OFFER' ? t('expired') : d.error === 'INVALID_REPLACEMENT' ? t('invalidReplacement') : d.error || 'Xatolik'); }
-    } catch { alert('Server xatolik'); }
+      else { const d = await res.json(); alert(d.error === 'EXPIRED_OFFER' ? t('expired') : d.error === 'INVALID_REPLACEMENT' ? t('invalidReplacement') : d.error || tc('error')); }
+    } catch { alert(tc('serverError')); }
     setProcessing(null);
+    setRejectTarget(null);
   };
 
   // CSV Export
   const exportCSV = () => {
-    const header = 'Ism,Telegram,Tarif,Muddat,Summa,Holat,Sana\n';
+    const header = `${tp('csvHeader')}\n`;
     const rows = payments.map(p =>
-      `"${p.user.name || ''}","${p.user.telegramUsername || ''}","${getPlanLabel(p.plan)}","${getDurationLabel(p.duration)}",${p.amount},"${p.status}","${new Date(p.createdAt).toLocaleDateString('uz-UZ')}"`
+      `"${p.user.name || ''}","${p.user.telegramUsername || ''}","${getPlanLabel(p.plan, tp)}","${getDurationLabel(p.duration, tp)}",${p.amount},"${p.status}","${new Date(p.createdAt).toLocaleDateString('uz-UZ')}"`
     ).join('\n');
     const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -148,23 +149,23 @@ export default function AdminPaymentsPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      <BackButton className="mb-2" />
+      <BackButton className="mb-2 min-h-11" />
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
         className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
       >
         <div>
           <h1 className="text-2xl font-bold text-text-primary flex items-center gap-2">
             <CreditCard size={24} className="text-primary-600" />
-            To&apos;lovlar
+            {tp('title')}
           </h1>
-          <p className="text-text-secondary mt-1">Barcha to&apos;lovlar va daromad statistikasi</p>
+          <p className="text-text-secondary mt-1">{tp('subtitle')}</p>
         </div>
         <div className="flex gap-2 self-start">
-          <button onClick={exportCSV} className="btn-ghost flex items-center gap-2 text-sm">
-            <Download size={16} /> CSV
+          <button onClick={exportCSV} className="btn-ghost min-h-11 flex items-center gap-2 text-sm">
+            <Download size={16} aria-hidden /> CSV
           </button>
-          <button onClick={fetchPayments} className="btn-ghost flex items-center gap-2 text-sm">
-            <RefreshCw size={16} /> Yangilash
+          <button onClick={fetchPayments} className="btn-ghost min-h-11 flex items-center gap-2 text-sm">
+            <RefreshCw size={16} aria-hidden /> {tc('refresh')}
           </button>
         </div>
       </motion.div>
@@ -173,24 +174,27 @@ export default function AdminPaymentsPage() {
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         <div className="card p-4 col-span-2 sm:col-span-2 bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
           <TrendingUp size={18} className="text-green-600 mb-1" />
-          <p className="text-xl font-bold text-green-700">{totalRevenue.toLocaleString()} <span className="text-sm font-normal">so&apos;m</span></p>
-          <p className="text-xs text-green-600">Jami daromad (tasdiqlangan)</p>
-          <p className="text-xs text-text-secondary mt-1">Bu oy: {thisMonthRevenue.toLocaleString()} so&apos;m</p>
+          <p className="text-xl font-bold text-green-700">{totalRevenue.toLocaleString()} <span className="text-sm font-normal">{tp('currency')}</span></p>
+          <p className="text-xs text-green-600">{tp('totalRevenue')}</p>
+          <p className="text-xs text-text-secondary mt-1">{tp('thisMonth', { amount: thisMonthRevenue.toLocaleString() })}</p>
         </div>
         <button onClick={() => setStatusFilter(statusFilter === 'PENDING' ? '' : 'PENDING')}
+          aria-pressed={statusFilter === 'PENDING'}
           className={`card p-3 text-center transition-all ${statusFilter === 'PENDING' ? 'ring-2 ring-yellow-400' : ''}`}>
           <p className="text-xl font-bold text-yellow-600">{counts.pending}</p>
-          <p className="text-[10px] text-text-secondary">Kutilmoqda</p>
+          <p className="text-[10px] text-text-secondary">{tp('status.pending')}</p>
         </button>
         <button onClick={() => setStatusFilter(statusFilter === 'CONFIRMED' ? '' : 'CONFIRMED')}
+          aria-pressed={statusFilter === 'CONFIRMED'}
           className={`card p-3 text-center transition-all ${statusFilter === 'CONFIRMED' ? 'ring-2 ring-green-400' : ''}`}>
           <p className="text-xl font-bold text-green-600">{counts.confirmed}</p>
-          <p className="text-[10px] text-text-secondary">Tasdiqlangan</p>
+          <p className="text-[10px] text-text-secondary">{tp('status.confirmed')}</p>
         </button>
         <button onClick={() => setStatusFilter(statusFilter === 'REJECTED' ? '' : 'REJECTED')}
+          aria-pressed={statusFilter === 'REJECTED'}
           className={`card p-3 text-center transition-all ${statusFilter === 'REJECTED' ? 'ring-2 ring-red-400' : ''}`}>
           <p className="text-xl font-bold text-red-600">{counts.rejected}</p>
-          <p className="text-[10px] text-text-secondary">Rad etilgan</p>
+          <p className="text-[10px] text-text-secondary">{tp('rejectedCount')}</p>
         </button>
       </div>
 
@@ -201,24 +205,24 @@ export default function AdminPaymentsPage() {
 
       {/* Amount Sort Filter */}
       <div className="flex items-center gap-3">
-        <span className="text-sm text-text-secondary">Saralash:</span>
+        <span className="text-sm text-text-secondary">{tp('sort')}</span>
         <button
           onClick={cycleAmountSort}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
+          className={`flex min-h-11 items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
             amountSort !== 'none'
               ? 'bg-primary-50 border-primary-200 text-primary-700'
               : 'bg-white border-border text-text-secondary hover:bg-gray-50'
           }`}
         >
           {getSortIcon()}
-          Summa {amountSort === 'asc' ? '(kichik→katta)' : amountSort === 'desc' ? '(katta→kichik)' : ''}
+          {tp('amountSort')} {amountSort === 'asc' ? tp('ascending') : amountSort === 'desc' ? tp('descending') : ''}
         </button>
         {amountSort !== 'none' && (
           <button
             onClick={() => setAmountSort('none')}
-            className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs text-red-600 hover:bg-red-50 transition-colors"
+            className="flex min-h-11 items-center gap-1 px-2 py-1.5 rounded-lg text-xs text-red-600 hover:bg-red-50 transition-colors"
           >
-            <X size={12} /> Tozalash
+            <X size={12} aria-hidden /> {tp('clearSort')}
           </button>
         )}
       </div>
@@ -227,7 +231,7 @@ export default function AdminPaymentsPage() {
       {loading ? (
         <div className="card p-12 text-center"><Loader2 size={32} className="animate-spin text-primary-600 mx-auto" /></div>
       ) : sortedPayments.length === 0 ? (
-        <div className="card p-12 text-center"><CreditCard size={48} className="text-text-secondary mx-auto mb-4 opacity-30" /><p className="text-text-secondary">To&apos;lovlar topilmadi</p></div>
+        <div className="card p-12 text-center"><CreditCard size={48} className="text-text-secondary mx-auto mb-4 opacity-30" /><p className="text-text-secondary">{tp('empty')}</p></div>
       ) : (
         <div className="space-y-3">
           {sortedPayments.map((payment) => (
@@ -245,19 +249,19 @@ export default function AdminPaymentsPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2 mb-1">
                     <div className="flex items-center gap-1.5 min-w-0">
-                      <p className="font-medium text-text-primary text-sm truncate">{payment.user.name || 'Nomsiz'}</p>
+                      <p className="font-medium text-text-primary text-sm truncate">{payment.user.name || tc('unnamed')}</p>
                       <span className={`flex-shrink-0 px-1.5 py-0.5 rounded-full text-[10px] font-medium ${payment.user.hasTelegram ? 'bg-sky-100 text-sky-700' : 'bg-gray-100 text-text-secondary'}`}>
                         {payment.user.hasTelegram ? tm('telegramLinked') : tm('telegramNotLinked')}
                       </span>
                     </div>
-                    {getStatusBadge(payment.status)}
+                    {getStatusBadge(payment.status, tp)}
                   </div>
                   <p className="text-xs text-text-secondary mb-2">
                     {payment.user.telegramUsername ? `@${payment.user.telegramUsername}` : payment.user.email}
                   </p>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-secondary">
-                    <span className="font-semibold text-text-primary">{payment.amount.toLocaleString()} so&apos;m</span>
-                    {!payment.product && <span>{getPlanLabel(payment.plan)} ({getDurationLabel(payment.duration)})</span>}
+                    <span className="font-semibold text-text-primary">{tp('amount', { amount: payment.amount.toLocaleString() })}</span>
+                    {!payment.product && <span>{getPlanLabel(payment.plan, tp)} ({getDurationLabel(payment.duration, tp)})</span>}
                     <span>{new Date(payment.createdAt).toLocaleDateString('uz-UZ')}</span>
                   </div>
                   <PaymentProductDetails payment={payment} processing={processing === payment.id} onConfirm={(offerId) => handleAction(payment.id, 'confirm', offerId)} />
@@ -269,20 +273,20 @@ export default function AdminPaymentsPage() {
                           setReceiptLoading(true);
                           setViewingReceipt(payment.receiptPhoto);
                         }}
-                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-blue-50 text-blue-700 text-xs font-medium hover:bg-blue-100 transition-colors"
+                        className="flex min-h-11 items-center gap-1 px-3 rounded-lg bg-blue-50 text-blue-700 text-xs font-medium hover:bg-blue-100 transition-colors"
                       >
-                        <Eye size={12} /> Chekni ko&apos;rish
+                        <Eye size={12} aria-hidden /> {tp('viewReceipt')}
                       </button>
                     )}
                     {payment.status === 'PENDING' && (
                       <>
                         <button onClick={() => handleAction(payment.id, 'confirm')} disabled={processing === payment.id}
-                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-green-100 text-green-700 text-xs font-medium hover:bg-green-200 transition-colors disabled:opacity-50">
-                          <CheckCircle size={12} /> Tasdiqlash
+                          className="flex min-h-11 items-center gap-1 px-3 rounded-lg bg-green-100 text-green-700 text-xs font-medium hover:bg-green-200 transition-colors disabled:opacity-50">
+                          <CheckCircle size={12} aria-hidden /> {tp('confirm')}
                         </button>
-                        <button onClick={() => handleAction(payment.id, 'reject')} disabled={processing === payment.id}
-                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-red-100 text-red-700 text-xs font-medium hover:bg-red-200 transition-colors disabled:opacity-50">
-                          <XCircle size={12} /> Rad
+                        <button onClick={() => setRejectTarget(payment)} disabled={processing === payment.id}
+                          className="flex min-h-11 items-center gap-1 px-3 rounded-lg border border-red-200 bg-red-50 text-red-700 text-xs font-medium hover:bg-red-100 transition-colors disabled:opacity-50">
+                          <XCircle size={12} aria-hidden /> {tp('reject')}
                         </button>
                       </>
                     )}
@@ -297,7 +301,7 @@ export default function AdminPaymentsPage() {
                     </button>
                     {payment.confirmedBy && payment.status !== 'PENDING' && (
                       <span className="text-[10px] text-text-secondary">
-                        {payment.confirmedBy.name} tomonidan
+                        {tp('confirmedBy', { name: payment.confirmedBy.name ?? '—' })}
                       </span>
                     )}
                   </div>
@@ -312,6 +316,17 @@ export default function AdminPaymentsPage() {
         <SendMessageDialog open user={messageTarget.user} defaultTemplate={messageTarget.template} onClose={() => setMessageTarget(null)} />
       )}
 
+      {rejectTarget && (
+        <ConfirmDialog
+          title={tp('rejectTitle')}
+          body={tp('rejectBody', { name: rejectTarget.user.name || tc('unnamed'), amount: rejectTarget.amount.toLocaleString() })}
+          confirmLabel={tp('reject')}
+          busy={processing === rejectTarget.id}
+          onConfirm={() => void handleAction(rejectTarget.id, 'reject')}
+          onClose={() => setRejectTarget(null)}
+        />
+      )}
+
       {/* Receipt Photo/PDF Modal */}
       {viewingReceipt && (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setViewingReceipt(null)}>
@@ -320,20 +335,21 @@ export default function AdminPaymentsPage() {
             <div className="flex items-center justify-between p-4 border-b border-border">
               <h3 className="font-semibold text-text-primary flex items-center gap-2">
                 <CreditCard size={18} className="text-primary-600" />
-                To&apos;lov cheki
+                {tp('receipt')}
               </h3>
               <div className="flex items-center gap-2">
                 <a
                   href={viewingReceipt}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2 rounded-lg hover:bg-gray-100 text-text-secondary hover:text-primary-600 transition-colors"
-                  title="Yangi tabda ochish"
+                  className={`${iconButtonClass} hover:bg-gray-100 text-text-secondary hover:text-primary-600`}
+                  title={tp('openInNewTab')}
+                  aria-label={tp('openInNewTab')}
                 >
-                  <Download size={18} />
+                  <Download size={18} aria-hidden />
                 </a>
-                <button onClick={() => setViewingReceipt(null)} className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                  <X size={20} />
+                <button onClick={() => setViewingReceipt(null)} className={`${iconButtonClass} hover:bg-gray-100`} title={tc('close')} aria-label={tc('close')}>
+                  <X size={20} aria-hidden />
                 </button>
               </div>
             </div>
@@ -348,14 +364,14 @@ export default function AdminPaymentsPage() {
                   <iframe
                     src={viewingReceipt}
                     className="w-full h-full rounded-lg border border-border"
-                    title="To'lov cheki PDF"
+                    title={tp('receipt')}
                     onLoad={() => setReceiptLoading(false)}
                   />
                 </div>
               ) : (
                 <img
                   src={viewingReceipt}
-                  alt="To'lov cheki"
+                  alt={tp('receipt')}
                   className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-sm"
                   onLoad={() => setReceiptLoading(false)}
                   onError={() => setReceiptLoading(false)}

@@ -182,7 +182,14 @@
     "rating": "Рейтинг",
     "pricing": "Тарифы",
     "teacher": "Панель учителя",
-    "admin": "Админ панель"
+    "admin": "Админ панель",
+    "courses": "Курсы",
+    "referral": "Рефералы",
+    "language": "Язык:",
+    "menu": "Меню",
+    "closeMenu": "Закрыть меню",
+    "collapse": "Свернуть меню",
+    "expand": "Развернуть меню"
   },
   "auth": {
     "loginTitle": "Вход в систему",
@@ -965,7 +972,11 @@
     "cancelConfirmTitle": "Отменить подписку?",
     "cancelConfirmBody": "Подписка «{name}» закроется сразу, и пользователь потеряет доступ. Запись не удаляется — восстановить можно до {date}.",
     "restoreConfirmTitle": "Восстановить подписку?",
-    "restoreConfirmBody": "Подписка «{name}» снова будет активна до {date}."
+    "restoreConfirmBody": "Подписка «{name}» снова будет активна до {date}.",
+    "revokeConfirmTitle": "Отозвать доступ?",
+    "revokeConfirmBody": "{name}: {scope}",
+    "deactivateConfirmTitle": "Отключить предложение?",
+    "deactivateConfirmBody": "«{name}» исчезнет со страницы тарифов."
   },
   "adminUsersPager": {
     "prev": "Назад",
@@ -1247,5 +1258,234 @@
       "adTestFinished": "Завершили тест",
       "paid": "Оплатили"
     }
+  },
+  "adminNav": {
+    "title": "Меню администратора",
+    "backToSite": "Вернуться на сайт",
+    "groups": {
+      "general": "Общее",
+      "people": "Пользователи",
+      "content": "Контент",
+      "finance": "Финансы",
+      "marketing": "Маркетинг",
+      "system": "Система"
+    },
+    "items": {
+      "home": "Главная",
+      "users": "Пользователи",
+      "teachers": "Учителя",
+      "notifications": "Сообщения",
+      "tests": "Тесты",
+      "subjects": "Предметы",
+      "payments": "Платежи",
+      "subscriptions": "Подписки",
+      "products": "Продукты и цены",
+      "permissions": "Доступы",
+      "adSources": "Рекламные источники",
+      "settings": "Настройки"
+    }
+  },
+  "adminCommon": {
+    "back": "Назад",
+    "processing": "Выполняется...",
+    "refresh": "Обновить",
+    "error": "Произошла ошибка",
+    "serverError": "Ошибка связи с сервером",
+    "close": "Закрыть",
+    "unnamed": "Без имени",
+    "loading": "Загрузка..."
+  },
+  "adminDashboard": {
+    "title": "Админ-панель",
+    "subtitle": "Управление платформой",
+    "loadError": "Ошибка загрузки данных",
+    "stats": {
+      "todayNewUsers": "Новые сегодня",
+      "todayTests": "Тесты сегодня",
+      "pendingPayments": "Ожидают оплаты",
+      "activeSubscriptions": "Активные подписки",
+      "totalUsers": "Всего пользователей",
+      "totalTests": "Всего тестов"
+    },
+    "explanationCoverage": "Вопросы с письменным решением:",
+    "weeklyGrowth": "Рост за неделю (новые пользователи)",
+    "topTests": "Топ тестов",
+    "noTests": "Тестов нет",
+    "attempts": "{count, plural, one {# раз} few {# раза} many {# раз} other {# раза}}",
+    "recentPayments": "Последние платежи",
+    "allPayments": "Все платежи",
+    "noPayments": "Платежей нет",
+    "unnamed": "Без имени",
+    "amount": "{amount} сум",
+    "status": {
+      "confirmed": "Подтверждён",
+      "rejected": "Отклонён",
+      "pending": "Ожидает"
+    }
+  },
+  "adminPayments": {
+    "title": "Платежи",
+    "subtitle": "Все платежи и статистика доходов",
+    "csvHeader": "Имя,Telegram,Тариф,Срок,Сумма,Статус,Дата",
+    "currency": "сум",
+    "amount": "{amount} сум",
+    "totalRevenue": "Общий доход (подтверждённые)",
+    "thisMonth": "В этом месяце: {amount} сум",
+    "rejectedCount": "Отклонённые",
+    "sort": "Сортировка:",
+    "amountSort": "Сумма",
+    "ascending": "(по возрастанию)",
+    "descending": "(по убыванию)",
+    "clearSort": "Сбросить",
+    "empty": "Платежи не найдены",
+    "viewReceipt": "Посмотреть чек",
+    "confirm": "Подтвердить",
+    "reject": "Отклонить",
+    "confirmedBy": "Кем: {name}",
+    "rejectTitle": "Отклонить платёж?",
+    "rejectBody": "{name} — {amount} сум. По отклонённому платежу подписка не откроется.",
+    "receipt": "Чек оплаты",
+    "openInNewTab": "Открыть в новой вкладке",
+    "status": {
+      "confirmed": "Подтверждён",
+      "rejected": "Отклонён",
+      "pending": "Ожидает"
+    },
+    "duration": {
+      "oneMonth": "1 месяц",
+      "threeMonths": "3 месяца",
+      "sixMonths": "6 месяцев",
+      "oneYear": "1 год"
+    },
+    "plan": {
+      "premium": "Премиум",
+      "teacher": "Учитель"
+    }
+  },
+  "adminUsers": {
+    "title": "Пользователи",
+    "total": "Всего: {count}",
+    "searchPlaceholder": "Поиск по имени, email или telegram...",
+    "empty": "Пользователи не найдены",
+    "testsCount": "{count, plural, one {# тест} few {# теста} many {# тестов} other {# теста}}",
+    "registeredAt": "Регистрация: {date}",
+    "banned": "Заблокирован",
+    "profile": "Профиль",
+    "message": "Сообщение",
+    "columns": {
+      "user": "Пользователь",
+      "role": "Роль",
+      "tests": "Тесты",
+      "date": "Дата",
+      "actions": "Действия"
+    },
+    "roles": {
+      "USER": "Ученик",
+      "TEACHER": "Учитель",
+      "ADMIN": "Админ"
+    },
+    "profileTitle": "Профиль пользователя",
+    "profileNotFound": "Данные не найдены",
+    "fields": {
+      "tests": "Тесты:",
+      "referrals": "Рефералы:",
+      "payments": "Платежи:",
+      "registered": "Регистрация:",
+      "lastActive": "Последняя активность:",
+      "role": "Роль"
+    },
+    "testHistory": "История тестов (последние 20)",
+    "ban": "Заблокировать",
+    "unban": "Разблокировать",
+    "banTitle": "Заблокировать пользователя?",
+    "banBody": "{name} не сможет войти на сайт. Позже можно разблокировать.",
+    "unbanTitle": "Разблокировать?",
+    "unbanBody": "{name} снова сможет пользоваться сайтом.",
+    "banReason": "Причина (необязательно)",
+    "roleTitle": "Изменить роль?",
+    "roleBody": "{name}: {from} → {to}",
+    "roleConfirm": "Изменить роль"
+  },
+  "adminTests": {
+    "title": "Управление тестами",
+    "total": "Всего тестов: {count}",
+    "newTest": "Новый тест",
+    "searchPlaceholder": "Поиск по названию теста...",
+    "filters": {
+      "all": "Все",
+      "published": "Опубликованные",
+      "draft": "Черновики"
+    },
+    "empty": "Тесты не найдены",
+    "published": "Опубликован",
+    "draft": "Черновик",
+    "teacher": "Учитель: {name}",
+    "questions": "{count, plural, one {# вопрос} few {# вопроса} many {# вопросов} other {# вопроса}}",
+    "minutes": "{count} мин",
+    "attempts": "{count, plural, one {# раз} few {# раза} many {# раз} other {# раза}}",
+    "avgScore": "{value}% в среднем",
+    "publish": "Опубликовать",
+    "unpublish": "Снять с публикации",
+    "delete": "Удалить",
+    "deleteTitle": "Удалить тест?",
+    "deleteBody": "«{title}» будет удалён навсегда. Это действие нельзя отменить.",
+    "access": {
+      "premium": "Премиум",
+      "teacher": "Учитель",
+      "premiumTeacher": "Прем+Учитель",
+      "paid": "Платный",
+      "free": "Бесплатный"
+    }
+  },
+  "adminTeachers": {
+    "title": "Учителя",
+    "total": "Всего учителей: {count}",
+    "empty": "Учителя не найдены",
+    "verified": "Подтверждён",
+    "unverified": "Не подтверждён",
+    "tests": "{count, plural, one {# тест} few {# теста} many {# тестов} other {# теста}}",
+    "verify": "Подтвердить",
+    "revoke": "Отменить подтверждение",
+    "revokeTitle": "Отменить подтверждение?",
+    "revokeBody": "{name} вернётся в статус неподтверждённого учителя."
+  },
+  "adminNotifications": {
+    "title": "Отправка сообщений",
+    "subtitle": "Целевое или общее уведомление",
+    "tabs": {
+      "send": "Отправить",
+      "history": "История",
+      "templates": "Шаблоны"
+    },
+    "audience": "Кому отправить",
+    "targets": {
+      "all": "Всем",
+      "free": "Бесплатным",
+      "premium": "Премиум",
+      "teacher": "Учителям"
+    },
+    "type": "Тип сообщения",
+    "types": {
+      "info": "Информация",
+      "success": "Успех",
+      "warning": "Предупреждение",
+      "reminder": "Напоминание"
+    },
+    "fieldTitle": "Заголовок *",
+    "fieldMessage": "Текст сообщения *",
+    "fieldLink": "Ссылка (необязательно)",
+    "sending": "Отправка...",
+    "sent": "Сообщение отправлено пользователям: {count}",
+    "error": "Произошла ошибка",
+    "networkError": "Ошибка связи с сервером",
+    "historyTitle": "История отправленных сообщений",
+    "historyEmpty": "Сообщений ещё не было",
+    "recipients": "Получателей: {count}",
+    "templatesTitle": "Готовые шаблоны",
+    "useTemplate": "Выбрать",
+    "templatesHelp": "При выборе шаблона откроется вкладка «Отправить» с заполненными полями.",
+    "confirmTitle": "Отправить сообщение?",
+    "confirmBody": "Аудитория: {audience}. Отправленное сообщение нельзя отозвать.",
+    "confirmSend": "Да, отправить"
   }
 }
