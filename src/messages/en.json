@@ -1174,7 +1174,8 @@
     "stepReward": "{friends, plural, one {# friend} other {# friends}} = {days, plural, one {# day} other {# days}} of free access (attestation not included)"
   },
   "telegramBot": {
-    "welcome": "🎓 <b>EduPrime</b> — a platform to prepare for attestation and exams\n\nHello, {name}! 👋\n\n✅ Attestation tests based on the official specification\n✅ A detailed step-by-step solution for every question\n✅ Result analysis and your place on the leaderboard\n✅ All right here — inside Telegram, no password or sign-up\n\n👇 Tap <b>“EduPrime.uz”</b> to get started.",
+    "welcome": "🎓 <b>EduPrime</b> — a platform to prepare for attestation and exams\n\nHello, {name}! 👋\n\n✅ Attestation tests based on the official specification\n✅ A detailed step-by-step solution for every question\n✅ Result analysis and your place on the leaderboard\n✅ All right here — inside Telegram, no password or sign-up",
+    "welcomeCta": "👇 Tap <b>“EduPrime.uz”</b> to get started.",
     "referredWelcome": "🤝 A friend invited you — welcome to EduPrime!",
     "friend": "friend",
     "menuHint": "⬇️ Use the menu below to see your results, the leaderboard and more in one tap.",
@@ -1226,6 +1227,14 @@
       "subscribe": "Buy a subscription",
       "login": "Website login link",
       "help": "Help"
+    },
+    "channelGate": {
+      "prompt": "📢 To keep using the bot, please join our channel <b>@EduPrimeFizika</b>.\n\nOnce you've joined, tap <b>“✅ I've joined”</b> 👇",
+      "join": "📢 Join the channel",
+      "check": "✅ I've joined",
+      "notSubscribed": "❗ You haven't joined @EduPrimeFizika yet. Join the channel first, then tap “I've joined” again.",
+      "confirmed": "✅ <b>Thanks, subscription confirmed!</b>",
+      "confirmedToast": "✅ Subscription confirmed!"
     }
   },
   "telegramMiniApp": {

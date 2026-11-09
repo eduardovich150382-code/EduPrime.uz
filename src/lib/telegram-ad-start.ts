@@ -14,14 +14,16 @@ export function adTestPath(testId: string | null): string {
   return testId ? `/tests/${testId}/solve` : '/attestation';
 }
 
+export function adStartMarkup(appUrl: string, testId: string | null) {
+  return {
+    inline_keyboard: [
+      [btn.success(AD_TEST_BUTTON, { web_app: { url: miniAppUrl(appUrl, adTestPath(testId)) } })],
+      // co:list — mavjud checkout'ning mahsulot tanlovi (telegram-category-checkout.ts).
+      [btn.primary(AD_SUBSCRIBE_BUTTON, { callback_data: 'co:list' })],
+    ],
+  };
+}
+
 export async function sendAdStart(chatId: number, appUrl: string, testId: string | null, transport: BotTransport) {
-  await transport.send(chatId, AD_START_TEXT, {
-    reply_markup: {
-      inline_keyboard: [
-        [btn.success(AD_TEST_BUTTON, { web_app: { url: miniAppUrl(appUrl, adTestPath(testId)) } })],
-        // co:list — mavjud checkout'ning mahsulot tanlovi (telegram-category-checkout.ts).
-        [btn.primary(AD_SUBSCRIBE_BUTTON, { callback_data: 'co:list' })],
-      ],
-    },
-  });
+  await transport.send(chatId, AD_START_TEXT, { reply_markup: adStartMarkup(appUrl, testId) });
 }
