@@ -4,15 +4,18 @@ import { NextRequest } from 'next/server';
 const s = vi.hoisted(() => {
   process.env.TELEGRAM_BOT_TOKEN = 'test-token'; process.env.ADMIN_TELEGRAM_IDS = '456'; process.env.NEXT_PUBLIC_APP_URL = 'http://localhost';
   return { users: [] as Record<string, unknown>[], settings: new Map<string, string>(), starts: [] as Record<string, unknown>[], failStart: { value: false },
-    intent: vi.fn(), link: vi.fn(async () => true), member: { value: 'left' as string | null } };
+    intent: vi.fn(), link: vi.fn(async () => true), member: { value: 'left' as string | null },
+    botRows: [] as { key: string; value: string }[], failSettings: { value: false } };
 });
 
-// Majburiy kanal (@EduPrimeFizika): obunasiz /start — welcome matni, keyin
+// Majburiy kanal (admin sozlamasidan): obunasiz /start — welcome matni, keyin
 // kanal so'rovi; to'lov/kirish oqimlari va adminlar tekshirilmaydi.
 // Checkout va referal modullari faqat chaqirilganini ko'rish uchun almashtirilgan.
 const fake = vi.hoisted(() => ({} as Record<string, unknown>));
 vi.mock('@/lib/db', () => ({ db: fake }));
-vi.mock('@/lib/logger', () => ({ logger: { error: vi.fn() } }));
+vi.mock('@/lib/logger', () => ({ logger: { error: vi.fn(), warn: vi.fn() } }));
+// unstable_cache Next so'rov kontekstisiz ishlamaydi — testda to'g'ridan-to'g'ri chaqiriladi.
+vi.mock('next/cache', () => ({ unstable_cache: <T>(fn: T) => fn, revalidateTag: vi.fn() }));
 vi.mock('@/lib/purchases', () => ({ recordPurchase: vi.fn() }));
 vi.mock('@/lib/subscription-payments', () => ({ processLegacySubscription: vi.fn() }));
 vi.mock('@/lib/telegram-intent-checkout', () => ({ startIntentCheckout: s.intent }));
@@ -21,7 +24,12 @@ vi.mock('@/lib/referral-code', () => ({ linkReferral: s.link, ensureReferralCode
 import { POST } from '../route';
 import uz from '@/messages/uz.json';
 import { AD_START_TEXT, AD_TEST_BUTTON } from '@/lib/telegram-ad-start';
-import { REQUIRED_CHANNEL, REQUIRED_CHANNEL_LINK } from '@/lib/telegram-channel-gate';
+import { BOT_SETTING_DEFAULTS } from '@/lib/bot-settings-defaults';
+import { fill } from '@/lib/telegram-bot-menu';
+
+const REQUIRED_CHANNEL = BOT_SETTING_DEFAULTS.required_channel_username;
+const REQUIRED_CHANNEL_LINK = BOT_SETTING_DEFAULTS.required_channel_link;
+const promptFor = (channel: string = REQUIRED_CHANNEL) => fill(uz.telegramBot.channelGate.prompt, { channel });
 
 Object.assign(fake, {
   user: {
@@ -40,7 +48,13 @@ Object.assign(fake, {
   },
   payment: { count: async () => 0 },
   systemSetting: {
-    findMany: async () => [],
+    // Bot sozlamalari (key IN [...]) — s.botRows; s.failSettings — baza xatosi.
+    findMany: async ({ where }: { where?: { key?: { in?: string[] } } } = {}) => {
+      const keys = where?.key?.in;
+      if (!keys) return [];
+      if (s.failSettings.value) throw new Error('db down');
+      return s.botRows.filter((row) => keys.includes(row.key));
+    },
     upsert: async ({ where, create }: { where: { key: string }; create: { value: string } }) => { s.settings.set(where.key, create.value); return {}; },
   },
 });
@@ -68,7 +82,7 @@ beforeEach(() => {
   // CI'da TELEGRAM_WEBHOOK_SECRET o'rnatilgan — testlar muhitga bog'liq bo'lmasin.
   vi.stubEnv('TELEGRAM_WEBHOOK_SECRET', 'test-webhook');
   s.users.length = 0; s.settings.clear(); s.starts.length = 0; s.failStart.value = false; s.intent.mockClear(); s.link.mockClear();
-  s.member.value = 'left';
+  s.member.value = 'left'; s.botRows.length = 0; s.failSettings.value = false;
   vi.stubGlobal('fetch', vi.fn(async (url: string) => ({ json: async () => telegramReply(String(url)) })));
 });
 
@@ -81,7 +95,7 @@ describe('majburiy kanal: /start', () => {
     expect(welcome.text).toContain('Ali');
     expect(welcome.text).not.toContain(uz.telegramBot.welcomeCta);
     expect(welcome.reply_markup).toBeUndefined();
-    expect(prompt.text).toBe(gate.prompt);
+    expect(prompt.text).toBe(promptFor());
     expect(buttons(prompt).find((b) => b.text === gate.join)?.url).toBe(REQUIRED_CHANNEL_LINK);
     expect(buttons(prompt).find((b) => b.text === gate.check)?.callback_data).toBe('check_subscription');
     expect(JSON.stringify(sent())).not.toContain('web_app');
@@ -97,13 +111,13 @@ describe('majburiy kanal: /start', () => {
     expect(buttons(welcome).find((b) => b.text === uz.telegramBot.buttons.channel)?.url).toBe('https://t.me/EduPrimeuz');
     expect(JSON.stringify(welcome.reply_markup)).toContain('web_app');
     expect(menu.reply_markup?.keyboard).toBeDefined();
-    expect(sent().some((msg) => msg.text === gate.prompt)).toBe(false);
+    expect(sent().some((msg) => msg.text === promptFor())).toBe(false);
   });
   it('bot kanalda admin emas (getChatMember xatosi) — bot to‘xtamaydi', async () => {
     s.member.value = null;
     await command('/start');
     expect(sent()[0].text).toContain(uz.telegramBot.welcomeCta);
-    expect(sent().some((msg) => msg.text === gate.prompt)).toBe(false);
+    expect(sent().some((msg) => msg.text === promptFor())).toBe(false);
   });
   it('admin tekshirilmaydi', async () => {
     await command('/start', { id: 456, username: 'admin', first_name: 'Admin' });
@@ -127,7 +141,7 @@ describe('majburiy kanal: /start', () => {
     await command('/start ref_ali-ab12cd');
     expect(s.link).toHaveBeenCalledWith('u1', 'ali-ab12cd');
     expect(sent()[0].text).toContain(uz.telegramBot.referredWelcome);
-    expect(sent()[1].text).toBe(gate.prompt);
+    expect(sent()[1].text).toBe(promptFor());
   });
   it('/start ad_test1 obunasiz — BotStart yoziladi, reklama matni, keyin kanal so‘rovi', async () => {
     await command('/start ad_test1');
@@ -166,7 +180,7 @@ describe('majburiy kanal: «Obuna bo‘ldim»', () => {
   it('hali obuna bo‘lmagan — alert, xabar yuborilmaydi', async () => {
     const res = await pressCheck();
     expect(res.status).toBe(200);
-    expect(calls('answerCallbackQuery')).toEqual([{ callback_query_id: 'cb', text: gate.notSubscribed, show_alert: true }]);
+    expect(calls('answerCallbackQuery')).toEqual([{ callback_query_id: 'cb', text: fill(gate.notSubscribed, { channel: REQUIRED_CHANNEL }), show_alert: true }]);
     expect(sent()).toHaveLength(0);
     expect(edits()).toHaveLength(0);
   });
@@ -200,11 +214,55 @@ describe('majburiy kanal: «Obuna bo‘ldim»', () => {
   });
 });
 
+describe('majburiy kanal: admin sozlamasi', () => {
+  const setRows = (rows: Record<string, string>) => { s.botRows.push(...Object.entries(rows).map(([key, value]) => ({ key, value }))); };
+
+  it('kanal va havola sozlamadan; matnda {channel} o‘rniga username', async () => {
+    setRows({ required_channel_username: 'BoshqaKanal', required_channel_link: 't.me/+invite123' });
+    await command('/start');
+    expect(calls('getChatMember')).toEqual([{ chat_id: '@BoshqaKanal', user_id: 777 }]);
+    const prompt = sent()[1];
+    expect(prompt.text).toBe(promptFor('@BoshqaKanal'));
+    expect(prompt.text).toContain('@BoshqaKanal');
+    expect(prompt.text).not.toContain('{channel}');
+    expect(buttons(prompt).find((b) => b.text === gate.join)?.url).toBe('https://t.me/+invite123');
+  });
+  it('«Obuna bo‘ldim» alertida ham sozlamadagi username', async () => {
+    setRows({ required_channel_username: '@BoshqaKanal' });
+    await pressCheck();
+    const [answer] = calls('answerCallbackQuery');
+    expect(answer.text).toContain('@BoshqaKanal');
+    expect(answer.text).not.toContain('{channel}');
+  });
+  it('enabled=false — getChatMember chaqirilmaydi, menyu darhol', async () => {
+    setRows({ required_channel_enabled: 'false' });
+    await command('/start');
+    expect(calls('getChatMember')).toHaveLength(0);
+    expect(sent()[0].text).toContain(uz.telegramBot.welcomeCta);
+    expect(JSON.stringify(sent()[0].reply_markup)).toContain('web_app');
+    expect(sent()[1].reply_markup?.keyboard).toBeDefined();
+    await command(uz.telegramBot.buttons.help);
+    expect(calls('getChatMember')).toHaveLength(0);
+  });
+  it('menyudagi "Kanal" havolasi public_channel_link dan', async () => {
+    s.member.value = 'member';
+    setRows({ public_channel_link: 'https://t.me/YangiKanal' });
+    await command('/start');
+    expect(buttons(sent()[0]).find((b) => b.text === uz.telegramBot.buttons.channel)?.url).toBe('https://t.me/YangiKanal');
+  });
+  it('baza xatosi — standart kanal bilan ishlaydi', async () => {
+    s.failSettings.value = true;
+    await command('/start');
+    expect(calls('getChatMember')).toEqual([{ chat_id: '@FizikaMSattestatsiya', user_id: 777 }]);
+    expect(sent()[1].text).toBe(promptFor('@FizikaMSattestatsiya'));
+  });
+});
+
 describe('majburiy kanal: pastki menyu', () => {
   it('obunasiz — bo‘lim o‘rniga kanal so‘rovi', async () => {
     await command(uz.telegramBot.buttons.help);
     expect(sent()).toHaveLength(1);
-    expect(sent()[0].text).toBe(gate.prompt);
+    expect(sent()[0].text).toBe(promptFor());
   });
   it('obunachi — bo‘lim ochiladi', async () => {
     s.member.value = 'member';

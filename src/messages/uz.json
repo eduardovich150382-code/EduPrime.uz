@@ -1229,10 +1229,10 @@
       "help": "Yordam"
     },
     "channelGate": {
-      "prompt": "📢 Botdan foydalanishni davom ettirish uchun <b>@EduPrimeFizika</b> kanalimizga obuna bo'ling.\n\nObuna bo'lgach, <b>«✅ Obuna bo'ldim»</b> tugmasini bosing 👇",
+      "prompt": "📢 Botdan foydalanishni davom ettirish uchun <b>{channel}</b> kanalimizga obuna bo'ling.\n\nObuna bo'lgach, <b>«✅ Obuna bo'ldim»</b> tugmasini bosing 👇",
       "join": "📢 Kanalga obuna bo'lish",
       "check": "✅ Obuna bo'ldim",
-      "notSubscribed": "❗ Siz hali @EduPrimeFizika kanaliga obuna bo'lmagansiz. Avval obuna bo'ling, so'ng «Obuna bo'ldim» tugmasini qayta bosing.",
+      "notSubscribed": "❗ Siz hali {channel} kanaliga obuna bo'lmagansiz. Avval obuna bo'ling, so'ng «Obuna bo'ldim» tugmasini qayta bosing.",
       "confirmed": "✅ <b>Rahmat, obuna tasdiqlandi!</b>",
       "confirmedToast": "✅ Obuna tasdiqlandi!"
     }

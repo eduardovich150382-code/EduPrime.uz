@@ -4,15 +4,14 @@ import { btn, type InlineButton } from './telegram-buttons';
 import uzMessages from '@/messages/uz.json';
 
 // Majburiy kanal obunasi: /start'da salomlashish matnidan keyin foydalanuvchi
-// @EduPrimeFizika kanaliga obuna bo'lmaguncha Mini App tugmalari va bot
-// menyusi berilmaydi.
+// majburiy kanalga obuna bo'lmaguncha Mini App tugmalari va bot menyusi
+// berilmaydi. Kanal va uning havolasi kodda emas — admin sozlamasida
+// (`lib/bot-settings.ts`), shuning uchun bu yerda parametr bo'lib keladi.
 //
-// MUHIM: bot @EduPrimeFizika kanalida ADMIN bo'lishi shart — aks holda
+// MUHIM: bot majburiy kanalda ADMIN bo'lishi shart — aks holda
 // getChatMember xato qaytaradi. Bunday holatda (va tarmoq xatosida)
 // tekshiruv o'tkazib yuboriladi: kanal sozlamasi bot ishini to'xtatmasin.
 
-export const REQUIRED_CHANNEL = '@EduPrimeFizika';
-export const REQUIRED_CHANNEL_LINK = 'https://t.me/EduPrimeFizika';
 export const CHECK_SUBSCRIPTION = 'check_subscription';
 
 const m = uzMessages.telegramBot.channelGate;
@@ -30,18 +29,18 @@ export function membershipFromReply(reply: unknown): Membership {
   return 'unknown';
 }
 
-export async function checkChannelMembership(botToken: string, userId: number): Promise<Membership> {
+export async function checkChannelMembership(botToken: string, userId: number, channel: string): Promise<Membership> {
   try {
     const response = await fetch(`https://api.telegram.org/bot${botToken}/getChatMember`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: REQUIRED_CHANNEL, user_id: userId }),
+      body: JSON.stringify({ chat_id: channel, user_id: userId }),
     });
     const reply: unknown = await response.json();
     const membership = membershipFromReply(reply);
     if (membership === 'unknown') {
       const description = (reply as { description?: string } | null)?.description;
-      logger.error('Channel membership check failed (bot kanalda adminmi?):', { channel: REQUIRED_CHANNEL, description });
+      logger.error('Channel membership check failed (bot kanalda adminmi?):', { channel, description });
     }
     return membership;
   } catch (error) {
@@ -70,10 +69,10 @@ export function parseCheckCallback(data: string): string | null {
   return data.startsWith(`${CHECK_SUBSCRIPTION}:`) ? data.slice(CHECK_SUBSCRIPTION.length + 1) : null;
 }
 
-export function channelPromptMarkup(param: string): { inline_keyboard: InlineButton[][] } {
+export function channelPromptMarkup(param: string, link: string): { inline_keyboard: InlineButton[][] } {
   return {
     inline_keyboard: [
-      [btn.success(m.join, { url: REQUIRED_CHANNEL_LINK })],
+      [btn.success(m.join, { url: link })],
       [btn.primary(m.check, { callback_data: checkCallbackData(param) })],
     ],
   };

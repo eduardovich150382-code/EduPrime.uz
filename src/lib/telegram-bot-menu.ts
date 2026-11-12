@@ -15,7 +15,6 @@ import ruMessages from '@/messages/ru.json';
 
 const m = uzMessages.telegramBot;
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || '';
-export const CHANNEL_LINK = 'https://t.me/EduPrimeuz';
 
 export type ReplyMarkup =
   | { inline_keyboard: InlineButton[][] }
@@ -92,13 +91,14 @@ export function welcomeText(user: { firstName: string; referred?: boolean }): st
   return intro + fill(m.welcome, { name: user.firstName || m.friend });
 }
 
-export function welcomeMarkup(): ReplyMarkup {
+/** Kanal havolasi admin sozlamasidan (`lib/bot-settings.ts`) keladi — menyu quruvchilar bazaga murojaat qilmaydi. */
+export function welcomeMarkup(channelLink: string): ReplyMarkup {
   return {
     inline_keyboard: [
       [webApp(m.buttons.openPlatform, '/attestation', 'success')],
       [webApp(m.buttons.tests, '/tests', 'primary'), webApp(m.buttons.pricing, '/pricing', 'primary')],
       // Ixtiyoriy umumiy kanal; majburiy kanal — telegram-channel-gate.ts.
-      [btn.primary(m.buttons.channel, { url: CHANNEL_LINK })],
+      [btn.primary(m.buttons.channel, { url: channelLink })],
     ],
   };
 }
@@ -110,10 +110,10 @@ export async function sendMainKeyboard(chatId: number, transport: BotTransport) 
 
 export async function sendWelcome(
   chatId: number,
-  user: { firstName: string; adminText?: string; referred?: boolean },
+  user: { firstName: string; adminText?: string; referred?: boolean; channelLink: string },
   transport: BotTransport,
 ) {
-  await transport.send(chatId, `${welcomeText(user)}\n\n${m.welcomeCta}${user.adminText ?? ''}`, { reply_markup: welcomeMarkup() });
+  await transport.send(chatId, `${welcomeText(user)}\n\n${m.welcomeCta}${user.adminText ?? ''}`, { reply_markup: welcomeMarkup(user.channelLink) });
   await sendMainKeyboard(chatId, transport);
 }
 

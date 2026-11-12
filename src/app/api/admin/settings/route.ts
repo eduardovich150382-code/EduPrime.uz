@@ -6,6 +6,7 @@ import { auth } from '@/lib/auth';
 import { logger } from '@/lib/logger';
 import { AD_FREE_TEST_KEY } from '@/lib/ad-free-test';
 import { hasAttestationKeys, validateAttestationSettings } from '@/lib/attestation-tiers';
+import { BOT_SETTING_DEFAULTS, hasBotSettingKeys, validateBotSettings } from '@/lib/bot-settings-defaults';
 
 const DEFAULT_SETTINGS = [
   { key: 'payment_card_number', value: '' },
@@ -29,6 +30,8 @@ const DEFAULT_SETTINGS = [
   { key: 'attestation_tier_top_bonus_min', value: '86' },
   // Reklama uchun bepul test (lib/ad-free-test.ts). Bo'sh — nom bo'yicha qidiriladi.
   { key: AD_FREE_TEST_KEY, value: '' },
+  // Telegram kanal va kurs (lib/bot-settings.ts) — standartlar bitta joyda.
+  ...Object.entries(BOT_SETTING_DEFAULTS).map(([key, value]) => ({ key, value })),
 ];
 
 // GET /api/admin/settings — get all settings (ADMIN only)
@@ -93,6 +96,17 @@ export async function PUT(request: NextRequest) {
     }
     if (attestation?.ok) {
       entries = entries.map(([key, value]) => [key, key in attestation.values ? attestation.values[key] : value]);
+    }
+    // Bot kalitlari ham yozishdan oldin: noto'g'ri kanal/havola botda jimgina
+    // standartga tushib, admin "saqladim" deb o'ylab qolmasin. Saqlanadigani —
+    // normalizatsiya qilingan ko'rinish ("t.me/x" → "https://t.me/x").
+    const botValidation = hasBotSettingKeys(settings) ? validateBotSettings(settings) : null;
+    if (botValidation && !botValidation.ok) {
+      return NextResponse.json({ error: botValidation.error }, { status: 400 });
+    }
+    if (botValidation?.ok) {
+      const botValues: Record<string, string> = botValidation.values;
+      entries = entries.map(([key, value]) => [key, key in botValues ? botValues[key] : value]);
     }
 
     // Upsert each setting

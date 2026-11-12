@@ -1229,10 +1229,10 @@
       "help": "Help"
     },
     "channelGate": {
-      "prompt": "📢 To keep using the bot, please join our channel <b>@EduPrimeFizika</b>.\n\nOnce you've joined, tap <b>“✅ I've joined”</b> 👇",
+      "prompt": "📢 To keep using the bot, please join our channel <b>{channel}</b>.\n\nOnce you've joined, tap <b>“✅ I've joined”</b> 👇",
       "join": "📢 Join the channel",
       "check": "✅ I've joined",
-      "notSubscribed": "❗ You haven't joined @EduPrimeFizika yet. Join the channel first, then tap “I've joined” again.",
+      "notSubscribed": "❗ You haven't joined {channel} yet. Join the channel first, then tap “I've joined” again.",
       "confirmed": "✅ <b>Thanks, subscription confirmed!</b>",
       "confirmedToast": "✅ Subscription confirmed!"
     }

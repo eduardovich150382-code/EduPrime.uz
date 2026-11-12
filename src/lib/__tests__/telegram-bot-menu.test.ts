@@ -86,7 +86,7 @@ describe('havolalar', () => {
 describe('sendWelcome', () => {
   it('Mini App tugmasi va pastki menyu bilan ikki xabar yuboradi', async () => {
     const t = transport();
-    await sendWelcome(10, { firstName: 'Ali', referred: true }, t);
+    await sendWelcome(10, { firstName: 'Ali', referred: true, channelLink: 'https://t.me/EduPrimeuz' }, t);
     expect(t.sent).toHaveLength(2);
     expect(t.sent[0].text).toContain('Ali');
     expect(t.sent[0].text).toContain(uz.telegramBot.referredWelcome);
@@ -167,7 +167,7 @@ describe('tugma ranglari', () => {
 
   it('welcome: Platformani ochish — yashil, qolganlari ko‘k', async () => {
     const t = transport();
-    await sendWelcome(10, { firstName: 'Ali' }, t);
+    await sendWelcome(10, { firstName: 'Ali', channelLink: 'https://t.me/EduPrimeuz' }, t);
     const b = uz.telegramBot.buttons;
     expect(styles(t.sent[0])).toEqual({ [b.openPlatform]: 'success', [b.tests]: 'primary', [b.pricing]: 'primary', [b.channel]: 'primary' });
   });
