@@ -30,8 +30,11 @@ describe('isGatedStart', () => {
 });
 
 describe('check_subscription callback', () => {
-  it('faqat reklama kodi saqlanadi va 64 baytdan oshmaydi', () => {
+  it('faqat reklama kodi va aksiya saqlanadi, 64 baytdan oshmaydi', () => {
     expect(checkCallbackData('')).toBe('check_subscription');
+    expect(checkCallbackData('aksiya')).toBe('check_subscription:aksiya');
+    expect(parseCheckCallback(checkCallbackData('aksiya'))).toBe('aksiya');
+    expect(checkCallbackData('c_Ab12Cd34')).toBe('check_subscription');
     expect(checkCallbackData('ref_ali-ab12cd')).toBe('check_subscription');
     const longest = checkCallbackData(`ad_${'a'.repeat(32)}`);
     expect(longest.startsWith('check_subscription:ad_')).toBe(true);

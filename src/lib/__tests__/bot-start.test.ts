@@ -17,6 +17,9 @@ describe('startSource', () => {
     expect(startSource('')).toBe('organic');
     expect(startSource('ad_fizika1')).toBe('ad_fizika1');
     expect(startSource('ref_ali-ab12cd')).toBe('ref');
+    // Aksiya havolasi — xom kod emas, hisobot bitta guruhda.
+    expect(startSource('c_Ab12Cd34')).toBe('campaign');
+    expect(startSource('c_short')).toBe('other');
     expect(startSource('ci_abc')).toBe('checkout');
     expect(startSource('buy_test_1')).toBe('checkout');
     expect(startSource('obuna')).toBe('checkout');

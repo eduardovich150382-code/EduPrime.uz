@@ -16,6 +16,9 @@ import { getAdFreeTestId } from '@/lib/ad-free-test';
 import { btn } from '@/lib/telegram-buttons';
 import { tashkentDayRangeUtc } from '@/lib/date';
 import { linkReferral } from '@/lib/referral-code';
+import { CAMPAIGN_JOIN_PARAM, parseCampaignStart } from '@/lib/campaign/ref-code';
+import { CMP_JOIN, campaignJoinVisible, confirmPendingReferral, handleCampaignCallback, handleCampaignStart, isCampaignCallback, joinFlow, type CampaignBotCtx } from '@/lib/campaign/bot';
+import { telegramApi } from '@/lib/campaign/telegram';
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || '';
@@ -172,15 +175,39 @@ async function startWithChannelGate(chatId: number, userId: number, username: st
   await hideChatMenuForUser(BOT_TOKEN, chatId);
 }
 
+// ===================== REFERRAL AKSIYA =====================
+// Mantiq `lib/campaign/bot.ts` da; bu yerda faqat Telegram transporti va
+// oddiy /start oqimi (gate bilan) unga uzatiladi.
+function campaignCtx(chatId: number, userId: number, username: string, firstName: string, bot: BotSettings): CampaignBotCtx {
+  return {
+    chatId, userId, username, firstName, bot,
+    isAdmin: (telegramId) => isAdmin(telegramId.toString()),
+    checkMembership: (id, channel) => checkChannelMembership(BOT_TOKEN, id, channel),
+    transport: {
+      send: sendMessage,
+      sendPhoto: (chat, photo, caption, options = {}) => telegramApi(BOT_TOKEN, 'sendPhoto', { chat_id: chat, photo, caption, parse_mode: 'HTML', ...options }),
+      answer: answerCallbackQuery,
+    },
+    startDefault: async () => {
+      if (await mustJoinChannel(userId, bot)) await startWithChannelGate(chatId, userId, username, firstName, '', bot);
+      else await handleStart(chatId, userId, username, firstName, '', bot);
+    },
+  };
+}
+
+const isAdminId = (telegramId: number | string | bigint) => isAdmin(telegramId.toString());
+
 // "Obuna bo'ldim" tasdiqlandi: kanal so'rovi xabari menyu tugmalariga aylanadi.
-async function finishChannelGate(chatId: number, messageId: number | undefined, userId: number, param: string, bot: BotSettings) {
+async function finishChannelGate(chatId: number, messageId: number | undefined, userId: number, param: string, bot: BotSettings, user: { username: string; firstName: string }) {
   const ad = Boolean(parseAdStart(param));
   const text = `${channelGate.confirmed}\n\n${ad ? AD_START_TEXT : uzMessages.telegramBot.welcomeCta + adminCommandsText(userId)}`;
-  const reply_markup = ad ? adStartMarkup(APP_URL, await getAdFreeTestId()) : welcomeMarkup(bot.publicChannelLink);
+  const reply_markup = ad ? adStartMarkup(APP_URL, await getAdFreeTestId()) : welcomeMarkup(bot.publicChannelLink, await campaignJoinVisible(userId, isAdminId));
   const edited = messageId ? await editMessageText(chatId, messageId, text, { reply_markup }) : null;
   if (!edited?.ok) await sendMessage(chatId, text, { reply_markup });
   if (!ad) await sendMainKeyboard(chatId, { send: sendMessage });
   await setChatMenuForUser(BOT_TOKEN, APP_URL, chatId);
+  // Aksiyaga qatnashmoqchi bo'lgan odam gate'dan o'tdi — qatnashish davom etadi.
+  if (param === CAMPAIGN_JOIN_PARAM) await joinFlow(campaignCtx(chatId, userId, user.username, user.firstName, bot));
 }
 
 async function handleStart(chatId: number, userId: number, username: string, firstName: string, param: string, bot: BotSettings) {
@@ -357,10 +384,21 @@ async function handleStart(chatId: number, userId: number, username: string, fir
     return;
   }
 
+  // Kanal postidagi "Aksiyada qatnashish" tugmasi. Qatnasha olmasa — not_active,
+  // keyin oddiy welcome (foydalanuvchi menyusiz qolmasin).
+  if (param === CAMPAIGN_JOIN_PARAM) {
+    const joined = await joinFlow(campaignCtx(chatId, userId, username, firstName, bot));
+    if (joined !== 'not_active') {
+      await setChatMenuForUser(BOT_TOKEN, APP_URL, chatId);
+      return;
+    }
+  }
+
   // Default /start — salomlashish, Mini App tugmasi va pastki menyu.
   const referralCode = parseReferralStart(param);
   const referred = referralCode ? await registerBotReferral(userId, username, firstName, referralCode) : false;
-  await sendWelcome(chatId, { firstName, adminText: adminCommandsText(userId), referred, channelLink: bot.publicChannelLink }, { send: sendMessage });
+  const campaignActive = await campaignJoinVisible(userId, isAdminId);
+  await sendWelcome(chatId, { firstName, adminText: adminCommandsText(userId), referred, channelLink: bot.publicChannelLink, campaignActive }, { send: sendMessage });
   await setChatMenuForUser(BOT_TOKEN, APP_URL, chatId);
 }
 
@@ -521,12 +559,31 @@ async function handleCallbackQuery(callbackQuery: any, bot: BotSettings) {
       return;
     }
     await answerCallbackQuery(callbackQuery.id, { text: channelGate.confirmedToast });
+    // Aksiya havolasini bosib, ✅ o'rniga shu gate orqali obuna bo'lgan odamning
+    // referali ham tasdiqlansin — aks holda abadiy PENDING qolib, ishtirokchi
+    // ballini yo'qotadi. Xato gate oqimini to'xtatmaydi.
+    try {
+      await confirmPendingReferral(campaignCtx(chatId, userId, username, firstName, bot));
+    } catch (error) {
+      logger.error('Campaign referral confirm on gate failed', { error });
+    }
     // Eski xabarlardagi ci_/ref tugmalari — saqlangan oqim davom etadi.
-    if (checkParam && !parseAdStart(checkParam)) {
+    if (checkParam && !parseAdStart(checkParam) && checkParam !== CAMPAIGN_JOIN_PARAM) {
       await handleStart(chatId, userId, username, firstName, checkParam, bot);
       return;
     }
-    await finishChannelGate(chatId, callbackQuery.message?.message_id, userId, checkParam, bot);
+    await finishChannelGate(chatId, callbackQuery.message?.message_id, userId, checkParam, bot, { username, firstName });
+    return;
+  }
+
+  // Aksiya tugmalari: javob (alert/toast) lib/campaign/bot.ts da beriladi.
+  if (isCampaignCallback(data)) {
+    if (data === CMP_JOIN && await mustJoinChannel(userId, bot, CAMPAIGN_JOIN_PARAM)) {
+      await answerCallbackQuery(callbackQuery.id);
+      await sendChannelPrompt(chatId, bot, CAMPAIGN_JOIN_PARAM);
+      return;
+    }
+    await handleCampaignCallback(campaignCtx(chatId, userId, username, firstName, bot), data, callbackQuery.id);
     return;
   }
 
@@ -902,10 +959,22 @@ export async function POST(request: NextRequest) {
         const param = text.replace('/start', '').trim();
         // Faqat haqiqiy /start sanaladi — eski check_subscription tugmasi qayta yozmaydi.
         await recordBotStart(userId, param);
-        if (await mustJoinChannel(userId, bot, param)) {
-          await startWithChannelGate(chatId, userId, username, firstName, param, bot);
+        // Aksiya taklif havolasi majburiy kanal gate'idan OLDIN: taklif qilingan
+        // odam aynan aksiya kanaliga obuna bo'lishi va ✅ ni bosishi kerak.
+        const campaignCode = parseCampaignStart(param);
+        const startParam = campaignCode ? '' : param;
+        if (campaignCode && await handleCampaignStart(campaignCtx(chatId, userId, username, firstName, bot), campaignCode) === 'stop') {
+          // Taklif so'rovi yuborildi — oddiy /start ✅ bosilgandan keyin.
+        } else if (await mustJoinChannel(userId, bot, startParam)) {
+          await startWithChannelGate(chatId, userId, username, firstName, startParam, bot);
         } else {
-          await handleStart(chatId, userId, username, firstName, param, bot);
+          await handleStart(chatId, userId, username, firstName, startParam, bot);
+        }
+      } else if (text.replace(/@\w+$/, '') === '/aksiya') {
+        if (await mustJoinChannel(userId, bot, CAMPAIGN_JOIN_PARAM)) {
+          await sendChannelPrompt(chatId, bot, CAMPAIGN_JOIN_PARAM);
+        } else {
+          await joinFlow(campaignCtx(chatId, userId, username, firstName, bot));
         }
       } else if (text === '/login') {
         await handleLogin(chatId, userId, username, firstName);

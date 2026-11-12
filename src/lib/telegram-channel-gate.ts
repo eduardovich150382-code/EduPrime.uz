@@ -1,5 +1,6 @@
 import { logger } from './logger';
 import { parseAdStart } from './telegram-bot-links';
+import { CAMPAIGN_JOIN_PARAM } from './campaign/ref-code';
 import { btn, type InlineButton } from './telegram-buttons';
 import uzMessages from '@/messages/uz.json';
 
@@ -58,9 +59,12 @@ export function isGatedStart(param: string): boolean {
   return !param.startsWith('ci_') && !param.startsWith('buy_');
 }
 
-/** "Obuna bo'ldim" tugmasi reklama kodini saqlaydi — tasdiqdan keyin reklama xabari chiqadi. */
+/**
+ * "Obuna bo'ldim" tugmasi reklama kodini va aksiyaga qatnashishni saqlaydi —
+ * tasdiqdan keyin reklama xabari yoki qatnashish oqimi davom etadi.
+ */
 export function checkCallbackData(param: string): string {
-  return parseAdStart(param) ? `${CHECK_SUBSCRIPTION}:${param}` : CHECK_SUBSCRIPTION;
+  return parseAdStart(param) || param === CAMPAIGN_JOIN_PARAM ? `${CHECK_SUBSCRIPTION}:${param}` : CHECK_SUBSCRIPTION;
 }
 
 /** `check_subscription[:param]` → saqlangan start parametri; boshqa callback — `null`. */

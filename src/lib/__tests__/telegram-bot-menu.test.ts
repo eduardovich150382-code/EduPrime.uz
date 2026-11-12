@@ -8,7 +8,7 @@ const db = vi.hoisted(() => ({
 vi.mock('@/lib/db', () => ({ db }));
 
 import uz from '@/messages/uz.json';
-import { fill, handleMenuAction, mainKeyboard, menuActionFor, sendWelcome } from '../telegram-bot-menu';
+import { fill, handleMenuAction, mainKeyboard, menuActionFor, sendWelcome, welcomeMarkup } from '../telegram-bot-menu';
 import { botReferralLink, miniAppStartTarget, miniAppUrl, parseAdStart, parseReferralStart } from '../telegram-bot-links';
 
 type Sent = { chatId: number | string; text: string; options?: { reply_markup?: unknown } };
@@ -92,6 +92,24 @@ describe('sendWelcome', () => {
     expect(t.sent[0].text).toContain(uz.telegramBot.referredWelcome);
     expect(JSON.stringify(t.sent[0].options)).toContain('web_app');
     expect(JSON.stringify(t.sent[1].options)).toContain('is_persistent');
+  });
+});
+
+describe('welcomeMarkup: aksiya tugmasi', () => {
+  const texts = (markup: ReturnType<typeof welcomeMarkup>) => ('inline_keyboard' in markup ? markup.inline_keyboard.flat() : []);
+  it('aksiya yo‘q — tugma yo‘q (standart)', () => {
+    expect(texts(welcomeMarkup('https://t.me/EduPrimeuz')).some((b) => b.text === uz.telegramBot.campaign.joinButton)).toBe(false);
+  });
+  it('qatnasha oladi — qo‘shimcha qator cmp:join, kanal tugmasi oxirida qoladi', () => {
+    const buttons = texts(welcomeMarkup('https://t.me/EduPrimeuz', true));
+    const join = buttons.find((b) => b.text === uz.telegramBot.campaign.joinButton);
+    expect(join).toMatchObject({ callback_data: 'cmp:join', style: 'primary' });
+    expect(buttons.at(-1)?.text).toBe(uz.telegramBot.buttons.channel);
+  });
+  it('sendWelcome campaignActive ni uzatadi', async () => {
+    const t = transport();
+    await sendWelcome(10, { firstName: 'Ali', channelLink: 'https://t.me/EduPrimeuz', campaignActive: true }, t);
+    expect(JSON.stringify(t.sent[0].options)).toContain('cmp:join');
   });
 });
 
