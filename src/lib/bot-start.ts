@@ -1,6 +1,7 @@
 import { db } from './db';
 import { logger } from './logger';
 import { parseAdStart, parseReferralStart } from './telegram-bot-links';
+import { parseCampaignStart } from './campaign/ref-code';
 
 // Reklama attributsiyasi: har /start BotStart'ga yoziladi, foydalanuvchi
 // keyin saytga kirganda birinchi manba User.firstSource'ga ko'chiriladi.
@@ -14,6 +15,8 @@ export function startSource(param: string): string {
   if (!param) return 'organic';
   if (parseAdStart(param)) return param;
   if (parseReferralStart(param)) return 'ref';
+  // Aksiya havolasi: xom kod emas — har ishtirokchi alohida manba bo'lib hisobotni bo'lib yubormasin.
+  if (parseCampaignStart(param)) return 'campaign';
   if (param.startsWith('ci_') || param.startsWith('buy') || param === 'obuna') return 'checkout';
   if (param === 'login') return 'login';
   // Noto'g'ri ad_ kodi ham shu yerga — hisobotni ixtiyoriy matn bilan to'ldirmaydi.

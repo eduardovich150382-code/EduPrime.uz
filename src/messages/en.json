@@ -1235,6 +1235,20 @@
       "notSubscribed": "❗ You haven't joined {channel} yet. Join the channel first, then tap “I've joined” again.",
       "confirmed": "✅ <b>Thanks, subscription confirmed!</b>",
       "confirmedToast": "✅ Subscription confirmed!"
+    },
+    "campaign": {
+      "joinButton": "🎁 Join the campaign",
+      "subscribeButton": "📢 Join the channel",
+      "confirmButton": "✅ I've joined",
+      "shareButton": "📤 Share",
+      "myResultButton": "📊 My result",
+      "rulesButton": "📋 Rules",
+      "notFoundToast": "Campaign not found",
+      "checkFailedAlert": "Couldn't check right now, please tap again a bit later",
+      "shareText": "Attestation prep channel for physics teachers — join 👇",
+      "subscribeToJoin": "🎁 To join the campaign, first join <b>{channel}</b>, then tap “✅ I've joined” 👇",
+      "joinInvite": "🎁 You're not in the campaign yet. Tap the button to join 👇",
+      "joinError": "❌ Something went wrong. Please try again a bit later."
     }
   },
   "telegramMiniApp": {

@@ -1099,3 +1099,119 @@ model SystemSetting {
   key   String @unique
   value String
 }
+
+// ===================== REFERRAL AKSIYA =====================
+// Kanalga referral aksiya (lib/campaign/). Aksiya faqat bazada yashaydi —
+// yozuv bo'lmasa bot odatdagidek ishlaydi.
+
+enum CampaignReferralStatus {
+  PENDING
+  ACTIVE
+  LEFT
+  INVALID
+}
+
+enum CampaignPostKind {
+  SHARE
+  ANNOUNCE
+  LEADERBOARD
+  LAST_DAY
+  WINNERS
+}
+
+model Campaign {
+  id                    String    @id @default(cuid())
+  title                 String
+  channelUsername       String // "@FizikaMSattestatsiya" — yaratishda bot sozlamasidan
+  channelLink           String
+  startsAt              DateTime
+  endsAt                DateTime
+  isPublished           Boolean   @default(false) // false = qoralama: faqat ADMIN_TELEGRAM_IDS qatnasha oladi (prod'da sinov)
+  isPaused              Boolean   @default(false)
+  rewardTiers           Json // RewardTier[] — lib/campaign/rewards.ts
+  baseRewardMin         Int? // "kamida N ta referal" — o'rindan qat'i nazar
+  baseRewardPct         Int?
+  promoValidDays        Int       @default(5)
+  dailyEnabled          Boolean   @default(true)
+  texts                 Json      @default("{}") // matn kaliti → admin matni; yo'q kalit = standart
+  lastDailySentAt       DateTime?
+  lastDayReminderSentAt DateTime?
+  finalizedAt           DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  participants CampaignParticipant[]
+  referrals    CampaignReferral[]
+  posts        CampaignPost[]
+  promoCodes   PromoCode[]
+
+  @@index([isPublished, startsAt, endsAt])
+}
+
+model CampaignParticipant {
+  id         String   @id @default(cuid())
+  campaignId String
+  telegramId BigInt
+  username   String?
+  firstName  String?
+  refCode    String   @unique // 8 belgi [A-Za-z0-9], kriptografik tasodifiy
+  createdAt  DateTime @default(now())
+
+  campaign  Campaign           @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  referrals CampaignReferral[]
+
+  @@unique([campaignId, telegramId])
+}
+
+model CampaignReferral {
+  id                 String                 @id @default(cuid())
+  campaignId         String
+  participantId      String
+  referredTelegramId BigInt
+  referredUsername   String?
+  referredFirstName  String?
+  status             CampaignReferralStatus @default(PENDING)
+  createdAt          DateTime               @default(now())
+  confirmedAt        DateTime?
+  checkedAt          DateTime?
+
+  campaign    Campaign            @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  participant CampaignParticipant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, referredTelegramId]) // bir odam aksiyada bir marta — birinchi bosilgan havola yutadi
+  @@index([participantId, status])
+}
+
+model CampaignPost {
+  id               String           @id @default(cuid())
+  campaignId       String
+  kind             CampaignPostKind
+  text             String // Telegram HTML
+  imageUrl         String?
+  buttonText       String?
+  buttonUrl        String?
+  channelMessageId Int?
+  publishedAt      DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId, kind])
+}
+
+model PromoCode {
+  id         String    @id @default(cuid())
+  code       String    @unique
+  campaignId String?
+  telegramId BigInt
+  percent    Int
+  validUntil DateTime
+  usedAt     DateTime?
+  usedNote   String?
+  createdAt  DateTime  @default(now())
+
+  campaign Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  @@index([campaignId])
+}

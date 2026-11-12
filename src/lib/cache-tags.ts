@@ -9,6 +9,7 @@ export const CACHE_TAGS = {
   pricing: 'pricing',
   settings: 'settings',
   taxonomy: 'taxonomy',
+  campaigns: 'campaigns',
 } as const;
 
 // Hook qo'yilmagan o'zgarishlar (seed, Neon SQL Editor) ham ko'pi bilan
@@ -37,4 +38,9 @@ export function revalidateTaxonomy(): void {
 
 export function revalidateSettings(): void {
   revalidateTag(CACHE_TAGS.settings);
+}
+
+// Joriy aksiya (lib/campaign/store.ts) — admin aksiyani saqlaganda (A3) chaqiriladi.
+export function revalidateCampaigns(): void {
+  revalidateTag(CACHE_TAGS.campaigns);
 }

@@ -1235,6 +1235,20 @@
       "notSubscribed": "❗ Siz hali {channel} kanaliga obuna bo'lmagansiz. Avval obuna bo'ling, so'ng «Obuna bo'ldim» tugmasini qayta bosing.",
       "confirmed": "✅ <b>Rahmat, obuna tasdiqlandi!</b>",
       "confirmedToast": "✅ Obuna tasdiqlandi!"
+    },
+    "campaign": {
+      "joinButton": "🎁 Aksiyada qatnashish",
+      "subscribeButton": "📢 Kanalga obuna bo'lish",
+      "confirmButton": "✅ Obuna bo'ldim",
+      "shareButton": "📤 Ulashish",
+      "myResultButton": "📊 Mening natijam",
+      "rulesButton": "📋 Qoidalar",
+      "notFoundToast": "Aksiya topilmadi",
+      "checkFailedAlert": "Tekshirib bo'lmadi, birozdan keyin qayta bosing",
+      "shareText": "Fizika o'qituvchilari uchun attestatsiyaga tayyorlov kanali — obuna bo'ling 👇",
+      "subscribeToJoin": "🎁 Aksiyada qatnashish uchun avval <b>{channel}</b> kanaliga obuna bo'ling, so'ng «✅ Obuna bo'ldim» tugmasini bosing 👇",
+      "joinInvite": "🎁 Siz hali aksiyada qatnashmayapsiz. Qatnashish uchun tugmani bosing 👇",
+      "joinError": "❌ Xatolik yuz berdi. Birozdan keyin qayta urinib ko'ring."
     }
   },
   "telegramMiniApp": {

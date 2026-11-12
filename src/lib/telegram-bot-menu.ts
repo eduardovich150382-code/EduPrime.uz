@@ -14,6 +14,9 @@ import ruMessages from '@/messages/ru.json';
 // esa xabar ichidagi va menyu tugmasidagi web_app tugmalari bilan ochiladi.
 
 const m = uzMessages.telegramBot;
+// lib/campaign/bot-context.ts dagi CMP_JOIN bilan bir xil — import qilinmaydi:
+// aksiya moduli shu fayldan (`fill`) foydalanadi, aylanma import bo'lmasin.
+const CAMPAIGN_JOIN_CALLBACK = 'cmp:join';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || '';
 
 export type ReplyMarkup =
@@ -91,12 +94,17 @@ export function welcomeText(user: { firstName: string; referred?: boolean }): st
   return intro + fill(m.welcome, { name: user.firstName || m.friend });
 }
 
-/** Kanal havolasi admin sozlamasidan (`lib/bot-settings.ts`) keladi — menyu quruvchilar bazaga murojaat qilmaydi. */
-export function welcomeMarkup(channelLink: string): ReplyMarkup {
+/**
+ * Kanal havolasi admin sozlamasidan (`lib/bot-settings.ts`) keladi — menyu
+ * quruvchilar bazaga murojaat qilmaydi. Aksiya holati ham tashqaridan
+ * (`campaignActive`): funksiya sof qoladi.
+ */
+export function welcomeMarkup(channelLink: string, campaignActive = false): ReplyMarkup {
   return {
     inline_keyboard: [
       [webApp(m.buttons.openPlatform, '/attestation', 'success')],
       [webApp(m.buttons.tests, '/tests', 'primary'), webApp(m.buttons.pricing, '/pricing', 'primary')],
+      ...(campaignActive ? [[btn.primary(m.campaign.joinButton, { callback_data: CAMPAIGN_JOIN_CALLBACK })]] : []),
       // Ixtiyoriy umumiy kanal; majburiy kanal — telegram-channel-gate.ts.
       [btn.primary(m.buttons.channel, { url: channelLink })],
     ],
@@ -110,10 +118,10 @@ export async function sendMainKeyboard(chatId: number, transport: BotTransport) 
 
 export async function sendWelcome(
   chatId: number,
-  user: { firstName: string; adminText?: string; referred?: boolean; channelLink: string },
+  user: { firstName: string; adminText?: string; referred?: boolean; channelLink: string; campaignActive?: boolean },
   transport: BotTransport,
 ) {
-  await transport.send(chatId, `${welcomeText(user)}\n\n${m.welcomeCta}${user.adminText ?? ''}`, { reply_markup: welcomeMarkup(user.channelLink) });
+  await transport.send(chatId, `${welcomeText(user)}\n\n${m.welcomeCta}${user.adminText ?? ''}`, { reply_markup: welcomeMarkup(user.channelLink, user.campaignActive) });
   await sendMainKeyboard(chatId, transport);
 }
 
