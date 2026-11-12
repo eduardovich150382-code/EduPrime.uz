@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Activity, Users, GraduationCap, Bell, ClipboardList, BookOpen,
-  Wallet, Crown, Package, KeyRound, Megaphone, Settings, type LucideIcon,
+  Wallet, Crown, Package, KeyRound, Megaphone, Gift, Settings, type LucideIcon,
 } from 'lucide-react';
 
 // Admin menyusi yagona manbada: Sidebar (desktop), mobil drawer va BottomNav
@@ -58,6 +58,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     titleKey: 'marketing',
     items: [
       { href: '/admin/ad-sources', labelKey: 'adSources', icon: Megaphone },
+      { href: '/admin/campaigns', labelKey: 'campaigns', icon: Gift },
     ],
   },
   {

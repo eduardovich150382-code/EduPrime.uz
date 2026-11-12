@@ -118,3 +118,29 @@ export function daysLeft(endDate: Date | string, now: Date = new Date()): number
   const today = dateKeyToUtcMs(tashkentDateKey(now));
   return end === null || today === null ? 0 : Math.round((end - today) / DAY_MS);
 }
+
+const LOCAL_DATETIME_RE = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/;
+
+/**
+ * Admin formasidagi `datetime-local` qiymati (`2026-11-20T00:00`) — Toshkent
+ * vaqti deb olinadi va UTC `Date` ga aylanadi. `new Date(value)` ishlatilmaydi:
+ * u satrni BRAUZER zonasida o'qiydi va boshqa zonadagi admin uchun soatlar
+ * siljirdi. Noto'g'ri yoki mavjud bo'lmagan sana (31-noyabr) — `null`.
+ */
+export function tashkentLocalToUtc(value: string): Date | null {
+  const match = LOCAL_DATETIME_RE.exec(value.trim());
+  if (!match) return null;
+  const [h, mi] = [Number(match[4]), Number(match[5])];
+  if (h > 23 || mi > 59) return null;
+  const dayMs = dateKeyToUtcMs(`${match[1]}-${match[2]}-${match[3]}`);
+  if (dayMs === null) return null;
+  return new Date(dayMs + (h * 60 + mi) * 60 * 1000 - TASHKENT_OFFSET_MS);
+}
+
+/** UTC vaqt → `datetime-local` uchun Toshkent qiymati (`YYYY-MM-DDTHH:mm`). */
+export function utcToTashkentLocal(date: Date): string {
+  const shifted = new Date(date.getTime() + TASHKENT_OFFSET_MS);
+  const hh = String(shifted.getUTCHours()).padStart(2, '0');
+  const mm = String(shifted.getUTCMinutes()).padStart(2, '0');
+  return `${tashkentDateKey(date)}T${hh}:${mm}`;
+}

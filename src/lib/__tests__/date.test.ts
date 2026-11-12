@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { daysLeft, daysSince, daysUntil, formatTashkentDate, tashkentDateKey, tashkentDayRangeUtc, tashkentRelativeDay } from "../date";
+import { daysLeft, daysSince, daysUntil, formatTashkentDate, tashkentDateKey, tashkentDayRangeUtc, tashkentLocalToUtc, tashkentRelativeDay, utcToTashkentLocal } from "../date";
 
 describe("tashkentDateKey", () => {
   it("UTC 23:30 — Tashkent'da ertasi kun ertalabki soatlarda (04:30)", () => {
@@ -174,5 +174,27 @@ describe("daysLeft", () => {
   it("tugagan obuna — manfiy, oy chegarasidan o'tib ham", () => {
     expect(daysLeft(new Date("2026-10-24T18:00:00.000Z"), now)).toBe(-1);
     expect(daysLeft("2026-11-10T07:00:00.000Z", now)).toBe(16);
+  });
+});
+
+describe("tashkentLocalToUtc / utcToTashkentLocal", () => {
+  it("yarim tun: Toshkent 00:00 — UTC'da kechagi 19:00", () => {
+    expect(tashkentLocalToUtc("2026-11-20T00:00")?.toISOString()).toBe("2026-11-19T19:00:00.000Z");
+    expect(utcToTashkentLocal(new Date("2026-11-19T19:00:00.000Z"))).toBe("2026-11-20T00:00");
+  });
+  it("yil chegarasi: 1-yanvar 03:30 — UTC'da 31-dekabr", () => {
+    expect(tashkentLocalToUtc("2027-01-01T03:30")?.toISOString()).toBe("2026-12-31T22:30:00.000Z");
+    expect(utcToTashkentLocal(new Date("2026-12-31T19:00:00.000Z"))).toBe("2027-01-01T00:00");
+    expect(utcToTashkentLocal(new Date("2026-12-31T18:59:00.000Z"))).toBe("2026-12-31T23:59");
+  });
+  it("qaytma (round-trip)", () => {
+    for (const v of ["2026-11-26T23:59", "2026-02-28T05:00", "2028-02-29T12:15"]) {
+      expect(utcToTashkentLocal(tashkentLocalToUtc(v) as Date)).toBe(v);
+    }
+  });
+  it("noto'g'ri yoki mavjud bo'lmagan qiymat — null", () => {
+    for (const v of ["", "2026-11-31T10:00", "2026-11-20", "2026-11-20T24:00", "2026-11-20T10:60", "2026-11-20 10:00", "abc"]) {
+      expect(tashkentLocalToUtc(v), v).toBeNull();
+    }
   });
 });
