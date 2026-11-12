@@ -1174,7 +1174,8 @@
     "stepReward": "{friends} ta do'st = {days} kun bepul foydalanish (attestatsiyadan tashqari)"
   },
   "telegramBot": {
-    "welcome": "🎓 <b>EduPrime</b> — attestatsiya va imtihonlarga tayyorgarlik platformasi\n\nAssalomu alaykum, {name}! 👋\n\n✅ Rasmiy spetsifikatsiya asosidagi attestatsiya testlari\n✅ Har bir savolga bosqichma-bosqich, batafsil yechim\n✅ Natijalaringiz tahlili va reytingdagi o'rningiz\n✅ Hammasi shu yerda — Telegram ichida, parol va ro'yxatdan o'tishsiz\n\n👇 Boshlash uchun <b>«EduPrime.uz»</b> tugmasini bosing.",
+    "welcome": "🎓 <b>EduPrime</b> — attestatsiya va imtihonlarga tayyorgarlik platformasi\n\nAssalomu alaykum, {name}! 👋\n\n✅ Rasmiy spetsifikatsiya asosidagi attestatsiya testlari\n✅ Har bir savolga bosqichma-bosqich, batafsil yechim\n✅ Natijalaringiz tahlili va reytingdagi o'rningiz\n✅ Hammasi shu yerda — Telegram ichida, parol va ro'yxatdan o'tishsiz",
+    "welcomeCta": "👇 Boshlash uchun <b>«EduPrime.uz»</b> tugmasini bosing.",
     "referredWelcome": "🤝 Sizni do'stingiz taklif qildi — EduPrime oilasiga xush kelibsiz!",
     "friend": "do'stim",
     "menuHint": "⬇️ Pastdagi menyu orqali natijalaringiz, reyting va boshqa bo'limlarni bir bosishda ko'rasiz.",
@@ -1226,6 +1227,14 @@
       "subscribe": "Obuna sotib olish",
       "login": "Saytga kirish havolasi",
       "help": "Yordam"
+    },
+    "channelGate": {
+      "prompt": "📢 Botdan foydalanishni davom ettirish uchun <b>{channel}</b> kanalimizga obuna bo'ling.\n\nObuna bo'lgach, <b>«✅ Obuna bo'ldim»</b> tugmasini bosing 👇",
+      "join": "📢 Kanalga obuna bo'lish",
+      "check": "✅ Obuna bo'ldim",
+      "notSubscribed": "❗ Siz hali {channel} kanaliga obuna bo'lmagansiz. Avval obuna bo'ling, so'ng «Obuna bo'ldim» tugmasini qayta bosing.",
+      "confirmed": "✅ <b>Rahmat, obuna tasdiqlandi!</b>",
+      "confirmedToast": "✅ Obuna tasdiqlandi!"
     }
   },
   "telegramMiniApp": {

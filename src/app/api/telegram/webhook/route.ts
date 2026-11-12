@@ -6,10 +6,12 @@ import { handleCheckoutCallback, handleCheckoutReceipt, showCheckoutProducts, st
 import { startIntentCheckout } from '@/lib/telegram-intent-checkout';
 import { processLegacySubscription } from '@/lib/subscription-payments';
 import uzMessages from '@/messages/uz.json';
-import { handleMenuAction, menuActionFor, sendWelcome, setChatMenuForUser, setupBotMenu, setupReport } from '@/lib/telegram-bot-menu';
+import { fill, handleMenuAction, hideChatMenuForUser, menuActionFor, sendMainKeyboard, sendWelcome, setChatMenuForUser, setupBotMenu, setupReport, welcomeMarkup, welcomeText } from '@/lib/telegram-bot-menu';
 import { parseAdStart, parseReferralStart } from '@/lib/telegram-bot-links';
 import { countFirstStarts, recordBotStart } from '@/lib/bot-start';
-import { sendAdStart } from '@/lib/telegram-ad-start';
+import { AD_START_TEXT, adStartMarkup, sendAdStart } from '@/lib/telegram-ad-start';
+import { channelPromptMarkup, checkChannelMembership, isGatedStart, parseCheckCallback } from '@/lib/telegram-channel-gate';
+import { getBotSettings, type BotSettings } from '@/lib/bot-settings';
 import { getAdFreeTestId } from '@/lib/ad-free-test';
 import { btn } from '@/lib/telegram-buttons';
 import { tashkentDayRangeUtc } from '@/lib/date';
@@ -88,12 +90,26 @@ async function forwardMessage(chatId: number | string, fromChatId: number | stri
   });
 }
 
-async function answerCallbackQuery(callbackQueryId: string) {
+async function answerCallbackQuery(callbackQueryId: string, options: { text?: string; show_alert?: boolean } = {}) {
   await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ callback_query_id: callbackQueryId }),
+    body: JSON.stringify({ callback_query_id: callbackQueryId, ...options }),
   });
+}
+
+async function editMessageText(chatId: number, messageId: number, text: string, options: { reply_markup?: unknown } = {}): Promise<{ ok?: boolean } | null> {
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/editMessageText`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, message_id: messageId, text, parse_mode: 'HTML', ...options }),
+    });
+    return await res.json();
+  } catch (error) {
+    logger.error('editMessageText error:', { error });
+    return null;
+  }
 }
 
 function isAdmin(userId: number | string): boolean {
@@ -123,7 +139,51 @@ async function registerBotReferral(userId: number, username: string, firstName: 
 }
 
 // Handle /start command
-async function handleStart(chatId: number, userId: number, username: string, firstName: string, param: string) {
+// ===================== MAJBURIY KANAL (admin sozlamasi) =====================
+// Kanal, havola va yoqilganligi `lib/bot-settings.ts` dan — har update'da
+// POST bir marta o'qiydi va shu yerga uzatadi.
+const channelGate = uzMessages.telegramBot.channelGate;
+
+/** Faqat aniq obunasiz foydalanuvchi to'xtatiladi: admin, to'lov/kirish oqimlari va tekshiruv xatosi o'tkaziladi. */
+async function mustJoinChannel(userId: number, bot: BotSettings, param = ''): Promise<boolean> {
+  // O'chirilgan bo'lsa Telegram'ga so'rov ham yuborilmaydi.
+  if (!bot.requiredChannel.enabled) return false;
+  if (isAdmin(userId) || !isGatedStart(param)) return false;
+  return (await checkChannelMembership(BOT_TOKEN, userId, bot.requiredChannel.username)) === 'not_member';
+}
+
+async function sendChannelPrompt(chatId: number, bot: BotSettings, param = '') {
+  const text = fill(channelGate.prompt, { channel: bot.requiredChannel.username });
+  await sendMessage(chatId, text, { reply_markup: channelPromptMarkup(param, bot.requiredChannel.link) });
+}
+
+// Obunasiz /start: avval salomlashish matni (tugmalarsiz), keyin kanal so'rovi.
+async function startWithChannelGate(chatId: number, userId: number, username: string, firstName: string, param: string, bot: BotSettings) {
+  if (parseAdStart(param)) {
+    await sendMessage(chatId, AD_START_TEXT);
+  } else {
+    // Taklif bog'lanishi obunani kutmaydi — aks holda do'st kanalga kirguncha yo'qolardi.
+    const referralCode = parseReferralStart(param);
+    const referred = referralCode ? await registerBotReferral(userId, username, firstName, referralCode) : false;
+    await sendMessage(chatId, welcomeText({ firstName, referred }));
+  }
+  await sendChannelPrompt(chatId, bot, param);
+  // Chap pastdagi "EduPrime.uz" (Mini App) tugmasi ham obunagacha yashiriladi.
+  await hideChatMenuForUser(BOT_TOKEN, chatId);
+}
+
+// "Obuna bo'ldim" tasdiqlandi: kanal so'rovi xabari menyu tugmalariga aylanadi.
+async function finishChannelGate(chatId: number, messageId: number | undefined, userId: number, param: string, bot: BotSettings) {
+  const ad = Boolean(parseAdStart(param));
+  const text = `${channelGate.confirmed}\n\n${ad ? AD_START_TEXT : uzMessages.telegramBot.welcomeCta + adminCommandsText(userId)}`;
+  const reply_markup = ad ? adStartMarkup(APP_URL, await getAdFreeTestId()) : welcomeMarkup(bot.publicChannelLink);
+  const edited = messageId ? await editMessageText(chatId, messageId, text, { reply_markup }) : null;
+  if (!edited?.ok) await sendMessage(chatId, text, { reply_markup });
+  if (!ad) await sendMainKeyboard(chatId, { send: sendMessage });
+  await setChatMenuForUser(BOT_TOKEN, APP_URL, chatId);
+}
+
+async function handleStart(chatId: number, userId: number, username: string, firstName: string, param: string, bot: BotSettings) {
   // Handle single-test purchase: buy_test_<testId> — must be checked before the
   // generic 'buy_' prefix below, which would otherwise misparse "test" as a
   // plan name and show the wrong (Ustoz/Premium) price instead of this test's.
@@ -300,7 +360,7 @@ async function handleStart(chatId: number, userId: number, username: string, fir
   // Default /start — salomlashish, Mini App tugmasi va pastki menyu.
   const referralCode = parseReferralStart(param);
   const referred = referralCode ? await registerBotReferral(userId, username, firstName, referralCode) : false;
-  await sendWelcome(chatId, { firstName, adminText: adminCommandsText(userId), referred }, { send: sendMessage });
+  await sendWelcome(chatId, { firstName, adminText: adminCommandsText(userId), referred, channelLink: bot.publicChannelLink }, { send: sendMessage });
   await setChatMenuForUser(BOT_TOKEN, APP_URL, chatId);
 }
 
@@ -445,29 +505,35 @@ async function handleBroadcast(chatId: number, userId: number, messageText: stri
 }
 
 // Handle callback queries
-async function handleCallbackQuery(callbackQuery: any) {
+async function handleCallbackQuery(callbackQuery: any, bot: BotSettings) {
   const chatId = callbackQuery.message.chat.id;
   const userId = callbackQuery.from.id;
   const username = callbackQuery.from.username || '';
   const firstName = callbackQuery.from.first_name || '';
   const data = callbackQuery.data || '';
 
+  // "Obuna bo'ldim" — javob matni (alert/toast) bilan, shuning uchun umumiy answer'dan oldin.
+  const checkParam = parseCheckCallback(data);
+  if (checkParam !== null) {
+    if (await mustJoinChannel(userId, bot, checkParam)) {
+      const text = fill(channelGate.notSubscribed, { channel: bot.requiredChannel.username });
+      await answerCallbackQuery(callbackQuery.id, { text, show_alert: true });
+      return;
+    }
+    await answerCallbackQuery(callbackQuery.id, { text: channelGate.confirmedToast });
+    // Eski xabarlardagi ci_/ref tugmalari — saqlangan oqim davom etadi.
+    if (checkParam && !parseAdStart(checkParam)) {
+      await handleStart(chatId, userId, username, firstName, checkParam, bot);
+      return;
+    }
+    await finishChannelGate(chatId, callbackQuery.message?.message_id, userId, checkParam, bot);
+    return;
+  }
+
   await answerCallbackQuery(callbackQuery.id);
 
   if (data.startsWith('co:') || data.startsWith('cp:')) {
     await handleCheckoutCallback(chatId, callbackQuery.from, data, checkoutTransport());
-    return;
-  }
-
-  // Majburiy kanal obunasi olib tashlangan. Eski xabarlardagi "Obuna bo'ldim"
-  // tugmasi bosilsa xato chiqmasin — saqlangan start parametri bilan davom etadi.
-  if (data === 'check_subscription' || data.startsWith('check_subscription:')) {
-    const resumeParam = data.slice('check_subscription:'.length);
-    if (resumeParam) {
-      await handleStart(chatId, userId, username, firstName, resumeParam);
-      return;
-    }
-    await sendWelcome(chatId, { firstName, adminText: adminCommandsText(userId) }, { send: sendMessage });
     return;
   }
 
@@ -821,6 +887,8 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    // Bot sozlamalari (kanal, havolalar) update boshiga bir marta — keshdan, xatoda standartlar.
+    const bot = await getBotSettings();
 
     if (body.message?.text) {
       const msg = body.message;
@@ -834,7 +902,11 @@ export async function POST(request: NextRequest) {
         const param = text.replace('/start', '').trim();
         // Faqat haqiqiy /start sanaladi — eski check_subscription tugmasi qayta yozmaydi.
         await recordBotStart(userId, param);
-        await handleStart(chatId, userId, username, firstName, param);
+        if (await mustJoinChannel(userId, bot, param)) {
+          await startWithChannelGate(chatId, userId, username, firstName, param, bot);
+        } else {
+          await handleStart(chatId, userId, username, firstName, param, bot);
+        }
       } else if (text === '/login') {
         await handleLogin(chatId, userId, username, firstName);
       } else if (text === '/premium' || text === '/ustoz' || text === '/obuna') {
@@ -859,7 +931,10 @@ export async function POST(request: NextRequest) {
       } else {
         // Pastki menyu tugmalari va /natijalar, /reyting, /help kabi buyruqlar.
         const action = menuActionFor(text);
-        if (action) {
+        // Obuna (to'lov) bo'limidan boshqasi kanal obunasini talab qiladi.
+        if (action && action !== 'subscribe' && await mustJoinChannel(userId, bot)) {
+          await sendChannelPrompt(chatId, bot);
+        } else if (action) {
           await handleMenuAction(action, { chatId, telegramId: userId, username, firstName, adminText: adminCommandsText(userId) },
             { send: sendMessage }, () => showCheckoutProducts(chatId, checkoutTransport()));
         }
@@ -876,7 +951,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (body.callback_query) {
-      await handleCallbackQuery(body.callback_query);
+      await handleCallbackQuery(body.callback_query, bot);
     }
 
     return NextResponse.json({ ok: true });

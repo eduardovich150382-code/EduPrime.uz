@@ -5,11 +5,13 @@ import { motion } from 'framer-motion';
 import {
   Settings, Save, CreditCard, MessageCircle, DollarSign,
   Megaphone, Loader2, Check, AlertCircle,
-  Users, Bell, Bot, Award, CalendarDays, Clock,
+  Users, Bell, Bot, Award, CalendarDays, Clock, Send, Link2, BookOpen, Eye,
 } from 'lucide-react';
 import BackButton from '@/components/ui/BackButton';
+import { ChannelCheckButton, ToggleField } from '@/components/admin/TelegramSettingsControls';
+import { BOT_SETTING_DEFAULTS, type BotSettingKey } from '@/lib/bot-settings-defaults';
 
-interface SettingsForm {
+interface SettingsForm extends Record<BotSettingKey, string> {
   // To'lov ma'lumotlari
   payment_card_number: string;
   payment_card_owner: string;
@@ -36,7 +38,7 @@ interface SettingsGroup {
   title: string;
   icon: any;
   description: string;
-  fields: { key: keyof SettingsForm; label: string; placeholder: string; icon: any; type?: string; suffix?: string }[];
+  fields: { key: keyof SettingsForm; label: string; placeholder: string; icon: any; type?: string; suffix?: string; inputMode?: 'numeric' }[];
 }
 
 const settingsGroups: SettingsGroup[] = [
@@ -105,6 +107,22 @@ const settingsGroups: SettingsGroup[] = [
       { key: 'ad_free_test_id', label: 'Bepul reklama testi (test ID)', placeholder: 'cmg...', icon: Award },
     ],
   },
+  {
+    title: 'Telegram kanal va kurs',
+    icon: Send,
+    description: "Majburiy obuna kanali, bot havolalari va kurs ma'lumotlari. @EduPrimeFizika majburiy emas.",
+    fields: [
+      { key: 'required_channel_enabled', label: 'Majburiy obuna', placeholder: '', icon: Send, type: 'toggle' },
+      { key: 'required_channel_username', label: 'Majburiy kanal (username)', placeholder: '@FizikaMSattestatsiya', icon: Send },
+      { key: 'required_channel_link', label: '"Obuna bo\'lish" havolasi', placeholder: 'https://t.me/FizikaMSattestatsiya', icon: Link2 },
+      { key: 'public_channel_link', label: 'Bot menyusidagi "Kanal" havolasi', placeholder: 'https://t.me/EduPrimeuz', icon: Link2 },
+      { key: 'course_name', label: 'Kurs nomi', placeholder: 'Attestatsiyaga tayyorlov kursi', icon: BookOpen },
+      { key: 'course_price', label: 'Kurs narxi', placeholder: '350000', icon: DollarSign, inputMode: 'numeric', suffix: "so'm" },
+      { key: 'course_price_public', label: "Narx ommaviy matnlarda ko'rsatilsin", placeholder: '', icon: Eye, type: 'toggle' },
+      { key: 'course_info_link', label: 'Kurs haqida post / sotib olish havolasi', placeholder: 'https://t.me/...', icon: Link2 },
+      { key: 'course_manager_username', label: 'Kurs menejeri (username)', placeholder: '@admin', icon: MessageCircle },
+    ],
+  },
 ];
 
 export default function AdminSettingsPage() {
@@ -125,6 +143,7 @@ export default function AdminSettingsPage() {
     attestation_tier_top_min: '80',
     attestation_tier_top_bonus_min: '86',
     ad_free_test_id: '',
+    ...BOT_SETTING_DEFAULTS,
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -249,7 +268,9 @@ export default function AdminSettingsPage() {
                       <Icon size={14} className="text-primary-500 shrink-0" />
                       {field.label}
                     </label>
-                    {isTextarea ? (
+                    {field.type === 'toggle' ? (
+                      <ToggleField checked={settings[field.key] === 'true'} onChange={(v) => handleChange(field.key, v)} label={field.label} />
+                    ) : isTextarea ? (
                       <textarea
                         value={settings[field.key]}
                         onChange={(e) => handleChange(field.key, e.target.value)}
@@ -261,6 +282,7 @@ export default function AdminSettingsPage() {
                       <div className="relative">
                         <input
                           type={field.type || 'text'}
+                          inputMode={field.inputMode}
                           value={settings[field.key]}
                           onChange={(e) => handleChange(field.key, e.target.value)}
                           placeholder={field.placeholder}
@@ -273,6 +295,7 @@ export default function AdminSettingsPage() {
                         )}
                       </div>
                     )}
+                    {field.key === 'required_channel_username' && <ChannelCheckButton channel={settings.required_channel_username} />}
                   </div>
                 );
               })}

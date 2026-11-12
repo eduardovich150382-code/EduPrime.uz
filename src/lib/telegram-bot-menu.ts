@@ -15,9 +15,8 @@ import ruMessages from '@/messages/ru.json';
 
 const m = uzMessages.telegramBot;
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || '';
-export const CHANNEL_LINK = 'https://t.me/EduPrimeuz';
 
-type ReplyMarkup =
+export type ReplyMarkup =
   | { inline_keyboard: InlineButton[][] }
   | { keyboard: { text: string }[][]; resize_keyboard: boolean; is_persistent: boolean; input_field_placeholder?: string };
 
@@ -86,25 +85,36 @@ export function mainKeyboard(): ReplyMarkup {
   };
 }
 
+/** Salomlashish matni (CTA'siz) — kanal obunasi so'ralganda tugmalarsiz shu yuboriladi. */
+export function welcomeText(user: { firstName: string; referred?: boolean }): string {
+  const intro = user.referred ? `${m.referredWelcome}\n\n` : '';
+  return intro + fill(m.welcome, { name: user.firstName || m.friend });
+}
+
+/** Kanal havolasi admin sozlamasidan (`lib/bot-settings.ts`) keladi — menyu quruvchilar bazaga murojaat qilmaydi. */
+export function welcomeMarkup(channelLink: string): ReplyMarkup {
+  return {
+    inline_keyboard: [
+      [webApp(m.buttons.openPlatform, '/attestation', 'success')],
+      [webApp(m.buttons.tests, '/tests', 'primary'), webApp(m.buttons.pricing, '/pricing', 'primary')],
+      // Ixtiyoriy umumiy kanal; majburiy kanal — telegram-channel-gate.ts.
+      [btn.primary(m.buttons.channel, { url: channelLink })],
+    ],
+  };
+}
+
+/** Reply klaviatura alohida xabar bilan: bitta xabarda inline va pastki klaviaturani birga yuborib bo'lmaydi. */
+export async function sendMainKeyboard(chatId: number, transport: BotTransport) {
+  await transport.send(chatId, m.menuHint, { reply_markup: mainKeyboard() });
+}
+
 export async function sendWelcome(
   chatId: number,
-  user: { firstName: string; adminText?: string; referred?: boolean },
+  user: { firstName: string; adminText?: string; referred?: boolean; channelLink: string },
   transport: BotTransport,
 ) {
-  const intro = user.referred ? `${m.referredWelcome}\n\n` : '';
-  await transport.send(chatId, intro + fill(m.welcome, { name: user.firstName || m.friend }) + (user.adminText ?? ''), {
-    reply_markup: {
-      inline_keyboard: [
-        [webApp(m.buttons.openPlatform, '/attestation', 'success')],
-        [webApp(m.buttons.tests, '/tests', 'primary'), webApp(m.buttons.pricing, '/pricing', 'primary')],
-        // Kanal endi majburiy emas — faqat taklif sifatida.
-        [btn.primary(m.buttons.channel, { url: CHANNEL_LINK })],
-      ],
-    },
-  });
-  // Reply klaviatura alohida xabar bilan o'rnatiladi: bitta xabarda inline
-  // va pastki klaviaturani birga yuborib bo'lmaydi.
-  await transport.send(chatId, m.menuHint, { reply_markup: mainKeyboard() });
+  await transport.send(chatId, `${welcomeText(user)}\n\n${m.welcomeCta}${user.adminText ?? ''}`, { reply_markup: welcomeMarkup(user.channelLink) });
+  await sendMainKeyboard(chatId, transport);
 }
 
 export async function handleMenuAction(
@@ -256,6 +266,14 @@ function commandList(messages: typeof uzMessages.telegramBot.commands): CommandL
     { command: 'login', description: messages.login },
     { command: 'help', description: messages.help },
   ];
+}
+
+/**
+ * Kanalga obuna bo'lmagan foydalanuvchi chatida Mini App menyu tugmasi
+ * o'rniga buyruqlar ro'yxati — obuna tasdiqlangach setChatMenuForUser qaytaradi.
+ */
+export async function hideChatMenuForUser(botToken: string, chatId: number): Promise<TelegramReply> {
+  return callTelegram(botToken, 'setChatMenuButton', { chat_id: chatId, menu_button: { type: 'commands' } });
 }
 
 /**
