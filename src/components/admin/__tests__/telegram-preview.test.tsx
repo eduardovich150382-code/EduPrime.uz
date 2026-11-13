@@ -24,6 +24,13 @@ describe('TelegramPreview', () => {
     expect(html('<a href="javascript:alert(1)">x</a>')).not.toContain('href=');
   });
 
+  it('kanal posti: rasm, tugma va yig‘iladigan iqtibos', () => {
+    const out = renderToStaticMarkup(<TelegramPreview html="<blockquote expandable>uzun</blockquote>" imageSrc="/api/x/image?v=1" button="🎁 Qatnashish" />);
+    expect(out).toContain('src="/api/x/image?v=1"');
+    expect(out).toContain('🎁 Qatnashish');
+    expect(out).toContain('line-clamp-3');
+  });
+
   it('plain (alert) — teglarsiz', () => {
     expect(html('<b>Obuna</b> bo‘ling', true)).toContain('Obuna bo‘ling');
   });

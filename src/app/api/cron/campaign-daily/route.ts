@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
     const result = await runCampaignDaily({
       bot: await getBotSettings(),
       send: (chatId, text) => telegramApi(token, 'sendMessage', { chat_id: chatId, text, parse_mode: 'HTML', disable_web_page_preview: true }),
+      api: (method, body) => telegramApi(token, method, body),
       sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
       now: () => new Date(),
     });

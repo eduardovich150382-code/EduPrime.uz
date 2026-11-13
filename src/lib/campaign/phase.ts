@@ -32,3 +32,13 @@ export function canJoin(phase: CampaignPhase, isAdmin: boolean): boolean {
   if (phase === 'ACTIVE') return true;
   return phase === 'DRAFT' && isAdmin;
 }
+
+// Cron kuniga bir marta ~20:00 da ishlaydi. 24 soatlik oynada aksiya 23:59 da
+// tugasa eslatma tugashga atigi ~4 soat qolganda kelardi — odamlarga harakat
+// qilishga vaqt qolmasdi. 36 soat: eslatma tugashdan oldingi kechada keladi.
+export const LAST_DAY_WINDOW_MS = 36 * 60 * 60 * 1000;
+
+/** `last_day` xabari va LAST_DAY kanal posti vaqti: tugashga ≤ 36 soat qolgan. */
+export function isLastDayWindow(c: Pick<PhaseInput, 'endsAt'>, now: Date): boolean {
+  return c.endsAt.getTime() - now.getTime() <= LAST_DAY_WINDOW_MS;
+}

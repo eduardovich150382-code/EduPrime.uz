@@ -108,7 +108,7 @@ export function readRewardTiers(json: unknown): RewardTier[] | null {
   return parsed.success ? parsed.data : null;
 }
 
-function rangeLabel(t: Pick<RewardTier, 'fromRank' | 'toRank'>): string {
+export function rangeLabel(t: Pick<RewardTier, 'fromRank' | 'toRank'>): string {
   return t.fromRank === t.toRank ? `${t.fromRank}-o'rin` : `${t.fromRank}–${t.toRank}-o'rin`;
 }
 
@@ -141,7 +141,7 @@ export function textLimit(key: CampaignTextKey): { max: number; plain: boolean }
 
 export type TextCheck = { issues: HtmlIssue[]; length: number; max: number };
 
-function lineOf(text: string, needle: string): number {
+export function lineOf(text: string, needle: string): number {
   const at = text.indexOf(needle);
   return at === -1 ? 0 : text.slice(0, at).split('\n').length;
 }

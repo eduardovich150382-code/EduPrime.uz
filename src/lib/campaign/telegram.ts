@@ -8,6 +8,8 @@ export type TelegramResult = {
   error_code?: number;
   description?: string;
   parameters?: { retry_after?: number };
+  /** Muvaffaqiyatli javob tanasi (masalan, yuborilgan xabar) — kanal postining message_id si shundan olinadi. */
+  result?: unknown;
 };
 
 export async function telegramApi(botToken: string, method: string, body: unknown): Promise<TelegramResult> {
@@ -23,6 +25,7 @@ export async function telegramApi(botToken: string, method: string, body: unknow
       error_code: typeof record.error_code === 'number' ? record.error_code : undefined,
       description: typeof record.description === 'string' ? record.description : undefined,
       parameters: typeof record.parameters?.retry_after === 'number' ? { retry_after: record.parameters.retry_after } : undefined,
+      result: record.result,
     };
   } catch (error) {
     logger.error(`Telegram ${method} error:`, { error });

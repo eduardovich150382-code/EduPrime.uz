@@ -30,6 +30,11 @@ type Props = {
   onTest: () => void;
   /** Berilmasa "Standartga qaytarish" tugmasi ko'rinmaydi. */
   onReset?: () => void;
+  /** Oldindan ko'rishdagi rasm va tugma (kanal postlari). */
+  previewImage?: string | null;
+  previewButton?: string | null;
+  /** Muharrirdan tashqaridagi maydon (masalan, tugma) xato bo'lsa — saqlash o'chiq. */
+  saveDisabled?: boolean;
 };
 
 const FORMATS = [
@@ -60,6 +65,7 @@ function unknownIssues(text: string, known: Set<string>): HtmlIssue[] {
 
 export default function TelegramHtmlEditor({
   value, onChange, variables, sampleVars, maxLength, plain = false, serverIssues = [], busy = null, message = null, onSave, onTest, onReset,
+  previewImage = null, previewButton = null, saveDisabled = false,
 }: Props) {
   const area = useRef<HTMLTextAreaElement>(null);
   const [confirmReset, setConfirmReset] = useState(false);
@@ -149,7 +155,7 @@ export default function TelegramHtmlEditor({
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-          <button type="button" onClick={onSave} disabled={invalid || busy !== null}
+          <button type="button" onClick={onSave} disabled={invalid || saveDisabled || busy !== null}
             className="btn-primary flex min-h-11 items-center justify-center gap-2 py-2.5! text-sm disabled:opacity-50">
             {busy === 'save' ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} Saqlash
           </button>
@@ -171,7 +177,7 @@ export default function TelegramHtmlEditor({
 
       <div className="min-w-0">
         <p className="mb-1.5 text-xs font-medium text-text-secondary">Oldindan ko&apos;rish (namunaviy qiymatlar bilan)</p>
-        <TelegramPreview html={rendered} plain={plain} />
+        <TelegramPreview html={rendered} plain={plain} imageSrc={previewImage} button={previewButton} />
       </div>
 
       {confirmReset && onReset && (

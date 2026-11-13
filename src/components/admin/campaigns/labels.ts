@@ -24,7 +24,7 @@ export const TEXT_LABELS: Record<CampaignTextKey, { name: string; when: string }
   point_added: { name: '+1 ball', when: 'Har yangi referalda ishtirokchiga' },
   my_result: { name: 'Mening natijam', when: '"📊 Mening natijam" tugmasi' },
   daily_result: { name: 'Kunlik natija', when: 'Har kuni ~20:00 da' },
-  last_day: { name: 'Oxirgi kun eslatmasi', when: "Tugashga 24 soatdan kam qolganda (kunlik xabar o'rniga)" },
+  last_day: { name: 'Oxirgi kun eslatmasi', when: "Tugashdan oldingi oxirgi kech (≤ 36 soat qolganda), kunlik xabar o'rniga" },
   not_active: { name: 'Aksiya faol emas', when: "Aksiya yo'q yoki tugagan" },
   winner: { name: "G'olib xabari", when: 'Yakunlashda, promokod bilan (A5)' },
   no_prize: { name: 'Mukofotsiz ishtirokchi', when: 'Yakunlashda (A5)' },
