@@ -11,13 +11,15 @@ import CampaignStatusActions from '@/components/admin/campaigns/CampaignStatusAc
 import CampaignBasicTab from '@/components/admin/campaigns/CampaignBasicTab';
 import CampaignRewardsTab from '@/components/admin/campaigns/CampaignRewardsTab';
 import CampaignTextsTab from '@/components/admin/campaigns/CampaignTextsTab';
+import CampaignPostsTab from '@/components/admin/campaigns/CampaignPostsTab';
 import CampaignRankingTab from '@/components/admin/campaigns/CampaignRankingTab';
 
-type Tab = 'basic' | 'rewards' | 'texts' | 'ranking';
+type Tab = 'basic' | 'rewards' | 'texts' | 'posts' | 'ranking';
 const TABS: { id: Tab; label: string }[] = [
   { id: 'basic', label: 'Asosiy' },
   { id: 'rewards', label: 'Mukofotlar' },
   { id: 'texts', label: 'Matnlar' },
+  { id: 'posts', label: 'Postlar' },
   { id: 'ranking', label: 'Reyting' },
 ];
 
@@ -83,6 +85,7 @@ export default function AdminCampaignPage() {
         {tab === 'basic' && <CampaignBasicTab detail={detail} onSaved={load} />}
         {tab === 'rewards' && <CampaignRewardsTab detail={detail} onSaved={load} />}
         {tab === 'texts' && <CampaignTextsTab detail={detail} onSaved={load} />}
+        {tab === 'posts' && <CampaignPostsTab campaignId={c.id} phase={detail.phase} />}
         {tab === 'ranking' && <CampaignRankingTab campaignId={c.id} />}
       </div>
     </div>

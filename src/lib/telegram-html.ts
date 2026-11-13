@@ -15,15 +15,21 @@ export type TelegramTag = (typeof TELEGRAM_ALLOWED_TAGS)[number];
 export type HtmlIssue = { line: number; message: string };
 export type TelegramNode =
   | { type: 'text'; text: string }
-  | { type: 'element'; tag: TelegramTag; href?: string; children: TelegramNode[] };
+  | { type: 'element'; tag: TelegramTag; href?: string; expandable?: boolean; children: TelegramNode[] };
 
 const ALLOWED = new Set<string>(TELEGRAM_ALLOWED_TAGS);
 const TAG_RE = /<(\/?)([A-Za-z][A-Za-z0-9-]*)((?:\s+[A-Za-z-]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'>]+))?)*)\s*>/y;
 const ATTR_RE = /([A-Za-z-]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+)))?/g;
 const ENTITY_RE = /&(lt|gt|amp|quot|#\d{1,7}|#x[0-9A-Fa-f]{1,6});/y;
 const NAMED: Record<string, string> = { lt: '<', gt: '>', amp: '&', quot: '"' };
-// `{havola}` — o'zgaruvchi; qiymati render'da escape qilinadi va URL bo'ladi.
-const SAFE_HREF_RE = /^(?:(?:https?|tg):\/\/\S+|\{\w+\})$/i;
+/**
+ * href'da faqat qiymati URL bo'ladigan o'zgaruvchilar. `{ism}` kabi boshqasi
+ * render'da URL emas, matn bo'lib chiqadi va Telegram butun xabarni rad etadi.
+ */
+export const HREF_VARIABLES = ['havola', 'qatnashish_havolasi', 'kurs_havola'] as const;
+const SAFE_URL_RE = /^(?:https?|tg):\/\/\S+$/i;
+const HREF_VARIABLE_RE = new RegExp(`^\\{(?:${HREF_VARIABLES.join('|')})\\}$`);
+const ANY_VARIABLE_RE = /^\{\w+\}$/;
 
 function decodeEntity(body: string): string {
   if (body in NAMED) return NAMED[body];
@@ -54,13 +60,22 @@ function openElement(tag: TelegramTag, rawAttrs: string, line: number, errors: H
   if (tag === 'a') {
     const href = decodeText(attrs.get('href') ?? '').trim();
     if (!href) errors.push({ line, message: `<a> tegida href yo'q: <a href="https://...">matn</a> deb yozing` });
-    else if (!SAFE_HREF_RE.test(href)) errors.push({ line, message: `Havola faqat https://, http:// yoki tg:// bilan boshlanadi: "${href}"` });
-    else node.href = href;
+    else if (ANY_VARIABLE_RE.test(href) && !HREF_VARIABLE_RE.test(href)) {
+      errors.push({ line, message: `${href} havola emas: href'da faqat ${HREF_VARIABLES.map((v) => `{${v}}`).join(', ')} bo'ladi` });
+    } else if (!SAFE_URL_RE.test(href) && !HREF_VARIABLE_RE.test(href)) {
+      errors.push({ line, message: `Havola faqat https://, http:// yoki tg:// bilan boshlanadi: "${href}"` });
+    } else node.href = href;
     if ([...attrs.keys()].some((k) => k !== 'href')) errors.push({ line, message: `<a> tegida faqat href atributi bo'ladi` });
     return node;
   }
   if (tag === 'span') {
     if (attrs.get('class') !== 'tg-spoiler' || attrs.size > 1) errors.push({ line, message: `<span> faqat <span class="tg-spoiler"> shaklida bo'ladi` });
+    return node;
+  }
+  if (tag === 'blockquote' && attrs.has('expandable')) {
+    // Yig'iladigan iqtibos: Telegram `<blockquote expandable>` ni qiymatsiz atribut bilan qabul qiladi.
+    node.expandable = true;
+    if (attrs.get('expandable') !== '' || attrs.size > 1) errors.push({ line, message: `<blockquote> da faqat qiymatsiz expandable atributi bo'ladi` });
     return node;
   }
   if (attrs.size > 0) errors.push({ line, message: `<${tag}> tegida atribut bo'lmaydi` });

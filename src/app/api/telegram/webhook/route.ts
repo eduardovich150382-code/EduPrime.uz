@@ -19,6 +19,7 @@ import { linkReferral } from '@/lib/referral-code';
 import { CAMPAIGN_JOIN_PARAM, parseCampaignStart } from '@/lib/campaign/ref-code';
 import { CMP_JOIN, campaignJoinVisible, confirmPendingReferral, handleCampaignCallback, handleCampaignStart, isCampaignCallback, joinFlow, type CampaignBotCtx } from '@/lib/campaign/bot';
 import { telegramApi } from '@/lib/campaign/telegram';
+import { handleCampaignCapture } from '@/lib/campaign/capture';
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || '';
@@ -946,6 +947,18 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     // Bot sozlamalari (kanal, havolalar) update boshiga bir marta — keshdan, xatoda standartlar.
     const bot = await getBotSettings();
+
+    // Admin "📲 Telegram'dan olish" ni bosgan bo'lsa, uning keyingi xabari
+    // aksiya postiga aylanadi (lib/campaign/capture.ts). Oddiy foydalanuvchi
+    // uchun bazaga so'rov yo'q — tekshiruv ADMIN_IDS dan boshlanadi.
+    if (body.message && await handleCampaignCapture(body.message, {
+      bot,
+      isAdmin,
+      isMenuText: (value) => menuActionFor(value) !== null,
+      reply: (chat, value) => telegramApi(BOT_TOKEN, 'sendMessage', { chat_id: chat, text: value }),
+    })) {
+      return NextResponse.json({ ok: true });
+    }
 
     if (body.message?.text) {
       const msg = body.message;

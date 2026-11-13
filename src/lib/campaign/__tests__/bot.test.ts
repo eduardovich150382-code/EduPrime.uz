@@ -206,6 +206,14 @@ describe('qatnashish', () => {
     await joinFlow(ctx);
     expect(photos).toEqual([{ chatId: USER, photo: 'https://img/x.jpg', caption: 'Kanal: https://t.me/EduPrimeuzbot?start=c_Zx98Yw76' }]);
   });
+  it('A4: imageUrl — Telegram file_id; sendPhoto uni o‘zgarishsiz oladi', async () => {
+    s.joinCampaign.mockResolvedValue(participantFixture({ refCode: 'Zx98Yw76' }));
+    const fileId = 'AgACAgIAAxkBAAIBZ2dQ_x-file-id';
+    s.loadSharePost.mockResolvedValue({ id: 'post', text: '<b>{kanal}</b>: {havola}', imageUrl: fileId, buttonText: null, buttonUrl: null });
+    const { ctx, photos } = makeCtx('member');
+    await joinFlow(ctx);
+    expect(photos).toEqual([{ chatId: USER, photo: fileId, caption: '<b>@FizikaMSattestatsiya</b>: https://t.me/EduPrimeuzbot?start=c_Zx98Yw76' }]);
+  });
   it('qoralama: oddiy foydalanuvchi qatnasha olmaydi, admin qatnashadi', async () => {
     s.getCurrentCampaign.mockResolvedValue(campaignFixture({ isPublished: false }));
     const user = makeCtx('member');

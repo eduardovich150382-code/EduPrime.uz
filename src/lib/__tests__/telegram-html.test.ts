@@ -85,3 +85,18 @@ describe('parseTelegramHtml daraxti', () => {
     expect(nodes[0]).toMatchObject({ tag: 'a', href: 'https://x.uz/?a=1&b=2' });
   });
 });
+
+describe('validateTelegramHtml — A4 qo‘shimchalari', () => {
+  it('<blockquote expandable> qabul qilinadi, qiymatli atribut rad etiladi', () => {
+    expect(validateTelegramHtml('<blockquote expandable>uzun</blockquote>')).toEqual([]);
+    const node = parseTelegramHtml('<blockquote expandable>x</blockquote>').nodes[0];
+    expect(node).toMatchObject({ type: 'element', tag: 'blockquote', expandable: true });
+    expect(messages('<blockquote expandable="1">x</blockquote>')[0]).toContain('expandable');
+    expect(messages('<blockquote class="x">x</blockquote>')[0]).toContain("atribut bo'lmaydi");
+  });
+
+  it('href’da faqat havola turidagi o‘zgaruvchilar', () => {
+    expect(validateTelegramHtml('<a href="{havola}">a</a> <a href="{qatnashish_havolasi}">b</a> <a href="{kurs_havola}">c</a>')).toEqual([]);
+    expect(messages('<a href="{ism}">x</a>')[0]).toContain('{ism} havola emas');
+  });
+});

@@ -88,6 +88,9 @@ export default function CampaignTextsTab({ detail, onSaved }: Props) {
       <div>
         <h2 className="text-lg font-semibold text-text-primary">{TEXT_LABELS[key].name}</h2>
         <p className="text-xs text-text-secondary">{TEXT_LABELS[key].when} · <span className="font-mono">{key}</span></p>
+        {key === 'share_post' && (
+          <p className="mt-1 text-xs font-medium text-primary-700">Postlar → Ulashiladigan post saqlangan bo&apos;lsa, bu matn o&apos;rniga o&apos;sha ishlatiladi.</p>
+        )}
       </div>
       <TelegramHtmlEditor
         value={draft}

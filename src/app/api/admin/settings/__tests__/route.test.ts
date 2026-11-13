@@ -27,6 +27,14 @@ describe('GET /api/admin/settings', () => {
     const { settings } = await res.json();
     expect(settings).toMatchObject(BOT_SETTING_DEFAULTS);
   });
+  it('aksiya capture kalitlari (vaqtinchalik holat) chiqmaydi va PUT ularni qayta yozmaydi', async () => {
+    m.findMany.mockResolvedValue([{ key: 'campaign_capture:456', value: '{"kind":"SHARE"}' }, { key: 'site_announcement', value: 'Salom' }]);
+    const { settings } = await (await GET()).json();
+    expect(settings).not.toHaveProperty('campaign_capture:456');
+    expect(settings.site_announcement).toBe('Salom');
+    await put({ 'campaign_capture:456': '{"kind":"SHARE"}', site_announcement: 'Salom' });
+    expect(saved()).toEqual({ site_announcement: 'Salom' });
+  });
 });
 
 describe('PUT /api/admin/settings — bot kalitlari', () => {

@@ -87,7 +87,8 @@ O'rin: <b>{orin}</b>
 Havolangizni yana bir guruhga yuboring 👇
 {havola}`,
 
-  last_day: `⏰ <b>Aksiya tugashiga 24 soatdan kam qoldi!</b>
+  last_day: `⏰ <b>Aksiya tugashiga oz qoldi!</b>
+Tugash: {tugash_vaqti}
 
 Sizda <b>{ball}</b> ball, <b>{orin}</b>-o'rin.
 📈 {keyingi_pogona} chegirmagacha yana {qolgan} ta odam.
@@ -156,9 +157,12 @@ export function renderUrl(template: string, vars: TemplateVars): string {
   return substitute(template, filled, false).trim();
 }
 
-/** Shablondagi ro'yxatda yo'q o'zgaruvchilar (takrorsiz) — A3 saqlash validatsiyasi uchun. */
-export function unknownVariables(template: string): string[] {
-  const known = new Set<string>(CAMPAIGN_VARIABLES);
+/**
+ * Shablondagi ro'yxatda yo'q o'zgaruvchilar (takrorsiz) — A3 saqlash
+ * validatsiyasi uchun. Kanal postlari (A4) o'z turining ro'yxatini beradi.
+ */
+export function unknownVariables(template: string, allowed: readonly string[] = CAMPAIGN_VARIABLES): string[] {
+  const known = new Set<string>(allowed);
   const unknown = new Set<string>();
   for (const [, key] of template.matchAll(VARIABLE_RE)) if (!known.has(key)) unknown.add(key);
   return [...unknown];

@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const s = vi.hoisted(() => ({ load: vi.fn(), claimDaily: vi.fn(), claimLastDay: vi.fn(), ranking: vi.fn(), warn: vi.fn() }));
+const s = vi.hoisted(() => ({ load: vi.fn(), claimDaily: vi.fn(), claimLastDay: vi.fn(), ranking: vi.fn(), warn: vi.fn(), channel: vi.fn() }));
 vi.mock('../store', () => ({ loadCurrentCampaignFresh: s.load, claimDaily: s.claimDaily, claimLastDay: s.claimLastDay, loadRanking: s.ranking }));
+vi.mock('../post-cron', () => ({ runChannelPosts: s.channel }));
 vi.mock('@/lib/db', () => ({ db: {} }));
 vi.mock('@/lib/logger', () => ({ logger: { error: vi.fn(), warn: s.warn, info: vi.fn() } }));
 import { parseBotSettings } from '@/lib/bot-settings';
@@ -24,6 +25,7 @@ function deps(send: (chatId: string) => TelegramResult, clockStepMs = 0) {
   const d: DailyDeps = {
     bot: parseBotSettings([]),
     send: vi.fn(async (chatId: string) => send(chatId)),
+    api: vi.fn(async () => ({ ok: true })),
     sleep: vi.fn(async (ms: number) => { sleeps.push(ms); clock += ms; }),
     now: () => { clock += clockStepMs; return new Date(clock); },
   };
@@ -35,6 +37,7 @@ beforeEach(() => {
   s.load.mockResolvedValue(campaignFixture());
   s.claimDaily.mockResolvedValue(true);
   s.claimLastDay.mockResolvedValue(true);
+  s.channel.mockResolvedValue({});
 });
 
 describe('runCampaignDaily', () => {
@@ -74,5 +77,26 @@ describe('runCampaignDaily', () => {
     const { d } = deps(() => ({ ok: true }));
     expect(await runCampaignDaily(d)).toMatchObject({ kind: null, reason: 'already_sent' });
     expect(s.ranking).not.toHaveBeenCalled();
+  });
+  it('kanal postlari shaxsiy xabarlardan OLDIN; reyting bir marta yuklanadi', async () => {
+    setup(2);
+    const order: string[] = [];
+    s.channel.mockImplementation(async (_c: unknown, _now: Date, _deps: unknown, ranking: () => Promise<unknown>) => {
+      order.push('channel');
+      await ranking();
+      return { leaderboard: 'ok' };
+    });
+    const { d } = deps(() => { order.push('send'); return { ok: true }; });
+    expect(await runCampaignDaily(d)).toMatchObject({ sent: 2, posts: { leaderboard: 'ok' } });
+    expect(order).toEqual(['channel', 'send', 'send']);
+    expect(s.ranking).toHaveBeenCalledTimes(1);
+  });
+  it('“Kunlik natija xabari” o‘chiq — kanal postlari baribir ishlaydi, shaxsiy xabar yo‘q', async () => {
+    s.load.mockResolvedValue(campaignFixture({ dailyEnabled: false }));
+    s.channel.mockResolvedValue({ lastDay: 'published' });
+    const { d } = deps(() => ({ ok: true }));
+    expect(await runCampaignDaily(d)).toMatchObject({ kind: null, reason: 'disabled', posts: { lastDay: 'published' } });
+    expect(s.channel).toHaveBeenCalledTimes(1);
+    expect(d.send).not.toHaveBeenCalled();
   });
 });
