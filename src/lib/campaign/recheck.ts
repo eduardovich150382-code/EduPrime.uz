@@ -39,21 +39,43 @@ export type RecheckDeps = {
   now(): Date;
 };
 
-export type RecheckResult = { checked: number; becameLeft: number; becameActive: number; remaining: number; error?: string };
+export type RecheckResult = {
+  checked: number; becameLeft: number; becameActive: number;
+  /** O'chirilgan (yoki Telegram tanimaydigan) akkauntlar — kanalda yo'q, chiqib ketgan hisoblanadi. */
+  deletedAccounts: number;
+  remaining: number;
+  error?: string;
+};
 
-/** 429 bo'lsa `retry_after` qadar kutib bir marta qayta; yana xato — `unknown`. */
-async function membershipOf(deps: RecheckDeps, userId: string): Promise<Membership> {
+// Foydalanuvchiga tegishli 400 xatolari: akkaunt o'chirilgan yoki ID yaroqsiz.
+// Bunday odam kanalda yo'q — `unknown` deb to'xtash qolgan hamma referalni
+// abadiy tekshirilmay qoldirardi (keyingi chaqiruv yana shu yozuvga uriladi).
+// Kanal darajasidagi xatolar (403, "chat not found", huquq yo'q, 5xx, tarmoq)
+// esa `unknown` qoladi: ular hamma referalga tegishli, tekshiruv to'xtashi kerak.
+const DELETED_ACCOUNT_RE = /user not found|participant_id_invalid|user_id_invalid/i;
+
+export function isDeletedAccountReply(reply: TelegramResult): boolean {
+  return !reply.ok && reply.error_code === 400 && DELETED_ACCOUNT_RE.test(reply.description ?? '');
+}
+
+/**
+ * 429 bo'lsa `retry_after` qadar kutib bir marta qayta; yana xato — `unknown`.
+ * `membershipFromReply` ga tegilmaydi: majburiy kanal gate'i uni ishlatadi va
+ * u yerda tushunarsiz javob "o'tkazib yuborish" degani.
+ */
+async function membershipOf(deps: RecheckDeps, userId: string): Promise<{ membership: Membership; deleted: boolean }> {
   let reply = await deps.getChatMember(userId);
   if (!reply.ok && reply.error_code === 429) {
     await deps.sleep((reply.parameters?.retry_after ?? 1) * 1000);
     reply = await deps.getChatMember(userId);
   }
-  return membershipFromReply(reply);
+  if (isDeletedAccountReply(reply)) return { membership: 'not_member', deleted: true };
+  return { membership: membershipFromReply(reply), deleted: false };
 }
 
 export async function runRecheck(campaign: Campaign, deps: RecheckDeps): Promise<RecheckResult> {
   const startedAt = deps.now().getTime();
-  const result: RecheckResult = { checked: 0, becameLeft: 0, becameActive: 0, remaining: 0 };
+  const result: RecheckResult = { checked: 0, becameLeft: 0, becameActive: 0, deletedAccounts: 0, remaining: 0 };
   const where = uncheckedReferralWhere(campaign);
   let afterId: string | null = null;
   let first = true;
@@ -70,7 +92,7 @@ export async function runRecheck(campaign: Campaign, deps: RecheckDeps): Promise
       if (deps.now().getTime() - startedAt > TIME_BUDGET_MS) break outer;
       if (!first) await deps.sleep(CHECK_INTERVAL_MS);
       first = false;
-      const membership = await membershipOf(deps, ref.referredTelegramId.toString());
+      const { membership, deleted } = await membershipOf(deps, ref.referredTelegramId.toString());
       const change = recheckTransition(ref.status, membership, campaign.endsAt, deps.now());
       if (!change) {
         // Yozuv o'zgarmaydi — keyingi chaqiruv aynan shundan davom etadi.
@@ -84,6 +106,7 @@ export async function runRecheck(campaign: Campaign, deps: RecheckDeps): Promise
         data: change,
       });
       result.checked++;
+      if (deleted) result.deletedAccounts++;
       if (updated.count === 1) {
         if (ref.status === 'ACTIVE' && change.status === 'LEFT') result.becameLeft++;
         if (ref.status !== 'ACTIVE' && change.status === 'ACTIVE') result.becameActive++;

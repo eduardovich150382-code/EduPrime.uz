@@ -10,7 +10,7 @@ import { campaignApi } from './labels';
 // bu admin bosgan amalning davomi, fon so'rovi (polling) emas. "To'xtatish"
 // joriy partiyadan keyin to'xtaydi; keyingi bosish qolgan joydan davom etadi.
 
-type Progress = { checked: number; total: number; left: number; active: number };
+type Progress = { checked: number; total: number; left: number; active: number; deleted: number };
 
 type Props = { campaignId: string; unchecked: number; onDone: () => Promise<void> };
 
@@ -24,7 +24,7 @@ export default function FinalizeRecheckStep({ campaignId, unchecked, onDone }: P
     stop.current = false;
     setRunning(true);
     setError(null);
-    let acc: Progress = { checked: 0, total: unchecked, left: 0, active: 0 };
+    let acc: Progress = { checked: 0, total: unchecked, left: 0, active: 0, deleted: 0 };
     setProgress(acc);
     while (!stop.current) {
       const res = await campaignApi<RecheckResult>(`/api/admin/campaigns/${campaignId}/recheck`, { method: 'POST' });
@@ -33,7 +33,7 @@ export default function FinalizeRecheckStep({ campaignId, unchecked, onDone }: P
         break;
       }
       const r = res.data;
-      acc = { checked: acc.checked + r.checked, total: Math.max(acc.total, acc.checked + r.checked + r.remaining), left: acc.left + r.becameLeft, active: acc.active + r.becameActive };
+      acc = { checked: acc.checked + r.checked, total: Math.max(acc.total, acc.checked + r.checked + r.remaining), left: acc.left + r.becameLeft, active: acc.active + r.becameActive, deleted: acc.deleted + r.deletedAccounts };
       setProgress(acc);
       if (r.error) {
         setError(r.error);
@@ -60,7 +60,7 @@ export default function FinalizeRecheckStep({ campaignId, unchecked, onDone }: P
         : <p className="text-sm text-text-primary">Tekshirilmagan: <b className="tabular-nums">{unchecked}</b></p>}
       {progress && (
         <p className="text-sm tabular-nums text-text-primary" role="status">
-          Tekshirildi {progress.checked} / {progress.total} · chiqib ketgan: {progress.left} · yangi faol: {progress.active}
+          Tekshirildi {progress.checked} / {progress.total} · chiqib ketgan: {progress.left} · yangi faol: {progress.active} · o&apos;chirilgan akkaunt: {progress.deleted}
         </p>
       )}
       {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}

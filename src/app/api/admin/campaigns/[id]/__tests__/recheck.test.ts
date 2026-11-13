@@ -18,6 +18,7 @@ import { ENDED, ctx, participant, referrals, seedCampaign } from './seed';
 
 const req = () => new NextRequest('http://localhost/api/admin/campaigns/cmp1/recheck', { method: 'POST' });
 const member = new Map<string, string | null>(); // user_id → status; null — Telegram xatosi
+const rawReply = new Map<string, TelegramResult>(); // user_id → aynan shu javob (xato turlari uchun)
 const ref = (id: string) => fake.tables().campaignReferral.find((r) => r.id === id) as Row;
 
 beforeEach(() => {
@@ -27,8 +28,11 @@ beforeEach(() => {
   vi.stubEnv('TELEGRAM_BOT_TOKEN', 'test-token');
   m.requireAdmin.mockResolvedValue({ error: null, user: { id: 'admin1', name: 'Admin' } });
   member.clear();
+  rawReply.clear();
   m.tg.mockImplementation(async (_token: string, method: string, body: { user_id: string }): Promise<TelegramResult> => {
     if (method !== 'getChatMember') return { ok: true };
+    const raw = rawReply.get(String(body.user_id));
+    if (raw) return raw;
     const status = member.get(String(body.user_id));
     return status ? { ok: true, result: { status } } : { ok: false, description: 'Bad Request: member list is inaccessible' };
   });
@@ -48,7 +52,7 @@ describe('POST /recheck', () => {
     setMember(a, 'left'); setMember(l, 'member'); setMember(p, 'member'); setMember(q, 'left');
     const res = await POST(req(), ctx());
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ checked: 4, becameLeft: 1, becameActive: 2, remaining: 0 });
+    expect(await res.json()).toEqual({ checked: 4, becameLeft: 1, becameActive: 2, deletedAccounts: 0, remaining: 0 });
     expect(ref(a.id)).toMatchObject({ status: 'LEFT', checkedAt: ENDED });
     expect(ref(l.id).status).toBe('ACTIVE');
     expect(ref(p.id)).toMatchObject({ status: 'ACTIVE', confirmedAt: new Date('2026-11-26T18:59:00Z') });
@@ -60,7 +64,7 @@ describe('POST /recheck', () => {
     const [inv] = referrals('p1', 'INVALID', 1);
     const [done] = referrals('p1', 'ACTIVE', 1, { checkedAt: new Date('2026-11-27T00:00:00Z') });
     setMember(inv, 'left'); setMember(done, 'left');
-    expect(await (await POST(req(), ctx())).json()).toEqual({ checked: 0, becameLeft: 0, becameActive: 0, remaining: 0 });
+    expect(await (await POST(req(), ctx())).json()).toEqual({ checked: 0, becameLeft: 0, becameActive: 0, deletedAccounts: 0, remaining: 0 });
     expect(m.tg).not.toHaveBeenCalled();
     expect(ref(done.id).status).toBe('ACTIVE');
   });
@@ -73,7 +77,42 @@ describe('POST /recheck', () => {
     expect(ref(x.id).status).toBe('ACTIVE');
     expect(ref(y.id).status).toBe('ACTIVE');
     setMember(x, 'member');
-    expect(await (await POST(req(), ctx())).json()).toEqual({ checked: 2, becameLeft: 1, becameActive: 0, remaining: 0 });
+    expect(await (await POST(req(), ctx())).json()).toEqual({ checked: 2, becameLeft: 1, becameActive: 0, deletedAccounts: 0, remaining: 0 });
+  });
+
+  it('o‘chirilgan akkaunt (400 "user not found" va o‘xshashlari) — chiqib ketgan, tekshiruv keyingisiga o‘tadi', async () => {
+    const [a, b, c] = referrals('p1', 'ACTIVE', 3);
+    const [p] = referrals('p1', 'PENDING', 1);
+    rawReply.set(String(a.referredTelegramId), { ok: false, error_code: 400, description: 'Bad Request: user not found' });
+    rawReply.set(String(b.referredTelegramId), { ok: false, error_code: 400, description: 'Bad Request: PARTICIPANT_ID_INVALID' });
+    rawReply.set(String(p.referredTelegramId), { ok: false, error_code: 400, description: 'Bad Request: USER_ID_INVALID' });
+    setMember(c, 'member');
+    expect(await (await POST(req(), ctx())).json()).toEqual({ checked: 4, becameLeft: 2, becameActive: 0, deletedAccounts: 3, remaining: 0 });
+    expect(ref(a.id)).toMatchObject({ status: 'LEFT', checkedAt: ENDED });
+    expect(ref(b.id).status).toBe('LEFT');
+    expect(ref(c.id)).toMatchObject({ status: 'ACTIVE', checkedAt: ENDED });
+    expect(ref(p.id)).toMatchObject({ status: 'PENDING', checkedAt: ENDED });
+  });
+
+  it('kanal darajasidagi xato (403, "chat not found", 400 boshqa sabab) — avvalgidek to‘xtaydi, yozuv o‘zgarmaydi', async () => {
+    const channelErrors: TelegramResult[] = [
+      { ok: false, error_code: 403, description: 'Forbidden: bot is not a member of the channel chat' },
+      { ok: false, error_code: 400, description: 'Bad Request: chat not found' },
+      { ok: false, error_code: 400, description: 'Bad Request: not enough rights' },
+      { ok: false, description: 'network error' },
+    ];
+    for (const reply of channelErrors) {
+      seedCampaign();
+      participant('p1', 'Dilnoza');
+      const [x, y] = referrals('p1', 'ACTIVE', 2);
+      rawReply.clear();
+      rawReply.set(String(x.referredTelegramId), reply);
+      setMember(y, 'left');
+      const body = await (await POST(req(), ctx())).json();
+      expect(body).toMatchObject({ checked: 0, deletedAccounts: 0, remaining: 2, error: 'Telegram javob bermadi yoki bot kanalda admin emas' });
+      expect(ref(x.id)).toMatchObject({ status: 'ACTIVE' });
+      expect(ref(y.id).status).toBe('ACTIVE');
+    }
   });
 
   it('429 — retry_after kutib bir marta qayta', async () => {
