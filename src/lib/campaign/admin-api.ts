@@ -4,6 +4,7 @@ import { db } from '../db';
 import { utcToTashkentLocal } from '../date';
 import type { BotSettings } from '../bot-settings';
 import { isStartLocked, readRewardTiers, storedTextOverrides } from './admin-rules';
+import { hasEnded } from './finalize-rules';
 import { campaignPhase } from './phase';
 import { buildSampleVars } from './sample-vars';
 import { CAMPAIGN_TEXT_KEYS, DEFAULT_CAMPAIGN_TEXTS } from './texts';
@@ -86,6 +87,8 @@ export async function campaignDetail(campaign: Campaign, bot: BotSettings, admin
       baseRewardPct: campaign.baseRewardPct,
     },
     phase: campaignPhase(campaign, now),
+    // Yakunlash tabi (A5): tugash vaqti o'tgan va hali yakunlanmagan (pauza va qoralama ham).
+    ended: hasEnded(campaign, now),
     startLocked: isStartLocked(campaign, now),
     now: now.toISOString(),
     texts: CAMPAIGN_TEXT_KEYS.map((key) => ({
@@ -97,6 +100,8 @@ export async function campaignDetail(campaign: Campaign, bot: BotSettings, admin
     sampleVars: buildSampleVars(campaign, bot, adminName),
     // Faqat admin uchun hisob: narx ommaga yashirin bo'lsa ham.
     coursePrice: bot.course.price,
+    // `/promo` izohi uchun: promokodni kurs admini tekshiradi.
+    courseManagerUsername: bot.course.managerUsername || null,
     testData: { participants, referrals },
   };
 }

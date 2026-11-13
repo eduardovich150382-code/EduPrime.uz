@@ -4,7 +4,7 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import type { CampaignPhase } from '@/lib/campaign/phase';
 import type { PostView } from '@/lib/campaign/post-api';
-import { DEFAULT_POST_BUTTON, POST_KIND_CONFIG, POST_VARIABLES_BY_KIND, buttonIssues, postLimit } from '@/lib/campaign/posts';
+import { DEFAULT_POST_BUTTONS, POST_KIND_CONFIG, POST_VARIABLES_BY_KIND, buttonIssues, postLimit } from '@/lib/campaign/posts';
 import type { TemplateVars } from '@/lib/campaign/texts';
 import type { HtmlIssue } from '@/lib/telegram-html';
 import TelegramHtmlEditor, { type EditorMessage } from './TelegramHtmlEditor';
@@ -34,6 +34,7 @@ const inputClass = 'min-h-11 w-full rounded-lg border border-border bg-white px-
 export default function CampaignPostEditor({ campaignId, phase, post, sampleVars, refreshButton, onChanged, onBack }: Props) {
   const kind = post.kind;
   const config = POST_KIND_CONFIG[kind];
+  const defaultButton = DEFAULT_POST_BUTTONS[kind];
   const base = `/api/admin/campaigns/${campaignId}/posts/${kind}`;
   const [draft, setDraft] = useState<Draft>(() => draftOf(post));
   // Server yangi holat bersa (saqlash, capture'dan keyin «Yangilash») qoralama shu holatga tenglashadi.
@@ -101,15 +102,15 @@ export default function CampaignPostEditor({ campaignId, phase, post, sampleVars
       {config.hasButton && (
         <fieldset className="card space-y-3 p-4">
           <legend className="px-1 text-sm font-semibold text-text-primary">Tugma</legend>
-          <p className="text-xs text-text-secondary">Bo&apos;sh qoldirilsa standart tugma: {DEFAULT_POST_BUTTON.text} → {DEFAULT_POST_BUTTON.url}</p>
+          <p className="text-xs text-text-secondary">Bo&apos;sh qoldirilsa standart tugma: {defaultButton.text} → {defaultButton.url}</p>
           <label className="block text-xs font-medium text-text-secondary">
             Tugma matni
-            <input className={`${inputClass} mt-1`} value={draft.buttonText} maxLength={60} placeholder={DEFAULT_POST_BUTTON.text}
+            <input className={`${inputClass} mt-1`} value={draft.buttonText} maxLength={60} placeholder={defaultButton.text}
               onChange={(e) => setDraft({ ...draft, buttonText: e.target.value })} />
           </label>
           <label className="block text-xs font-medium text-text-secondary">
             Tugma havolasi
-            <input className={`${inputClass} mt-1 font-mono`} value={draft.buttonUrl} placeholder={DEFAULT_POST_BUTTON.url} inputMode="url"
+            <input className={`${inputClass} mt-1 font-mono`} value={draft.buttonUrl} placeholder={defaultButton.url} inputMode="url"
               onChange={(e) => setDraft({ ...draft, buttonUrl: e.target.value })} />
           </label>
         </fieldset>
@@ -129,7 +130,7 @@ export default function CampaignPostEditor({ campaignId, phase, post, sampleVars
         onTest={test}
         onReset={post.isDefault ? undefined : () => save('reset')}
         previewImage={post.hasImage ? postImageUrl(campaignId, kind, post.updatedAt) : null}
-        previewButton={config.hasButton ? (draft.buttonText.trim() || DEFAULT_POST_BUTTON.text) : null}
+        previewButton={config.hasButton ? (draft.buttonText.trim() || defaultButton.text) : null}
       />
 
       <PostChannelActions base={base} phase={phase} post={post} dirty={dirty} onChanged={onChanged} />

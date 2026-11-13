@@ -6,9 +6,10 @@ import { Link, useRouter } from '@/i18n/routing';
 import BackButton from '@/components/ui/BackButton';
 import { utcToTashkentLocal } from '@/lib/date';
 import type { CampaignPhase } from '@/lib/campaign/phase';
+import { displayPhase } from '@/lib/campaign/finalize-rules';
 import { PHASE_LABELS, campaignApi, formatLocal } from '@/components/admin/campaigns/labels';
 
-type Item = { id: string; title: string; phase: CampaignPhase; startsAt: string; endsAt: string; participants: number; activeReferrals: number };
+type Item = { id: string; title: string; phase: CampaignPhase; startsAt: string; endsAt: string; participants: number; activeReferrals: number; finalized: boolean };
 
 const local = (iso: string) => formatLocal(utcToTashkentLocal(new Date(iso)));
 
@@ -65,7 +66,7 @@ export default function AdminCampaignsPage() {
                 <div className="min-w-0 flex-1 space-y-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-semibold text-text-primary wrap-break-word">{item.title}</span>
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${PHASE_LABELS[item.phase].className}`}>{PHASE_LABELS[item.phase].label}</span>
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${PHASE_LABELS[displayPhase(item.phase, item.finalized)].className}`}>{PHASE_LABELS[displayPhase(item.phase, item.finalized)].label}</span>
                   </div>
                   <p className="text-sm text-text-secondary">{local(item.startsAt)} — {local(item.endsAt)} (Toshkent)</p>
                   <p className="text-sm text-text-secondary">

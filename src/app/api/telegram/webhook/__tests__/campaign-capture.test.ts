@@ -147,3 +147,20 @@ describe('webhook: capture', () => {
     expect(replies().at(-1)).toContain("avvalgi rasm o'zgarmadi");
   });
 });
+
+describe('webhook: capture — yakunlangan aksiya (A5)', () => {
+  it('G‘oliblar posti saqlanadi, boshqa tur — capture bekor qilinadi', async () => {
+    s.campaign = campaignFixture({ finalizedAt: new Date('2026-11-27T10:00:00Z') });
+    arm('WINNERS');
+    await message({ text: '🏆 G‘oliblar {goliblar}' });
+    expect(s.posts[0]).toMatchObject({ kind: 'WINNERS', text: '🏆 G‘oliblar {goliblar}' });
+    expect(replies().at(-1)).toContain("✅ Saqlandi: «G'oliblar posti»");
+
+    s.posts = [];
+    arm('ANNOUNCE');
+    await message({ text: 'Yangi e’lon' });
+    expect(s.posts).toHaveLength(0);
+    expect(replies().at(-1)).toBe(CAPTURE_TEXTS.campaignGone);
+    expect(s.settings.has(KEY)).toBe(false);
+  });
+});

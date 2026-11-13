@@ -4,7 +4,7 @@ import { requireAdmin } from '@/lib/api-auth';
 import { logger } from '@/lib/logger';
 import { jsonError } from '@/lib/campaign/admin-api';
 import { captureKey, captureStartText, startCapture } from '@/lib/campaign/capture';
-import { FINALIZED_ERROR, adminTelegram, botToken, loadPostTarget, type PostRouteContext } from '@/lib/campaign/post-api';
+import { postLockedError, adminTelegram, botToken, loadPostTarget, type PostRouteContext } from '@/lib/campaign/post-api';
 import { explainPostError } from '@/lib/campaign/post-telegram';
 import { telegramApi } from '@/lib/campaign/telegram';
 
@@ -21,7 +21,8 @@ export async function POST(_request: NextRequest, context: PostRouteContext) {
     const target = await loadPostTarget(context);
     if (target instanceof NextResponse) return target;
     const { campaign, kind } = target;
-    if (campaign.finalizedAt) return jsonError(409, FINALIZED_ERROR);
+    const locked = postLockedError(campaign, kind);
+    if (locked) return jsonError(409, locked);
 
     const admin = await adminTelegram(user.id);
     if (!admin?.telegramId) return jsonError(400, "Profilingiz Telegram bilan bog'lanmagan");

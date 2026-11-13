@@ -13,8 +13,8 @@ import { DEFAULT_CAMPAIGN_TEXTS, campaignText, renderTemplate, renderUrl, unknow
 export const POST_KINDS = ['SHARE', 'ANNOUNCE', 'LEADERBOARD', 'LAST_DAY', 'WINNERS'] as const satisfies readonly CampaignPostKind[];
 export type PostKind = (typeof POST_KINDS)[number];
 
-/** Admin panelida tahrirlanadigan turlar. WINNERS ni A5 shu ro'yxatga qo'shadi. */
-export const EDITABLE_POST_KINDS = ['SHARE', 'ANNOUNCE', 'LEADERBOARD', 'LAST_DAY'] as const satisfies readonly PostKind[];
+/** Admin panelida tahrirlanadigan turlar. */
+export const EDITABLE_POST_KINDS = ['SHARE', 'ANNOUNCE', 'LEADERBOARD', 'LAST_DAY', 'WINNERS'] as const satisfies readonly PostKind[];
 export type EditablePostKind = (typeof EDITABLE_POST_KINDS)[number];
 
 export type PostKindConfig = {
@@ -51,7 +51,9 @@ export const POST_KIND_CONFIG: Record<PostKind, PostKindConfig> = {
     publishPhases: ['ACTIVE'],
     hasButton: true,
   },
-  WINNERS: { name: "G'oliblar posti", where: 'Kanal · yakunlashda (A5)', publishPhases: [], hasButton: true },
+  // FINISHED faqat e'lon qilingan aksiyada — yakunlangan qoralamaning g'oliblari (adminlar) kanalga chiqmaydi.
+  // Matn yakunlashdan oldin ham tahrirlanadi va «O'zimga sinov» bilan tekshiriladi.
+  WINNERS: { name: "G'oliblar posti", where: 'Kanal · aksiya yakunlangandan keyin', publishPhases: ['FINISHED'], hasButton: true },
 };
 
 export type PostVariable = { name: string; hint: string };
@@ -68,6 +70,9 @@ const HINTS: Record<string, string> = {
   top10: "reytingning birinchi o'ntaligi (faqat ism)",
   ishtirokchilar_soni: "ishtirokchilar soni (0 bo'lsa qator o'chadi)",
   jami_referal: "jami yangi obunachilar (0 bo'lsa qator o'chadi)",
+  goliblar: "mukofot olganlar ro'yxati (faqat ism)",
+  kurs_admin: "kurs bo'yicha admin (Sozlamalar)",
+  kurs_havola: 'kurs haqida havola (Sozlamalar)',
 };
 
 const vars = (...names: string[]): PostVariable[] => names.map((name) => ({ name, hint: HINTS[name] }));
@@ -78,7 +83,7 @@ export const POST_VARIABLES_BY_KIND: Record<PostKind, PostVariable[]> = {
   ANNOUNCE: vars('kanal', 'qatnashish_havolasi', 'boshlanish_vaqti', 'tugash_vaqti', 'mukofotlar', 'kurs_nomi', 'kurs_narxi'),
   LEADERBOARD: vars('kanal', 'top10', 'ishtirokchilar_soni', 'jami_referal', 'tugash_vaqti', 'qatnashish_havolasi'),
   LAST_DAY: vars('kanal', 'top10', 'tugash_vaqti', 'mukofotlar', 'qatnashish_havolasi'),
-  WINNERS: [],
+  WINNERS: vars('kanal', 'goliblar', 'ishtirokchilar_soni', 'jami_referal', 'kurs_nomi', 'kurs_admin', 'kurs_havola'),
 };
 
 export const DEFAULT_POST_TEXTS: Record<PostKind, string> = {
@@ -115,10 +120,37 @@ Hozirgi peshqadamlar:
 
 Yana bir necha kishini taklif qilsangiz, o'rningiz o'zgarishi mumkin 👇`,
 
-  WINNERS: '',
+  WINNERS: `🏆 <b>Aksiya yakunlandi — g'oliblar!</b>
+
+{goliblar}
+
+👥 Ishtirokchilar: {ishtirokchilar_soni}
+➕ Yangi obunachilar: {jami_referal}
+
+🎟 G'oliblarga promokodlar botda yuborildi.
+📘 Kursni olish uchun: {kurs_admin}
+
+Qatnashgan hammaga rahmat! 🙌`,
 };
 
-export const DEFAULT_POST_BUTTON = { text: '🎁 Aksiyada qatnashish', url: '{qatnashish_havolasi}' } as const;
+export type PostButton = { text: string; url: string };
+
+const PARTICIPATE_BUTTON: PostButton = { text: '🎁 Aksiyada qatnashish', url: '{qatnashish_havolasi}' };
+
+/**
+ * Tugma bo'sh qoldirilsa — turga qarab standart. Aksiya tugagach "qatnashish"
+ * ma'nosiz, shuning uchun g'oliblar postida kurs haqidagi havola.
+ */
+export const DEFAULT_POST_BUTTONS: Record<PostKind, PostButton> = {
+  SHARE: PARTICIPATE_BUTTON,
+  ANNOUNCE: PARTICIPATE_BUTTON,
+  LEADERBOARD: PARTICIPATE_BUTTON,
+  LAST_DAY: PARTICIPATE_BUTTON,
+  WINNERS: { text: '📘 Kurs haqida', url: '{kurs_havola}' },
+};
+
+/** Tugma havolasi o'rnida yoziladigan o'zgaruvchilar (render'dan keyin haqiqiy URL bo'ladi). */
+export const BUTTON_URL_VARIABLES = ['{qatnashish_havolasi}', '{kurs_havola}'] as const;
 
 /**
  * Yozuv bo'lmaganda ishlatiladigan matn. SHARE uchun — bot yozuvsiz aynan
@@ -203,6 +235,36 @@ export function formatTop10ForChannel(rows: ChannelTopRow[]): string | null {
 /** Uzunlik tekshiruvi uchun eng uzun holat: 10 qator, har birida 20 belgili ism. */
 export const WORST_CASE_TOP10 = top10Lines(Array.from({ length: 10 }, () => ({ name: 'Ш'.repeat(NAME_MAX), score: 999 }))).join('\n');
 
+/** `byTier` — o'rin pog'onasi bo'yicha mukofot; `false` — faqat "kamida N ta" (base) orqali. */
+export type WinnerRow = { rank: number; name: string | null; score: number; percent: number; byTier: boolean };
+
+export const WINNERS_MAX_LINES = 30;
+
+/**
+ * `{goliblar}`: o'rin pog'onasi bo'yicha yutganlar o'rni bilan (faqat ism,
+ * `{top10}` kabi), ko'pi bilan 30 qator; faqat base orqali yutganlar bitta
+ * umumiy qator — ular yuzlab bo'lishi mumkin, kanal postini ro'yxat bosmasin.
+ * Xom matn (escape `renderTemplate` da). Hech kim yutmagan bo'lsa `null`.
+ */
+export function formatWinnersForChannel(rows: WinnerRow[]): string | null {
+  const tier = rows.filter((r) => r.byTier && r.percent > 0).sort((a, b) => a.rank - b.rank);
+  const base = rows.filter((r) => !r.byTier && r.percent > 0);
+  const lines = tier.slice(0, WINNERS_MAX_LINES)
+    .map((r) => `${MEDALS[r.rank - 1] ?? `${r.rank}.`} ${channelName(r.name)} — ${r.score} ball · ${r.percent}%`);
+  if (tier.length > WINNERS_MAX_LINES) lines.push(`… va yana ${tier.length - WINNERS_MAX_LINES} kishi`);
+  if (base.length) {
+    const pct = Math.max(...base.map((r) => r.percent));
+    lines.push(`✅ ${tier.length ? 'Yana ' : ''}${base.length} kishi — ${pct}% chegirma`);
+  }
+  return lines.length ? lines.join('\n') : null;
+}
+
+/** Uzunlik tekshiruvi uchun eng uzun holat: 30 qator × 20 belgili ism + base qatori. */
+export const WORST_CASE_WINNERS = formatWinnersForChannel([
+  ...Array.from({ length: WINNERS_MAX_LINES }, (_, i) => ({ rank: i + 1, name: 'Ш'.repeat(NAME_MAX), score: 999, percent: 100, byTier: true })),
+  { rank: 999, name: null, score: 99, percent: 100, byTier: false },
+]) as string;
+
 // ── Validatsiya ─────────────────────────────────────────────────────────
 
 export type PostInput = { text: string; hasImage: boolean; buttonText: string | null; buttonUrl: string | null };
@@ -218,8 +280,8 @@ export function buttonIssues(kind: PostKind, buttonText: string | null, buttonUr
   if (!text || !url) return ["Tugma: matn va havolani birga to'ldiring yoki ikkalasini ham bo'sh qoldiring"];
   const issues: string[] = [];
   if (Array.from(text).length > BUTTON_TEXT_MAX) issues.push(`Tugma matni ${BUTTON_TEXT_MAX} belgidan oshmasin`);
-  if (!BUTTON_URL_RE.test(url) && url !== DEFAULT_POST_BUTTON.url) {
-    issues.push(`Tugma havolasi https://, http://, tg:// bilan boshlansin yoki aynan ${DEFAULT_POST_BUTTON.url} bo'lsin`);
+  if (!BUTTON_URL_RE.test(url) && !(BUTTON_URL_VARIABLES as readonly string[]).includes(url)) {
+    issues.push(`Tugma havolasi https://, http://, tg:// bilan boshlansin yoki aynan ${BUTTON_URL_VARIABLES.join(' yoki ')} bo'lsin`);
   }
   return issues;
 }
@@ -227,7 +289,7 @@ export function buttonIssues(kind: PostKind, buttonText: string | null, buttonUr
 /**
  * Post tekshiruvi: turga xos o'zgaruvchilar, Telegram HTML, uzunlik va tugma.
  * Uzunlik A3 hisoblagichi bilan bir xil — render qilingan, teglarsiz matn;
- * `top10` eng uzun holatda olinadi (reyting kun sayin o'sadi, cron tahriri
+ * `top10` va `goliblar` eng uzun holatda olinadi (reyting kun sayin o'sadi, cron tahriri
  * Telegram chegarasiga urilmasin). `line: 0` — qatorga bog'lanmagan xato.
  */
 export function validatePost(kind: PostKind, input: PostInput, sampleVars: TemplateVars): HtmlIssue[] {
@@ -238,7 +300,7 @@ export function validatePost(kind: PostKind, input: PostInput, sampleVars: Templ
   ].sort((a, b) => a.line - b.line);
   if (!input.text.trim() && !input.hasImage) issues.push({ line: 0, message: "Matn bo'sh" });
   const max = postLimit(input.hasImage);
-  const length = telegramVisibleLength(renderTemplate(input.text, { ...sampleVars, top10: WORST_CASE_TOP10 }));
+  const length = telegramVisibleLength(renderTemplate(input.text, { ...sampleVars, top10: WORST_CASE_TOP10, goliblar: WORST_CASE_WINNERS }));
   if (length > max) {
     issues.push({ line: 0, message: `Matn juda uzun: ${length} / ${max} belgi${input.hasImage ? ' (rasm izohi)' : ''}` });
   }
@@ -261,8 +323,9 @@ export function buildPostMessage(kind: PostKind, post: PostRecordLike, vars: Tem
   const message: PostMessage = { text, photo: post.imageUrl };
   if (!POST_KIND_CONFIG[kind].hasButton) return message;
   const custom = Boolean(post.buttonText?.trim() && post.buttonUrl?.trim());
-  const label = custom ? (post.buttonText as string).trim() : DEFAULT_POST_BUTTON.text;
-  const url = renderUrl(custom ? (post.buttonUrl as string) : DEFAULT_POST_BUTTON.url, vars);
+  const fallback = DEFAULT_POST_BUTTONS[kind];
+  const label = custom ? (post.buttonText as string).trim() : fallback.text;
+  const url = renderUrl(custom ? (post.buttonUrl as string) : fallback.url, vars);
   if (BUTTON_URL_RE.test(url)) message.reply_markup = { inline_keyboard: [[btn.success(label, { url })]] };
   return message;
 }

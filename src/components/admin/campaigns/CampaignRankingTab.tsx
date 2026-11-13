@@ -1,17 +1,18 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { Download, Loader2, RefreshCw } from 'lucide-react';
+import { Download, Loader2, RefreshCw, Users } from 'lucide-react';
 import Pager from '@/components/admin/Pager';
 import { utcToTashkentLocal } from '@/lib/date';
 import type { AdminRankingTotals } from '@/lib/campaign/admin-store';
 import { campaignApi, formatLocal } from './labels';
+import ReferralsPanel from './ReferralsPanel';
 
-// Jonli reyting. Avtomatik yangilanish ATAYLAB yo'q — har so'rov butun
+// Jonli reyting (+ A5: har qatorda "Referallar" paneli). Avtomatik yangilanish ATAYLAB yo'q — har so'rov butun
 // reytingni qayta yig'adi, ochiq qolgan tab Vercel CPU'sini yeb qo'ymasin.
 
 type Row = {
-  rank: number; telegramId: string; username: string | null; firstName: string | null;
+  participantId: string; rank: number; telegramId: string; username: string | null; firstName: string | null;
   active: number; pending: number; left: number; invalid: number; lastActiveAt: string | null; percent: number; joinedAt: string;
 };
 type Ranking = { totals: AdminRankingTotals; rows: Row[]; page: number; totalPages: number; total: number; pageSize: number };
@@ -29,11 +30,21 @@ function Who({ row }: { row: Row }) {
   );
 }
 
+function ReferralsButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button type="button" onClick={onClick}
+      className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-border bg-white px-3 text-sm font-medium hover:bg-primary-50">
+      <Users size={16} aria-hidden /> Referallar
+    </button>
+  );
+}
+
 export default function CampaignRankingTab({ campaignId }: { campaignId: string }) {
   const [page, setPage] = useState(1);
   const [data, setData] = useState<Ranking | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [panel, setPanel] = useState<Row | null>(null);
   const base = `/api/admin/campaigns/${campaignId}`;
 
   const load = useCallback(async (p: number) => {
@@ -95,6 +106,7 @@ export default function CampaignRankingTab({ campaignId }: { campaignId: string 
                       Faol: <b className="text-text-primary">{row.active}</b> · Kutilmoqda: {row.pending} · Chegirma: <b className="text-text-primary">{row.percent}%</b>
                     </p>
                     <p className="text-xs text-text-secondary">Oxirgi referal: {time(row.lastActiveAt)}</p>
+                    <ReferralsButton onClick={() => setPanel(row)} />
                   </li>
                 ))}
               </ul>
@@ -109,6 +121,7 @@ export default function CampaignRankingTab({ campaignId }: { campaignId: string 
                       <th className="px-3 py-2 text-right font-medium">Kutilmoqda</th>
                       <th className="px-3 py-2 font-medium">Oxirgi referal</th>
                       <th className="px-3 py-2 text-right font-medium">Chegirma</th>
+                      <th className="px-3 py-2"><span className="sr-only">Referallar</span></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -120,6 +133,7 @@ export default function CampaignRankingTab({ campaignId }: { campaignId: string 
                         <td className="px-3 py-2 text-right tabular-nums">{row.pending}</td>
                         <td className="px-3 py-2 whitespace-nowrap">{time(row.lastActiveAt)}</td>
                         <td className="px-3 py-2 text-right tabular-nums">{row.percent}%</td>
+                        <td className="px-3 py-1 text-right"><ReferralsButton onClick={() => setPanel(row)} /></td>
                       </tr>
                     ))}
                   </tbody>
@@ -131,6 +145,10 @@ export default function CampaignRankingTab({ campaignId }: { campaignId: string 
         </>
       )}
       {!data && loading && <div className="flex justify-center py-12" role="status"><Loader2 size={28} className="animate-spin text-primary-600" /></div>}
+      {panel && (
+        <ReferralsPanel campaignId={campaignId} participantId={panel.participantId} title={panel.firstName || panel.username || `ID ${panel.telegramId}`}
+          onClose={() => setPanel(null)} onChanged={() => void load(page)} />
+      )}
     </div>
   );
 }

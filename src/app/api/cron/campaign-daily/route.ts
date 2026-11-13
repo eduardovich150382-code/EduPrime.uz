@@ -21,6 +21,8 @@ export async function GET(request: NextRequest) {
       api: (method, body) => telegramApi(token, method, body),
       sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
       now: () => new Date(),
+      adminIds: (process.env.ADMIN_TELEGRAM_IDS || '').split(',').map((id) => id.trim()).filter(Boolean),
+      appUrl: process.env.NEXT_PUBLIC_APP_URL || '',
     });
     return NextResponse.json({ success: true, ...result, timestamp: new Date().toISOString() });
   } catch (error) {

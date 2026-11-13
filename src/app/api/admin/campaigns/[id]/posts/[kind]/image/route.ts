@@ -3,7 +3,7 @@ import { requireAdmin } from '@/lib/api-auth';
 import { logger } from '@/lib/logger';
 import { revalidateCampaigns } from '@/lib/cache-tags';
 import { jsonError } from '@/lib/campaign/admin-api';
-import { FINALIZED_ERROR, adminTelegram, botToken, loadPostTarget, postView, type PostRouteContext } from '@/lib/campaign/post-api';
+import { postLockedError, adminTelegram, botToken, loadPostTarget, postView, type PostRouteContext } from '@/lib/campaign/post-api';
 import { savePost } from '@/lib/campaign/post-store';
 import { TYPE_CHANGED_ERROR, explainPostError, fetchTelegramFile, uploadPhotoToChat } from '@/lib/campaign/post-telegram';
 import { getBotSettings } from '@/lib/bot-settings';
@@ -26,7 +26,8 @@ export async function POST(request: NextRequest, context: PostRouteContext) {
     const target = await loadPostTarget(context);
     if (target instanceof NextResponse) return target;
     const { campaign, kind, post } = target;
-    if (campaign.finalizedAt) return jsonError(409, FINALIZED_ERROR);
+    const locked = postLockedError(campaign, kind);
+    if (locked) return jsonError(409, locked);
     // Kanaldagi matnli postni rasmliga aylantirib bo'lmaydi (editMessageText ↔ editMessageMedia).
     if (post?.channelMessageId && !post.imageUrl) return jsonError(400, TYPE_CHANGED_ERROR);
 
@@ -88,7 +89,8 @@ export async function DELETE(_request: NextRequest, context: PostRouteContext) {
     const target = await loadPostTarget(context);
     if (target instanceof NextResponse) return target;
     const { campaign, kind, post } = target;
-    if (campaign.finalizedAt) return jsonError(409, FINALIZED_ERROR);
+    const locked = postLockedError(campaign, kind);
+    if (locked) return jsonError(409, locked);
     if (!post?.imageUrl) return NextResponse.json({ ok: true, post: postView(campaign, kind, post) });
     if (post.channelMessageId) return jsonError(400, TYPE_CHANGED_ERROR);
     const saved = await savePost(campaign, kind, post, { imageUrl: null });

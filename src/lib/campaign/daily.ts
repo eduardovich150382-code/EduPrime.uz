@@ -1,6 +1,7 @@
 import type { BotSettings } from '../bot-settings';
 import { tashkentDayRangeUtc } from '../date';
 import { logger } from '../logger';
+import { sendFinishNotice, type FinishNoticeResult } from './finish-notice';
 import { campaignVars } from './format';
 import { campaignPhase, isLastDayWindow } from './phase';
 import { runChannelPosts, type ChannelPostsResult } from './post-cron';
@@ -27,6 +28,9 @@ export type DailyDeps = {
   api: TelegramApi;
   sleep(ms: number): Promise<void>;
   now(): Date;
+  /** Aksiya tugaganda eslatma oladiganlar (ADMIN_TELEGRAM_IDS) va panel havolasi uchun sayt manzili. */
+  adminIds: string[];
+  appUrl: string;
 };
 
 export type DailyResult = {
@@ -36,12 +40,13 @@ export type DailyResult = {
   failed: number;
   skipped: number;
   posts?: ChannelPostsResult;
+  finishNotice?: FinishNoticeResult;
 };
 
 const none = (reason: string): DailyResult => ({ kind: null, reason, sent: 0, failed: 0, skipped: 0 });
 
 /** 429 bo'lsa `retry_after` qadar kutib bir marta qayta; 403 (bot bloklangan) va boshqa xatolar — shunchaki muvaffaqiyatsiz. */
-async function sendWithRetry(deps: DailyDeps, chatId: string, text: string): Promise<boolean> {
+export async function sendWithRetry(deps: Pick<DailyDeps, 'send' | 'sleep'>, chatId: string, text: string): Promise<boolean> {
   const first = await deps.send(chatId, text);
   if (first.ok) return true;
   if (first.error_code === 429) {
@@ -63,7 +68,9 @@ export async function runCampaignDaily(deps: DailyDeps): Promise<DailyResult> {
   // Kanal postlari shaxsiy xabarlardan OLDIN va "Kunlik natija xabari" kalitidan
   // mustaqil: admin ularni o'zi kanalga chiqargan/saqlagan (post-cron.ts).
   const posts = await runChannelPosts(campaign, startedAt, { api: deps.api, bot: deps.bot }, ranking);
-  const stop = (reason: string): DailyResult => ({ ...none(reason), posts });
+  // Tugagan, lekin yakunlanmagan aksiya — adminlarga bir martalik eslatma (finish-notice.ts).
+  const finishNotice = await sendFinishNotice(campaign, startedAt, { adminIds: deps.adminIds, appUrl: deps.appUrl, send: deps.send });
+  const stop = (reason: string): DailyResult => ({ ...none(reason), posts, finishNotice });
 
   if (campaignPhase(campaign, startedAt) !== 'ACTIVE') return stop('not_active');
   // Bitta "avtomatik xabarlar" kaliti: o'chiq bo'lsa oxirgi kun eslatmasi ham yo'q.
@@ -83,7 +90,7 @@ export async function runCampaignDaily(deps: DailyDeps): Promise<DailyResult> {
   const rules = campaignRewardRules(campaign);
   const template = campaignText(campaign, kind);
 
-  const result: DailyResult = { kind, sent: 0, failed: 0, skipped: 0, posts };
+  const result: DailyResult = { kind, sent: 0, failed: 0, skipped: 0, posts, finishNotice };
   const order = loaded.ranking;
   for (let i = 0; i < order.length; i++) {
     if (deps.now().getTime() - startedAt.getTime() > TIME_BUDGET_MS) {

@@ -4,7 +4,7 @@ import { logger } from '@/lib/logger';
 import { revalidateCampaigns } from '@/lib/cache-tags';
 import { getBotSettings } from '@/lib/bot-settings';
 import { jsonError, readJson } from '@/lib/campaign/admin-api';
-import { FINALIZED_ERROR, blankToNull, loadPostTarget, postDraftSchema, postView, type PostRouteContext } from '@/lib/campaign/post-api';
+import { postLockedError, blankToNull, loadPostTarget, postDraftSchema, postView, type PostRouteContext } from '@/lib/campaign/post-api';
 import { deleteUnpublishedPost, savePost } from '@/lib/campaign/post-store';
 import { postSampleVars } from '@/lib/campaign/post-vars';
 import { defaultPostText, validatePost } from '@/lib/campaign/posts';
@@ -23,7 +23,8 @@ export async function PATCH(request: NextRequest, context: PostRouteContext) {
     const target = await loadPostTarget(context);
     if (target instanceof NextResponse) return target;
     const { campaign, kind, post } = target;
-    if (campaign.finalizedAt) return jsonError(409, FINALIZED_ERROR);
+    const locked = postLockedError(campaign, kind);
+    if (locked) return jsonError(409, locked);
 
     const text = parsed.data.text ?? post?.text ?? defaultPostText(kind, campaign);
     const buttonText = blankToNull(parsed.data.buttonText);

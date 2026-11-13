@@ -28,6 +28,8 @@ function deps(send: (chatId: string) => TelegramResult, clockStepMs = 0) {
     api: vi.fn(async () => ({ ok: true })),
     sleep: vi.fn(async (ms: number) => { sleeps.push(ms); clock += ms; }),
     now: () => { clock += clockStepMs; return new Date(clock); },
+    adminIds: [],
+    appUrl: 'http://localhost',
   };
   return { d, sleeps };
 }
