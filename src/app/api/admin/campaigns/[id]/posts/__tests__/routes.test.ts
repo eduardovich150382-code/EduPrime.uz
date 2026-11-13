@@ -148,11 +148,11 @@ describe('ruxsat', () => {
 });
 
 describe('GET va PATCH', () => {
-  it('GET — 4 tur, yozuvsizlari standart', async () => {
+  it('GET — 5 tur (G‘oliblar posti bilan), yozuvsizlari standart', async () => {
     post();
     const body = await (await listGET(bare(), { params: Promise.resolve({ id: 'cmp1' }) })).json();
     expect(body.posts.map((p: { kind: string; isDefault: boolean }) => [p.kind, p.isDefault])).toEqual([
-      ['SHARE', true], ['ANNOUNCE', false], ['LEADERBOARD', true], ['LAST_DAY', true],
+      ['SHARE', true], ['ANNOUNCE', false], ['LEADERBOARD', true], ['LAST_DAY', true], ['WINNERS', true],
     ]);
     expect(body.phase).toBe('ACTIVE');
     expect(body.sampleVars.qatnashish_havolasi).toBe('https://t.me/EduPrimeuzbot?start=aksiya');
@@ -369,5 +369,42 @@ describe('test, capture, kanaldan o‘chirish', () => {
     expect(res.status).toBe(200);
     expect(s.posts[0]).toMatchObject({ channelMessageId: null, publishedAt: null });
     expect(m.revalidate).toHaveBeenCalled();
+  });
+});
+
+describe('yakunlangan aksiya — G‘oliblar posti (A5)', () => {
+  const finished = new Date('2026-11-27T10:00:00Z');
+  const publish = (kind: string, expectedUpdatedAt: string | null = null) => publishPOST(json('POST', { mode: 'new', expectedUpdatedAt }), ctx(kind));
+
+  it('WINNERS tahrirlanadi va kanalga chiqadi; boshqa turlar 409', async () => {
+    vi.setSystemTime(finished);
+    s.campaign = campaignFixture({ finalizedAt: finished });
+    const saved = await PATCH(json('PATCH', { text: '🏆 {goliblar}\n{kurs_admin}' }), ctx('WINNERS'));
+    expect(saved.status).toBe(200);
+    const { post: winners } = await saved.json();
+    expect((await PATCH(json('PATCH', { text: 'x' }), ctx('ANNOUNCE'))).status).toBe(409);
+    expect((await capturePOST(bare('POST'), ctx('WINNERS'))).status).toBe(200);
+    expect((await capturePOST(bare('POST'), ctx('LAST_DAY'))).status).toBe(409);
+    expect((await imageDELETE(bare('DELETE'), ctx('ANNOUNCE'))).status).toBe(409);
+    expect((await publish('LEADERBOARD')).status).toBe(409);
+    const res = await publish('WINNERS', winners.updatedAt);
+    expect(res.status).toBe(200);
+    expect(calls('sendMessage').some((c) => c.chat_id === CHANNEL)).toBe(true);
+  });
+
+  it('yakunlanmagan (FINISHING) aksiyada WINNERS publish → 400', async () => {
+    vi.setSystemTime(finished);
+    expect((await publish('WINNERS')).status).toBe(400);
+    expect(calls('sendMessage')).toHaveLength(0);
+  });
+
+  it('yakunlangan qoralama: kanalga chiqmaydi (400), «O‘zimga sinov» ishlaydi', async () => {
+    vi.setSystemTime(finished);
+    s.campaign = campaignFixture({ isPublished: false, finalizedAt: finished });
+    const res = await publish('WINNERS');
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toContain("e'lon qilingan va yakunlangan");
+    expect((await testPOST(json('POST', {}), ctx('WINNERS'))).status).toBe(200);
+    expect(calls('sendMessage').every((c) => c.chat_id === '456')).toBe(true);
   });
 });

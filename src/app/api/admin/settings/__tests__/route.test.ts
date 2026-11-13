@@ -35,6 +35,18 @@ describe('GET /api/admin/settings', () => {
     await put({ 'campaign_capture:456': '{"kind":"SHARE"}', site_announcement: 'Salom' });
     expect(saved()).toEqual({ site_announcement: 'Salom' });
   });
+  it('yakuniy xabar kursori va cron eslatmasi kalitlari ham ichki; boshqa campaign_ kaliti emas', async () => {
+    m.findMany.mockResolvedValue([
+      { key: 'campaign_notify:cmp1', value: '{"done":false}' }, { key: 'campaign_finish_notice:cmp1', value: 'x' },
+      { key: 'campaign_future_setting', value: 'ha' },
+    ]);
+    const { settings } = await (await GET()).json();
+    expect(settings).not.toHaveProperty('campaign_notify:cmp1');
+    expect(settings).not.toHaveProperty('campaign_finish_notice:cmp1');
+    expect(settings.campaign_future_setting).toBe('ha');
+    await put({ 'campaign_notify:cmp1': '{}', 'campaign_finish_notice:cmp1': 'x', site_announcement: 'Salom' });
+    expect(saved()).toEqual({ site_announcement: 'Salom' });
+  });
 });
 
 describe('PUT /api/admin/settings — bot kalitlari', () => {

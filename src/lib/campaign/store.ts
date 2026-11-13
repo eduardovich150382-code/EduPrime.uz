@@ -1,5 +1,5 @@
 import { unstable_cache } from 'next/cache';
-import type { Campaign, CampaignParticipant, CampaignPost, CampaignReferral } from '@prisma/client';
+import type { Campaign, CampaignParticipant, CampaignPost, CampaignReferral, Prisma } from '@prisma/client';
 import { db } from '../db';
 import { logger } from '../logger';
 import { CACHE_TAGS } from '../cache-tags';
@@ -176,12 +176,15 @@ export async function confirmReferral(referralId: string, now = new Date()): Pro
 
 export type CampaignRanking = { ranking: RankedParticipant[]; participants: Map<string, CampaignParticipant> };
 
-/** Butun reyting: ishtirokchilar + ACTIVE referallar bitta groupBy bilan; tartib xotirada. */
-export async function loadRanking(campaignId: string): Promise<CampaignRanking | null> {
+/**
+ * Butun reyting: ishtirokchilar + ACTIVE referallar bitta groupBy bilan; tartib xotirada.
+ * `client` — yakunlash tranzaksiyasi (A5): promokodlar aynan tranzaksiya ko'rgan reyting bo'yicha.
+ */
+export async function loadRanking(campaignId: string, client: Prisma.TransactionClient = db): Promise<CampaignRanking | null> {
   try {
     const [participants, counts] = await Promise.all([
-      db.campaignParticipant.findMany({ where: { campaignId } }),
-      db.campaignReferral.groupBy({
+      client.campaignParticipant.findMany({ where: { campaignId } }),
+      client.campaignReferral.groupBy({
         by: ['participantId'], where: { campaignId, status: 'ACTIVE' },
         _count: { _all: true }, _max: { confirmedAt: true },
       }),

@@ -116,3 +116,20 @@ export function standingOf(ranking: RankedParticipant[], participantId: string, 
     next: nextGoal(me, ranking, rules.tiers, rules.base),
   };
 }
+
+export type RewardedParticipant = RankedParticipant & { percent: number; byTier: boolean };
+
+/**
+ * Yakuniy natija: har ishtirokchining foizi va u o'rin pog'onasidanmi
+ * (`byTier`) yoki faqat "kamida N ta" (base) orqalimi. Yakunlash, natija
+ * oynasi va g'oliblar posti bir xil hisobni ishlatsin — promokod bilan post
+ * bir-biridan farq qilmasin.
+ */
+export function rewardedParticipants(ranking: RankedParticipant[], rules: { tiers: RewardTier[]; base: BaseReward }): RewardedParticipant[] {
+  const noBase: BaseReward = { min: null, pct: null };
+  return ranking.map((r) => ({
+    ...r,
+    percent: rewardFor(r.rank, r.activeCount, rules.tiers, rules.base),
+    byTier: rewardFor(r.rank, r.activeCount, rules.tiers, noBase) > 0,
+  }));
+}

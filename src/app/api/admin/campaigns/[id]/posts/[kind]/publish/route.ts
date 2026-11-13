@@ -5,8 +5,9 @@ import { revalidateCampaigns } from '@/lib/cache-tags';
 import { getBotSettings } from '@/lib/bot-settings';
 import { checkChannel } from '@/lib/telegram-channel-check';
 import { jsonError, readJson } from '@/lib/campaign/admin-api';
+import { canPublishWinners } from '@/lib/campaign/finalize-rules';
 import { campaignPhase } from '@/lib/campaign/phase';
-import { CONFLICT_ERROR, FINALIZED_ERROR, botToken, loadPostTarget, postView, publishSchema, routeApi, type PostRouteContext } from '@/lib/campaign/post-api';
+import { CONFLICT_ERROR, postLockedError, botToken, loadPostTarget, postView, publishSchema, routeApi, type PostRouteContext } from '@/lib/campaign/post-api';
 import {
   claimPublish, clearChannelMessage, createDefaultPost, deletePostRecord, loadPost, revertPublish, setChannelMessage,
 } from '@/lib/campaign/post-store';
@@ -31,11 +32,16 @@ export async function POST(request: NextRequest, context: PostRouteContext) {
     const target = await loadPostTarget(context);
     if (target instanceof NextResponse) return target;
     const { campaign, kind, post } = target;
-    if (campaign.finalizedAt) return jsonError(409, FINALIZED_ERROR);
+    const locked = postLockedError(campaign, kind);
+    if (locked) return jsonError(409, locked);
 
     const now = new Date();
     const phase = campaignPhase(campaign, now);
     if (kind === 'SHARE') return jsonError(400, 'Ulashiladigan post kanalga chiqmaydi: bot uni ishtirokchilarga yuboradi');
+    // Yakunlangan qoralama — sinov: "g'oliblar" adminlar, kanalga chiqmasin (faqat «O'zimga sinov»).
+    if (kind === 'WINNERS' && !canPublishWinners(campaign)) {
+      return jsonError(400, "G'oliblar posti kanalga faqat e'lon qilingan va yakunlangan aksiyada chiqadi");
+    }
     if (phase === 'DRAFT') return jsonError(400, "Avval aksiyani e'lon qiling");
     if (!canPublishInPhase(kind, phase)) return jsonError(400, "Bu postni aksiyaning hozirgi bosqichida kanalga chiqarib bo'lmaydi");
     if (mode === 'update' && !post?.channelMessageId) return jsonError(400, "Post kanalda yo'q — «Kanalga chiqarish» ni bosing");

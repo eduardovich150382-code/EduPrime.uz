@@ -51,6 +51,14 @@ export async function loadPostTarget(context: PostRouteContext): Promise<PostTar
 }
 
 export const FINALIZED_ERROR = "Aksiya yakunlangan — postni o'zgartirib bo'lmaydi";
+
+/**
+ * Yakunlangan aksiyada postlar muzlaydi — G'oliblar postidan tashqari: u
+ * aynan yakunlangandan keyin tahrirlanadi va kanalga chiqariladi. `null` — mumkin.
+ */
+export function postLockedError(campaign: Pick<Campaign, 'finalizedAt'>, kind: EditablePostKind): string | null {
+  return campaign.finalizedAt && kind !== 'WINNERS' ? FINALIZED_ERROR : null;
+}
 export const CONFLICT_ERROR = "Post boshqa oynada o'zgargan, sahifani yangilang";
 
 export function botToken(): string | null {

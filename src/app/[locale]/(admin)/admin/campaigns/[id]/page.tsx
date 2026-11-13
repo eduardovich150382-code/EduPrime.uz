@@ -13,14 +13,17 @@ import CampaignRewardsTab from '@/components/admin/campaigns/CampaignRewardsTab'
 import CampaignTextsTab from '@/components/admin/campaigns/CampaignTextsTab';
 import CampaignPostsTab from '@/components/admin/campaigns/CampaignPostsTab';
 import CampaignRankingTab from '@/components/admin/campaigns/CampaignRankingTab';
+import CampaignFinalizeTab from '@/components/admin/campaigns/CampaignFinalizeTab';
+import { displayPhase } from '@/lib/campaign/finalize-rules';
 
-type Tab = 'basic' | 'rewards' | 'texts' | 'posts' | 'ranking';
+type Tab = 'basic' | 'rewards' | 'texts' | 'posts' | 'ranking' | 'finalize';
 const TABS: { id: Tab; label: string }[] = [
   { id: 'basic', label: 'Asosiy' },
   { id: 'rewards', label: 'Mukofotlar' },
   { id: 'texts', label: 'Matnlar' },
   { id: 'posts', label: 'Postlar' },
   { id: 'ranking', label: 'Reyting' },
+  { id: 'finalize', label: 'Yakunlash' },
 ];
 
 export default function AdminCampaignPage() {
@@ -52,7 +55,8 @@ export default function AdminCampaignPage() {
   }
 
   const c = detail.campaign;
-  const phase = PHASE_LABELS[detail.phase];
+  // Yakunlangan qoralama ham "Yakunlandi" (campaignPhase uni DRAFT deydi).
+  const phase = PHASE_LABELS[displayPhase(detail.phase, c.finalizedAt !== null)];
   return (
     <div className="space-y-4 pb-8">
       <BackButton href="/admin/campaigns" className="mb-2 min-h-11" />
@@ -65,7 +69,7 @@ export default function AdminCampaignPage() {
         <CampaignStatusActions detail={detail} onChanged={load} onDeleted={() => router.push('/admin/campaigns')} />
       </div>
 
-      {detail.phase === 'DRAFT' && (
+      {detail.phase === 'DRAFT' && !c.finalizedAt && (
         <p className="flex items-start gap-2 rounded-xl bg-amber-50 p-3 text-sm text-amber-800">
           <AlertTriangle size={16} className="mt-0.5 shrink-0" aria-hidden />
           Qoralama: faqat adminlar qatnasha oladi. Sinov uchun /aksiya yuboring.
@@ -87,6 +91,7 @@ export default function AdminCampaignPage() {
         {tab === 'texts' && <CampaignTextsTab detail={detail} onSaved={load} />}
         {tab === 'posts' && <CampaignPostsTab campaignId={c.id} phase={detail.phase} />}
         {tab === 'ranking' && <CampaignRankingTab campaignId={c.id} />}
+        {tab === 'finalize' && <CampaignFinalizeTab detail={detail} onChanged={load} onGoTab={setTab} />}
       </div>
     </div>
   );

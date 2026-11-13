@@ -54,12 +54,12 @@ describe('validatePost — tugma', () => {
     expect(messages('ANNOUNCE', input({ buttonText: 'Qatnashish' }), {})[0]).toContain("birga to'ldiring");
     expect(messages('ANNOUNCE', input({ buttonUrl: 'https://t.me/x' }), {})[0]).toContain("birga to'ldiring");
   });
-  it('javascript: URL rad etiladi; {qatnashish_havolasi}, https:// va tg:// o‘tadi', () => {
+  it('javascript: URL rad etiladi; {qatnashish_havolasi}, {kurs_havola}, https:// va tg:// o‘tadi', () => {
     expect(messages('ANNOUNCE', input({ buttonText: 'X', buttonUrl: 'javascript:alert(1)' }), {})[0]).toContain('Tugma havolasi');
-    for (const url of ['{qatnashish_havolasi}', 'https://t.me/x', 'tg://resolve?domain=x']) {
+    for (const url of ['{qatnashish_havolasi}', '{kurs_havola}', 'https://t.me/x', 'tg://resolve?domain=x']) {
       expect(validatePost('ANNOUNCE', input({ buttonText: 'X', buttonUrl: url }), {})).toEqual([]);
     }
-    expect(messages('ANNOUNCE', input({ buttonText: 'X', buttonUrl: '{kurs_havola}' }), {})[0]).toContain('Tugma havolasi');
+    expect(messages('ANNOUNCE', input({ buttonText: 'X', buttonUrl: '{havola}' }), {})[0]).toContain('Tugma havolasi');
   });
   it('tugma matni ≤ 40 belgi; SHARE da tugma yo‘q', () => {
     expect(messages('ANNOUNCE', input({ buttonText: 'x'.repeat(41), buttonUrl: 'https://t.me/x' }), {})[0]).toContain('40');

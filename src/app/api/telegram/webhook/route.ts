@@ -20,6 +20,7 @@ import { CAMPAIGN_JOIN_PARAM, parseCampaignStart } from '@/lib/campaign/ref-code
 import { CMP_JOIN, campaignJoinVisible, confirmPendingReferral, handleCampaignCallback, handleCampaignStart, isCampaignCallback, joinFlow, type CampaignBotCtx } from '@/lib/campaign/bot';
 import { telegramApi } from '@/lib/campaign/telegram';
 import { handleCampaignCapture } from '@/lib/campaign/capture';
+import { canUsePromo, handlePromoCallback, handlePromoCommand, isPromoCallback, parsePromoCommand } from '@/lib/campaign/promo-bot';
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || '';
@@ -197,6 +198,9 @@ function campaignCtx(chatId: number, userId: number, username: string, firstName
 }
 
 const isAdminId = (telegramId: number | string | bigint) => isAdmin(telegramId.toString());
+
+// `/promo KOD` (lib/campaign/promo-bot.ts) — oddiy matnli javoblar, parse_mode'siz.
+const promoDeps = { api: (method: string, body: unknown) => telegramApi(BOT_TOKEN, method, body) };
 
 // "Obuna bo'ldim" tasdiqlandi: kanal so'rovi xabari menyu tugmalariga aylanadi.
 async function finishChannelGate(chatId: number, messageId: number | undefined, userId: number, param: string, bot: BotSettings, user: { username: string; firstName: string }) {
@@ -574,6 +578,12 @@ async function handleCallbackQuery(callbackQuery: any, bot: BotSettings) {
       return;
     }
     await finishChannelGate(chatId, callbackQuery.message?.message_id, userId, checkParam, bot, { username, firstName });
+    return;
+  }
+
+  // Promokodni "ishlatildi" deb belgilash — huquq har bosishda qayta; huquqsiz odam uchun oddiy noma'lum tugma.
+  if (isPromoCallback(data) && canUsePromo(callbackQuery.from, bot, isAdmin)) {
+    await handlePromoCallback(callbackQuery, promoDeps);
     return;
   }
 
@@ -1010,6 +1020,9 @@ export async function POST(request: NextRequest) {
       } else if (text.startsWith('/broadcast ')) {
         const broadcastMsg = text.replace('/broadcast ', '').trim();
         await handleBroadcast(chatId, userId, broadcastMsg);
+      } else if (parsePromoCommand(text) !== null && canUsePromo(msg.from, bot, isAdmin)) {
+        // Faqat admin va kurs admini; boshqalar uchun buyruq oshkor qilinmaydi (pastdagi oddiy oqim).
+        await handlePromoCommand(chatId, parsePromoCommand(text) ?? '', promoDeps);
       } else {
         // Pastki menyu tugmalari va /natijalar, /reyting, /help kabi buyruqlar.
         const action = menuActionFor(text);

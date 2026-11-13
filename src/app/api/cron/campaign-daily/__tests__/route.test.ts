@@ -6,7 +6,7 @@ import type { Campaign } from '@prisma/client';
 // baholanadi — "bir kunda ikki marta" claim mantig'ining o'zi tekshiriladi.
 const s = vi.hoisted(() => ({
   campaign: null as Campaign | null, participants: [] as Record<string, unknown>[], active: [] as { participantId: string; count: number }[], blocked: new Set<string>(),
-  posts: [] as Record<string, unknown>[], editReply: null as Record<string, unknown> | null,
+  posts: [] as Record<string, unknown>[], editReply: null as Record<string, unknown> | null, notices: new Set<string>(),
 }));
 type PostRow = Record<string, unknown> & { id: string; updatedAt: Date };
 const matches = (row: Record<string, unknown>, where: Record<string, unknown>) => Object.entries(where).every(([k, v]) => (
@@ -32,7 +32,15 @@ vi.mock('@/lib/db', () => ({
     campaignReferral: {
       groupBy: async () => s.active.map((a) => ({ participantId: a.participantId, _count: { _all: a.count }, _max: { confirmedAt: new Date('2026-11-18T00:00:00Z') } })),
     },
-    systemSetting: { findMany: async () => [] },
+    systemSetting: {
+      findMany: async () => [],
+      // Eslatma belgisi (finish-notice.ts): unique kalit — ikkinchi yozuv P2002.
+      create: async ({ data }: { data: { key: string } }) => {
+        if (s.notices.has(data.key)) throw Object.assign(new Error('Unique constraint'), { code: 'P2002' });
+        s.notices.add(data.key);
+        return data;
+      },
+    },
     campaignPost: {
       findMany: async ({ where }: { where: { campaignId: string } }) => (s.posts as PostRow[])
         .filter((p) => p.campaignId === where.campaignId).sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime()).map((p) => ({ ...p })),
@@ -82,6 +90,8 @@ beforeEach(() => {
   s.blocked = new Set();
   s.posts = [];
   s.editReply = null;
+  s.notices = new Set();
+  vi.stubEnv('ADMIN_TELEGRAM_IDS', '');
   vi.stubGlobal('fetch', vi.fn(async (url: string, init?: { body?: string }) => {
     const body = JSON.parse(String(init?.body)) as { chat_id: string };
     const blocked = s.blocked.has(String(body.chat_id));
@@ -233,5 +243,32 @@ describe('campaign-daily cron — kanal postlari', () => {
     vi.setSystemTime(new Date('2026-11-25T15:00:00Z'));
     expect(await (await GET(request())).json()).toMatchObject({ posts: { lastDay: 'failed' } });
     expect(s.posts[0]).toMatchObject({ publishedAt: null, channelMessageId: null });
+  });
+});
+
+describe('aksiya tugagach adminlarga eslatma (A5)', () => {
+  const ended = new Date('2026-11-27T15:00:00Z');
+  const notices = () => sentMessages().filter((m) => m.text.includes('aksiyasi tugadi'));
+
+  it('tugagan aksiya bo‘yicha har adminga bir marta, panel havolasi bilan', async () => {
+    vi.stubEnv('ADMIN_TELEGRAM_IDS', '456, 789');
+    vi.stubEnv('NEXT_PUBLIC_APP_URL', 'https://eduprime.uz');
+    vi.setSystemTime(ended);
+    expect(await (await GET(request())).json()).toMatchObject({ finishNotice: 'sent', reason: 'not_active', sent: 0 });
+    expect(notices().map((m) => m.chat_id)).toEqual(['456', '789']);
+    expect(notices()[0].text).toBe('🏁 «Noyabr aksiyasi» aksiyasi tugadi. Qayta tekshiruv va yakunlash: https://eduprime.uz/uz/admin/campaigns/cmp1');
+    vi.setSystemTime(new Date('2026-11-28T15:00:00Z'));
+    expect(await (await GET(request())).json()).toMatchObject({ finishNotice: 'already' });
+    expect(notices()).toHaveLength(2);
+  });
+
+  it('qoralama va hali tugamagan aksiya uchun yo‘q', async () => {
+    vi.stubEnv('ADMIN_TELEGRAM_IDS', '456');
+    expect(await (await GET(request())).json()).toMatchObject({ finishNotice: 'skipped' });
+    s.campaign = campaignFixture({ isPublished: false });
+    vi.setSystemTime(ended);
+    expect(await (await GET(request())).json()).toMatchObject({ finishNotice: 'skipped' });
+    expect(notices()).toHaveLength(0);
+    expect(s.notices.size).toBe(0);
   });
 });

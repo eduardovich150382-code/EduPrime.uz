@@ -5,7 +5,7 @@ import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { logger } from '@/lib/logger';
 import { AD_FREE_TEST_KEY } from '@/lib/ad-free-test';
-import { isCaptureKey } from '@/lib/campaign/capture';
+import { isInternalCampaignKey } from '@/lib/campaign/internal-keys';
 import { hasAttestationKeys, validateAttestationSettings } from '@/lib/attestation-tiers';
 import { BOT_SETTING_DEFAULTS, hasBotSettingKeys, validateBotSettings } from '@/lib/bot-settings-defaults';
 
@@ -56,8 +56,8 @@ export async function GET() {
       settingsMap[def.key] = def.value;
     }
     for (const s of settings) {
-      // Aksiya capture kalitlari — vaqtinchalik ichki holat, sozlama emas.
-      if (/^(premium|teacher)_price_/.test(s.key) || isCaptureKey(s.key)) continue;
+      // Aksiyaning ichki kalitlari (capture, xabar kursori, cron belgisi) — sozlama emas.
+      if (/^(premium|teacher)_price_/.test(s.key) || isInternalCampaignKey(s.key)) continue;
       settingsMap[s.key] = s.value;
     }
 
@@ -114,8 +114,8 @@ export async function PUT(request: NextRequest) {
     // Upsert each setting
     const results = [];
     for (const [key, value] of entries) {
-      // Sahifa butun xaritani qaytaradi — capture kaliti bu yerdan qayta yozilib "tirilmasin".
-      if (typeof value !== 'string' || /^(premium|teacher)_price_/.test(key) || isCaptureKey(key)) continue;
+      // Sahifa butun xaritani qaytaradi — aksiyaning ichki kaliti bu yerdan qayta yozilib "tirilmasin".
+      if (typeof value !== 'string' || /^(premium|teacher)_price_/.test(key) || isInternalCampaignKey(key)) continue;
 
       const result = await db.systemSetting.upsert({
         where: { key },

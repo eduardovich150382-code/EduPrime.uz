@@ -16,6 +16,8 @@ export type CampaignListItem = {
   endsAt: Date;
   participants: number;
   activeReferrals: number;
+  /** Yakunlangan qoralama ham "Yakunlandi" ko'rinsin — `campaignPhase` uni DRAFT deydi. */
+  finalized: boolean;
 };
 
 export async function listCampaigns(now: Date): Promise<CampaignListItem[]> {
@@ -28,11 +30,12 @@ export async function listCampaigns(now: Date): Promise<CampaignListItem[]> {
   });
   return rows.map((c) => ({
     id: c.id, title: c.title, phase: campaignPhase(c, now), startsAt: c.startsAt, endsAt: c.endsAt,
-    participants: c._count.participants, activeReferrals: c._count.referrals,
+    participants: c._count.participants, activeReferrals: c._count.referrals, finalized: c.finalizedAt !== null,
   }));
 }
 
 export type AdminRankingRow = {
+  participantId: string;
   rank: number;
   telegramId: string;
   username: string | null;
@@ -77,7 +80,7 @@ export function buildAdminRanking(
     if (!p) continue;
     const c = counts.get(r.participantId);
     rows.push({
-      rank: r.rank, telegramId: p.telegramId.toString(), username: p.username, firstName: p.firstName,
+      participantId: p.id, rank: r.rank, telegramId: p.telegramId.toString(), username: p.username, firstName: p.firstName,
       active: r.activeCount, pending: c?.PENDING ?? 0, left: c?.LEFT ?? 0, invalid: c?.INVALID ?? 0,
       lastActiveAt: r.lastActiveAt, percent: rewardFor(r.rank, r.activeCount, rules.tiers, rules.base), joinedAt: p.createdAt,
     });

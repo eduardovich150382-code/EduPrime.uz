@@ -4,6 +4,8 @@ import { logger } from '../logger';
 import { revalidateCampaigns } from '../cache-tags';
 import type { BotSettings } from '../bot-settings';
 import { entitiesToHtml, type TelegramEntity } from '../telegram-entities';
+import { CAPTURE_KEY_PREFIX } from './internal-keys';
+import { postLockedError } from './post-api';
 import { savePost, loadPost } from './post-store';
 import { TYPE_CHANGED_ERROR, largestPhotoFileId, type PhotoSize } from './post-telegram';
 import { postSampleVars } from './post-vars';
@@ -14,15 +16,10 @@ import { EDITABLE_POST_KINDS, POST_KIND_CONFIG, defaultPostText, validatePost, t
 // shu postga aylanadi. Emoji, spoiler va formatlashni Telegram'ning o'zida
 // yozish eng oson. Bot javoblari faqat adminga — qattiq yozilgan (A3 admin UI kabi).
 
-export const CAPTURE_KEY_PREFIX = 'campaign_capture:';
 export const CAPTURE_TTL_MS = 10 * 60 * 1000;
 
+// Kalit Sozlamalar sahifasidan yashiriladi (internal-keys.ts).
 export const captureKey = (telegramId: string | number) => `${CAPTURE_KEY_PREFIX}${telegramId}`;
-
-/** Sozlamalar sahifasida ko'rinmasin va u PUT qilganda qayta yozilmasin. */
-export function isCaptureKey(key: string): boolean {
-  return key.startsWith(CAPTURE_KEY_PREFIX);
-}
 
 const captureValue = z.object({ campaignId: z.string(), kind: z.enum(EDITABLE_POST_KINDS), expiresAt: z.string().datetime() });
 type CaptureValue = z.infer<typeof captureValue>;
@@ -117,7 +114,7 @@ export async function handleCampaignCapture(msg: CaptureMessage, deps: CaptureDe
 
 async function savePostFromMessage(msg: CaptureMessage, chatId: number, key: string, capture: CaptureValue, deps: CaptureDeps): Promise<void> {
   const campaign = await db.campaign.findUnique({ where: { id: capture.campaignId } });
-  if (!campaign || campaign.finalizedAt) {
+  if (!campaign || postLockedError(campaign, capture.kind)) {
     await db.systemSetting.deleteMany({ where: { key } });
     await deps.reply(chatId, CAPTURE_TEXTS.campaignGone);
     return;
