@@ -45,7 +45,9 @@ Object.assign(fake, {
 
 const ADMIN = { id: 456, username: 'admin', first_name: 'Admin' };
 const USER = { id: 777, username: 'yangi', first_name: 'Ali' };
-const request = (body: unknown) => new NextRequest('http://localhost/api/telegram/webhook', { method: 'POST', body: JSON.stringify(body) });
+const request = (body: unknown) => new NextRequest('http://localhost/api/telegram/webhook', {
+  method: 'POST', headers: { 'x-telegram-bot-api-secret-token': 'test-webhook' }, body: JSON.stringify(body),
+});
 const message = (msg: Record<string, unknown>, from = ADMIN) => POST(request({ message: { message_id: 1, chat: { id: from.id, type: 'private' }, from, ...msg } }));
 const replies = () => vi.mocked(fetch).mock.calls
   .filter(([url]) => String(url).endsWith('/sendMessage'))
@@ -58,6 +60,8 @@ function arm(kind = 'ANNOUNCE', expiresInMs = 5 * 60_000) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // CI'da TELEGRAM_WEBHOOK_SECRET o'rnatilgan — testlar muhitga bog'liq bo'lmasin.
+  vi.stubEnv('TELEGRAM_WEBHOOK_SECRET', 'test-webhook');
   s.settings.clear();
   s.posts = [];
   s.campaign = campaignFixture();
@@ -71,6 +75,10 @@ describe('webhook: capture', () => {
     await message({ text: 'Salom', chat: { id: -100, type: 'group' } });
     expect(findUnique).not.toHaveBeenCalled();
     expect(s.posts).toHaveLength(0);
+    // Nazorat: so'rovlar webhook secret tekshiruvidan o'tib capture kodigacha yetadi —
+    // xuddi shu sozlamada admin xabari kalitni o'qiydi.
+    await message({ text: 'Salom' });
+    expect(findUnique).toHaveBeenCalledTimes(1);
   });
 
   it('reply klaviatura tugmasi matni va buyruqlar capture qilinmaydi', async () => {
